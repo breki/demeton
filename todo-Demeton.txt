@@ -1,0 +1,3 @@
+- add to source control
+- how to deal with mutability, like file system?
+- read the file as an array
