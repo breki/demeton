@@ -20,4 +20,8 @@
     <Compile Include="Program.fs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Demeton\Demeton.fsproj" />
+  </ItemGroup>
+
 </Project>
