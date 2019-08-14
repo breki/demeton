@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Library.fs" />
+    <Compile Include="Start.fs" />
   </ItemGroup>
 
 </Project>

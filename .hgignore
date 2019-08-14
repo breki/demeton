@@ -69,3 +69,4 @@ src/ScalableMaps.Web/Content/compiled
 src/ScalableMaps.Web/typescript/compiled
 src/ScalableMaps.Web/typescript/prod/
 WebApp
+_NCrunch_*
