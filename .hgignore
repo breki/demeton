@@ -70,3 +70,5 @@ src/ScalableMaps.Web/typescript/compiled
 src/ScalableMaps.Web/typescript/prod/
 WebApp
 _NCrunch_*
+# Default ignored files
+.idea/.idea.Demeton/.idea/workspace.xml

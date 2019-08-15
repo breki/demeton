@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Users\igorb.FROSTI\.Rider2019.2\system\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\igorb.FROSTI\.Rider2019.2\system\resharper-host\local\Transient\ReSharperHost\v192\SolutionCaches\_Demeton.1534107892.00" t="ExcludeRecursive" />
+    <e p="D:\src\Demeton" t="IncludeFlat">
+      <e p="Demeton" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="Demeton.fsproj" t="IncludeRecursive" />
+        <e p="obj" t="ExcludeRecursive" />
+        <e p="Start.fs" t="Include" />
+      </e>
+      <e p="Demeton.Console" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="Demeton.Console.fsproj" t="IncludeRecursive" />
+        <e p="obj" t="ExcludeRecursive" />
+        <e p="Program.fs" t="Include" />
+      </e>
+      <e p="Demeton.sln" t="IncludeFlat" />
+      <e p="Demeton.Tests" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="Bounds to DEM tiles.fs" t="Include" />
+        <e p="DEM file storage tests.fs" t="Include" />
+        <e p="Demeton.Tests.fsproj" t="IncludeRecursive" />
+        <e p="ensureTilesAreInCache tests.fs" t="Include" />
+        <e p="Hillshading integration.fs" t="Include" />
+        <e p="obj" t="ExcludeRecursive" />
+      </e>
+      <e p="packages" t="ExcludeRecursive" />
+      <e p="Solution Items" t="Include" />
+      <e p="todo-Demeton.txt" t="Include" />
+    </e>
+  </component>
+</project>

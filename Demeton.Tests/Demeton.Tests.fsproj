@@ -9,6 +9,7 @@
     <Compile Include="Hillshading integration.fs" />
     <Compile Include="DEM file storage tests.fs" />
     <Compile Include="Bounds to DEM tiles.fs" />
+    <Compile Include="ensureTilesAreInCache tests.fs" />
   </ItemGroup>
 
   <ItemGroup>

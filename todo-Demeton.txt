@@ -1,3 +1,4 @@
-- add to source control
-- how to deal with mutability, like file system?
-- read the file as an array
+- write tests for tile ID names
+- find tile files (.hgt) in local cache
+- if not found in the local storage, find zips on the main store
+- unzip file
