@@ -1,5 +1,7 @@
 ﻿module Demeton
 
+open System.IO
+
 type Bounds = { 
     MinLon: double
     MinLat: double 
@@ -8,10 +10,12 @@ type Bounds = {
     }
 
 [<StructuredFormatDisplay("SrtmTile ({Lon}, {Lat})")>]
-type SrtmTile = {
-    Lon: int
-    Lat: int
-    }
+type SrtmTile = { Lon: int; Lat: int }
+
+type SrtmTileCacheState = 
+    | NotCached of SrtmTile
+    | Cached of SrtmTile
+    | NotExisting of SrtmTile
 
 let boundsToTiles (bounds: Bounds): SrtmTile list =
     let allLons = 
@@ -27,3 +31,5 @@ let boundsToTiles (bounds: Bounds): SrtmTile list =
                 yield { Lon = lon; Lat = lat; } 
     ]
 
+let hillshade (bounds: Bounds): Stream option =
+    None
