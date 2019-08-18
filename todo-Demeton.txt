@@ -1,4 +1,0 @@
-- write tests for tile ID names
-- find tile files (.hgt) in local cache
-- if not found in the local storage, find zips on the main store
-- unzip file

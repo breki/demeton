@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="fetchSrtmDemData tests.fs" />
+    <Compile Include="Tile ID tests.fs" />
     <Compile Include="Hillshading integration.fs" />
     <Compile Include="DEM file storage tests.fs" />
     <Compile Include="Bounds to DEM tiles.fs" />
