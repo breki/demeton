@@ -4,6 +4,8 @@ open Demeton
 
 open FsUnit
 open Xunit
+open Demeton.DemTypes
+open Demeton.SrtmTypes
 
 let returnSomeDemData _ =
     DemData(0, 0)
@@ -13,7 +15,7 @@ let fetchSomeSrtmTiles tilesCoords =
 
 [<Fact>]
 let ``Returns None if there are no tiles to fetch``() =
-    fetchSrtmDemData 
+    Demeton.Srtm.fetchSrtmDemData 
         [] 
         (fun _ -> Seq.empty<SrtmTileHgtFile>) 
         returnSomeDemData 
@@ -23,7 +25,7 @@ let ``Returns None if there are no tiles to fetch``() =
 let ``Returns DemData when at least one tile was found``() =
     let tilesToUse = [ { Lon = 1; Lat = 1 } ]
     let demData = 
-        fetchSrtmDemData 
+        Demeton.Srtm.fetchSrtmDemData 
             tilesToUse
             fetchSomeSrtmTiles
             returnSomeDemData

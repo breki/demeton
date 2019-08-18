@@ -5,10 +5,10 @@ open Demeton
 open FsUnit
 open Xunit
 
-[<Fact(Skip="to be implemented")>]
+[<Fact(Skip="todo next:")>]
 let ``Returns a stream of PNG file containing hillshading of a specified region``() =
     // 15.297432,46.401552,15.67131,46.577648
-    let stream = hillshade { 
+    let stream = Hillshading.hillshade { 
         MinLon = 15.297432; 
         MinLat = 46.401552; 
         MaxLon = 15.67131; 

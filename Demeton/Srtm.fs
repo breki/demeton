@@ -1,33 +1,9 @@
-﻿module Demeton
+﻿module Demeton.Srtm
 
+open GeometryTypes
+open DemTypes
+open SrtmTypes
 open System.IO
-
-type Bounds = { 
-    MinLon: double
-    MinLat: double 
-    MaxLon: double 
-    MaxLat: double
-    }
-
-[<StructuredFormatDisplay("SrtmTile ({Lon}, {Lat})")>]
-type SrtmTileCoords = { Lon: int; Lat: int }
-
-type SrtmTileHgtFile = SrtmTileHgtFile of SrtmTileCoords * string
-
-type DemHeight = DemHeight of int
-
-type NoHeight = NoHeight of unit
-
-type DemCell =
-    | DemHeight
-    | NoHeight
-
-type DemData(width, height) =
-    member this.Cells = Array2D.create width height NoHeight
-
-type FetchSrtmTiles = SrtmTileCoords seq -> SrtmTileHgtFile seq
-
-type ReadSrtmTile = SrtmTileHgtFile -> DemData
 
 let boundsToTiles (bounds: Bounds): SrtmTileCoords list =
     let allLons = 
@@ -81,12 +57,5 @@ let fetchSrtmDemData
     (readSrtmTile: ReadSrtmTile)
     : DemData option = 
     let srtmTiles = fetchSrtmTiles tilesToUse
-
-    None
-
-let hillshade (bounds: Bounds): Stream option =
-    let neededTiles = boundsToTiles bounds
-
-    let neededTilesFiles = ensureTilesAreInCache neededTiles
 
     None

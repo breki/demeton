@@ -6,7 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Start.fs" />
+    <Compile Include="GeometryTypes.fs" />
+    <Compile Include="DemTypes.fs" />
+    <Compile Include="SrtmTypes.fs" />
+    <Compile Include="Srtm.fs" />
+    <Compile Include="Hillshading.fs" />
   </ItemGroup>
 
 </Project>
