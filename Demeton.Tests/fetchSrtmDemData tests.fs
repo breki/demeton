@@ -1,25 +1,26 @@
 ﻿module Demeton.Tests.``fetchSrtmDemData tests``
 
-open Demeton
-
 open FsUnit
 open Xunit
 open Demeton.DemTypes
 open Demeton.SrtmTypes
+open Swensen.Unquote
 
 let returnSomeDemData _ =
-    DemData(0, 0)
+    DemData(0, 0, 0, 0)
 
 let fetchSomeSrtmTiles tilesCoords =
     tilesCoords |> Seq.map (fun tc -> SrtmTileHgtFile (tc, "sometile") );
 
 [<Fact>]
 let ``Returns None if there are no tiles to fetch``() =
-    Demeton.Srtm.fetchSrtmDemData 
-        [] 
-        (fun _ -> Seq.empty<SrtmTileHgtFile>) 
-        returnSomeDemData 
-    |> should equal None
+    let demData = 
+        Demeton.Srtm.fetchSrtmDemData 
+            [] 
+            (fun _ -> Seq.empty<SrtmTileHgtFile>) 
+            returnSomeDemData 
+    demData |> should equal None
+    test <@ (demData |> Option.isNone) = true @>
 
 [<Fact>]
 let ``Returns DemData when at least one tile was found``() =
@@ -29,5 +30,6 @@ let ``Returns DemData when at least one tile was found``() =
             tilesToUse
             fetchSomeSrtmTiles
             returnSomeDemData
-    demData |> should be ofExactType<DemData>
-    
+    demData |> should be ofExactType<DemData option>
+    test <@ (demData |> Option.isSome) = true @>
+   

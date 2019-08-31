@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="GeometryTypes.fs" />
     <Compile Include="DemTypes.fs" />
+    <Compile Include="Dem.fs" />
     <Compile Include="SrtmTypes.fs" />
     <Compile Include="Srtm.fs" />
     <Compile Include="Hillshading.fs" />

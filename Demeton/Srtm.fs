@@ -51,11 +51,13 @@ let ensureTilesAreInCache
     tiles 
     |> List.map (fun x -> toLocalCacheTileFile x localCacheDir)
 
+// todo: fetchSrtmDemData need to merge the fetched tiles together
 let fetchSrtmDemData 
     (tilesToUse: SrtmTileCoords seq)
     (fetchSrtmTiles: FetchSrtmTiles)
     (readSrtmTile: ReadSrtmTile)
     : DemData option = 
     let srtmTiles = fetchSrtmTiles tilesToUse
-
-    None
+    match srtmTiles with
+    | tiles when Seq.isEmpty tiles -> None
+    | _ -> Some (readSrtmTile (srtmTiles |> Seq.head))
