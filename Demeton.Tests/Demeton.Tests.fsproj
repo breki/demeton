@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="fetchSrtmDemData tests.fs" />
+    <Compile Include="fetchSrtmHeights tests.fs" />
     <Compile Include="Merging DEM data.fs" />
     <Compile Include="Tile ID tests.fs" />
     <Compile Include="Hillshading integration.fs" />

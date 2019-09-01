@@ -1,14 +1,14 @@
 ﻿module Demeton.DemTypes 
 
-type DemHeight = DemHeight of int
+type Height = DemHeight of int
 
 type NoHeight = NoHeight of unit
 
-type DemCell =
-    | DemHeight
+type HeightCell =
+    | Height
     | NoHeight
 
-type DemData(x: int, y: int, width: int, height: int) =
+type HeightArray(x: int, y: int, width: int, height: int) =
     member this.MinX = x
     member this.MinY = y
     member this.Width = width

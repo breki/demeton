@@ -9,6 +9,6 @@ type SrtmTileHgtFile = SrtmTileHgtFile of SrtmTileCoords * string
 
 type FetchSrtmTiles = SrtmTileCoords seq -> SrtmTileHgtFile seq
 
-type ReadSrtmTile = SrtmTileHgtFile -> DemData
+type ReadSrtmTile = SrtmTileHgtFile -> HeightArray
 
 

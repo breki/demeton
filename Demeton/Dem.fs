@@ -2,8 +2,8 @@
 
 open DemTypes
 
-let merge (demData: DemData list): DemData option =
-    match demData with
+let merge (heightArrays: HeightArray list): HeightArray option =
+    match heightArrays with
     | [] -> None
     | [ array ] -> Some array
     | [ array1; array2 ] -> 
@@ -13,12 +13,12 @@ let merge (demData: DemData list): DemData option =
         let maxY = max array1.MaxY array2.MaxY
         let width = maxX - minX + 1
         let height = maxY - minY + 1
-        Some (DemData(minX, minY, width, height))
+        Some (HeightArray(minX, minY, width, height))
     | _ -> 
-        let minX = demData |> List.map (fun d -> d.MinX) |> List.min
-        let minY = demData |> List.map (fun d -> d.MinY) |> List.min
-        let maxX = demData |> List.map (fun d -> d.MaxX) |> List.max
-        let maxY = demData |> List.map (fun d -> d.MaxY) |> List.max
+        let minX = heightArrays |> List.map (fun d -> d.MinX) |> List.min
+        let minY = heightArrays |> List.map (fun d -> d.MinY) |> List.min
+        let maxX = heightArrays |> List.map (fun d -> d.MaxX) |> List.max
+        let maxY = heightArrays |> List.map (fun d -> d.MaxY) |> List.max
         let width = maxX - minX + 1
         let height = maxY - minY + 1
-        Some (DemData(minX, minY, width, height))
+        Some (HeightArray(minX, minY, width, height))

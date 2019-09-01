@@ -1,1 +1,1 @@
-﻿- implement merging of SRTM tiles (DemData) together
+﻿- implement merging of HeightArray together
