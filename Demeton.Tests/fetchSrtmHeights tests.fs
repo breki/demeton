@@ -7,7 +7,7 @@ open Demeton.SrtmTypes
 open Swensen.Unquote
 
 let returnSomeHeightArray _ =
-    HeightArray(0, 0, 0, 0)
+    HeightArray(0, 0, 0, 0, [])
 
 let fetchSomeSrtmTiles tilesCoords =
     tilesCoords |> Seq.map (fun tc -> SrtmTileHgtFile (tc, "sometile") );

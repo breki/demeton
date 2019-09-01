@@ -1,21 +1,22 @@
 ﻿module Demeton.DemTypes 
 
-type Height = DemHeight of int
+type DemHeight = int
 
-type NoHeight = NoHeight of unit
+type HeightCell = { X : int; Y : int; Height : DemHeight option }
 
-type HeightCell =
-    | Height
-    | NoHeight
-
-type HeightArray(x: int, y: int, width: int, height: int) =
+type HeightArray(
+                    x: int, 
+                    y: int, 
+                    width: int, 
+                    height: int,
+                    cells: HeightCell list) =
     member this.MinX = x
     member this.MinY = y
     member this.Width = width
     member this.Height = height
     member this.MaxX = x + width - 1
     member this.MaxY = y + height - 1
-    member this.Cells = Array2D.create width height NoHeight
-
-
+    member this.Cells = Array2D.create<DemHeight option> width height None
+    
+    member this.heightAt x y = this.Cells.[x, y]
 

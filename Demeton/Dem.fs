@@ -13,7 +13,7 @@ let merge (heightArrays: HeightArray list): HeightArray option =
         let maxY = max array1.MaxY array2.MaxY
         let width = maxX - minX + 1
         let height = maxY - minY + 1
-        Some (HeightArray(minX, minY, width, height))
+        Some (HeightArray(minX, minY, width, height, []))
     | _ -> 
         let minX = heightArrays |> List.map (fun d -> d.MinX) |> List.min
         let minY = heightArrays |> List.map (fun d -> d.MinY) |> List.min
@@ -21,4 +21,4 @@ let merge (heightArrays: HeightArray list): HeightArray option =
         let maxY = heightArrays |> List.map (fun d -> d.MaxY) |> List.max
         let width = maxX - minX + 1
         let height = maxY - minY + 1
-        Some (HeightArray(minX, minY, width, height))
+        Some (HeightArray(minX, minY, width, height, []))

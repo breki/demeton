@@ -1,4 +1,5 @@
-## Sun 01.09.
+﻿## Sun 01.09.
+- made some changes in how the HeightArray is structured
 - renamed DemData to HeightArray
 
 ## Sun 18.08.
