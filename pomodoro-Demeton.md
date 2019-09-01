@@ -1,4 +1,5 @@
 ﻿## Sun 01.09.
+- the constructor of the HeightArray now accepts a function for initializing
 - made some changes in how the HeightArray is structured
 - renamed DemData to HeightArray
 
