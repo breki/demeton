@@ -1,1 +1,1 @@
-﻿
+﻿- reading of HGT file into HeightsArray
