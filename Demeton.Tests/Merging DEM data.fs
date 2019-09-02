@@ -7,10 +7,12 @@ open FsUnit
 open Xunit
 open Swensen.Unquote
 
-let someCells _ _ = None
+let someCells _ = None
 
-let heightCellsInitializer (cells: HeightCell list) x y =
-    cells |> List.tryFind (fun c -> c.X = x && c.Y = y)
+let heightCellsInitializer 
+    (cellsToFill: HeightCell list) (cellCoords: GlobalCellCoords) =
+    cellsToFill |> List.tryFind (
+        fun cellToFill -> cellToFill.Coords = cellCoords)
     |> function
     | Some cell -> cell.Height
     | _ -> None
@@ -21,39 +23,45 @@ let ``Merging empty DEM data array results in None``() =
 
 [<Fact>]
 let ``Merging single DEM data array results in the same array``() =
-    let array = HeightArray(10, 20, 15, 25, someCells)
+    let array = HeightArray({ X = 10; Y = 20}, 15, 25, someCells)
     test <@ Dem.merge ([ array ]) = Some array @>
 
 [<Fact>]
 let ``Merging two adjacent DEM data arrays results in a merged array``() =
     let cells1 = [
-        { X = 11; Y = 22; Height = Some 12 }
+        { Coords = { X = 11; Y = 22 }; Height = Some 12 }
     ]
     let cells2 = [
-        { X = 25; Y = 20; Height = Some 20 }
+        { Coords = { X = 25; Y = 20 }; Height = Some 20 }
     ]
 
-    let array1 = HeightArray(10, 20, 15, 25, heightCellsInitializer cells1)
-    let array2 = HeightArray(25, 20, 15, 25, heightCellsInitializer cells2)
-    let merged = Dem.merge([ array1; array2 ])
+    let array1 = HeightArray({ X = 10; Y = 20}, 15, 25, heightCellsInitializer cells1)
+    let array2 = HeightArray({ X = 25; Y = 20}, 15, 25, heightCellsInitializer cells2)
+    let mergedMaybe = Dem.merge([ array1; array2 ])
 
-    test <@ (merged |> Option.isSome) = true @>
-    test <@ merged.Value.MinX = 10 @>
-    test <@ merged.Value.MinY = 20 @>
-    test <@ merged.Value.Width = 30 @>
-    test <@ merged.Value.Height = 25 @>
-    test <@ merged.Value.heightAt 11 22 = Some 12 @>
-    test <@ merged.Value.heightAt 25 20 = Some 20 @>
+    test <@ (mergedMaybe |> Option.isSome) = true @>
+
+    let merged = mergedMaybe.Value
+
+    test <@ merged.MinCoords.X = 10 @>
+    test <@ merged.MinCoords.Y = 20 @>
+    test <@ merged.Width = 30 @>
+    test <@ merged.Height = 25 @>
+    test <@ merged.heightAt { X = 11; Y = 22} = Some 12 @>
+    test <@ merged.heightAt { X = 25; Y = 20} = Some 20 @>
 
 [<Fact>]
 let ``Merging several DEM data arrays results in a merged array``() =
-    let array1 = HeightArray(10, 20, 15, 25, someCells)
-    let array2 = HeightArray(25, 20, 15, 25, someCells)
-    let array3 = HeightArray(100, 0, 15, 25, someCells)
-    let merged = Dem.merge([ array1; array2; array3 ])
+    let array1 = HeightArray({ X = 10; Y = 20}, 15, 25, someCells)
+    let array2 = HeightArray({ X = 25; Y = 20}, 15, 25, someCells)
+    let array3 = HeightArray({ X = 100; Y = 0}, 15, 25, someCells)
+    let mergedMaybe = Dem.merge([ array1; array2; array3 ])
 
-    test <@ (merged |> Option.isSome) = true @>
-    test <@ merged.Value.MinX = 10 @>
-    test <@ merged.Value.MinY = 0 @>
-    test <@ merged.Value.Width = 105 @>
-    test <@ merged.Value.Height = 45 @>
+    test <@ (mergedMaybe |> Option.isSome) = true @>
+
+    let merged = mergedMaybe.Value
+
+    test <@ merged.MinCoords.X = 10 @>
+    test <@ merged.MinCoords.Y = 0 @>
+    test <@ merged.Width = 105 @>
+    test <@ merged.Height = 45 @>
