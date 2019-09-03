@@ -1,6 +1,6 @@
 ﻿module Demeton.DemTypes 
 
-type DemHeight = int
+type DemHeight = int16
 
 type GlobalCellCoords = { X : int; Y : int }
 

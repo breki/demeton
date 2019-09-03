@@ -1,4 +1,7 @@
-﻿## Mon 02.09.
+﻿## Tue 3.9.
+- Implemented readSrtmHeightsFromStream function.
+
+## Mon 02.09.
 - Introduced GlobalCellCoords which helped me root out the bug with HeightsArray merging.
 
 ## Sun 01.09.

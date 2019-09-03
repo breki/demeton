@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <Compile Include="fetchSrtmHeights tests.fs" />
-    <Compile Include="Reading HGT files.fs" />
+    <Compile Include="Reading HGT height values from a stream.fs" />
     <Compile Include="Merging DEM data.fs" />
     <Compile Include="Tile ID tests.fs" />
     <Compile Include="Hillshading integration.fs" />

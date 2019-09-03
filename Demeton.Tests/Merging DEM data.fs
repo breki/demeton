@@ -29,10 +29,10 @@ let ``Merging single DEM data array results in the same array``() =
 [<Fact>]
 let ``Merging several DEM data arrays results in a merged array``() =
     let cells1 = [
-        { Coords = { X = 11; Y = 22 }; Height = Some 12 }
+        { Coords = { X = 11; Y = 22 }; Height = Some 12s }
     ]
     let cells2 = [
-        { Coords = { X = 25; Y = 20 }; Height = Some 20 }
+        { Coords = { X = 25; Y = 20 }; Height = Some 20s }
     ]
 
     let array1 = HeightArray(
@@ -50,5 +50,5 @@ let ``Merging several DEM data arrays results in a merged array``() =
     test <@ merged.MinCoords.Y = 0 @>
     test <@ merged.Width = 105 @>
     test <@ merged.Height = 45 @>
-    test <@ merged.heightAt { X = 11; Y = 22} = Some 12 @>
-    test <@ merged.heightAt { X = 25; Y = 20} = Some 20 @>
+    test <@ merged.heightAt { X = 11; Y = 22} = Some 12s @>
+    test <@ merged.heightAt { X = 25; Y = 20} = Some 20s @>
