@@ -1,4 +1,7 @@
-﻿## Tue 3.9.
+﻿## Wed 4.9.
+- Introduced SrtmLongitude and SrtmLatitude types.
+
+## Tue 3.9.
 - Implemented readSrtmHeightsFromStream function.
 
 ## Mon 02.09.

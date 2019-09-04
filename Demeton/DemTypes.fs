@@ -27,4 +27,3 @@ type HeightArray
             coords.X - this.MinCoords.X, coords.Y - this.MinCoords.Y]
         height
         
-

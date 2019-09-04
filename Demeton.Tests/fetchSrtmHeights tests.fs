@@ -24,7 +24,8 @@ let ``Returns None if there are no tiles to fetch``() =
 
 [<Fact>]
 let ``Returns HeightArray when at least one tile was found``() =
-    let tilesToUse = [ { Lon = 1; Lat = 1 } ]
+    let tilesToUse = [ 
+        { Lon = SrtmLongitude.fromInt 1; Lat = SrtmLatitude.fromInt 1 } ]
     let srtmHeights = 
         Demeton.Srtm.fetchSrtmHeights 
             tilesToUse
