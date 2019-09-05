@@ -83,19 +83,23 @@ let tileCellMinCoords (tileCoords: SrtmTileCoords) =
     }
 
 
+let inline heightFromBytes firstByte secondByte =
+    let height: int16 = (int16)firstByte <<< 8 ||| (int16)secondByte
+    match height with
+    | 0x8000s -> None
+    | _ -> Some (height)
+
+
 let readSrtmHeightsFromStream (stream: Stream): DemHeight option seq =
 
-    let readNextHeightFromStream (streamReader: FunctionalStreamReader) =
+    let inline readNextHeightFromStream (streamReader: FunctionalStreamReader) =
        let firstByte = streamReader.currentByte()
 
        match streamReader.moveForward() with
        | false -> raise (InvalidOperationException ("Unexpected end of SRTM heights stream reached."))
        | true -> 
             let secondByte = streamReader.currentByte()
-            let height: int16 = (int16)firstByte <<< 8 ||| (int16)secondByte
-            match height with
-            | 0x8000s -> None
-            | _ -> Some (height)
+            heightFromBytes firstByte secondByte 
 
     let streamReader = FunctionalStreamReader(stream)
 

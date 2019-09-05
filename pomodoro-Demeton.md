@@ -1,4 +1,7 @@
 ﻿## Thu 5.9.
+- Inlined some of the methods to improve performance, but it's still way too slow.
+- Renamed `HeightArray` to `HeightsArray`.
+- Started implementing reading of a whole HGT file.
 - Implemented `Srtm.tileCellMinCoords` function.
 
 ## Wed 4.9.

@@ -43,23 +43,49 @@ let ``Can create heights array from SRTM heights sequence``() =
             yield (byte)(value >>> 8)
         }
 
-    let givenAStreamOfHgtHeights() =
+    let givenAByteArrayOfHeights() =
+        let byteArray: byte[] = Array.zeroCreate (3601*3601*2)
+
         let rnd = System.Random(123)
-        new MemoryStream([| 
-            for i in 0 .. 3601*3601 
-                do yield! (nextRandomHeight >> int16ToBigEndianBytes) rnd |])
+        byteArray
+        //[| 
+        //    for i in 0 .. 3601*3601 
+        //        do yield! (nextRandomHeight >> int16ToBigEndianBytes) rnd |]
 
     let createSrtmTileFromStream tileCoords stream =
-        HeightsArray(
-            tileCellMinCoords tileCoords, 3600, 3600, (fun _ -> None))
+        let heights1DArray = readSrtmHeightsFromStream stream |> Array.ofSeq
 
-    let stream = givenAStreamOfHgtHeights()
-    let srtmTileHeightsArray = 
+        let tileMinCoords = tileCellMinCoords tileCoords
+        
+        let inline heightFrom1DArray (cellCoords: GlobalCellCoords) =
+            let arrayIndex = cellCoords.X - tileMinCoords.X
+                            + (cellCoords.Y - tileMinCoords.Y) * 3601
+            heights1DArray.[arrayIndex]
+
+        HeightsArray(tileMinCoords, 3600, 3600, heightFrom1DArray)
+
+
+    let heightFromByteArray byteOffset (byteArray: byte []) =
+        let firstByte = byteArray.[byteOffset]
+        let secondByte = byteArray.[byteOffset + 1]
+        heightFromBytes firstByte secondByte
+
+
+    let byteArray = givenAByteArrayOfHeights()
+
+    let sampleHeight1 = byteArray |> heightFromByteArray 0
+    let sampleHeight2 = byteArray |> heightFromByteArray 3601
+
+    use stream = new MemoryStream(byteArray)
+
+    let tile = 
         createSrtmTileFromStream { 
             Lon = SrtmLongitude.fromInt 16; Lat = SrtmLatitude.fromInt 45 } 
             stream
 
-    test <@ srtmTileHeightsArray.Width = 3600 @>
-    test <@ srtmTileHeightsArray.Height = 3600 @>
-    test <@ srtmTileHeightsArray.MinCoords.X = 702000 @>
-    test <@ srtmTileHeightsArray.MinCoords.Y = 486000 @>
+    test <@ tile.Width = 3600 @>
+    test <@ tile.Height = 3600 @>
+    test <@ tile.MinCoords.X = 702000 @>
+    test <@ tile.MinCoords.Y = 486000 @>
+    test <@ tile.Cells.[0,0] = sampleHeight1 @>
+    test <@ tile.Cells.[0,1] = sampleHeight2 @>
