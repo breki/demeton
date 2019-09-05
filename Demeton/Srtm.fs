@@ -76,6 +76,13 @@ let parseTileId (tileId: string) =
     { Lon = longitude; Lat = latitude }
 
 
+let tileCellMinCoords (tileCoords: SrtmTileCoords) =
+    { 
+        X = (tileCoords.Lon.Value + 179) * 3600;
+        Y = (tileCoords.Lat.Value + 90) * 3600
+    }
+
+
 let readSrtmHeightsFromStream (stream: Stream): DemHeight option seq =
 
     let readNextHeightFromStream (streamReader: FunctionalStreamReader) =

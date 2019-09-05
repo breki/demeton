@@ -1,4 +1,7 @@
-﻿## Wed 4.9.
+﻿## Thu 5.9.
+- Implemented `Srtm.tileCellMinCoords` function.
+
+## Wed 4.9.
 - Introduced SrtmLongitude and SrtmLatitude types.
 
 ## Tue 3.9.

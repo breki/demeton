@@ -40,6 +40,16 @@ let ``Can parse north and west tile IDs``() =
     @>
 
 [<Fact>]
+let ``Can parse south and east tile IDs``() =
+    test <@ 
+            Srtm.parseTileId "S22E080" = 
+                { Lon = SrtmLongitude.fromInt 80; 
+                Lat = SrtmLatitude.fromInt -22 } 
+    @>
+
+[<Fact>]
 let ``Calculates global coordinates for a given tile ID``() =
-    // todo:
-    true
+    test <@ 
+            Srtm.parseTileId "S22E080"
+            |> Srtm.tileCellMinCoords = { X = 932400; Y = 244800 } 
+    @>
