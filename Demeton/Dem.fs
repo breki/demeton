@@ -2,14 +2,14 @@
 
 open DemTypes
 
-let merge (heightArrays: HeightArray list): HeightArray option =
-    let isCellWithinArray (array: HeightArray) (cellCoords: GlobalCellCoords) =
+let merge (heightArrays: HeightsArray list): HeightsArray option =
+    let isCellWithinArray (array: HeightsArray) (cellCoords: GlobalCellCoords) =
         cellCoords.X >= array.MinCoords.X && cellCoords.X <= array.MaxX 
             && cellCoords.Y >= array.MinCoords.Y && cellCoords.Y <= array.MaxY
 
     let findArrayOfCell 
         (cellCoords: GlobalCellCoords)
-        (arrays: HeightArray list) =
+        (arrays: HeightsArray list) =
         arrays 
         |> List.tryFind (fun array -> isCellWithinArray array cellCoords)
 
@@ -19,7 +19,7 @@ let merge (heightArrays: HeightArray list): HeightArray option =
     /// if there is no height information for that cell.
     /// </summary>
     let findHeightOfCell 
-        (cellCoords: GlobalCellCoords) (arrayMaybe: HeightArray option)
+        (cellCoords: GlobalCellCoords) (arrayMaybe: HeightsArray option)
         : DemHeight option =
         match arrayMaybe with
         | Some array -> 
@@ -42,5 +42,5 @@ let merge (heightArrays: HeightArray list): HeightArray option =
             heightArrays |> findArrayOfCell coords |> findHeightOfCell coords
 
         Some (
-            HeightArray(
+            HeightsArray(
                 { X = minX; Y = minY }, width, height, heightOfCellInArrays))

@@ -7,7 +7,7 @@ open Demeton.SrtmTypes
 open Swensen.Unquote
 
 let returnSomeHeightArray _ =
-    HeightArray({ X = 0; Y = 0}, 0, 0, (fun _ -> None))
+    HeightsArray({ X = 0; Y = 0}, 0, 0, (fun _ -> None))
 
 let fetchSomeSrtmTiles tilesCoords =
     tilesCoords |> Seq.map (fun tc -> SrtmTileHgtFile (tc, "sometile") );
@@ -31,6 +31,6 @@ let ``Returns HeightArray when at least one tile was found``() =
             tilesToUse
             fetchSomeSrtmTiles
             returnSomeHeightArray
-    srtmHeights |> should be ofExactType<HeightArray option>
+    srtmHeights |> should be ofExactType<HeightsArray option>
     test <@ (srtmHeights |> Option.isSome) = true @>
    

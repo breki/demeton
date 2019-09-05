@@ -6,7 +6,7 @@ type GlobalCellCoords = { X : int; Y : int }
 
 type HeightCell = { Coords: GlobalCellCoords; Height : DemHeight option }
 
-type HeightArray
+type HeightsArray
     (
         minCoords: GlobalCellCoords,
         width: int, 

@@ -126,7 +126,7 @@ let fetchSrtmHeights
     (tilesToUse: SrtmTileCoords seq)
     (fetchSrtmTiles: FetchSrtmTiles)
     (readSrtmTile: ReadSrtmTile)
-    : HeightArray option = 
+    : HeightsArray option = 
     let srtmTiles = fetchSrtmTiles tilesToUse
     match srtmTiles with
     | tiles when Seq.isEmpty tiles -> None

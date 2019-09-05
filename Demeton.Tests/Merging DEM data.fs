@@ -23,7 +23,7 @@ let ``Merging empty DEM data array results in None``() =
 
 [<Fact>]
 let ``Merging single DEM data array results in the same array``() =
-    let array = HeightArray({ X = 10; Y = 20}, 15, 25, someCells)
+    let array = HeightsArray({ X = 10; Y = 20}, 15, 25, someCells)
     test <@ Dem.merge ([ array ]) = Some array @>
 
 [<Fact>]
@@ -35,11 +35,11 @@ let ``Merging several DEM data arrays results in a merged array``() =
         { Coords = { X = 25; Y = 20 }; Height = Some 20s }
     ]
 
-    let array1 = HeightArray(
+    let array1 = HeightsArray(
                     { X = 10; Y = 20}, 15, 25, heightCellsInitializer cells1)
-    let array2 = HeightArray(
+    let array2 = HeightsArray(
                     { X = 25; Y = 20}, 15, 25, heightCellsInitializer cells2)
-    let array3 = HeightArray({ X = 100; Y = 0}, 15, 25, someCells)
+    let array3 = HeightsArray({ X = 100; Y = 0}, 15, 25, someCells)
     let mergedMaybe = Dem.merge([ array1; array2; array3 ])
 
     test <@ (mergedMaybe |> Option.isSome) = true @>
