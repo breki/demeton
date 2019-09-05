@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>

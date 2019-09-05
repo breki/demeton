@@ -37,32 +37,25 @@ let ``Can create heights array from SRTM heights sequence``() =
     let nextRandomHeight (rnd: Random): int16 =
         (int16) (rnd.Next 2500)
 
-    let int16ToBigEndianBytes (value: int16): byte seq = 
-        seq {
-            yield (byte)value
-            yield (byte)(value >>> 8)
-        }
+    let int16ToBigEndianBytes (value: int16): (byte*byte) = 
+        ((byte)value, (byte)(value >>> 8))
 
-    let givenAByteArrayOfHeights() =
-        let byteArray: byte[] = Array.zeroCreate (3601*3601*2)
+    let givenAByteArrayOfHeights tileSize =
+        let arrayLength = (tileSize + 1) * (tileSize + 1)
+
+        let byteArray: byte[] = 
+            Array.zeroCreate (arrayLength*2)
 
         let rnd = System.Random(123)
+
+        for i in 0 .. arrayLength-1 do
+            let (firstByte, secondByte) = 
+                (nextRandomHeight >> int16ToBigEndianBytes) rnd
+
+            byteArray.[i * 2] <- firstByte
+            byteArray.[i * 2 + 1] <- secondByte
+
         byteArray
-        //[| 
-        //    for i in 0 .. 3601*3601 
-        //        do yield! (nextRandomHeight >> int16ToBigEndianBytes) rnd |]
-
-    let createSrtmTileFromStream tileCoords stream =
-        let heights1DArray = readSrtmHeightsFromStream stream |> Array.ofSeq
-
-        let tileMinCoords = tileCellMinCoords tileCoords
-        
-        let inline heightFrom1DArray (cellCoords: GlobalCellCoords) =
-            let arrayIndex = cellCoords.X - tileMinCoords.X
-                            + (cellCoords.Y - tileMinCoords.Y) * 3601
-            heights1DArray.[arrayIndex]
-
-        HeightsArray(tileMinCoords, 3600, 3600, heightFrom1DArray)
 
 
     let heightFromByteArray byteOffset (byteArray: byte []) =
@@ -71,21 +64,25 @@ let ``Can create heights array from SRTM heights sequence``() =
         heightFromBytes firstByte secondByte
 
 
-    let byteArray = givenAByteArrayOfHeights()
+    let tileSize = 5
+    let byteArray = givenAByteArrayOfHeights tileSize
 
     let sampleHeight1 = byteArray |> heightFromByteArray 0
-    let sampleHeight2 = byteArray |> heightFromByteArray 3601
+    let sampleHeight2 = byteArray |> heightFromByteArray ((tileSize + 1) * 2)
 
     use stream = new MemoryStream(byteArray)
 
     let tile = 
-        createSrtmTileFromStream { 
+        createSrtmTileFromStream tileSize { 
             Lon = SrtmLongitude.fromInt 16; Lat = SrtmLatitude.fromInt 45 } 
             stream
 
-    test <@ tile.Width = 3600 @>
-    test <@ tile.Height = 3600 @>
-    test <@ tile.MinCoords.X = 702000 @>
-    test <@ tile.MinCoords.Y = 486000 @>
+    printf "%A" byteArray
+    printf "%d" byteArray.Length
+
+    test <@ tile.Width = tileSize @>
+    test <@ tile.Height = tileSize @>
+    test <@ tile.MinCoords.X = (16 + 179) * tileSize @>
+    test <@ tile.MinCoords.Y = (45 + 90) * tileSize @>
     test <@ tile.Cells.[0,0] = sampleHeight1 @>
     test <@ tile.Cells.[0,1] = sampleHeight2 @>

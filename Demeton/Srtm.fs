@@ -76,10 +76,10 @@ let parseTileId (tileId: string) =
     { Lon = longitude; Lat = latitude }
 
 
-let tileCellMinCoords (tileCoords: SrtmTileCoords) =
+let tileCellMinCoords tileSize (tileCoords: SrtmTileCoords) =
     { 
-        X = (tileCoords.Lon.Value + 179) * 3600;
-        Y = (tileCoords.Lat.Value + 90) * 3600
+        X = (tileCoords.Lon.Value + 179) * tileSize;
+        Y = (tileCoords.Lat.Value + 90) * tileSize
     }
 
 
@@ -107,6 +107,19 @@ let readSrtmHeightsFromStream (stream: Stream): DemHeight option seq =
         while streamReader.moveForward()
             do yield readNextHeightFromStream streamReader
     }
+
+    
+let createSrtmTileFromStream tileSize tileCoords stream =
+    let heights1DArray = readSrtmHeightsFromStream stream |> Array.ofSeq
+
+    let tileMinCoords = tileCellMinCoords tileSize tileCoords
+        
+    let inline heightFrom1DArray (cellCoords: GlobalCellCoords) =
+        let arrayIndex = cellCoords.X - tileMinCoords.X
+                        + (cellCoords.Y - tileMinCoords.Y) * (tileSize + 1)
+        heights1DArray.[arrayIndex]
+
+    HeightsArray(tileMinCoords, tileSize, tileSize, heightFrom1DArray)
 
 
 let toLocalCacheTileFile 
