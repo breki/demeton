@@ -1,5 +1,5 @@
 ﻿- how to speed things up?
-    - work with byte array instead of mapping it into DemHeights array?
+    - use tuple instead of GlobalCellCoords?
 - initializing the random array is very slow
     - probably because we are yielding a subsequence
     - use mutable array instead?

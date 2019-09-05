@@ -1,4 +1,5 @@
 ﻿## Thu 5.9.
+- Fixed the initialization of cells in `HeightsArray` so it is done only once.
 - Inlined some of the methods to improve performance, but it's still way too slow.
 - Renamed `HeightArray` to `HeightsArray`.
 - Started implementing reading of a whole HGT file.
