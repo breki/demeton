@@ -37,6 +37,17 @@ type PngInterlaceMethod =
     NoInterlace = 0uy
     | Adam7Interlace = 1uy
 
+[<Struct>]
+type ChunkType = 
+    val TypeName: string
+    new (typeName: string) = 
+        { 
+            TypeName = 
+                if typeName.Length <> 4 
+                    then invalidArg "typeName" "PNG chunk type must be 4 characters long."
+                else typeName
+        }
+
 type IhdrChunk = {
         Width: int
         Height: int
@@ -75,12 +86,12 @@ let writeBigEndianUInt32 (value: uint32) (stream: Stream): Stream =
     |> writeByte ((byte)value)
 
 
-type ChunkDataWriter = string -> byte[]
+type ChunkDataWriter = ChunkType -> byte[]
 
 
-let writeChunkType (chunkType: string) (stream: Stream): Stream = 
-    for i in 0 .. chunkType.Length - 1 do
-        stream |> writeByte ((byte) chunkType.[i]) |> ignore
+let writeChunkType (chunkType: ChunkType) (stream: Stream): Stream = 
+    for i in 0 .. chunkType.TypeName.Length - 1 do
+        stream |> writeByte ((byte) chunkType.TypeName.[i]) |> ignore
 
     stream
 
@@ -97,7 +108,7 @@ let writeIhdrChunkData (chunk: IhdrChunk) (stream: Stream): Stream =
 
 
 let writeChunk 
-    (chunkType: string) 
+    (chunkType: ChunkType) 
     (chunkDataWriter: ChunkDataWriter) 
     (stream: Stream)
     : Stream =
@@ -151,7 +162,7 @@ let ``Writes chunk into a stream``() =
         stream.ToArray();
 
     use stream = new MemoryStream()
-    stream |> writeChunk "TEST" givenSomeChunkData |> ignore
+    stream |> writeChunk (new ChunkType("TEST")) givenSomeChunkData |> ignore
 
     test <@ 
             stream.ToArray() = [| 

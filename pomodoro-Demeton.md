@@ -1,4 +1,6 @@
 ﻿## Fri 6.9.
+- Implemented "Writes chunk into a stream" test case.
+- Introduced ChunkType.
 - Started working on PNG writing.
 - Implemented an integration test reading a HGT file.
 

@@ -1,5 +1,5 @@
 ﻿- implement PNG writing
-    - chunk type should be a type
+    - http://plinth.org/techtalk/?p=196
     - implement writing of chunks (+ CRC checks)
     - first grayscale (and with transparency, if possible)
 
