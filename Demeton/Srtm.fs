@@ -127,7 +127,10 @@ let toLocalCacheTileFile
     (localCacheDir: string) : SrtmTileHgtFile =
     let tileHgtFileName = sprintf "%s.hgt" (tileId tileCoords)
 
-    SrtmTileHgtFile (tileCoords, Path.Combine(localCacheDir, tileHgtFileName))
+    { 
+        TileCoords = tileCoords; 
+        FileName = Path.Combine(localCacheDir, tileHgtFileName) 
+    }
 
 
 let ensureTilesAreInCache 

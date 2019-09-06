@@ -6,6 +6,7 @@ open Demeton.Srtm
 
 open System
 open System.IO;
+open System.Reflection
 
 open FsUnit
 open Xunit
@@ -77,12 +78,24 @@ let ``Can create heights array from SRTM heights sequence``() =
             Lon = SrtmLongitude.fromInt 16; Lat = SrtmLatitude.fromInt 45 } 
             stream
 
-    printf "%A" byteArray
-    printf "%d" byteArray.Length
-
     test <@ tile.Width = tileSize @>
     test <@ tile.Height = tileSize @>
     test <@ tile.MinCoords.X = (16 + 179) * tileSize @>
     test <@ tile.MinCoords.Y = (45 + 90) * tileSize @>
     test <@ tile.Cells.[0,0] = sampleHeight1 @>
     test <@ tile.Cells.[0,1] = sampleHeight2 @>
+
+[<Fact>]
+[<Trait("Category", "integration")>]
+let ``Can read HGT file``() =
+    let hgtFileNameOnly = "N00E031.hgt"
+    let tileCoords = parseTileId hgtFileNameOnly.[0..6]
+
+    let assembly = Assembly.GetExecutingAssembly()
+    use stream = assembly.GetManifestResourceStream
+                    ("Demeton.Tests.samples." + hgtFileNameOnly)
+
+    test <@ stream <> null @>
+
+    createSrtmTileFromStream 3600 tileCoords stream
+

@@ -10,7 +10,8 @@ let returnSomeHeightArray _ =
     HeightsArray({ X = 0; Y = 0}, 0, 0, (fun _ -> None))
 
 let fetchSomeSrtmTiles tilesCoords =
-    tilesCoords |> Seq.map (fun tc -> SrtmTileHgtFile (tc, "sometile") );
+    tilesCoords 
+    |> Seq.map (fun tc -> { TileCoords = tc; FileName = "sometile" } );
 
 [<Fact>]
 let ``Returns None if there are no tiles to fetch``() =

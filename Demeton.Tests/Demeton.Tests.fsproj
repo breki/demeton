@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="samples\N00E031.hgt" />
+    <EmbeddedResource Include="samples\N00E031.SRTMGL1.hgt.zip" />
     <Compile Include="fetchSrtmHeights tests.fs" />
     <Compile Include="Reading SRTM HGT files.fs" />
     <Compile Include="Merging DEM data.fs" />
@@ -15,6 +17,7 @@
     <Compile Include="DEM file storage tests.fs" />
     <Compile Include="Bounds to DEM tiles.fs" />
     <Compile Include="ensureTilesAreInCache tests.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>

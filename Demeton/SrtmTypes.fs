@@ -15,7 +15,7 @@ type SrtmLongitude = { Value: int } with
 [<StructuredFormatDisplay("SrtmTile ({Lon}, {Lat})")>]
 type SrtmTileCoords = { Lon: SrtmLongitude; Lat: SrtmLatitude }
 
-type SrtmTileHgtFile = SrtmTileHgtFile of SrtmTileCoords * string
+type SrtmTileHgtFile = { TileCoords: SrtmTileCoords; FileName: string }
 
 type FetchSrtmTiles = SrtmTileCoords seq -> SrtmTileHgtFile seq
 

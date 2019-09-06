@@ -1,4 +1,7 @@
-﻿## Thu 5.9.
+﻿## Fri 6.9.
+- Implemented an integration test reading a HGT file.
+
+## Thu 5.9.
 - Finished implementing `Srtm.createSrtmTileFromStream`.
 - Fixed the initialization of cells in `HeightsArray` so it is done only once.
 - Inlined some of the methods to improve performance, but it's still way too slow.
