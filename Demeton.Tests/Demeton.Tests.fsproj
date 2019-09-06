@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Hillshading.fs" />
     <EmbeddedResource Include="samples\N00E031.hgt" />
     <EmbeddedResource Include="samples\N00E031.SRTMGL1.hgt.zip" />
     <Compile Include="fetchSrtmHeights tests.fs" />
