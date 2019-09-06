@@ -1,5 +1,7 @@
 ﻿- implement PNG writing
-    - firt grayscale (and with transparency, if possible)
+    - chunk type should be a type
+    - implement writing of chunks (+ CRC checks)
+    - first grayscale (and with transparency, if possible)
 
 - hillshading algorithm
     - takes the `HeightsArray` and executes the Igor's shading algorithm

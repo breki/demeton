@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="CRC.fs" />
     <Compile Include="IOTypes.fs" />
     <Compile Include="GeometryTypes.fs" />
     <Compile Include="DemTypes.fs" />
