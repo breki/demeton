@@ -69,23 +69,25 @@ let igorHillshade
 
 let windowMinMax (window: float []): (float * float) option =
     let min (v: float option): float option =
-        match v with
-        | None -> None
-        |
+        //match v with
+        //| None -> None
+        //|
 
-    window |> Array.minBy (fun x -> matchx )
+        invalidOp "todo"
+        //window |> Array.minBy (fun x -> matchx )
+
+    invalidOp "todo"
 
 let aspectSlope 
         (cellSizeInMeters: float)
         (window: float option [,])
         : (float * float) option =
 
-        match window[1,1] with
-        | None -> None
-        | _ -> 
+    match window.[1,1] with
+    | None -> None
+    | _ -> 
             
-
-
+    invalidOp "todo"
 
 let hillshade (bounds: Bounds): Stream option =
     let neededTiles = Srtm.boundsToTiles bounds
