@@ -1,4 +1,5 @@
 ﻿## Fri 6.9.
+- Started working on PNG writing.
 - Implemented an integration test reading a HGT file.
 
 ## Thu 5.9.
