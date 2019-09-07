@@ -2,7 +2,10 @@
 
 open FsUnit
 open Xunit
+open FsCheck
+open FsCheck.Xunit
 open Swensen.Unquote
+
 open System
 open System.IO
 
@@ -253,15 +256,19 @@ let unfilterScanlineSub _ (filtered: byte[]): byte[] =
     let scanlineLength = filtered.Length - 1
     let scanline: byte[] = Array.zeroCreate scanlineLength
 
-    let mutable lastValue = filtered.[1]
-    scanline.[0] <- lastValue
+    match scanlineLength with
+    | 0 -> scanline
+    | _ -> 
+        let mutable lastValue = filtered.[1]
+        scanline.[0] <- lastValue
 
-    for i in 1 .. scanlineLength-1 do
-        let value = lastValue + filtered.[i + 1] 
-        scanline.[i] <- value
-        lastValue <- value
+        for i in 1 .. scanlineLength-1 do
+            let value = lastValue + filtered.[i + 1] 
+            scanline.[i] <- value
+            lastValue <- value
 
-    scanline
+        scanline
+
 
 /// <summary>
 /// Filters the provided sequence of scanlines according to the PNG filtering 
@@ -420,3 +427,9 @@ let ``Can generate a simplest PNG``() =
     |> writeIhdrChunk ihdr
     |> writeIdatChunk
     |> writeIendChunk
+
+
+[<Property>]
+[<Trait("Category", "properties")>]
+let ``Unfiltering using Sub filter type returns the same scanline`` scanline = 
+    unfilterScanlineSub None (filterScanlineSub None scanline) = scanline 

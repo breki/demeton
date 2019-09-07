@@ -22,5 +22,3 @@ let ``When tile is already in the cache, do nothing``() =
     |> should equal [ 
         ({ Lon = SrtmLongitude.fromInt 2; Lat = SrtmLatitude.fromInt 3 }, 
             @"d:\dem\N03E002.hgt") ]
-
-   

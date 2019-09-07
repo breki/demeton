@@ -1,4 +1,5 @@
 ﻿## Sat 7.9.
+- Introduced FsCheck to test filtering.
 - PNG tests now generate image with random pixels.
 - Implemented `filterScanlineSub` function.
 - Implemented `filterScanlineNone` function.
