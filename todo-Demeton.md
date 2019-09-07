@@ -1,5 +1,4 @@
-﻿- rename IhdrChunk to IhdrData
-- start documenting stuff
+﻿- start documenting stuff
 - implement PNG writing
     - prepare a test case for generating the simplest PNG
     - `writeIhdrChunkData` should use the `ChunkDataWriter` signature

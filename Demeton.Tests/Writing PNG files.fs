@@ -46,7 +46,7 @@ type ChunkType =
                 else typeName
         }
 
-type IhdrChunk = {
+type IhdrData = {
         Width: int
         Height: int
         BitDepth: PngBitDepth
@@ -94,18 +94,18 @@ let writeChunkType (chunkType: ChunkType) (stream: Stream): Stream =
     stream
 
 
-let writeIhdrChunkData (chunk: IhdrChunk): byte[] =
+let writeIhdrChunkData (ihdr: IhdrData): byte[] =
     use stream = new MemoryStream()
 
     stream
     |> writeChunkType (new ChunkType("IHDR"))
-    |> writeBigEndianInt32 chunk.Width
-    |> writeBigEndianInt32 chunk.Height
-    |> writeByte ((byte)(chunk.BitDepth))
-    |> writeByte ((byte)(chunk.ColorType))
+    |> writeBigEndianInt32 ihdr.Width
+    |> writeBigEndianInt32 ihdr.Height
+    |> writeByte ((byte)(ihdr.BitDepth))
+    |> writeByte ((byte)(ihdr.ColorType))
     |> writeByte ((byte)(PngCompressionMethod.DeflateInflate))
     |> writeByte ((byte)(PngFilterMethod.AdaptiveFiltering))
-    |> writeByte ((byte)(chunk.InterlaceMethod))
+    |> writeByte ((byte)(ihdr.InterlaceMethod))
     |> ignore
 
     stream.ToArray()
@@ -124,7 +124,7 @@ let writeChunk
     |> writeBytes chunkTypeAndDataBytes
     |> writeBigEndianUInt32 chunkCrc
 
-let writeIhdrChunk (ihdr: IhdrChunk) (stream: Stream): Stream =
+let writeIhdrChunk (ihdr: IhdrData) (stream: Stream): Stream =
     stream |> writeChunk (fun () -> writeIhdrChunkData (ihdr))
 
 let writeIdatChunk (stream: Stream): Stream =

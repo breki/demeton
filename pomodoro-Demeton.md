@@ -1,4 +1,5 @@
 ﻿## Sat 7.9.
+- Renamed IhdrChunk to IhdrData.
 - Refactored the PNG chunk writing code to support writing of various chunk types.
 
 ## Fri 6.9.
