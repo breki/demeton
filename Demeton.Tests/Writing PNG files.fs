@@ -54,21 +54,40 @@ type IhdrData = {
         InterlaceMethod: PngInterlaceMethod
     }
 
+
+/// <summary>Writes the 8-byte PNG signature to a stream.</summary>
+/// <param name="stream">The stream the signature should be written to.</param>
+/// <returns>The same instance of the stream.</returns>
 let writeSignature (stream: Stream): Stream =
     let pngSignature = [| 0x89uy; 0x50uy; 0x4euy; 0x47uy; 0x0duy; 0x0auy; 
                                 0x1auy; 0x0auy |]
     Array.ForEach(pngSignature, (fun x -> stream.WriteByte x))
     stream
 
+/// <summary>Writes the specified byte value to a stream.</summary>
+/// <param name="value">The byte value to be written.</param>
+/// <param name="stream">The stream the byte value should be written to.</param>
+/// <returns>The same instance of the stream.</returns>
 let writeByte (value: byte) (stream: Stream): Stream =
     stream.WriteByte(value)
     stream
 
+
+/// <summary>Writes the specified byte array to a stream.</summary>
+/// <param name="value">The byte array to be written.</param>
+/// <param name="stream">The stream the byte array should be written to.</param>
+/// <returns>The same instance of the stream.</returns>
 let writeBytes (bytes: byte[]) (stream: Stream): Stream =
     stream.Write (bytes, 0, bytes.Length)
     stream
 
 
+/// <summary>
+/// Writes the specified integer value to a stream using the big endian order.
+//// </summary>
+/// <param name="value">The integer value to be written.</param>
+/// <param name="stream">The stream the integer value should be written to.</param>
+/// <returns>The same instance of the stream.</returns>
 let writeBigEndianInt32 (value: int) (stream: Stream): Stream =
     stream
     |> writeByte ((byte)(value >>> 24))
@@ -76,6 +95,16 @@ let writeBigEndianInt32 (value: int) (stream: Stream): Stream =
     |> writeByte ((byte)(value >>> 8))
     |> writeByte ((byte)value)
 
+
+/// <summary>
+/// Writes the specified unsigned integer value to a stream using the big 
+/// endian order.
+//// </summary>
+/// <param name="value">The unsigned integer value to be written.</param>
+/// <param name="stream">
+/// The stream the unsigned integer value should be written to.
+/// </param>
+/// <returns>The same instance of the stream.</returns>
 let writeBigEndianUInt32 (value: uint32) (stream: Stream): Stream =
     stream
     |> writeByte ((byte)(value >>> 24))
@@ -87,6 +116,12 @@ let writeBigEndianUInt32 (value: uint32) (stream: Stream): Stream =
 type ChunkDataWriter = unit -> byte[]
 
 
+/// <summary>
+/// Writes the specified 4-characters PNG chunk type string to a stream.
+//// </summary>
+/// <param name="chunkType">The chunk type string to be written.</param>
+/// <param name="stream">The stream the chunk type should be written to.</param>
+/// <returns>The same instance of the stream.</returns>
 let writeChunkType (chunkType: ChunkType) (stream: Stream): Stream = 
     for i in 0 .. chunkType.TypeName.Length - 1 do
         stream |> writeByte ((byte) chunkType.TypeName.[i]) |> ignore
@@ -94,6 +129,15 @@ let writeChunkType (chunkType: ChunkType) (stream: Stream): Stream =
     stream
 
 
+/// <summary>
+/// Generates a byte array containing the PNG IHDR chunk type and data.
+//// </summary>
+/// <param name="ihdr">
+/// <see cref="IhdrData"/>value containing the IHDR chunk data.
+/// </param>
+/// <returns>
+/// The byte array containing the PNG IHDR chunk type and data.
+/// </returns>
 let writeIhdrChunkData (ihdr: IhdrData): byte[] =
     use stream = new MemoryStream()
 
