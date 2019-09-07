@@ -1,4 +1,7 @@
-﻿## Fri 6.9.
+﻿## Sat 7.9.
+- Refactored the PNG chunk writing code to support writing of various chunk types.
+
+## Fri 6.9.
 - Implemented "Writes chunk into a stream" test case.
 - Introduced ChunkType.
 - Started working on PNG writing.

@@ -1,6 +1,9 @@
-﻿- implement PNG writing
+﻿- rename IhdrChunk to IhdrData
+- start documenting stuff
+- implement PNG writing
+    - prepare a test case for generating the simplest PNG
+    - `writeIhdrChunkData` should use the `ChunkDataWriter` signature
     - http://plinth.org/techtalk/?p=196
-    - implement writing of chunks (+ CRC checks)
     - first grayscale (and with transparency, if possible)
 
 - hillshading algorithm

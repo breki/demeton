@@ -1,7 +1,5 @@
 ﻿module Demeton.Tests.``Writing PNG files``
 
-open CRC
-
 open FsUnit
 open Xunit
 open Swensen.Unquote
@@ -86,7 +84,7 @@ let writeBigEndianUInt32 (value: uint32) (stream: Stream): Stream =
     |> writeByte ((byte)value)
 
 
-type ChunkDataWriter = ChunkType -> byte[]
+type ChunkDataWriter = unit -> byte[]
 
 
 let writeChunkType (chunkType: ChunkType) (stream: Stream): Stream = 
@@ -96,8 +94,11 @@ let writeChunkType (chunkType: ChunkType) (stream: Stream): Stream =
     stream
 
 
-let writeIhdrChunkData (chunk: IhdrChunk) (stream: Stream): Stream =
+let writeIhdrChunkData (chunk: IhdrChunk): byte[] =
+    use stream = new MemoryStream()
+
     stream
+    |> writeChunkType (new ChunkType("IHDR"))
     |> writeBigEndianInt32 chunk.Width
     |> writeBigEndianInt32 chunk.Height
     |> writeByte ((byte)(chunk.BitDepth))
@@ -105,14 +106,15 @@ let writeIhdrChunkData (chunk: IhdrChunk) (stream: Stream): Stream =
     |> writeByte ((byte)(PngCompressionMethod.DeflateInflate))
     |> writeByte ((byte)(PngFilterMethod.AdaptiveFiltering))
     |> writeByte ((byte)(chunk.InterlaceMethod))
+    |> ignore
 
+    stream.ToArray()
 
 let writeChunk 
-    (chunkType: ChunkType) 
     (chunkDataWriter: ChunkDataWriter) 
     (stream: Stream)
     : Stream =
-    let chunkTypeAndDataBytes = chunkDataWriter chunkType
+    let chunkTypeAndDataBytes = chunkDataWriter()
     let chunkDataLength = chunkTypeAndDataBytes.Length - 4
 
     let chunkCrc = CRC.crc32 chunkTypeAndDataBytes
@@ -122,6 +124,14 @@ let writeChunk
     |> writeBytes chunkTypeAndDataBytes
     |> writeBigEndianUInt32 chunkCrc
 
+let writeIhdrChunk (ihdr: IhdrChunk) (stream: Stream): Stream =
+    stream |> writeChunk (fun () -> writeIhdrChunkData (ihdr))
+
+let writeIdatChunk (stream: Stream): Stream =
+    stream
+
+let writeIendChunk (stream: Stream): Stream =
+    stream
 
 [<Fact>]
 let ``Writes PNG signature into a stream``() =
@@ -140,11 +150,9 @@ let ``Writes IHDR chunk data into a stream``() =
            ColorType = PngColorType.Grayscale; 
            InterlaceMethod = PngInterlaceMethod.NoInterlace }
 
-    use stream = new MemoryStream()
-    stream |> writeIhdrChunkData chunk |> ignore
-
     test <@ 
-            stream.ToArray() = [| 
+            writeIhdrChunkData chunk = [| 
+                (byte)'I'; (byte)'H'; (byte)'D'; (byte)'R';
                 0x00uy; 0x00uy; 0x04uy; 0xB0uy;
                 0x00uy; 0x00uy; 0x03uy; 0x20uy;
                 0x08uy; 0x00uy; 0x00uy; 0x00uy;
@@ -154,15 +162,15 @@ let ``Writes IHDR chunk data into a stream``() =
 
 [<Fact>]
 let ``Writes chunk into a stream``() =
-    let givenSomeChunkData chunkyType : byte[] =
+    let givenSomeChunkData (): byte[] =
         use stream = new MemoryStream()
         stream 
-        |> writeChunkType chunkyType
+        |> writeChunkType (new ChunkType("TEST"))
         |> writeBigEndianInt32 1212234 |> ignore
         stream.ToArray();
 
     use stream = new MemoryStream()
-    stream |> writeChunk (new ChunkType("TEST")) givenSomeChunkData |> ignore
+    stream |> writeChunk (givenSomeChunkData) |> ignore
 
     test <@ 
             stream.ToArray() = [| 
@@ -172,3 +180,17 @@ let ``Writes chunk into a stream``() =
                 196uy; 248uy; 209uy; 112uy
             |] 
         @>
+
+[<Fact>]
+let ``Generates a simplest PNG``() =
+    let ihdr = 
+        { Width = 1200; Height = 800; BitDepth = PngBitDepth.BitDepth8; 
+           ColorType = PngColorType.Grayscale; 
+           InterlaceMethod = PngInterlaceMethod.NoInterlace }
+
+    use stream = new MemoryStream()
+    stream 
+    |> writeSignature 
+    |> writeIhdrChunk ihdr
+    |> writeIdatChunk
+    |> writeIendChunk
