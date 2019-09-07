@@ -1,6 +1,5 @@
 ﻿- implement PNG writing
-    - 
-
+    - how do we implement scanline filtering?
     - prepare a test case for generating the simplest PNG
     - first grayscale (and with transparency, if possible)
 

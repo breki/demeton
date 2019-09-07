@@ -218,6 +218,18 @@ let grayscale8BitScanlines (imageData: Grayscale8BitImageData): byte[] seq =
             yield imageData.[0..(Array2D.length1 imageData - 1),y]
     }
 
+/// <summary>
+/// Filters the provided sequence of scanlines according to the PNG filtering 
+/// mechanism.
+/// </summary>
+/// <param name="scanlines">A sequence of scanlines.</param>
+/// <returns>
+/// A sequence of filtered scanlines. Each filtered scanline corresponds to an
+/// original scanline.
+/// </returns>
+let filterScanlines (scanlines: byte[] seq): byte[] seq =
+    // https://www.w3.org/TR/PNG/#9Filters
+    Seq.empty
 
 [<Fact>]
 let ``Writes PNG signature into a stream``() =
@@ -287,6 +299,18 @@ let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
     test <@ scanlines |> Seq.exists (fun sc -> sc.Length <> imageWidth) |> not @>
     test <@ scanlines |> Seq.head = [| 0uy; 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy |] @>
     test <@ scanlines |> Seq.skip 1 |> Seq.head = [| 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy; 10uy |] @>
+
+[<Fact>]
+let ``Can filter scanlines``() =
+    let scanlines = [|
+        [| 0uy; 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy |];
+        [| 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy; 10uy |]
+    |]
+
+    let filteredScanlines = filterScanlines scanlines
+    test <@ filteredScanlines |> Seq.length = 2 @>
+    test <@ filteredScanlines |> Seq.exists (fun sc -> sc.Length <> 11) |> not @>
+
 
 [<Fact>]
 let ``Can generate a simplest PNG``() =
