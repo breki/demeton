@@ -276,8 +276,12 @@ let filterScanlines (scanlines: byte[] seq): byte[] seq =
     // https://www.w3.org/TR/PNG/#9Filters
     Seq.empty
 
-let givenA8BitGrayscaleImage imageWidth imageHeight : Grayscale8BitImageData =
-    Array2D.init imageWidth imageHeight (fun x y -> ((byte)((x + y) % 256)))
+
+let givenA8BitGrayscaleImage rndSeed imageWidth imageHeight 
+    : Grayscale8BitImageData =
+    let rnd = new Random(rndSeed)
+
+    Array2D.init imageWidth imageHeight (fun x y -> ((byte)(rnd.Next 256)))
 
 
 [<Fact>]
@@ -342,22 +346,25 @@ let ``Can serialize IEND chunk into a byte array``() =
 
 [<Fact>]
 let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
+    let getLine line (imageData: Grayscale8BitImageData) =
+        imageData.[0..(Array2D.length1 imageData - 1), line]
+
     let imageWidth = 10
     let imageHeight = 5
-    let imageData = givenA8BitGrayscaleImage imageWidth imageHeight
+    let imageData = givenA8BitGrayscaleImage 123 imageWidth imageHeight
 
     let scanlines = grayscale8BitScanlines imageData
     test <@ scanlines |> Seq.length = imageHeight @>
     test <@ scanlines |> Seq.exists (fun sc -> sc.Length <> imageWidth) |> not @>
-    test <@ scanlines |> Seq.head = [| 0uy; 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy |] @>
-    test <@ scanlines |> Seq.skip 1 |> Seq.head = [| 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy; 10uy |] @>
+    test <@ scanlines |> Seq.head = getLine 0 imageData @>
+    test <@ scanlines |> Seq.skip 1 |> Seq.head = getLine 1 imageData @>
 
 
 [<Fact>]
 let ``Can filter scanline using filter type None``() =
     let imageWidth = 10
     let imageHeight = 5
-    let imageData = givenA8BitGrayscaleImage imageWidth imageHeight
+    let imageData = givenA8BitGrayscaleImage 2434 imageWidth imageHeight
     
     let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
 
@@ -374,7 +381,7 @@ let ``Can filter scanline using filter type None``() =
 let ``Can filter scanline using filter type Sub``() =
     let imageWidth = 10
     let imageHeight = 5
-    let imageData = givenA8BitGrayscaleImage imageWidth imageHeight
+    let imageData = givenA8BitGrayscaleImage 3434 imageWidth imageHeight
     
     let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
 

@@ -1,5 +1,4 @@
 ﻿- implement PNG writing
-    - test image should have random pixels
     - how do we implement scanline filtering?
     - prepare a test case for generating the simplest PNG
     - first grayscale (and with transparency, if possible)
