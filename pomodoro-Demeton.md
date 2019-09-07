@@ -1,4 +1,5 @@
 ﻿## Sat 7.9.
+- Implemented `filterScanlineSub` function.
 - Implemented `filterScanlineNone` function.
 - Implemented `grayscale8BitScanlines` function.
 - Implemented `serializeIendChunkData` function.

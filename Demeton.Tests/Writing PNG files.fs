@@ -230,14 +230,38 @@ type FilterType =
     | FilterPaeth = 4uy
 
 
-let filterScanlineNone _ (line: byte[]): byte[] =    
+let filterScanlineNone _ (scanline: byte[]): byte[] =    
         [| 
-            for i in 0 .. line.Length -> 
+            for i in 0 .. scanline.Length -> 
                 match i with
                 | 0 -> (byte)FilterType.FilterNone
-                | x -> line.[x - 1]
+                | x -> scanline.[x - 1]
         |]
 
+
+let filterScanlineSub _ (scanline: byte[]): byte[] = 
+        [| 
+            for i in 0 .. scanline.Length -> 
+                match i with
+                | 0 -> (byte)FilterType.FilterSub
+                | 1 -> scanline.[0]
+                | x -> scanline.[x-1] - scanline.[x-2]
+        |]
+
+
+let unfilterScanlineSub _ (filtered: byte[]): byte[] =
+    let scanlineLength = filtered.Length - 1
+    let scanline: byte[] = Array.zeroCreate scanlineLength
+
+    let mutable lastValue = filtered.[1]
+    scanline.[0] <- lastValue
+
+    for i in 1 .. scanlineLength-1 do
+        let value = lastValue + filtered.[i + 1] 
+        scanline.[i] <- value
+        lastValue <- value
+
+    scanline
 
 /// <summary>
 /// Filters the provided sequence of scanlines according to the PNG filtering 
@@ -337,13 +361,31 @@ let ``Can filter scanline using filter type None``() =
     
     let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
 
-    let filteredScanline = filterScanlineNone scanlines.[0] scanlines.[1]
+    let filteredScanline = filterScanlineNone None scanlines.[1]
 
     let expectedFilterTypeByte: byte = (byte)FilterType.FilterNone
 
     test <@ filteredScanline.Length = imageWidth + 1 @>
     test <@ filteredScanline.[0] = expectedFilterTypeByte @>
     test <@ filteredScanline |> Array.skip 1 = scanlines.[1] @>
+
+
+[<Fact>]
+let ``Can filter scanline using filter type Sub``() =
+    let imageWidth = 10
+    let imageHeight = 5
+    let imageData = givenA8BitGrayscaleImage imageWidth imageHeight
+    
+    let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
+
+    let scanline = scanlines.[1]
+    let filteredScanline = filterScanlineSub None scanline
+
+    let expectedFilterTypeByte: byte = (byte)FilterType.FilterSub
+
+    test <@ filteredScanline.Length = imageWidth + 1 @>
+    test <@ filteredScanline.[0] = expectedFilterTypeByte @>
+    test <@ (unfilterScanlineSub None filteredScanline) = scanline @>
 
 
 [<Fact(Skip="todo: we need to implement filter types first")>]
