@@ -1,4 +1,5 @@
 ﻿## Sat 7.9.
+- Implemented `grayscale8BitScanlines` function.
 - Implemented `serializeIendChunkData` function.
 - Renamed IhdrChunk to IhdrData.
 - Refactored the PNG chunk writing code to support writing of various chunk types.

@@ -54,6 +54,7 @@ type IhdrData = {
         InterlaceMethod: PngInterlaceMethod
     }
 
+type Grayscale8BitImageData = byte[,]
 
 /// <summary>Writes the 8-byte PNG signature to a stream.</summary>
 /// <param name="stream">The stream the signature should be written to.</param>
@@ -192,10 +193,31 @@ let writeIhdrChunk (ihdr: IhdrData) (stream: Stream): Stream =
     stream |> writeChunk (fun () -> serializeIhdrChunkData (ihdr))
 
 let writeIdatChunk (stream: Stream): Stream =
+    // The sequence of filtered scanlines is compressed and the resulting data 
+    // stream is split into IDAT chunks. The concatenation of the contents of 
+    // all the IDAT chunks makes up a zlib datastream. This datastream 
+    // decompresses to filtered image data.
+
+    // Filtering transforms the byte sequence in a scanline to an equal length 
+    // sequence of bytes preceded by the filter type.
     stream
+
 
 let writeIendChunk (stream: Stream): Stream =
     stream
+
+/// <summary>
+/// Generates a sequence of scanlines from the specified 8-bit grayscale image
+/// data.
+/// </summary>
+/// <param name="imageData">The image data to generate scanlines from.</param>
+/// <returns>A sequence of scanlines.</returns>
+let grayscale8BitScanlines (imageData: Grayscale8BitImageData): byte[] seq =
+    seq {
+        for y in 0..(Array2D.length2 imageData - 1) do
+            yield imageData.[0..(Array2D.length1 imageData - 1),y]
+    }
+
 
 [<Fact>]
 let ``Writes PNG signature into a stream``() =
@@ -252,6 +274,19 @@ let ``Can serialize IEND chunk into a byte array``() =
                 (byte)'I'; (byte)'E'; (byte)'N'; (byte)'D'
             |] 
         @>
+
+[<Fact>]
+let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
+    let imageWidth = 10
+    let imageHeight = 5
+    let imageData = 
+        Array2D.init imageWidth imageHeight (fun x y -> ((byte)((x + y) % 256)))
+
+    let scanlines = grayscale8BitScanlines imageData
+    test <@ scanlines |> Seq.length = imageHeight @>
+    test <@ scanlines |> Seq.exists (fun sc -> sc.Length <> imageWidth) |> not @>
+    test <@ scanlines |> Seq.head = [| 0uy; 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy |] @>
+    test <@ scanlines |> Seq.skip 1 |> Seq.head = [| 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy; 10uy |] @>
 
 [<Fact>]
 let ``Can generate a simplest PNG``() =
