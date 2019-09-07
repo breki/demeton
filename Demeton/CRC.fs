@@ -1,4 +1,5 @@
-﻿// taken from http://plinth.org/techtalk/?p=207&
+﻿// Taken from "Writing a PNG Decoder in F#, Part II" article by Steve Hawley
+// http://plinth.org/techtalk/?p=207&
 
 module CRC
 
