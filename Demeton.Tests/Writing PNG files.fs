@@ -130,7 +130,7 @@ let writeChunkType (chunkType: ChunkType) (stream: Stream): Stream =
 
 
 /// <summary>
-/// Generates a byte array containing the PNG IHDR chunk type and data.
+/// Serializes the PNG IHDR chunk type and data into a byte array.
 //// </summary>
 /// <param name="ihdr">
 /// <see cref="IhdrData"/>value containing the IHDR chunk data.
@@ -138,7 +138,7 @@ let writeChunkType (chunkType: ChunkType) (stream: Stream): Stream =
 /// <returns>
 /// The byte array containing the PNG IHDR chunk type and data.
 /// </returns>
-let writeIhdrChunkData (ihdr: IhdrData): byte[] =
+let serializeIhdrChunkData (ihdr: IhdrData): byte[] =
     use stream = new MemoryStream()
 
     stream
@@ -153,6 +153,26 @@ let writeIhdrChunkData (ihdr: IhdrData): byte[] =
     |> ignore
 
     stream.ToArray()
+
+
+/// <summary>
+/// Serializes the PNG IEND chunk type and data into a byte array.
+//// </summary>
+/// <param name="ihdr">
+/// <see cref="IhdrData"/>value containing the IEND chunk data.
+/// </param>
+/// <returns>
+/// The byte array containing the PNG IEND chunk type and data.
+/// </returns>
+let serializeIendChunkData(): byte[] =
+    use stream = new MemoryStream()
+
+    stream
+    |> writeChunkType (new ChunkType("IEND"))
+    |> ignore
+
+    stream.ToArray()
+
 
 let writeChunk 
     (chunkDataWriter: ChunkDataWriter) 
@@ -169,7 +189,7 @@ let writeChunk
     |> writeBigEndianUInt32 chunkCrc
 
 let writeIhdrChunk (ihdr: IhdrData) (stream: Stream): Stream =
-    stream |> writeChunk (fun () -> writeIhdrChunkData (ihdr))
+    stream |> writeChunk (fun () -> serializeIhdrChunkData (ihdr))
 
 let writeIdatChunk (stream: Stream): Stream =
     stream
@@ -186,23 +206,6 @@ let ``Writes PNG signature into a stream``() =
             stream.ToArray() = [| 0x89uy; 0x50uy; 0x4euy; 0x47uy; 0x0duy; 0x0auy; 
                             0x1auy; 0x0auy |] 
     @>
-
-[<Fact>]
-let ``Writes IHDR chunk data into a stream``() =
-    let chunk = 
-        { Width = 1200; Height = 800; BitDepth = PngBitDepth.BitDepth8; 
-           ColorType = PngColorType.Grayscale; 
-           InterlaceMethod = PngInterlaceMethod.NoInterlace }
-
-    test <@ 
-            writeIhdrChunkData chunk = [| 
-                (byte)'I'; (byte)'H'; (byte)'D'; (byte)'R';
-                0x00uy; 0x00uy; 0x04uy; 0xB0uy;
-                0x00uy; 0x00uy; 0x03uy; 0x20uy;
-                0x08uy; 0x00uy; 0x00uy; 0x00uy;
-                0x00uy
-            |] 
-        @>
 
 [<Fact>]
 let ``Writes chunk into a stream``() =
@@ -226,7 +229,32 @@ let ``Writes chunk into a stream``() =
         @>
 
 [<Fact>]
-let ``Generates a simplest PNG``() =
+let ``Can serialize IHDR chunk into a byte array``() =
+    let chunk = 
+        { Width = 1200; Height = 800; BitDepth = PngBitDepth.BitDepth8; 
+           ColorType = PngColorType.Grayscale; 
+           InterlaceMethod = PngInterlaceMethod.NoInterlace }
+
+    test <@ 
+            serializeIhdrChunkData chunk = [| 
+                (byte)'I'; (byte)'H'; (byte)'D'; (byte)'R';
+                0x00uy; 0x00uy; 0x04uy; 0xB0uy;
+                0x00uy; 0x00uy; 0x03uy; 0x20uy;
+                0x08uy; 0x00uy; 0x00uy; 0x00uy;
+                0x00uy
+            |] 
+        @>
+
+[<Fact>]
+let ``Can serialize IEND chunk into a byte array``() =
+    test <@ 
+            serializeIendChunkData() = [| 
+                (byte)'I'; (byte)'E'; (byte)'N'; (byte)'D'
+            |] 
+        @>
+
+[<Fact>]
+let ``Can generate a simplest PNG``() =
     let ihdr = 
         { Width = 1200; Height = 800; BitDepth = PngBitDepth.BitDepth8; 
            ColorType = PngColorType.Grayscale; 

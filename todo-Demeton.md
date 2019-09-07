@@ -1,8 +1,5 @@
-﻿- start documenting stuff
-- implement PNG writing
+﻿- implement PNG writing
     - prepare a test case for generating the simplest PNG
-    - `writeIhdrChunkData` should use the `ChunkDataWriter` signature
-    - http://plinth.org/techtalk/?p=196
     - first grayscale (and with transparency, if possible)
 
 - hillshading algorithm
