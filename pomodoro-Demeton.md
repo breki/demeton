@@ -1,4 +1,5 @@
 ﻿## Sat 7.9.
+- Implemented `filterScanlineNone` function.
 - Implemented `grayscale8BitScanlines` function.
 - Implemented `serializeIendChunkData` function.
 - Renamed IhdrChunk to IhdrData.

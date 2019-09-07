@@ -206,6 +206,7 @@ let writeIdatChunk (stream: Stream): Stream =
 let writeIendChunk (stream: Stream): Stream =
     stream
 
+
 /// <summary>
 /// Generates a sequence of scanlines from the specified 8-bit grayscale image
 /// data.
@@ -217,6 +218,26 @@ let grayscale8BitScanlines (imageData: Grayscale8BitImageData): byte[] seq =
         for y in 0..(Array2D.length2 imageData - 1) do
             yield imageData.[0..(Array2D.length1 imageData - 1),y]
     }
+
+
+type ScanlineFilter = byte[] option -> byte[] -> byte[]
+
+type FilterType = 
+    FilterNone = 0uy
+    | FilterSub = 1uy
+    | FilterUp = 2uy
+    | FilterAverage = 3uy
+    | FilterPaeth = 4uy
+
+
+let filterScanlineNone _ (line: byte[]): byte[] =    
+        [| 
+            for i in 0 .. line.Length -> 
+                match i with
+                | 0 -> (byte)FilterType.FilterNone
+                | x -> line.[x - 1]
+        |]
+
 
 /// <summary>
 /// Filters the provided sequence of scanlines according to the PNG filtering 
@@ -231,6 +252,10 @@ let filterScanlines (scanlines: byte[] seq): byte[] seq =
     // https://www.w3.org/TR/PNG/#9Filters
     Seq.empty
 
+let givenA8BitGrayscaleImage imageWidth imageHeight : Grayscale8BitImageData =
+    Array2D.init imageWidth imageHeight (fun x y -> ((byte)((x + y) % 256)))
+
+
 [<Fact>]
 let ``Writes PNG signature into a stream``() =
     use stream = new MemoryStream()
@@ -240,6 +265,7 @@ let ``Writes PNG signature into a stream``() =
             stream.ToArray() = [| 0x89uy; 0x50uy; 0x4euy; 0x47uy; 0x0duy; 0x0auy; 
                             0x1auy; 0x0auy |] 
     @>
+
 
 [<Fact>]
 let ``Writes chunk into a stream``() =
@@ -262,6 +288,7 @@ let ``Writes chunk into a stream``() =
             |] 
         @>
 
+
 [<Fact>]
 let ``Can serialize IHDR chunk into a byte array``() =
     let chunk = 
@@ -279,6 +306,7 @@ let ``Can serialize IHDR chunk into a byte array``() =
             |] 
         @>
 
+
 [<Fact>]
 let ``Can serialize IEND chunk into a byte array``() =
     test <@ 
@@ -287,12 +315,12 @@ let ``Can serialize IEND chunk into a byte array``() =
             |] 
         @>
 
+
 [<Fact>]
 let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
     let imageWidth = 10
     let imageHeight = 5
-    let imageData = 
-        Array2D.init imageWidth imageHeight (fun x y -> ((byte)((x + y) % 256)))
+    let imageData = givenA8BitGrayscaleImage imageWidth imageHeight
 
     let scanlines = grayscale8BitScanlines imageData
     test <@ scanlines |> Seq.length = imageHeight @>
@@ -300,7 +328,25 @@ let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
     test <@ scanlines |> Seq.head = [| 0uy; 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy |] @>
     test <@ scanlines |> Seq.skip 1 |> Seq.head = [| 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy; 10uy |] @>
 
+
 [<Fact>]
+let ``Can filter scanline using filter type None``() =
+    let imageWidth = 10
+    let imageHeight = 5
+    let imageData = givenA8BitGrayscaleImage imageWidth imageHeight
+    
+    let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
+
+    let filteredScanline = filterScanlineNone scanlines.[0] scanlines.[1]
+
+    let expectedFilterTypeByte: byte = (byte)FilterType.FilterNone
+
+    test <@ filteredScanline.Length = imageWidth + 1 @>
+    test <@ filteredScanline.[0] = expectedFilterTypeByte @>
+    test <@ filteredScanline |> Array.skip 1 = scanlines.[1] @>
+
+
+[<Fact(Skip="todo: we need to implement filter types first")>]
 let ``Can filter scanlines``() =
     let scanlines = [|
         [| 0uy; 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy |];
