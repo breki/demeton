@@ -202,6 +202,10 @@ let unfilterScanlinePaeth (prevScanline: byte[] option) (filtered: byte[]): byte
     |]
 
 
+let sumOfAbsoluteValueOfFilteredScanline (filtered: byte[]): int =
+    filtered |> Array.map int |> Array.sum
+
+
 /// <summary>
 /// Filters the provided sequence of scanlines according to the PNG filtering 
 /// mechanism.
@@ -211,19 +215,41 @@ let unfilterScanlinePaeth (prevScanline: byte[] option) (filtered: byte[]): byte
 /// A sequence of filtered scanlines. Each filtered scanline corresponds to an
 /// original scanline.
 /// </returns>
-let filterScanlines (scanlines: byte[] seq): byte[] seq =
-    // https://www.w3.org/TR/PNG/#9Filters
-    Seq.empty
+let filterScanlines 
+    (filters: ScanlineFilter seq) (scanlines: byte[][]): byte[][]=
+
+    [| 
+        for scanlineIndex in 0 .. scanlines.Length - 1 do
+            let prevScanline =
+                match scanlineIndex with
+                | 0 -> None
+                | _ -> Some scanlines.[scanlineIndex - 1]
+
+            let scanline = scanlines.[scanlineIndex]
+
+            let (filtered, _) = 
+                filters 
+                |> Seq.map (fun filter -> filter prevScanline scanline)
+                |> Seq.map (fun filtered -> (filtered, sumOfAbsoluteValueOfFilteredScanline filtered))
+                |> Seq.minBy (fun (_, sum) -> sum)
+
+            yield filtered
+    |]
 
 
-[<Fact(Skip="todo: we need to implement filter types first")>]
+[<Fact>]
 let ``Can filter scanlines``() =
+    let filters = [|
+        filterScanlineNone; filterScanlineSub; filterScanlineUp; 
+        filterScanlineAverage; filterScanlinePaeth
+    |]
+
     let scanlines = [|
         [| 0uy; 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy |];
         [| 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy; 10uy |]
     |]
 
-    let filteredScanlines = filterScanlines scanlines
+    let filteredScanlines = filterScanlines filters scanlines
     test <@ filteredScanlines |> Seq.length = 2 @>
     test <@ filteredScanlines |> Seq.exists (fun sc -> sc.Length <> 11) |> not @>
 
@@ -329,3 +355,10 @@ type ``PNG filtering property tests``() =
         let filtered = filterScanlinePaeth prevScanline scanline
 
         unfilterScanlinePaeth prevScanline filtered = scanline 
+
+    [<Property>]
+    [<Trait("Category", "properties")>]
+    member __.``Calculates sumOfAbsoluteValueOfFilteredScanline correctly``
+        (b1: byte) (b2: byte) (b3: byte) =
+        [| b1; b2; b3 |] |> sumOfAbsoluteValueOfFilteredScanline
+            = ((int)b1) + ((int)b2) + ((int)b3)
