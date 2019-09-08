@@ -31,13 +31,13 @@ let unfilterScanlineNone _ (filtered: byte[]) =
 
 
 let filterScanlineSub _ (scanline: byte[]): byte[] = 
-        [| 
-            for i in 0 .. scanline.Length -> 
-                match i with
-                | 0 -> (byte)FilterType.FilterSub
-                | 1 -> scanline.[0]
-                | x -> scanline.[x-1] - scanline.[x-2]
-        |]
+    [| 
+        for i in 0 .. scanline.Length -> 
+            match i with
+            | 0 -> (byte)FilterType.FilterSub
+            | 1 -> scanline.[0]
+            | x -> scanline.[x-1] - scanline.[x-2]
+    |]
 
 
 let unfilterScanlineSub _ (filtered: byte[]): byte[] =
@@ -59,22 +59,22 @@ let unfilterScanlineSub _ (filtered: byte[]): byte[] =
 
 
 let filterScanlineUp (prevScanline: byte[] option) (scanline: byte[]): byte[] = 
-        match prevScanline with
-        | None -> 
-            [| 
-                for i in 0 .. scanline.Length -> 
-                    match i with
-                    | 0 -> (byte)FilterType.FilterUp
-                    | x -> scanline.[x-1]
+    match prevScanline with
+    | None -> 
+        [| 
+            for i in 0 .. scanline.Length -> 
+                match i with
+                | 0 -> (byte)FilterType.FilterUp
+                | x -> scanline.[x-1]
+        |]
+    | Some prev -> 
+        let filtered =[| 
+            for i in 0 .. scanline.Length -> 
+                match i with
+                | 0 -> (byte)FilterType.FilterUp
+                | x -> scanline.[x-1] - prev.[x-1]
             |]
-        | Some prev -> 
-            let filtered =[| 
-                for i in 0 .. scanline.Length -> 
-                    match i with
-                    | 0 -> (byte)FilterType.FilterUp
-                    | x -> scanline.[x-1] - prev.[x-1]
-                |]
-            filtered
+        filtered
 
 
 let unfilterScanlineUp (prevScanline: byte[] option) (filtered: byte[]): byte[] =
@@ -94,6 +94,49 @@ let unfilterScanlineUp (prevScanline: byte[] option) (filtered: byte[]): byte[] 
                 scanline.[i-1] <- filtered.[i] + prev.[i-1]
 
             scanline
+
+
+let filterScanlineAverage (prevScanline: byte[] option) (scanline: byte[]): byte[] = 
+    [| 
+        for i in 0 .. scanline.Length -> 
+            match i with
+            | 0 -> (byte)FilterType.FilterAverage
+            | x -> 
+                let currentValue = scanline.[x-1]
+                let prevValue = 
+                    match x with
+                    | 1 -> 0uy
+                    | _ -> scanline.[x-2]
+                let prevScanlineValue = 
+                    match prevScanline with
+                    | None -> 0uy
+                    | Some prev -> prev.[x-1]
+                currentValue 
+                    - (byte)(((int)prevValue + (int)prevScanlineValue) / 2)
+    |]
+
+
+let unfilterScanlineAverage (prevScanline: byte[] option) (filtered: byte[]): byte[] =
+    [|
+        let mutable lastValue = filtered.[1]
+        
+        for i in 0 .. filtered.Length - 2 ->
+            let currentValue = filtered.[i + 1]
+            let prevValue = 
+                match i with
+                | 0 -> 0uy
+                | _ -> lastValue
+            let prevScanlineValue =
+                match prevScanline with
+                | None -> 0uy
+                | Some prev -> prev.[i]
+
+            let unfilteredValue = 
+                currentValue 
+                    + (byte)((((int)prevValue + (int)prevScanlineValue)) / 2)
+            lastValue <- unfilteredValue
+            unfilteredValue
+    |]
 
 
 /// <summary>
@@ -187,6 +230,21 @@ type ``PNG filtering property tests``() =
         printf "filtered: %A\n" filtered
 
         filtered.Length >= 1 && filtered.[0] = (byte)FilterType.FilterUp
+
+
+    [<Property>]
+    [<Trait("Category", "properties")>]
+    member __.``Filtering and unfiltering using Average filter type returns the same scanline`` 
+            (scanlines: ScanlinesPair) =
+
+        let (scanline, prevScanline) = scanlines
+
+        printf "%A" scanline
+        printf "%A" prevScanline
+
+        let filtered = filterScanlineAverage prevScanline scanline
+
+        unfilterScanlineAverage prevScanline filtered = scanline 
 
 
     [<Property>]
