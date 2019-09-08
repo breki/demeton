@@ -1,4 +1,5 @@
 ﻿## Sun 8.9.
+- Implemented filterScanlinePaeth function.
 - Implemented filterScanlineAverage function.
 - Implemented some basic property testing for PNG filters.
 

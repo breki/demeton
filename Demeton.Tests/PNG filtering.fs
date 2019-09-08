@@ -139,6 +139,69 @@ let unfilterScanlineAverage (prevScanline: byte[] option) (filtered: byte[]): by
     |]
 
 
+let paethPredictor (a:int) (b:int) (c:int) = 
+    let p = a + b - c
+    let pa = abs (p - a)
+    let pb = abs (p - b)
+    let pc = abs (p - c)
+    match (pa, pb, pc) with
+    | (_, _, _) when pa <= pb && pa <= pc -> a
+    | (_, _, _) when pb <= pc -> b
+    | _ -> c
+
+
+let filterScanlinePaeth (prevScanline: byte[] option) (scanline: byte[]): byte[] = 
+    [| 
+        for i in 0 .. scanline.Length -> 
+            match i with
+            | 0 -> (byte)FilterType.FilterPaeth
+            | x -> 
+                let raw = scanline.[x-1]
+                let left = 
+                    match x with
+                    | 1 -> 0
+                    | _ -> (int)scanline.[x-2]
+                let up = 
+                    match prevScanline with
+                    | None -> 0
+                    | Some prev -> (int) prev.[x-1]
+                let upLeft = 
+                    match (x, prevScanline) with
+                    | (1, _) -> 0
+                    | (_, None) -> 0
+                    | (_, Some prev) -> (int) prev.[x-2]
+                raw 
+                    - (byte)(paethPredictor left up upLeft)
+    |]
+
+
+let unfilterScanlinePaeth (prevScanline: byte[] option) (filtered: byte[]): byte[] =
+    [|
+        let mutable lastRaw = filtered.[1]
+        
+        for i in 0 .. filtered.Length - 2 ->
+            let filtered = filtered.[i + 1]
+            let left = 
+                match i with
+                | 0 -> 0
+                | _ -> (int)lastRaw
+            let up =
+                match prevScanline with
+                | None -> 0
+                | Some prev -> (int)prev.[i]
+            let upLeft = 
+                match (i, prevScanline) with
+                | (0, _) -> 0
+                | (_, None) -> 0
+                | (_, Some prev) -> (int)prev.[i-1]
+
+            let unfilteredValue = 
+                filtered + (byte)(paethPredictor left up upLeft)
+            lastRaw <- unfilteredValue
+            unfilteredValue
+    |]
+
+
 /// <summary>
 /// Filters the provided sequence of scanlines according to the PNG filtering 
 /// mechanism.
@@ -234,13 +297,22 @@ type ``PNG filtering property tests``() =
 
     [<Property>]
     [<Trait("Category", "properties")>]
-    member __.``Filtering and unfiltering using Average filter type returns the same scanline`` 
+    member __.``Filtering and unfiltering using Up filter type returns the same scanline`` 
             (scanlines: ScanlinesPair) =
 
         let (scanline, prevScanline) = scanlines
 
-        printf "%A" scanline
-        printf "%A" prevScanline
+        let filtered = filterScanlineUp prevScanline scanline
+
+        unfilterScanlineUp prevScanline filtered = scanline 
+
+
+    [<Property>]
+    [<Trait("Category", "properties")>]
+    member __.``Filtering and unfiltering using Average filter type returns the same scanline`` 
+            (scanlines: ScanlinesPair) =
+
+        let (scanline, prevScanline) = scanlines
 
         let filtered = filterScanlineAverage prevScanline scanline
 
@@ -249,14 +321,11 @@ type ``PNG filtering property tests``() =
 
     [<Property>]
     [<Trait("Category", "properties")>]
-    member __.``Filtering and unfiltering using Up filter type returns the same scanline`` 
+    member __.``Filtering and unfiltering using Paeth filter type returns the same scanline`` 
             (scanlines: ScanlinesPair) =
 
         let (scanline, prevScanline) = scanlines
 
-        printf "%A" scanline
-        printf "%A" prevScanline
+        let filtered = filterScanlinePaeth prevScanline scanline
 
-        let filtered = filterScanlineUp prevScanline scanline
-
-        unfilterScanlineUp prevScanline filtered = scanline 
+        unfilterScanlinePaeth prevScanline filtered = scanline 
