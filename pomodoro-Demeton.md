@@ -1,4 +1,7 @@
-﻿## Sat 7.9.
+﻿## Sun 8.9.
+- Implemented some basic property testing for PNG filters.
+
+## Sat 7.9.
 - Introduced FsCheck to test filtering.
 - PNG tests now generate image with random pixels.
 - Implemented `filterScanlineSub` function.

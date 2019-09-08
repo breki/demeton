@@ -19,6 +19,7 @@
     <Compile Include="Bounds to DEM tiles.fs" />
     <Compile Include="ensureTilesAreInCache tests.fs" />
     <Compile Include="Writing PNG files.fs" />
+    <Compile Include="PNG filtering.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

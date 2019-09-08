@@ -223,67 +223,6 @@ let grayscale8BitScanlines (imageData: Grayscale8BitImageData): byte[] seq =
     }
 
 
-type ScanlineFilter = byte[] option -> byte[] -> byte[]
-
-type FilterType = 
-    FilterNone = 0uy
-    | FilterSub = 1uy
-    | FilterUp = 2uy
-    | FilterAverage = 3uy
-    | FilterPaeth = 4uy
-
-
-let filterScanlineNone _ (scanline: byte[]): byte[] =    
-        [| 
-            for i in 0 .. scanline.Length -> 
-                match i with
-                | 0 -> (byte)FilterType.FilterNone
-                | x -> scanline.[x - 1]
-        |]
-
-
-let filterScanlineSub _ (scanline: byte[]): byte[] = 
-        [| 
-            for i in 0 .. scanline.Length -> 
-                match i with
-                | 0 -> (byte)FilterType.FilterSub
-                | 1 -> scanline.[0]
-                | x -> scanline.[x-1] - scanline.[x-2]
-        |]
-
-
-let unfilterScanlineSub _ (filtered: byte[]): byte[] =
-    let scanlineLength = filtered.Length - 1
-    let scanline: byte[] = Array.zeroCreate scanlineLength
-
-    match scanlineLength with
-    | 0 -> scanline
-    | _ -> 
-        let mutable lastValue = filtered.[1]
-        scanline.[0] <- lastValue
-
-        for i in 1 .. scanlineLength-1 do
-            let value = lastValue + filtered.[i + 1] 
-            scanline.[i] <- value
-            lastValue <- value
-
-        scanline
-
-
-/// <summary>
-/// Filters the provided sequence of scanlines according to the PNG filtering 
-/// mechanism.
-/// </summary>
-/// <param name="scanlines">A sequence of scanlines.</param>
-/// <returns>
-/// A sequence of filtered scanlines. Each filtered scanline corresponds to an
-/// original scanline.
-/// </returns>
-let filterScanlines (scanlines: byte[] seq): byte[] seq =
-    // https://www.w3.org/TR/PNG/#9Filters
-    Seq.empty
-
-
 let givenA8BitGrayscaleImage rndSeed imageWidth imageHeight 
     : Grayscale8BitImageData =
     let rnd = new Random(rndSeed)
@@ -367,52 +306,6 @@ let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
     test <@ scanlines |> Seq.skip 1 |> Seq.head = getLine 1 imageData @>
 
 
-[<Fact>]
-let ``Can filter scanline using filter type None``() =
-    let imageWidth = 10
-    let imageHeight = 5
-    let imageData = givenA8BitGrayscaleImage 2434 imageWidth imageHeight
-    
-    let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
-
-    let filteredScanline = filterScanlineNone None scanlines.[1]
-
-    let expectedFilterTypeByte: byte = (byte)FilterType.FilterNone
-
-    test <@ filteredScanline.Length = imageWidth + 1 @>
-    test <@ filteredScanline.[0] = expectedFilterTypeByte @>
-    test <@ filteredScanline |> Array.skip 1 = scanlines.[1] @>
-
-
-[<Fact>]
-let ``Can filter scanline using filter type Sub``() =
-    let imageWidth = 10
-    let imageHeight = 5
-    let imageData = givenA8BitGrayscaleImage 3434 imageWidth imageHeight
-    
-    let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
-
-    let scanline = scanlines.[1]
-    let filteredScanline = filterScanlineSub None scanline
-
-    let expectedFilterTypeByte: byte = (byte)FilterType.FilterSub
-
-    test <@ filteredScanline.Length = imageWidth + 1 @>
-    test <@ filteredScanline.[0] = expectedFilterTypeByte @>
-    test <@ (unfilterScanlineSub None filteredScanline) = scanline @>
-
-
-[<Fact(Skip="todo: we need to implement filter types first")>]
-let ``Can filter scanlines``() =
-    let scanlines = [|
-        [| 0uy; 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy |];
-        [| 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy; 10uy |]
-    |]
-
-    let filteredScanlines = filterScanlines scanlines
-    test <@ filteredScanlines |> Seq.length = 2 @>
-    test <@ filteredScanlines |> Seq.exists (fun sc -> sc.Length <> 11) |> not @>
-
 
 [<Fact>]
 let ``Can generate a simplest PNG``() =
@@ -427,9 +320,3 @@ let ``Can generate a simplest PNG``() =
     |> writeIhdrChunk ihdr
     |> writeIdatChunk
     |> writeIendChunk
-
-
-[<Property>]
-[<Trait("Category", "properties")>]
-let ``Unfiltering using Sub filter type returns the same scanline`` scanline = 
-    unfilterScanlineSub None (filterScanlineSub None scanline) = scanline 
