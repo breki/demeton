@@ -1,4 +1,8 @@
-﻿- implement PNG writing
+﻿- github migration
+    - copy any missing files - try out compiling
+    - some basic info in readme.md
+
+- implement PNG writing
     - implement unfiltering of scanlines so we can write the property test
     - how do we implement scanline filtering?
     - prepare a test case for generating the simplest PNG
