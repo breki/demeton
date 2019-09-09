@@ -1,9 +1,9 @@
 ﻿module Demeton.Tests.``Writing PNG files``
 
+open Demeton.PngTypes
+
 open FsUnit
 open Xunit
-open FsCheck
-open FsCheck.Xunit
 open Swensen.Unquote
 
 open System
@@ -13,51 +13,6 @@ open System.IO
 // https://www.w3.org/TR/PNG/#11IHDR
 // http://www.libpng.org/pub/png/book/chapter08.html
 // https://www.w3.org/TR/REC-png-961001
-
-type PngBitDepth = 
-    BitDepth1 = 1uy 
-    | BitDepth2 = 2uy
-    | BitDepth4 = 4uy
-    | BitDepth8 = 8uy
-    | BitDepth16 = 16uy
-
-type PngColorType =
-    Grayscale = 0uy
-    | Rgb = 2uy
-    | Indexed = 3uy
-    | GrayscaleAlpha = 4uy
-    | RgbAlpha = 6uy
-
-type PngCompressionMethod = 
-    DeflateInflate = 0uy
-
-type PngFilterMethod = 
-    AdaptiveFiltering = 0uy
-
-type PngInterlaceMethod =
-    NoInterlace = 0uy
-    | Adam7Interlace = 1uy
-
-[<Struct>]
-type ChunkType = 
-    val TypeName: string
-    new (typeName: string) = 
-        { 
-            TypeName = 
-                if typeName.Length <> 4 
-                    then invalidArg "typeName" "PNG chunk type must be 4 characters long."
-                else typeName
-        }
-
-type IhdrData = {
-        Width: int
-        Height: int
-        BitDepth: PngBitDepth
-        ColorType: PngColorType
-        InterlaceMethod: PngInterlaceMethod
-    }
-
-type Grayscale8BitImageData = byte[,]
 
 /// <summary>Writes the 8-byte PNG signature to a stream.</summary>
 /// <param name="stream">The stream the signature should be written to.</param>
@@ -115,9 +70,6 @@ let writeBigEndianUInt32 (value: uint32) (stream: Stream): Stream =
     |> writeByte ((byte)(value >>> 16))
     |> writeByte ((byte)(value >>> 8))
     |> writeByte ((byte)value)
-
-
-type ChunkDataWriter = unit -> byte[]
 
 
 /// <summary>

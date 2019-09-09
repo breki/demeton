@@ -1,11 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
   </PropertyGroup>
-
   <ItemGroup>
+    <Compile Include="PngTypes.fs" />
     <Compile Include="CRC.fs" />
     <Compile Include="IOTypes.fs" />
     <Compile Include="GeometryTypes.fs" />
@@ -15,5 +13,4 @@
     <Compile Include="Srtm.fs" />
     <Compile Include="Hillshading.fs" />
   </ItemGroup>
-
 </Project>

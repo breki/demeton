@@ -1,23 +1,12 @@
 ﻿module Demeton.Tests.``PNG filtering``
 
+open Demeton.PngTypes
+
 open FsUnit
 open Xunit
 open FsCheck
 open FsCheck.Xunit
 open Swensen.Unquote
-
-type Scanline = byte[]
-type FilteredScanline = byte[]
-
-type ScanlineFilter = Scanline option -> Scanline -> FilteredScanline
-type ScanlineUnfilter = Scanline option -> FilteredScanline -> Scanline
-
-type FilterType = 
-    FilterNone = 0uy
-    | FilterSub = 1uy
-    | FilterUp = 2uy
-    | FilterAverage = 3uy
-    | FilterPaeth = 4uy
 
 let filterScanlineNone _ (scanline: Scanline): FilteredScanline =    
         [| 
