@@ -1,4 +1,5 @@
 ﻿## Mon 9.9.
+- Extracted filter selection as an extra filter function.
 - Implemented unfilterScanlines function.
 
 ## Sun 8.9.

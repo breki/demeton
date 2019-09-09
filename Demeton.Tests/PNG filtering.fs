@@ -230,6 +230,20 @@ let sumOfAbsoluteValueOfFilteredScanline (filtered: FilteredScanline): int =
     filtered |> Array.map int |> Array.sum
 
 
+let minSumOfAbsoluteValueSelector 
+    (prevScanline: Scanline option) 
+    (scanline: Scanline)
+    : FilteredScanline =
+
+    let (filtered, _) = 
+        allPngFilters 
+        |> Seq.map (fun filter -> filter prevScanline scanline)
+        |> Seq.map (fun filtered -> (filtered, sumOfAbsoluteValueOfFilteredScanline filtered))
+        |> Seq.minBy (fun (_, sum) -> sum)
+
+    filtered
+
+
 /// <summary>
 /// Filters the provided sequence of scanlines according to the PNG filtering 
 /// mechanism.
@@ -240,7 +254,9 @@ let sumOfAbsoluteValueOfFilteredScanline (filtered: FilteredScanline): int =
 /// original scanline.
 /// </returns>
 let filterScanlines 
-    (filters: ScanlineFilter seq) (scanlines: Scanline[]): FilteredScanline[]=
+    (filter: ScanlineFilter)
+    (scanlines: Scanline[])
+    : FilteredScanline[]=
 
     [| 
         for scanlineIndex in 0 .. scanlines.Length - 1 do
@@ -250,14 +266,7 @@ let filterScanlines
                 | _ -> Some scanlines.[scanlineIndex - 1]
 
             let scanline = scanlines.[scanlineIndex]
-
-            let (filtered, _) = 
-                filters 
-                |> Seq.map (fun filter -> filter prevScanline scanline)
-                |> Seq.map (fun filtered -> (filtered, sumOfAbsoluteValueOfFilteredScanline filtered))
-                |> Seq.minBy (fun (_, sum) -> sum)
-
-            yield filtered
+            yield filter prevScanline scanline
     |]
 
 
@@ -286,7 +295,8 @@ let ``Can filter scanlines``() =
         [| 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy; 10uy |]
     |]
 
-    let filteredScanlines = filterScanlines allPngFilters scanlines
+    let filteredScanlines 
+        = filterScanlines minSumOfAbsoluteValueSelector scanlines
     test <@ filteredScanlines |> Seq.length = 2 @>
     test <@ filteredScanlines |> Seq.exists (fun sc -> sc.Length <> 11) |> not @>
 
@@ -414,6 +424,6 @@ type ``PNG filtering property tests``() =
 
         let scanlines = toJaggedArray scanlines2d
         let filteredScanlines = 
-            filterScanlines allPngFilters scanlines
+            filterScanlines minSumOfAbsoluteValueSelector scanlines
         let unfilteredScanlines = unfilterScanlines filteredScanlines
         scanlines = unfilteredScanlines

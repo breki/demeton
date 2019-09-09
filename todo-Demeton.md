@@ -1,8 +1,5 @@
-- github migration
-    - remove project from bitbucket
-
 - implement PNG writing
-    - extract filter selection as an extra method
+    - document filter selectors
     - move the PNG code to the main assembly
     - property test that generates a PNG from a data array and then decodes it back
     - prepare a test case for generating the simplest PNG
