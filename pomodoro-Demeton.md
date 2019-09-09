@@ -1,4 +1,5 @@
 ﻿## Mon 9.9.
+- Documented `PngTypes.fs`.
 - Moved PNG type definitions to `PngTypes.fs`.
 - Extracted filter selection as an extra filter function.
 - Implemented unfilterScanlines function.
