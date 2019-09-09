@@ -1,4 +1,5 @@
-﻿## Mon 9.9.
+## Mon 9.9.
+- Flattened `PNG filtering.fs` tests by using custom property attribute.
 - Moved PNG functions into Demeton modules.
 - Documented `PngTypes.fs`.
 - Moved PNG type definitions to `PngTypes.fs`.

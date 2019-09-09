@@ -25,7 +25,6 @@ let ``Can filter scanlines``() =
 
 type ScanlinesPair = (Scanline * Scanline option)
 type ScanlinesGenerator =
-
     static member ScanlinePair() =
         let scanlineLength = 20
         let randomGrayscaleValue = Arb.generate<byte>
@@ -47,105 +46,105 @@ type ScanlinesGenerator =
         |> Gen.map (fun (s, p) -> ScanlinesPair(s, p))
         |> Arb.fromGen
 
+type ScanlinesPairPropertyAttribute() = 
+    inherit PropertyAttribute
+        (Arbitrary = [| typeof<ScanlinesGenerator> |],
+        QuietOnSuccess = true)
 
-type ``PNG filtering property tests``() = 
-    do 
-        Arb.register<ScanlinesGenerator>() |> ignore
+[<ScanlinesPairProperty>]
+[<Trait("Category", "properties")>]
+let ``Filtering and unfiltering using None filter type returns the same scanline`` 
+        (scanlines: ScanlinesPair) = 
 
-    [<Property>]
-    [<Trait("Category", "properties")>]
-    member __.``Filtering and unfiltering using None filter type returns the same scanline`` 
-            (scanlines: ScanlinesPair) = 
+    let (scanline, prevScanline) = scanlines
 
-        let (scanline, prevScanline) = scanlines
-
-        let filtered = filterScanlineNone prevScanline scanline
+    let filtered = filterScanlineNone prevScanline scanline
     
-        unfilterScanlineNone prevScanline filtered = scanline 
+    unfilterScanlineNone prevScanline filtered = scanline 
 
 
-    [<Property>]
-    [<Trait("Category", "properties")>]
-    member __.``Filtering and unfiltering using Sub filter type returns the same scanline`` 
-            (scanlines: ScanlinesPair) = 
+[<ScanlinesPairProperty>]
+[<Trait("Category", "properties")>]
+let ``Filtering and unfiltering using Sub filter type returns the same scanline`` 
+        (scanlines: ScanlinesPair) = 
 
-        let (scanline, prevScanline) = scanlines
+    let (scanline, prevScanline) = scanlines
 
-        let filtered = filterScanlineSub prevScanline scanline
+    let filtered = filterScanlineSub prevScanline scanline
     
-        unfilterScanlineSub prevScanline filtered = scanline 
+    unfilterScanlineSub prevScanline filtered = scanline 
 
 
-    [<Property>]
-    [<Trait("Category", "properties")>]
-    member __.``Byte array returned by Up filter always contains filter type as first byte`` 
-            (scanlines: ScanlinesPair) =
+[<ScanlinesPairProperty>]
+[<Trait("Category", "properties")>]
+let ``Byte array returned by Up filter always contains filter type as first byte`` 
+        (scanlines: ScanlinesPair) =
 
-        let (scanline, prevScanline) = scanlines
+    let (scanline, prevScanline) = scanlines
 
-        let filtered = filterScanlineUp prevScanline scanline
+    let filtered = filterScanlineUp prevScanline scanline
 
-        printf "filtered: %A\n" filtered
+    printf "filtered: %A\n" filtered
 
-        filtered.Length >= 1 && filtered.[0] = (byte)FilterType.FilterUp
-
-
-    [<Property>]
-    [<Trait("Category", "properties")>]
-    member __.``Filtering and unfiltering using Up filter type returns the same scanline`` 
-            (scanlines: ScanlinesPair) =
-
-        let (scanline, prevScanline) = scanlines
-
-        let filtered = filterScanlineUp prevScanline scanline
-
-        unfilterScanlineUp prevScanline filtered = scanline 
+    filtered.Length >= 1 && filtered.[0] = (byte)FilterType.FilterUp
 
 
-    [<Property>]
-    [<Trait("Category", "properties")>]
-    member __.``Filtering and unfiltering using Average filter type returns the same scanline`` 
-            (scanlines: ScanlinesPair) =
+[<ScanlinesPairProperty>]
+[<Trait("Category", "properties")>]
+let ``Filtering and unfiltering using Up filter type returns the same scanline`` 
+        (scanlines: ScanlinesPair) =
 
-        let (scanline, prevScanline) = scanlines
+    let (scanline, prevScanline) = scanlines
 
-        let filtered = filterScanlineAverage prevScanline scanline
+    let filtered = filterScanlineUp prevScanline scanline
 
-        unfilterScanlineAverage prevScanline filtered = scanline 
+    unfilterScanlineUp prevScanline filtered = scanline 
 
 
-    [<Property>]
-    [<Trait("Category", "properties")>]
-    member __.``Filtering and unfiltering using Paeth filter type returns the same scanline`` 
-            (scanlines: ScanlinesPair) =
+[<ScanlinesPairProperty>]
+[<Trait("Category", "properties")>]
+let ``Filtering and unfiltering using Average filter type returns the same scanline`` 
+        (scanlines: ScanlinesPair) =
 
-        let (scanline, prevScanline) = scanlines
+    let (scanline, prevScanline) = scanlines
 
-        let filtered = filterScanlinePaeth prevScanline scanline
+    let filtered = filterScanlineAverage prevScanline scanline
 
-        unfilterScanlinePaeth prevScanline filtered = scanline 
+    unfilterScanlineAverage prevScanline filtered = scanline 
 
-    [<Property>]
-    [<Trait("Category", "properties")>]
-    member __.``Calculates sumOfAbsoluteValueOfFilteredScanline correctly``
-        (b1: byte) (b2: byte) (b3: byte) =
-        [| b1; b2; b3 |] |> sumOfAbsoluteValueOfFilteredScanline
-            = ((int)b1) + ((int)b2) + ((int)b3)
 
-    [<Property>]
-    [<Trait("Category", "integration")>]
-    member __.``Unfiltering scanlines returns the original scanlines``
-        (scanlines2d: byte[,]) =
-        printf "Try: %A\n" scanlines2d
+[<ScanlinesPairProperty>]
+[<Trait("Category", "properties")>]
+let ``Filtering and unfiltering using Paeth filter type returns the same scanline`` 
+        (scanlines: ScanlinesPair) =
 
-        let toJaggedArray (arr2d: 'T[,]): 'T[][] =
-            [|
-                for row in 0 .. (Array2D.length2 arr2d - 1) ->
-                    arr2d.[0..(Array2D.length1 arr2d - 1), row]
-            |]
+    let (scanline, prevScanline) = scanlines
 
-        let scanlines = toJaggedArray scanlines2d
-        let filteredScanlines = 
-            filterScanlines minSumOfAbsoluteValueSelector scanlines
-        let unfilteredScanlines = unfilterScanlines filteredScanlines
-        scanlines = unfilteredScanlines
+    let filtered = filterScanlinePaeth prevScanline scanline
+
+    unfilterScanlinePaeth prevScanline filtered = scanline 
+
+[<Property>]
+[<Trait("Category", "properties")>]
+let ``Calculates sumOfAbsoluteValueOfFilteredScanline correctly``
+    (b1: byte) (b2: byte) (b3: byte) =
+    [| b1; b2; b3 |] |> sumOfAbsoluteValueOfFilteredScanline
+        = ((int)b1) + ((int)b2) + ((int)b3)
+
+[<Property>]
+[<Trait("Category", "integration")>]
+let ``Unfiltering scanlines returns the original scanlines``
+    (scanlines2d: byte[,]) =
+    printf "Try: %A\n" scanlines2d
+
+    let toJaggedArray (arr2d: 'T[,]): 'T[][] =
+        [|
+            for row in 0 .. (Array2D.length2 arr2d - 1) ->
+                arr2d.[0..(Array2D.length1 arr2d - 1), row]
+        |]
+
+    let scanlines = toJaggedArray scanlines2d
+    let filteredScanlines = 
+        filterScanlines minSumOfAbsoluteValueSelector scanlines
+    let unfilteredScanlines = unfilterScanlines filteredScanlines
+    scanlines = unfilteredScanlines
