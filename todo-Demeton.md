@@ -1,6 +1,7 @@
 - implement PNG writing
     - move the PNG functions to Demeton.Png module.
-    - document Demeton.Png module
+    - document `Demeton.Png` and `Demeton.PngFilters` modules
+    - flatten `PNG filtering.fs` test cases by using custom property attributes.
     - property test that generates a PNG from a data array and then decodes it back
     - prepare a test case for generating the simplest PNG
     - first grayscale (and with transparency, if possible)

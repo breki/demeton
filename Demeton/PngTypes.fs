@@ -1,5 +1,10 @@
 ﻿module Demeton.PngTypes
 
+// https://en.wikipedia.org/wiki/Portable_Network_Graphics
+// https://www.w3.org/TR/PNG/#11IHDR
+// http://www.libpng.org/pub/png/book/chapter08.html
+// https://www.w3.org/TR/REC-png-961001
+
 /// <summary>
 /// A single-byte integer giving the number of bits per sample or per palette 
 /// index (not per pixel).
