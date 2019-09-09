@@ -202,6 +202,18 @@ let unfilterScanlinePaeth (prevScanline: byte[] option) (filtered: byte[]): byte
     |]
 
 
+let allPngFilters = [|
+    filterScanlineNone; filterScanlineSub; filterScanlineUp; 
+    filterScanlineAverage; filterScanlinePaeth
+|]
+
+
+let allPngUnfilters = [|
+    unfilterScanlineNone; unfilterScanlineSub; unfilterScanlineUp; 
+    unfilterScanlineAverage; unfilterScanlinePaeth
+|]
+
+
 let sumOfAbsoluteValueOfFilteredScanline (filtered: byte[]): int =
     filtered |> Array.map int |> Array.sum
 
@@ -237,19 +249,32 @@ let filterScanlines
     |]
 
 
-[<Fact>]
-let ``Can filter scanlines``() =
-    let filters = [|
-        filterScanlineNone; filterScanlineSub; filterScanlineUp; 
-        filterScanlineAverage; filterScanlinePaeth
+let unfilterScanlines (filteredScanlines: byte[][]): byte[][] =
+    [| 
+        let mutable prevScanline = None
+        for scanlineIndex in 0 .. filteredScanlines.Length - 1 do
+            let filteredScanline = filteredScanlines.[scanlineIndex]
+
+            let filterType = (int)filteredScanline.[0]
+            match filterType with
+            | f when f >= 0 && f < allPngUnfilters.Length -> 
+                let unfilteredScanline = 
+                    allPngUnfilters.[filterType] prevScanline filteredScanline
+                prevScanline <- Some unfilteredScanline
+                yield unfilteredScanline
+            | _ -> 
+                invalidOp (sprintf "Unsupported PNG filter type %d" filterType)
     |]
 
+
+[<Fact>]
+let ``Can filter scanlines``() =
     let scanlines = [|
         [| 0uy; 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy |];
         [| 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy; 10uy |]
     |]
 
-    let filteredScanlines = filterScanlines filters scanlines
+    let filteredScanlines = filterScanlines allPngFilters scanlines
     test <@ filteredScanlines |> Seq.length = 2 @>
     test <@ filteredScanlines |> Seq.exists (fun sc -> sc.Length <> 11) |> not @>
 
@@ -362,3 +387,21 @@ type ``PNG filtering property tests``() =
         (b1: byte) (b2: byte) (b3: byte) =
         [| b1; b2; b3 |] |> sumOfAbsoluteValueOfFilteredScanline
             = ((int)b1) + ((int)b2) + ((int)b3)
+
+    [<Property>]
+    [<Trait("Category", "integration")>]
+    member __.``Unfiltering scanlines returns the original scanlines``
+        (scanlines2d: byte[,]) =
+        printf "Try: %A\n" scanlines2d
+
+        let toJaggedArray (arr2d: byte[,]): byte[][] =
+            [|
+                for row in 0 .. (Array2D.length2 arr2d - 1) ->
+                    arr2d.[0..(Array2D.length1 arr2d - 1), row]
+            |]
+
+        let scanlines = toJaggedArray scanlines2d
+        let filteredScanlines = 
+            filterScanlines allPngFilters scanlines
+        let unfilteredScanlines = unfilterScanlines filteredScanlines
+        scanlines = unfilteredScanlines

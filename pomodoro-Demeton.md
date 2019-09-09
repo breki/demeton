@@ -1,4 +1,7 @@
-﻿## Sun 8.9.
+﻿## Mon 9.9.
+- Implemented unfilterScanlines function.
+
+## Sun 8.9.
 - Implemented filterScanlines function.
 - Implemented filterScanlinePaeth function.
 - Implemented filterScanlineAverage function.
