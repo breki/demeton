@@ -6,7 +6,11 @@ open FsCheck
 open FsCheck.Xunit
 open Swensen.Unquote
 
-type ScanlineFilter = byte[] option -> byte[] -> byte[]
+type Scanline = byte[]
+type FilteredScanline = byte[]
+
+type ScanlineFilter = Scanline option -> Scanline -> FilteredScanline
+type ScanlineUnfilter = Scanline option -> FilteredScanline -> Scanline
 
 type FilterType = 
     FilterNone = 0uy
@@ -15,8 +19,7 @@ type FilterType =
     | FilterAverage = 3uy
     | FilterPaeth = 4uy
 
-
-let filterScanlineNone _ (scanline: byte[]): byte[] =    
+let filterScanlineNone _ (scanline: Scanline): FilteredScanline =    
         [| 
             for i in 0 .. scanline.Length -> 
                 match i with
@@ -25,12 +28,12 @@ let filterScanlineNone _ (scanline: byte[]): byte[] =
         |]
 
 
-let unfilterScanlineNone _ (filtered: byte[]) =
+let unfilterScanlineNone _ (filtered: FilteredScanline) =
     printf "%A\n" filtered
     [| for i in 0 .. filtered.Length - 2 -> filtered.[i + 1] |]
 
 
-let filterScanlineSub _ (scanline: byte[]): byte[] = 
+let filterScanlineSub _ (scanline: Scanline): FilteredScanline = 
     [| 
         for i in 0 .. scanline.Length -> 
             match i with
@@ -40,9 +43,9 @@ let filterScanlineSub _ (scanline: byte[]): byte[] =
     |]
 
 
-let unfilterScanlineSub _ (filtered: byte[]): byte[] =
+let unfilterScanlineSub _ (filtered: FilteredScanline): Scanline =
     let scanlineLength = filtered.Length - 1
-    let scanline: byte[] = Array.zeroCreate scanlineLength
+    let scanline = Array.zeroCreate scanlineLength
 
     match scanlineLength with
     | 0 -> scanline
@@ -58,7 +61,11 @@ let unfilterScanlineSub _ (filtered: byte[]): byte[] =
         scanline
 
 
-let filterScanlineUp (prevScanline: byte[] option) (scanline: byte[]): byte[] = 
+let filterScanlineUp 
+    (prevScanline: Scanline option) 
+    (scanline: Scanline)
+    : FilteredScanline = 
+
     match prevScanline with
     | None -> 
         [| 
@@ -77,7 +84,8 @@ let filterScanlineUp (prevScanline: byte[] option) (scanline: byte[]): byte[] =
         filtered
 
 
-let unfilterScanlineUp (prevScanline: byte[] option) (filtered: byte[]): byte[] =
+let unfilterScanlineUp 
+    (prevScanline: Scanline option) (filtered: FilteredScanline): Scanline =
     let scanlineLength = filtered.Length - 1
 
     match scanlineLength with
@@ -88,7 +96,7 @@ let unfilterScanlineUp (prevScanline: byte[] option) (filtered: byte[]): byte[] 
         match prevScanline with
         | None -> filtered |> Array.skip 1
         | Some prev -> 
-            let scanline: byte[] = Array.zeroCreate scanlineLength
+            let scanline = Array.zeroCreate scanlineLength
 
             for i in 1 .. scanlineLength do
                 scanline.[i-1] <- filtered.[i] + prev.[i-1]
@@ -96,7 +104,8 @@ let unfilterScanlineUp (prevScanline: byte[] option) (filtered: byte[]): byte[] 
             scanline
 
 
-let filterScanlineAverage (prevScanline: byte[] option) (scanline: byte[]): byte[] = 
+let filterScanlineAverage 
+    (prevScanline: Scanline option) (scanline: Scanline): FilteredScanline = 
     [| 
         for i in 0 .. scanline.Length -> 
             match i with
@@ -116,7 +125,8 @@ let filterScanlineAverage (prevScanline: byte[] option) (scanline: byte[]): byte
     |]
 
 
-let unfilterScanlineAverage (prevScanline: byte[] option) (filtered: byte[]): byte[] =
+let unfilterScanlineAverage 
+    (prevScanline: Scanline option) (filtered: FilteredScanline): Scanline =
     [|
         let mutable lastValue = filtered.[1]
         
@@ -150,7 +160,8 @@ let paethPredictor (a:int) (b:int) (c:int) =
     | _ -> c
 
 
-let filterScanlinePaeth (prevScanline: byte[] option) (scanline: byte[]): byte[] = 
+let filterScanlinePaeth 
+    (prevScanline: Scanline option) (scanline: Scanline): FilteredScanline = 
     [| 
         for i in 0 .. scanline.Length -> 
             match i with
@@ -175,7 +186,8 @@ let filterScanlinePaeth (prevScanline: byte[] option) (scanline: byte[]): byte[]
     |]
 
 
-let unfilterScanlinePaeth (prevScanline: byte[] option) (filtered: byte[]): byte[] =
+let unfilterScanlinePaeth 
+    (prevScanline: Scanline option) (filtered: FilteredScanline): Scanline =
     [|
         let mutable lastRaw = filtered.[1]
         
@@ -214,7 +226,7 @@ let allPngUnfilters = [|
 |]
 
 
-let sumOfAbsoluteValueOfFilteredScanline (filtered: byte[]): int =
+let sumOfAbsoluteValueOfFilteredScanline (filtered: FilteredScanline): int =
     filtered |> Array.map int |> Array.sum
 
 
@@ -228,7 +240,7 @@ let sumOfAbsoluteValueOfFilteredScanline (filtered: byte[]): int =
 /// original scanline.
 /// </returns>
 let filterScanlines 
-    (filters: ScanlineFilter seq) (scanlines: byte[][]): byte[][]=
+    (filters: ScanlineFilter seq) (scanlines: Scanline[]): FilteredScanline[]=
 
     [| 
         for scanlineIndex in 0 .. scanlines.Length - 1 do
@@ -249,7 +261,7 @@ let filterScanlines
     |]
 
 
-let unfilterScanlines (filteredScanlines: byte[][]): byte[][] =
+let unfilterScanlines (filteredScanlines: FilteredScanline[]): Scanline[] =
     [| 
         let mutable prevScanline = None
         for scanlineIndex in 0 .. filteredScanlines.Length - 1 do
@@ -279,7 +291,7 @@ let ``Can filter scanlines``() =
     test <@ filteredScanlines |> Seq.exists (fun sc -> sc.Length <> 11) |> not @>
 
 
-type ScanlinesPair = (byte[] * byte[] option)
+type ScanlinesPair = (Scanline * Scanline option)
 type ScanlinesGenerator =
 
     static member ScanlinePair() =
@@ -394,7 +406,7 @@ type ``PNG filtering property tests``() =
         (scanlines2d: byte[,]) =
         printf "Try: %A\n" scanlines2d
 
-        let toJaggedArray (arr2d: byte[,]): byte[][] =
+        let toJaggedArray (arr2d: 'T[,]): 'T[][] =
             [|
                 for row in 0 .. (Array2D.length2 arr2d - 1) ->
                     arr2d.[0..(Array2D.length1 arr2d - 1), row]

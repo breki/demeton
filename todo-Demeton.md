@@ -1,10 +1,7 @@
-﻿- github migration
+- github migration
     - remove project from bitbucket
 
 - implement PNG writing
-    - implement unfiltering of scanlines so we can write the property test
-        - implement a generator for an array of scanlines with the same width
-    - define type aliases for scanline and filtered scanline
     - extract filter selection as an extra method
     - move the PNG code to the main assembly
     - property test that generates a PNG from a data array and then decodes it back
