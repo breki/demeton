@@ -1,4 +1,5 @@
 ## Tue 10.9.
+- Moved functions for binary reading and writing into `Demeton.Binary` module. 
 - Moved PNG code into Png folder.
 - Finished implementing encoding/decoding of 8-bit grayscale PNG images.
 - Continued working on PNG decoding for the simplest case.

@@ -4,6 +4,7 @@
     <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Binary.fs" />
     <Compile Include="CRC.fs" />
     <Compile Include="Png\PngTypes.fs" />
     <Compile Include="Png\PngFilters.fs" />
