@@ -1,3 +1,6 @@
+## Tue 10.9.
+- Started working on PNG compression.
+
 ## Mon 9.9.
 - Flattened `PNG filtering.fs` tests by using custom property attribute.
 - Moved PNG functions into Demeton modules.

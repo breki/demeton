@@ -10,7 +10,6 @@ open Swensen.Unquote
 
 open System
 open System.IO
-open ICSharpCode.SharpZipLib.Zip.Compression.Streams
 
 let givenA8BitGrayscaleImage rndSeed imageWidth imageHeight 
     : Grayscale8BitImageData =
@@ -93,26 +92,6 @@ let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
     test <@ scanlines |> Seq.head = getLine 0 imageData @>
     test <@ scanlines |> Seq.skip 1 |> Seq.head = getLine 1 imageData @>
 
-
-[<Property>]
-let ``Inflating a deflated data returns the original data`` =
-    let originalData = [| 10uy; 20uy; 30uy |]
-    use originalDataStream = new MemoryStream(originalData)
-
-    use compressedDataStream = new MemoryStream()
-    use deflaterStream: DeflaterOutputStream =
-        new DeflaterOutputStream(compressedDataStream)
-    originalDataStream.CopyTo(deflaterStream)
-
-    compressedDataStream.Seek(0L, SeekOrigin.Begin) |> ignore
-
-    use decompressedStream = new MemoryStream()
-    use inflaterStream = new InflaterInputStream(compressedDataStream)
-    inflaterStream.CopyTo(decompressedStream)
-
-    let decompressedData = decompressedStream.ToArray()
-
-    decompressedData = originalData
 
 [<Fact>]
 let ``Can generate a simplest PNG``() =
