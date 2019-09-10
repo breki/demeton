@@ -107,9 +107,16 @@ type IhdrData = {
 type Grayscale8BitImageData = byte[,]
 
 /// <summary>
+/// Represents a 16-bit grayscale image data as a two-dimensional array of 
+/// pixels.
+/// </summary>
+type Grayscale16BitImageData = uint16[,]
+
+/// <summary>
 /// A row of pixels within an image, represented as a byte array.
 /// </summary>
 type Scanline = byte[]
+
 /// <summary>
 /// A filtered row of pixels within an image, represented as a byte array.
 /// </summary>

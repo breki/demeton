@@ -138,10 +138,13 @@ let deserializeIdatChunkData imageWidth chunkData: Scanline[] =
     |> decompress (chunkData |> Array.skip 4)
 
     let decompressedData = chunkDataStream.ToArray()
-    let filteredScanlines: FilteredScanline[] = 
-        decompressedData |> Array.chunkBySize (imageWidth + 1)
+    if decompressedData.Length % (imageWidth + 1) <> 0 then
+        invalidOp "Decompressed IDAT chunk data is invalid."
+    else
+        let filteredScanlines: FilteredScanline[] = 
+            decompressedData |> Array.chunkBySize (imageWidth + 1)
 
-    unfilterScanlines filteredScanlines
+        unfilterScanlines filteredScanlines
 
 
 let writeIdatChunk (scanlines: Scanline[]) (stream: Stream): Stream =

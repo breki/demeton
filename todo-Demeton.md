@@ -1,10 +1,7 @@
 - implement PNG writing
+    - implement support for 16-bit grayscale images
     - reading should implement some kind of routing for chunks
-    - property test for IDAT chunks
-        - also make sure the decompressed array has a modulo of 0
     - document `Demeton.Png` and `Demeton.PngFilters` modules
-    - property test that generates a PNG from a data array and then decodes it back
-    - prepare a test case for generating the simplest PNG
     - first grayscale (and with transparency, if possible)
 
 - hillshading algorithm
