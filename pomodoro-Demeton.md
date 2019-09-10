@@ -1,4 +1,5 @@
 ## Tue 10.9.
+- Moved `compress` and `decompress` functions to `Demeton.Png` module.
 - Started working on PNG compression.
 
 ## Mon 9.9.

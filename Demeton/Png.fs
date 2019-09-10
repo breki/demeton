@@ -4,6 +4,7 @@ open Demeton.PngTypes
 
 open System
 open System.IO
+open ICSharpCode.SharpZipLib.Zip.Compression
 
 /// <summary>Writes the 8-byte PNG signature to a stream.</summary>
 /// <param name="stream">The stream the signature should be written to.</param>
@@ -137,6 +138,28 @@ let writeChunk
 
 let writeIhdrChunk (ihdr: IhdrData) (stream: Stream): Stream =
     stream |> writeChunk (fun () -> serializeIhdrChunkData (ihdr))
+
+
+let compress data (outputStream: Stream) : unit =
+    let deflater = new Deflater()
+    deflater.SetInput(data)
+    deflater.Finish()
+
+    while not deflater.IsFinished do
+        let compressionBuffer: byte[] = Array.zeroCreate (100 * 1024 * 4)
+
+        let producedBytesCount = deflater.Deflate(compressionBuffer)
+        outputStream.Write(compressionBuffer, 0, producedBytesCount)
+
+
+let decompress compressedData (outputStream: Stream) : unit =
+    let inflater = new Inflater()
+    inflater.SetInput(compressedData)
+
+    while not inflater.IsFinished do
+        let inflaterBuffer: byte[] = Array.zeroCreate (100 * 1024 * 4)
+        let producedBytesCount = inflater.Inflate(inflaterBuffer)
+        outputStream.Write(inflaterBuffer, 0, producedBytesCount)
 
 let writeIdatChunk (stream: Stream): Stream =
     // The sequence of filtered scanlines is compressed and the resulting data 

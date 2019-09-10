@@ -1,7 +1,8 @@
 ﻿module Demeton.Tests.``PNG compression``
 
+open Demeton.Png
+
 open System.IO
-open ICSharpCode.SharpZipLib.Zip.Compression
 
 open FsUnit
 open FsCheck
@@ -37,37 +38,21 @@ open Xunit
 
 //    test <@ decompressedData = originalData @>
     
+
 // https://csharp.hotexamples.com/examples/ICSharpCode.SharpZipLib.Zip.Compression/Deflater/-/php-deflater-class-examples.html
 [<Property>]
 [<Trait("Category", "integration")>]
 let ``Inflating a deflated data returns the original data``
     (originalData: byte[]) =
-    printf "original data: %A\n" originalData
    
-    let deflater = new Deflater()
-    deflater.SetInput(originalData)
-    deflater.Finish()
-
     use compressedOutputStream = new MemoryStream()
-    while not deflater.IsFinished do
-        let compressionBuffer: byte[] = Array.zeroCreate (100 * 1024 * 4)
-
-        let producedBytesCount = deflater.Deflate(compressionBuffer)
-        compressedOutputStream.Write(compressionBuffer, 0, producedBytesCount)
-
+    compress originalData compressedOutputStream
     let compressedData = compressedOutputStream.ToArray()
-    printf "compressed data: %A\n" compressedData
 
-    let inflater = new Inflater()
-    inflater.SetInput(compressedData)
-    
     use decompressedOutputStream = new MemoryStream()
-    while not inflater.IsFinished do
-        let inflaterBuffer: byte[] = Array.zeroCreate (100 * 1024 * 4)
-        let producedBytesCount = inflater.Inflate(inflaterBuffer)
-        decompressedOutputStream.Write(inflaterBuffer, 0, producedBytesCount)
+    decompress compressedData decompressedOutputStream
 
     let decompressedData = decompressedOutputStream.ToArray()
-    printf "decompressed data: %A\n" decompressedData
+    decompressedData = originalData
     
 

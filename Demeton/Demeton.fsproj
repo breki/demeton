@@ -17,6 +17,9 @@
     <Compile Include="Hillshading.fs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="SharpZipLib.NETStandard" Version="1.0.7" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.7.0" />
   </ItemGroup>
 </Project>
