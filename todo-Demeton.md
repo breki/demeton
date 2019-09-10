@@ -1,9 +1,9 @@
 - implement PNG writing
     - reading should implement some kind of routing for chunks
-    - fix the test that loads the generated PNG using System.Drawing
-         - invalid chunk name "xťÝ═" (78 ffffff9c ffffffed ffffffcd)
     - property test for IDAT chunks
         - also make sure the decompressed array has a modulo of 0
+    - we need to reorganize Png module code, structure it so it's more maintainable
+        - extract common stream reading/writing into a separate module
 
     - implement compression
         - deflate/inflate compression with a sliding window (which is an upper bound on the distances appearing in the deflate stream) of at most 32768 bytes. 

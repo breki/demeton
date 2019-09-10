@@ -139,9 +139,9 @@ let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
 
 //[<Fact(Skip="todo: currently now working")>]
 [<Fact>]
-let ``Can generate a simplest PNG``() =
+let ``Can generate a simplest 8-bit grayscale PNG``() =
     let imageWidth = 100
-    let imageHeight = 100
+    let imageHeight = 80
     let ihdr = 
         { Width = imageWidth; Height = imageHeight; 
             BitDepth = PngBitDepth.BitDepth8; 
@@ -151,9 +151,6 @@ let ``Can generate a simplest PNG``() =
     let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
 
     use stream = new MemoryStream()
-
-    //let fileName = @"c:\temp\test.png"
-    //use stream = new FileStream(fileName, FileMode.OpenOrCreate)
     stream 
     |> writeSignature 
     |> writeIhdrChunk ihdr
@@ -167,6 +164,46 @@ let ``Can generate a simplest PNG``() =
     stream |> readSignature |> ignore
     let readIhdrData = stream |> readIhdrChunk
 
-    //use bitmap = System.Drawing.Bitmap.FromStream(stream)
-    //use bitmap = System.Drawing.Bitmap.FromFile(fileName)
-    true
+    test <@ readIhdrData = ihdr @> 
+
+    let (chunkType, chunkData) = stream |> readChunk
+    test <@ chunkType = ChunkType("IDAT") @>
+
+    let scanlinesRead = deserializeIdatChunkData readIhdrData.Width chunkData
+    let imageDataRead = 
+        scanlinesToGrayscale8Bit 
+            readIhdrData.Width readIhdrData.Height scanlinesRead
+
+    test <@ imageDataRead = imageData @>
+
+
+[<Fact>]
+let ``Generated 8-bit grayscale PNG is recognized by System.Drawing``() =
+    let imageWidth = 100
+    let imageHeight = 80
+
+    let rnd = Random(123)
+    let ihdr = 
+        { Width = imageWidth; Height = imageHeight; 
+            BitDepth = PngBitDepth.BitDepth8; 
+            ColorType = PngColorType.Grayscale; 
+            InterlaceMethod = PngInterlaceMethod.NoInterlace }
+    let imageData = 
+        Array2D.init imageWidth imageHeight (fun _ _ -> (byte)(rnd.Next(255)))
+    let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
+
+    use stream = new MemoryStream()
+
+    stream 
+    |> writeSignature 
+    |> writeIhdrChunk ihdr
+    |> writeIdatChunk (scanlines)
+    |> writeIendChunk
+    |> ignore
+
+    stream.Flush() |> ignore
+    stream.Seek(0L, SeekOrigin.Begin) |> ignore
+
+    use bitmap = System.Drawing.Bitmap.FromStream(stream)
+    test <@ bitmap.Width = imageWidth @>
+    test <@ bitmap.Height = imageHeight @>

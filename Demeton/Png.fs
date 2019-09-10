@@ -293,15 +293,20 @@ let serializeIdatChunkData (scanlines: Scanline[]): byte[] =
         filterScanlines minSumOfAbsoluteValueSelector scanlines
     let dataBeforeCompression = Array.concat filteredScanlines
     use compressionStream = new MemoryStream()
-    compress dataBeforeCompression compressionStream
+
+    compressionStream
+    |> writeChunkType (ChunkType("IDAT"))
+    |> compress dataBeforeCompression
     compressionStream.ToArray()
 
 
 let deserializeIdatChunkData imageWidth chunkData: Scanline[] =
-    use decompressionStream = new MemoryStream()
-    decompress chunkData decompressionStream
+    use chunkDataStream = new MemoryStream()
+    chunkDataStream 
+    // skips the first 4 bytes as there represent the chunk type
+    |> decompress (chunkData |> Array.skip 4)
 
-    let decompressedData = decompressionStream.ToArray()
+    let decompressedData = chunkDataStream.ToArray()
     let filteredScanlines: FilteredScanline[] = 
         decompressedData |> Array.chunkBySize (imageWidth + 1)
 
@@ -329,3 +334,8 @@ let grayscale8BitScanlines (imageData: Grayscale8BitImageData): Scanline seq =
     }
 
 
+let scanlinesToGrayscale8Bit 
+    imageWidth
+    imageHeight
+    (scanlines: Scanline[]): Grayscale8BitImageData =
+    Array2D.init imageWidth imageHeight (fun x y -> scanlines.[y].[x])
