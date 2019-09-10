@@ -1,19 +1,11 @@
 ﻿module Demeton.Png
 
 open Demeton.PngTypes
+open Demeton.PngFilters
 
 open System
 open System.IO
 open ICSharpCode.SharpZipLib.Zip.Compression
-
-/// <summary>Writes the 8-byte PNG signature to a stream.</summary>
-/// <param name="stream">The stream the signature should be written to.</param>
-/// <returns>The same instance of the stream.</returns>
-let writeSignature (stream: Stream): Stream =
-    let pngSignature = [| 0x89uy; 0x50uy; 0x4euy; 0x47uy; 0x0duy; 0x0auy; 
-                                0x1auy; 0x0auy |]
-    Array.ForEach(pngSignature, (fun x -> stream.WriteByte x))
-    stream
 
 /// <summary>Writes the specified byte value to a stream.</summary>
 /// <param name="value">The byte value to be written.</param>
@@ -30,6 +22,7 @@ let readByte (stream: Stream) =
     | -1 -> invalidOp "Unexpected EOF reached in the stream."
     | _ -> (byte)read
 
+
 /// <summary>Writes the specified byte array to a stream.</summary>
 /// <param name="value">The byte array to be written.</param>
 /// <param name="stream">The stream the byte array should be written to.</param>
@@ -37,6 +30,32 @@ let readByte (stream: Stream) =
 let writeBytes (bytes: byte[]) (stream: Stream): Stream =
     stream.Write (bytes, 0, bytes.Length)
     stream
+
+
+let readBytes length (stream: Stream): byte[] =
+    // todo: this method is reusable
+    let rec copyToStream 
+        bytesToCopy
+        (buffer: byte[]) 
+        (fromStream: Stream) 
+        (toStream: Stream): unit =
+
+        let maxBytesToRead = min bytesToCopy buffer.Length
+        let bytesRead = fromStream.Read(buffer, 0, maxBytesToRead)
+        toStream.Write(buffer, 0, bytesRead)
+
+        let remainingLength = length - bytesRead
+        match remainingLength with
+        | 0 -> ignore()
+        | _ -> copyToStream remainingLength buffer fromStream toStream
+
+    use bufferStream = new MemoryStream()
+
+    let bufferSize = min length (1024 * 1024)
+    let buffer: byte[] = Array.zeroCreate bufferSize
+
+    copyToStream length buffer stream bufferStream
+    bufferStream.ToArray()
 
 
 /// <summary>
@@ -59,6 +78,7 @@ let readBigEndianInt32 (stream: Stream): int =
     ||| (((int)(readByte stream)) <<< 8)
     ||| (((int)(readByte stream)))
 
+
 /// <summary>
 /// Writes the specified unsigned integer value to a stream using the big 
 /// endian order.
@@ -74,6 +94,34 @@ let writeBigEndianUInt32 (value: uint32) (stream: Stream): Stream =
     |> writeByte ((byte)(value >>> 16))
     |> writeByte ((byte)(value >>> 8))
     |> writeByte ((byte)value)
+
+
+let readBigEndianUInt32 (stream: Stream): uint32 =
+    (((uint32)(readByte stream)) <<< 24)
+    ||| (((uint32)(readByte stream)) <<< 16)
+    ||| (((uint32)(readByte stream)) <<< 8)
+    ||| (((uint32)(readByte stream)))
+
+
+let pngSignature = 
+    [| 0x89uy; 0x50uy; 0x4euy; 0x47uy; 0x0duy; 0x0auy; 0x1auy; 0x0auy |]
+
+/// <summary>Writes the 8-byte PNG signature to a stream.</summary>
+/// <param name="stream">The stream the signature should be written to.</param>
+/// <returns>The same instance of the stream.</returns>
+let writeSignature (stream: Stream): Stream =
+    Array.ForEach(pngSignature, (fun x -> stream.WriteByte x))
+    stream
+
+
+let readSignature (stream: Stream): Stream =
+    let signatureLength = pngSignature.Length
+
+    let signatureRead = 
+        [| for i in 0 .. (signatureLength-1) -> readByte stream |]
+
+    if signatureRead = pngSignature then stream
+    else invalidOp "Invalid PNG signature"
 
 
 /// <summary>
@@ -114,7 +162,7 @@ let serializeIhdrChunkData (ihdr: IhdrData): byte[] =
     use stream = new MemoryStream()
 
     stream
-    |> writeChunkType (new ChunkType("IHDR"))
+    |> writeChunkType (ChunkType("IHDR"))
     |> writeBigEndianInt32 ihdr.Width
     |> writeBigEndianInt32 ihdr.Height
     |> writeByte ((byte)ihdr.BitDepth)
@@ -130,15 +178,15 @@ let serializeIhdrChunkData (ihdr: IhdrData): byte[] =
 let deserializeIhdrChunkData (bytes: byte[]) =
     let assertNextByteIs expected stream =
         let nextByte = readByte stream
-        match nextByte with
-        | expected -> stream
-        | _ -> invalidOp (sprintf "Expected byte is %O but was %O." expected nextByte)
+
+        if nextByte = expected then stream
+        else 
+            invalidOp 
+                (sprintf "Expected byte is %O but was %O." expected nextByte)
 
     use stream = new MemoryStream(bytes)
 
-    stream 
-    |> readChunkType (new ChunkType("IHDR"))
-    |> ignore
+    stream |> readChunkType (ChunkType("IHDR")) |> ignore
 
     { 
         Width = readBigEndianInt32 stream;
@@ -167,17 +215,16 @@ let serializeIendChunkData(): byte[] =
     use stream = new MemoryStream()
 
     stream
-    |> writeChunkType (new ChunkType("IEND"))
+    |> writeChunkType (ChunkType("IEND"))
     |> ignore
 
     stream.ToArray()
 
 
 let writeChunk 
-    (chunkDataWriter: ChunkDataWriter) 
+    (chunkTypeAndDataBytes: byte[]) 
     (stream: Stream)
     : Stream =
-    let chunkTypeAndDataBytes = chunkDataWriter()
     let chunkDataLength = chunkTypeAndDataBytes.Length - 4
 
     let chunkCrc = CRC.crc32 chunkTypeAndDataBytes
@@ -187,8 +234,36 @@ let writeChunk
     |> writeBytes chunkTypeAndDataBytes
     |> writeBigEndianUInt32 chunkCrc
 
+
+let readChunk (stream: Stream): (ChunkType * byte[]) =
+    let chunkDataLength = stream |> readBigEndianInt32
+
+    // '4' is for the chunk type
+    let chunkTypeAndDataBytes = stream |> readBytes (4 + chunkDataLength)
+    let chunkCrc = stream |> readBigEndianUInt32
+
+    let chunkTypeInBytes = chunkTypeAndDataBytes |> Array.take 4
+
+    let chunkType = 
+        ChunkType(System.Text.ASCIIEncoding.ASCII.GetString(chunkTypeInBytes))
+
+    let expectedChunkCrc = CRC.crc32 chunkTypeAndDataBytes
+    if chunkCrc <> expectedChunkCrc 
+        then invalidOp (sprintf "Wrong CRC for PNG chunk type %A." chunkType)
+    else 
+        (chunkType, chunkTypeAndDataBytes)
+
 let writeIhdrChunk (ihdr: IhdrData) (stream: Stream): Stream =
-    stream |> writeChunk (fun () -> serializeIhdrChunkData (ihdr))
+    stream |> writeChunk (serializeIhdrChunkData ihdr)
+
+
+let readIhdrChunk (stream: Stream): IhdrData =
+    let (chunkType, chunkTypeAndDataBytes) = readChunk stream
+    
+    if chunkType <> ChunkType("IHDR") then 
+        invalidOp (sprintf "Expected IHDR chunk, but got %A" chunkType)
+    else
+        deserializeIhdrChunkData chunkTypeAndDataBytes
 
 
 let compress data (outputStream: Stream) : unit =
@@ -212,19 +287,33 @@ let decompress compressedData (outputStream: Stream) : unit =
         let producedBytesCount = inflater.Inflate(inflaterBuffer)
         outputStream.Write(inflaterBuffer, 0, producedBytesCount)
 
-let writeIdatChunk (stream: Stream): Stream =
-    // The sequence of filtered scanlines is compressed and the resulting data 
-    // stream is split into IDAT chunks. The concatenation of the contents of 
-    // all the IDAT chunks makes up a zlib datastream. This datastream 
-    // decompresses to filtered image data.
 
-    // Filtering transforms the byte sequence in a scanline to an equal length 
-    // sequence of bytes preceded by the filter type.
-    stream
+let serializeIdatChunkData (scanlines: Scanline[]): byte[] =
+    let filteredScanlines = 
+        filterScanlines minSumOfAbsoluteValueSelector scanlines
+    let dataBeforeCompression = Array.concat filteredScanlines
+    use compressionStream = new MemoryStream()
+    compress dataBeforeCompression compressionStream
+    compressionStream.ToArray()
+
+
+let deserializeIdatChunkData imageWidth chunkData: Scanline[] =
+    use decompressionStream = new MemoryStream()
+    decompress chunkData decompressionStream
+
+    let decompressedData = decompressionStream.ToArray()
+    let filteredScanlines: FilteredScanline[] = 
+        decompressedData |> Array.chunkBySize (imageWidth + 1)
+
+    unfilterScanlines filteredScanlines
+
+
+let writeIdatChunk (scanlines: Scanline[]) (stream: Stream): Stream =
+    stream |> writeChunk (serializeIdatChunkData scanlines)
 
 
 let writeIendChunk (stream: Stream): Stream =
-    stream
+    stream |> writeChunk (serializeIendChunkData())
 
 
 /// <summary>

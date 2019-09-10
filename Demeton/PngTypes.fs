@@ -75,11 +75,6 @@ type ChunkType =
         }
 
 /// <summary>
-/// A function that writes a PNG chunk into a byte array.
-/// </summary>
-type ChunkDataWriter = unit -> byte[]
-
-/// <summary>
 /// The record type containing IHDR (image header) chunk data.
 /// </summary>
 type IhdrData = {

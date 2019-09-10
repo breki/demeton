@@ -20,6 +20,13 @@ let ``Reading of big endian int is inverse of writing it`` (value: int) =
     stream.Seek (0L, SeekOrigin.Begin) |> ignore
     readBigEndianInt32 stream = value 
 
+[<Property>]
+let ``Reading of big endian uint is inverse of writing it`` (value: uint32) = 
+    use stream = new MemoryStream()
+    stream |> writeBigEndianUInt32 value |> ignore
+    stream.Seek (0L, SeekOrigin.Begin) |> ignore
+    readBigEndianUInt32 stream = value 
+
 
 let givenA8BitGrayscaleImage rndSeed imageWidth imageHeight 
     : Grayscale8BitImageData =
@@ -48,7 +55,7 @@ let ``Writes chunk into a stream``() =
         stream.ToArray();
 
     use stream = new MemoryStream()
-    stream |> writeChunk (givenSomeChunkData) |> ignore
+    stream |> writeChunk (givenSomeChunkData()) |> ignore
 
     test <@ 
             stream.ToArray() = [| 
@@ -82,11 +89,28 @@ let ``Can serialize IHDR chunk into a byte array``() =
 let ``Deserializing serialized IHDR chunk data results in the original IHDR data``
     (ihdrData: IhdrData) =
     printf "original: %A\n" ihdrData
-    
-    let deserialized = deserializeIhdrChunkData (serializeIhdrChunkData ihdrData) 
-    
+
+    let deserialized = deserializeIhdrChunkData (serializeIhdrChunkData ihdrData)    
+
     printf "deserialized: %A\n" deserialized
+
     deserialized = ihdrData
+
+[<Property>]
+let ``Deserializing serialized IDAT chunk data results in the original image data``
+    (imageData: byte[,]) =
+
+    printf "original: %A\n" imageData
+
+    let imageWidth = Array2D.length1 imageData
+    let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
+
+    let deserialized = 
+        deserializeIdatChunkData imageWidth (serializeIdatChunkData scanlines)    
+
+    printf "deserialized: %A\n" deserialized
+
+    deserialized = scanlines
 
 [<Fact>]
 let ``Can serialize IEND chunk into a byte array``() =
@@ -113,16 +137,36 @@ let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
     test <@ scanlines |> Seq.skip 1 |> Seq.head = getLine 1 imageData @>
 
 
+//[<Fact(Skip="todo: currently now working")>]
 [<Fact>]
 let ``Can generate a simplest PNG``() =
+    let imageWidth = 100
+    let imageHeight = 100
     let ihdr = 
-        { Width = 1200; Height = 800; BitDepth = PngBitDepth.BitDepth8; 
-           ColorType = PngColorType.Grayscale; 
-           InterlaceMethod = PngInterlaceMethod.NoInterlace }
+        { Width = imageWidth; Height = imageHeight; 
+            BitDepth = PngBitDepth.BitDepth8; 
+            ColorType = PngColorType.Grayscale; 
+            InterlaceMethod = PngInterlaceMethod.NoInterlace }
+    let imageData = Array2D.init imageWidth imageHeight (fun x y -> 128uy)
+    let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
 
     use stream = new MemoryStream()
+
+    //let fileName = @"c:\temp\test.png"
+    //use stream = new FileStream(fileName, FileMode.OpenOrCreate)
     stream 
     |> writeSignature 
     |> writeIhdrChunk ihdr
-    |> writeIdatChunk
+    |> writeIdatChunk (scanlines)
     |> writeIendChunk
+    |> ignore
+
+    stream.Flush() |> ignore
+
+    stream.Seek(0L, SeekOrigin.Begin) |> ignore
+    stream |> readSignature |> ignore
+    let readIhdrData = stream |> readIhdrChunk
+
+    //use bitmap = System.Drawing.Bitmap.FromStream(stream)
+    //use bitmap = System.Drawing.Bitmap.FromFile(fileName)
+    true
