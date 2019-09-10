@@ -3,6 +3,7 @@
 open Demeton.Binary
 open Demeton.PngTypes
 open Demeton.Png
+open Demeton.PngChunks
 open Demeton.PngPixelFormats
 
 open FsCheck

@@ -1,4 +1,5 @@
 ﻿## Tue 10.9.
+- Extracted `Demeton.PngChunks` module.
 - Extracted `Demeton.PngPixelFormats` module.
 - Moved functions for binary reading and writing into `Demeton.Binary` module. 
 - Moved PNG code into Png folder.
