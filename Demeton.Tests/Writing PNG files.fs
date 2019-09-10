@@ -4,12 +4,22 @@ open Demeton.PngTypes
 open Demeton.Png
 
 open FsCheck
+open FsCheck.Xunit
 open FsUnit
 open Xunit
 open Swensen.Unquote
 
 open System
 open System.IO
+
+
+[<Property>]
+let ``Reading of big endian int is inverse of writing it`` (value: int) = 
+    use stream = new MemoryStream()
+    stream |> writeBigEndianInt32 value |> ignore
+    stream.Seek (0L, SeekOrigin.Begin) |> ignore
+    readBigEndianInt32 stream = value 
+
 
 let givenA8BitGrayscaleImage rndSeed imageWidth imageHeight 
     : Grayscale8BitImageData =
@@ -67,6 +77,16 @@ let ``Can serialize IHDR chunk into a byte array``() =
             |] 
         @>
 
+
+[<Property>]
+let ``Deserializing serialized IHDR chunk data results in the original IHDR data``
+    (ihdrData: IhdrData) =
+    printf "original: %A\n" ihdrData
+    
+    let deserialized = deserializeIhdrChunkData (serializeIhdrChunkData ihdrData) 
+    
+    printf "deserialized: %A\n" deserialized
+    deserialized = ihdrData
 
 [<Fact>]
 let ``Can serialize IEND chunk into a byte array``() =

@@ -1,4 +1,5 @@
 ## Tue 10.9.
+- Implemented `deserializeIhdrChunkData` function and added property test for it.
 - Moved `compress` and `decompress` functions to `Demeton.Png` module.
 - Started working on PNG compression.
 

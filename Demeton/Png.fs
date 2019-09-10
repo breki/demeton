@@ -24,6 +24,12 @@ let writeByte (value: byte) (stream: Stream): Stream =
     stream
 
 
+let readByte (stream: Stream) =
+    let read = stream.ReadByte()
+    match read with
+    | -1 -> invalidOp "Unexpected EOF reached in the stream."
+    | _ -> (byte)read
+
 /// <summary>Writes the specified byte array to a stream.</summary>
 /// <param name="value">The byte array to be written.</param>
 /// <param name="stream">The stream the byte array should be written to.</param>
@@ -46,6 +52,12 @@ let writeBigEndianInt32 (value: int) (stream: Stream): Stream =
     |> writeByte ((byte)(value >>> 8))
     |> writeByte ((byte)value)
 
+
+let readBigEndianInt32 (stream: Stream): int =
+    (((int)(readByte stream)) <<< 24)
+    ||| (((int)(readByte stream)) <<< 16)
+    ||| (((int)(readByte stream)) <<< 8)
+    ||| (((int)(readByte stream)))
 
 /// <summary>
 /// Writes the specified unsigned integer value to a stream using the big 
@@ -77,6 +89,18 @@ let writeChunkType (chunkType: ChunkType) (stream: Stream): Stream =
     stream
 
 
+let readChunkType (expectedChunkType: ChunkType) (stream: Stream): Stream = 
+    let typeName = expectedChunkType.TypeName
+
+    for i in 0 .. typeName.Length - 1 do
+        let expectedChar = typeName.[i]
+        let actualChar = (char) (readByte stream)
+        if actualChar = expectedChar then ignore()
+        else
+            invalidOp (sprintf "Unexpected PNG chunk type read (expected %s)." typeName)
+
+    stream
+
 /// <summary>
 /// Serializes the PNG IHDR chunk type and data into a byte array.
 //// </summary>
@@ -93,14 +117,41 @@ let serializeIhdrChunkData (ihdr: IhdrData): byte[] =
     |> writeChunkType (new ChunkType("IHDR"))
     |> writeBigEndianInt32 ihdr.Width
     |> writeBigEndianInt32 ihdr.Height
-    |> writeByte ((byte)(ihdr.BitDepth))
-    |> writeByte ((byte)(ihdr.ColorType))
-    |> writeByte ((byte)(PngCompressionMethod.DeflateInflate))
-    |> writeByte ((byte)(PngFilterMethod.AdaptiveFiltering))
-    |> writeByte ((byte)(ihdr.InterlaceMethod))
+    |> writeByte ((byte)ihdr.BitDepth)
+    |> writeByte ((byte)ihdr.ColorType)
+    |> writeByte ((byte)PngCompressionMethod.DeflateInflate)
+    |> writeByte ((byte)PngFilterMethod.AdaptiveFiltering)
+    |> writeByte ((byte)ihdr.InterlaceMethod)
     |> ignore
 
     stream.ToArray()
+
+
+let deserializeIhdrChunkData (bytes: byte[]) =
+    let assertNextByteIs expected stream =
+        let nextByte = readByte stream
+        match nextByte with
+        | expected -> stream
+        | _ -> invalidOp (sprintf "Expected byte is %O but was %O." expected nextByte)
+
+    use stream = new MemoryStream(bytes)
+
+    stream 
+    |> readChunkType (new ChunkType("IHDR"))
+    |> ignore
+
+    { 
+        Width = readBigEndianInt32 stream;
+        Height = readBigEndianInt32 stream;
+        BitDepth = LanguagePrimitives.EnumOfValue (readByte stream);
+        ColorType = LanguagePrimitives.EnumOfValue (readByte stream);
+        InterlaceMethod = 
+            stream 
+            |> assertNextByteIs ((byte)PngCompressionMethod.DeflateInflate)
+            |> assertNextByteIs ((byte)PngFilterMethod.AdaptiveFiltering)
+            |> readByte 
+            |> LanguagePrimitives.EnumOfValue 
+    }
 
 
 /// <summary>
