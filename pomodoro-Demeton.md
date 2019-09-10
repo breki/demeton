@@ -1,4 +1,5 @@
-## Tue 10.9.
+﻿## Tue 10.9.
+- Extracted `Demeton.PngPixelFormats` module.
 - Moved functions for binary reading and writing into `Demeton.Binary` module. 
 - Moved PNG code into Png folder.
 - Finished implementing encoding/decoding of 8-bit grayscale PNG images.

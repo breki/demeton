@@ -1,7 +1,9 @@
 ﻿module Demeton.Tests.``Writing PNG files``
 
+open Demeton.Binary
 open Demeton.PngTypes
 open Demeton.Png
+open Demeton.PngPixelFormats
 
 open FsCheck
 open FsCheck.Xunit

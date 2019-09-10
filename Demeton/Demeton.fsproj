@@ -9,6 +9,7 @@
     <Compile Include="Png\PngTypes.fs" />
     <Compile Include="Png\PngFilters.fs" />
     <Compile Include="Png\Png.fs" />
+    <Compile Include="Png\PngPixelFormats.fs" />
     <Compile Include="IOTypes.fs" />
     <Compile Include="GeometryTypes.fs" />
     <Compile Include="DemTypes.fs" />
