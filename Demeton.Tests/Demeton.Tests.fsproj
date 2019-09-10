@@ -7,6 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Png\Writing PNG files.fs" />
+    <Compile Include="Png\PNG compression.fs" />
+    <Compile Include="Png\PNG filtering.fs" />
     <EmbeddedResource Include="samples\N00E031.hgt" />
     <EmbeddedResource Include="samples\N00E031.SRTMGL1.hgt.zip" />
     <Compile Include="Hillshading.fs" />
@@ -18,9 +21,6 @@
     <Compile Include="DEM file storage tests.fs" />
     <Compile Include="Bounds to DEM tiles.fs" />
     <Compile Include="ensureTilesAreInCache tests.fs" />
-    <Compile Include="Writing PNG files.fs" />
-    <Compile Include="PNG compression.fs" />
-    <Compile Include="PNG filtering.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
