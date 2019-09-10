@@ -26,7 +26,8 @@
   <ItemGroup>
     <PackageReference Include="fscheck" Version="2.14.0" />
     <PackageReference Include="fscheck.xunit" Version="2.14.0" />
-    <PackageReference Include="FsUnit.xUnit" Version="3.4.0" />
+    <PackageReference Include="FsUnit.xUnit" Version="3.4.1" />
+    <PackageReference Include="SharpZipLib.NETStandard" Version="1.0.7" />
     <PackageReference Include="Unquote" Version="5.0.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
       <PrivateAssets>all</PrivateAssets>
@@ -36,6 +37,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Demeton\Demeton.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.7.0" />
   </ItemGroup>
 
 </Project>

@@ -13,7 +13,6 @@ let filterScanlineNone _ (scanline: Scanline): FilteredScanline =
 
 
 let unfilterScanlineNone _ (filtered: FilteredScanline) =
-    printf "%A\n" filtered
     [| for i in 0 .. filtered.Length - 2 -> filtered.[i + 1] |]
 
 
