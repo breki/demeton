@@ -28,11 +28,15 @@ type ScanlinesPair = (int * Scanline * Scanline option)
 type ScanlinesGenerator =
     static member ScanlinesPair() =
         // a generator for bits-per-pixel value
-        let bppValue = Gen.elements [| 8; 16; 24; 32 |]
+        //let bppValue = Gen.elements [| 8; 16; 24; 32 |]
+        // todo return back all the elements
+        let bppValue = Gen.elements [| 16 |]
 
         // note that the scanline length must be divisible with 3 and 4 
         // (as we use 3 and 4 as bytes-per-pixel values in this generator)
-        let scanlineLength = 12
+        // todo return back all the elements
+        //let scanlineLength = 12
+        let scanlineLength = 4
         let randomByteValue = Arb.generate<byte>
 
         // a generator for the main scanline
@@ -73,16 +77,9 @@ let ``Filtering and unfiltering using None filter type returns the same scanline
 [<Trait("Category", "properties")>]
 let ``Filtering and unfiltering using Sub filter type returns the same scanline`` 
         (scanlines: ScanlinesPair) = 
-
     let (bpp, scanline, prevScanline) = scanlines
-    printf "bpp: %d scanline: %A\n" bpp scanline 
-
     let filtered = filterScanlineSub bpp prevScanline scanline
-    printf "filtered: %A\n" filtered
-    
     let unfilteredScanline = unfilterScanlineSub bpp prevScanline filtered
-    printf "unfilteredScanline: %A\n" unfilteredScanline
-
     unfilteredScanline = scanline 
 
 
@@ -102,11 +99,8 @@ let ``Byte array returned by Up filter always contains filter type as first byte
 [<Trait("Category", "properties")>]
 let ``Filtering and unfiltering using Up filter type returns the same scanline`` 
         (scanlines: ScanlinesPair) =
-
     let (bpp, scanline, prevScanline) = scanlines
-
     let filtered = filterScanlineUp bpp prevScanline scanline
-
     unfilterScanlineUp bpp prevScanline filtered = scanline 
 
 
@@ -116,10 +110,16 @@ let ``Filtering and unfiltering using Average filter type returns the same scanl
         (scanlines: ScanlinesPair) =
 
     let (bpp, scanline, prevScanline) = scanlines
+    printf "bpp: %d\n" bpp
+    printf "prev scanline: %A\n" prevScanline 
+    printf "scanline: %A\n" scanline 
 
     let filtered = filterScanlineAverage bpp prevScanline scanline
+    printf "filtered: %A\n" filtered
 
-    unfilterScanlineAverage bpp prevScanline filtered = scanline 
+    let unfilteredScanline = unfilterScanlineAverage bpp prevScanline filtered
+    printf "unfilteredScanline: %A\n" unfilteredScanline
+    unfilteredScanline = scanline 
 
 
 [<ScanlinesPairProperty>]
