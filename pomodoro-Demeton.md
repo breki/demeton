@@ -1,4 +1,5 @@
 ﻿## Wed 11.9.
+- Implemented bpp support for "Paeth" filter type and thus finished with introducing bpp into filtering.
 - Implemented bpp support for "Average" filter type.
 - Implemented bpp support for "Sub" filter type.
 - Introduced bbp (bytes per pixel) parameter into IDAT chunk handling and filtering, but I haven't yet updated the filtering code to use it.

@@ -96,6 +96,9 @@ let unfilterScanlineSub bpp _ (filtered: FilteredScanline): Scanline =
 /// <summary>
 /// Filters the specified scaline using the "Up" PNG filter method.
 /// </summary>
+/// <param name="prevScanline">
+/// The previous (upper) scanline that is used to calculate filter values.
+/// </param>
 /// <param name="scanline">The scanline that should be filtered.</param>
 /// <returns>The filtered scanline.</returns>
 let filterScanlineUp 
@@ -126,6 +129,9 @@ let filterScanlineUp
 /// Converts a filtered scaline back to the original scanline using the "Up"
 /// PNG filter method.
 /// </summary>
+/// <param name="prevScanline">
+/// The previous (upper) scanline that is used to calculate filter values.
+/// </param>
 /// <param name="filtered">
 /// The filtered scanline that should be converted.
 /// </param>
@@ -155,6 +161,9 @@ let unfilterScanlineUp
 /// Filters the specified scaline using the "Average" PNG filter method.
 /// </summary>
 /// <param name="bpp">Bits per pixel of the image.</param>
+/// <param name="prevScanline">
+/// The previous (upper) scanline that is used to calculate filter values.
+/// </param>
 /// <param name="scanline">The scanline that should be filtered.</param>
 /// <returns>The filtered scanline.</returns>
 let filterScanlineAverage 
@@ -186,6 +195,9 @@ let filterScanlineAverage
 /// "Average" PNG filter method.
 /// </summary>
 /// <param name="bpp">Bits per pixel of the image.</param>
+/// <param name="prevScanline">
+/// The previous (upper) scanline that is used to calculate filter values.
+/// </param>
 /// <param name="filtered">
 /// The filtered scanline that should be converted.
 /// </param>
@@ -242,60 +254,102 @@ let paethPredictor (a:int) (b:int) (c:int) =
     | _ -> c
 
 
+/// <summary>
+/// Filters the specified scaline using the "Paeth" PNG filter method.
+/// </summary>
+/// <param name="bpp">Bits per pixel of the image.</param>
+/// <param name="prevScanline">
+/// The previous (upper) scanline that is used to calculate filter values.
+/// </param>
+/// <param name="scanline">The scanline that should be filtered.</param>
+/// <returns>The filtered scanline.</returns>
 let filterScanlinePaeth 
     bpp
     (prevScanline: Scanline option) (scanline: Scanline): FilteredScanline = 
+    
+    let bytesPP = bytesPerPixel bpp
+
     [| 
-        for i in 0 .. scanline.Length -> 
-            match i with
-            | 0 -> (byte)FilterType.FilterPaeth
-            | x -> 
-                let raw = scanline.[x-1]
+        for filteredIndex in 0 .. scanline.Length -> 
+            let scanlineIndex = filteredIndex - 1
+
+            match scanlineIndex with
+            | -1 -> (byte)FilterType.FilterPaeth
+            | _ -> 
+                let raw = scanline.[scanlineIndex]
                 let left = 
-                    match x with
-                    | 1 -> 0
-                    | _ -> (int)scanline.[x-2]
+                    match scanlineIndex with
+                    | x when x < bytesPP -> 0
+                    | _ -> (int)scanline.[scanlineIndex-bytesPP]
                 let up = 
                     match prevScanline with
                     | None -> 0
-                    | Some prev -> (int) prev.[x-1]
+                    | Some prev -> (int) prev.[scanlineIndex]
                 let upLeft = 
-                    match (x, prevScanline) with
-                    | (1, _) -> 0
+                    match (scanlineIndex, prevScanline) with
+                    | (x, _) when x < bytesPP -> 0
                     | (_, None) -> 0
-                    | (_, Some prev) -> (int) prev.[x-2]
-                raw 
-                    - (byte)(paethPredictor left up upLeft)
+                    | (_, Some prev) -> (int) prev.[scanlineIndex-bytesPP]
+                raw - (byte)(paethPredictor left up upLeft)
     |]
 
 
+/// <summary>
+/// Converts a filtered scaline back to the original scanline using the 
+/// "Paeth" PNG filter method.
+/// </summary>
+/// <param name="bpp">Bits per pixel of the image.</param>
+/// <param name="prevScanline">
+/// The previous (upper) scanline that is used to calculate filter values.
+/// </param>
+/// <param name="filtered">
+/// The filtered scanline that should be converted.
+/// </param>
+/// <returns>The original (non-filtered) scanline.</returns>
 let unfilterScanlinePaeth 
     bpp
     (prevScanline: Scanline option) (filtered: FilteredScanline): Scanline =
-    [|
-        let mutable lastRaw = filtered.[1]
-        
-        for i in 0 .. filtered.Length - 2 ->
-            let filtered = filtered.[i + 1]
-            let left = 
-                match i with
-                | 0 -> 0
-                | _ -> (int)lastRaw
-            let up =
-                match prevScanline with
-                | None -> 0
-                | Some prev -> (int)prev.[i]
-            let upLeft = 
-                match (i, prevScanline) with
-                | (0, _) -> 0
-                | (_, None) -> 0
-                | (_, Some prev) -> (int)prev.[i-1]
 
-            let unfilteredValue = 
-                filtered + (byte)(paethPredictor left up upLeft)
-            lastRaw <- unfilteredValue
-            unfilteredValue
-    |]
+    let scanlineLength = filtered.Length - 1
+    let bytesPP = bytesPerPixel bpp
+
+    match (scanlineLength, scanlineLength % bytesPP) with
+    | (0, _) -> [||]
+    | (_, 0) -> 
+        let scanline = Array.zeroCreate scanlineLength
+
+        // how many pixels are there in the scanline?
+        let pixelCount = scanlineLength / bytesPP
+
+        // for each byte in pixel
+        for pixelByteOffset in 0 .. (bytesPP-1) do
+
+            // keep track of the left (previous) neighbor value
+            let mutable left = 0
+
+            // for each pixel
+            for i in 0 .. pixelCount-1 do
+                // calculate its index in the scanline
+                let byteIndex = pixelByteOffset + i * bytesPP
+
+                let currentValue = filtered.[1 + byteIndex]
+                let up =
+                    match prevScanline with
+                    | None -> 0
+                    | Some prev -> (int)prev.[byteIndex]
+                let upLeft = 
+                    match (i, prevScanline) with
+                    | (0, _) -> 0
+                    | (_, None) -> 0
+                    | (_, Some prev) -> (int)prev.[byteIndex-bytesPP]
+
+                let unfilteredValue = 
+                    currentValue + (byte)(paethPredictor left up upLeft)
+                left <- (int)unfilteredValue
+                scanline.[byteIndex] <- unfilteredValue
+
+        scanline
+    | (_, _) -> invalidOp "Invalid scanline length"
 
 
 let allPngFilters: ScanlineFilter[] = [|

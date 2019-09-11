@@ -28,15 +28,11 @@ type ScanlinesPair = (int * Scanline * Scanline option)
 type ScanlinesGenerator =
     static member ScanlinesPair() =
         // a generator for bits-per-pixel value
-        //let bppValue = Gen.elements [| 8; 16; 24; 32 |]
-        // todo return back all the elements
-        let bppValue = Gen.elements [| 16 |]
+        let bppValue = Gen.elements [| 8; 16; 24; 32 |]
 
         // note that the scanline length must be divisible with 3 and 4 
         // (as we use 3 and 4 as bytes-per-pixel values in this generator)
-        // todo return back all the elements
-        //let scanlineLength = 12
-        let scanlineLength = 4
+        let scanlineLength = 12
         let randomByteValue = Arb.generate<byte>
 
         // a generator for the main scanline
@@ -110,12 +106,8 @@ let ``Filtering and unfiltering using Average filter type returns the same scanl
         (scanlines: ScanlinesPair) =
 
     let (bpp, scanline, prevScanline) = scanlines
-    printf "bpp: %d\n" bpp
-    printf "prev scanline: %A\n" prevScanline 
-    printf "scanline: %A\n" scanline 
 
     let filtered = filterScanlineAverage bpp prevScanline scanline
-    printf "filtered: %A\n" filtered
 
     let unfilteredScanline = unfilterScanlineAverage bpp prevScanline filtered
     printf "unfilteredScanline: %A\n" unfilteredScanline
@@ -128,10 +120,16 @@ let ``Filtering and unfiltering using Paeth filter type returns the same scanlin
         (scanlines: ScanlinesPair) =
 
     let (bpp, scanline, prevScanline) = scanlines
+    printf "bpp: %d\n" bpp
+    printf "prev scanline: %A\n" prevScanline 
+    printf "scanline: %A\n" scanline 
 
     let filtered = filterScanlinePaeth bpp prevScanline scanline
+    printf "filtered: %A\n" filtered
 
-    unfilterScanlinePaeth bpp prevScanline filtered = scanline 
+    let unfilteredScanline = unfilterScanlinePaeth bpp prevScanline filtered 
+    printf "unfilteredScanline: %A\n" unfilteredScanline
+    unfilteredScanline = scanline 
 
 [<Property>]
 [<Trait("Category", "properties")>]
