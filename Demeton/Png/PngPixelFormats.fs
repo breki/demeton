@@ -1,6 +1,10 @@
 ﻿module Demeton.PngPixelFormats
 
 open Demeton.PngTypes
+open Demeton.Png
+open Demeton.PngChunks
+
+open System.IO
 
 /// <summary>
 /// Generates a sequence of scanlines from the specified 8-bit grayscale image
@@ -52,3 +56,30 @@ let scanlinesToGrayscale16Bit
 
     Array2D.init 
         imageWidth imageHeight (fun x y -> pixelFromScanline x scanlines.[y])
+
+
+/// <summary>
+/// Saves the specified 8-bit grayscale image to a stream.
+/// </summary>
+/// <param name="imageData">The data of the image to be saved.</param>
+/// <param name="stream">The stream the image should be written to.</param>
+/// <returns>The same stream.</returns>
+let saveGrayscale8BitToStream 
+    (imageData: Grayscale8BitImageData) 
+    (stream: Stream): Stream =
+
+    let imageWidth = Array2D.length1 imageData
+    let imageHeight = Array2D.length2 imageData
+    let bpp = 8
+    let ihdr = 
+        { Width = imageWidth; Height = imageHeight; 
+            BitDepth = PngBitDepth.BitDepth8; 
+            ColorType = PngColorType.Grayscale; 
+            InterlaceMethod = PngInterlaceMethod.NoInterlace }
+    let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
+
+    stream 
+    |> writeSignature 
+    |> writeIhdrChunk ihdr
+    |> writeIdatChunk bpp scanlines
+    |> writeIendChunk

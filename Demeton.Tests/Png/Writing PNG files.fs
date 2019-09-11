@@ -140,20 +140,14 @@ let ``Can generate a simplest 8-bit grayscale PNG``() =
     let imageWidth = 100
     let imageHeight = 80
     let bpp = 8
-    let ihdr = 
-        { Width = imageWidth; Height = imageHeight; 
-            BitDepth = PngBitDepth.BitDepth8; 
-            ColorType = PngColorType.Grayscale; 
-            InterlaceMethod = PngInterlaceMethod.NoInterlace }
-    let imageData = Array2D.init imageWidth imageHeight (fun x y -> 128uy)
-    let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
 
+    let rnd = Random(123)
+    let imageData = 
+        Array2D.init imageWidth imageHeight (fun _ _ -> (byte)(rnd.Next(255)))
+    
     use stream = new MemoryStream()
     stream 
-    |> writeSignature 
-    |> writeIhdrChunk ihdr
-    |> writeIdatChunk bpp scanlines
-    |> writeIendChunk
+    |> saveGrayscale8BitToStream imageData
     |> ignore
 
     stream.Flush() |> ignore
@@ -161,8 +155,6 @@ let ``Can generate a simplest 8-bit grayscale PNG``() =
     stream.Seek(0L, SeekOrigin.Begin) |> ignore
     stream |> readSignature |> ignore
     let readIhdrData = stream |> readIhdrChunk
-
-    test <@ readIhdrData = ihdr @> 
 
     let (chunkType, chunkData) = stream |> readChunk
     test <@ chunkType = ChunkType("IDAT") @>
@@ -180,25 +172,15 @@ let ``Can generate a simplest 8-bit grayscale PNG``() =
 let ``Generated 8-bit grayscale PNG is recognized by System.Drawing``() =
     let imageWidth = 100
     let imageHeight = 80
-    let bpp = 8
 
     let rnd = Random(123)
-    let ihdr = 
-        { Width = imageWidth; Height = imageHeight; 
-            BitDepth = PngBitDepth.BitDepth8; 
-            ColorType = PngColorType.Grayscale; 
-            InterlaceMethod = PngInterlaceMethod.NoInterlace }
     let imageData = 
         Array2D.init imageWidth imageHeight (fun _ _ -> (byte)(rnd.Next(255)))
-    let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
 
     use stream = new MemoryStream()
 
     stream 
-    |> writeSignature 
-    |> writeIhdrChunk ihdr
-    |> writeIdatChunk bpp scanlines
-    |> writeIendChunk
+    |> saveGrayscale8BitToStream imageData
     |> ignore
 
     stream.Flush() |> ignore

@@ -1,4 +1,5 @@
 ﻿## Wed 11.9.
+- Implemented `saveGrayscale8BitToStream` function.
 - Implemented bpp support for "Paeth" filter type and thus finished with introducing bpp into filtering.
 - Implemented bpp support for "Average" filter type.
 - Implemented bpp support for "Sub" filter type.
