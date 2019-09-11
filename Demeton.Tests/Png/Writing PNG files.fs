@@ -91,27 +91,21 @@ let ``Can serialize IHDR chunk into a byte array``() =
 [<Property>]
 let ``Deserializing serialized IHDR chunk data results in the original IHDR data``
     (ihdrData: IhdrData) =
-    printf "original: %A\n" ihdrData
-
     let deserialized = deserializeIhdrChunkData (serializeIhdrChunkData ihdrData)    
-
-    printf "deserialized: %A\n" deserialized
-
     deserialized = ihdrData
 
-[<Property>]
+[<Property(Skip="todo")>]
 let ``Deserializing serialized IDAT chunk data results in the original image data``
-    (imageData: byte[,]) =
-
-    printf "original: %A\n" imageData
+    (imageData: Grayscale16BitImageData) =
+    
+    let bpp = 2
 
     let imageWidth = Array2D.length1 imageData
-    let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
+    let scanlines = grayscale16BitScanlines imageData |> Seq.toArray
 
     let deserialized = 
-        deserializeIdatChunkData imageWidth (serializeIdatChunkData scanlines)    
-
-    printf "deserialized: %A\n" deserialized
+        deserializeIdatChunkData bpp imageWidth 
+            (serializeIdatChunkData bpp scanlines)    
 
     deserialized = scanlines
 
@@ -140,11 +134,11 @@ let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
     test <@ scanlines |> Seq.skip 1 |> Seq.head = getLine 1 imageData @>
 
 
-//[<Fact(Skip="todo: currently now working")>]
 [<Fact>]
 let ``Can generate a simplest 8-bit grayscale PNG``() =
     let imageWidth = 100
     let imageHeight = 80
+    let bpp = 1
     let ihdr = 
         { Width = imageWidth; Height = imageHeight; 
             BitDepth = PngBitDepth.BitDepth8; 
@@ -157,7 +151,7 @@ let ``Can generate a simplest 8-bit grayscale PNG``() =
     stream 
     |> writeSignature 
     |> writeIhdrChunk ihdr
-    |> writeIdatChunk (scanlines)
+    |> writeIdatChunk bpp scanlines
     |> writeIendChunk
     |> ignore
 
@@ -172,7 +166,8 @@ let ``Can generate a simplest 8-bit grayscale PNG``() =
     let (chunkType, chunkData) = stream |> readChunk
     test <@ chunkType = ChunkType("IDAT") @>
 
-    let scanlinesRead = deserializeIdatChunkData readIhdrData.Width chunkData
+    let scanlinesRead = 
+        deserializeIdatChunkData bpp readIhdrData.Width chunkData
     let imageDataRead = 
         scanlinesToGrayscale8Bit 
             readIhdrData.Width readIhdrData.Height scanlinesRead
@@ -184,6 +179,7 @@ let ``Can generate a simplest 8-bit grayscale PNG``() =
 let ``Generated 8-bit grayscale PNG is recognized by System.Drawing``() =
     let imageWidth = 100
     let imageHeight = 80
+    let bpp = 1
 
     let rnd = Random(123)
     let ihdr = 
@@ -200,7 +196,7 @@ let ``Generated 8-bit grayscale PNG is recognized by System.Drawing``() =
     stream 
     |> writeSignature 
     |> writeIhdrChunk ihdr
-    |> writeIdatChunk (scanlines)
+    |> writeIdatChunk bpp scanlines
     |> writeIendChunk
     |> ignore
 

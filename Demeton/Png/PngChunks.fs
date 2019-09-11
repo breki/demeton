@@ -119,9 +119,9 @@ let decompress compressedData (outputStream: Stream) : unit =
         outputStream.Write(inflaterBuffer, 0, producedBytesCount)
 
 
-let serializeIdatChunkData (scanlines: Scanline[]): byte[] =
+let serializeIdatChunkData bpp (scanlines: Scanline[]): byte[] =
     let filteredScanlines = 
-        filterScanlines minSumOfAbsoluteValueSelector scanlines
+        filterScanlines minSumOfAbsoluteValueSelector bpp scanlines
     let dataBeforeCompression = Array.concat filteredScanlines
     use compressionStream = new MemoryStream()
 
@@ -131,7 +131,7 @@ let serializeIdatChunkData (scanlines: Scanline[]): byte[] =
     compressionStream.ToArray()
 
 
-let deserializeIdatChunkData imageWidth chunkData: Scanline[] =
+let deserializeIdatChunkData bpp imageWidth chunkData: Scanline[] =
     use chunkDataStream = new MemoryStream()
     chunkDataStream 
     // skips the first 4 bytes as there represent the chunk type
@@ -144,8 +144,8 @@ let deserializeIdatChunkData imageWidth chunkData: Scanline[] =
         let filteredScanlines: FilteredScanline[] = 
             decompressedData |> Array.chunkBySize (imageWidth + 1)
 
-        unfilterScanlines filteredScanlines
+        unfilterScanlines bpp filteredScanlines
 
 
-let writeIdatChunk (scanlines: Scanline[]) (stream: Stream): Stream =
-    stream |> writeChunk (serializeIdatChunkData scanlines)
+let writeIdatChunk (bpp: int) (scanlines: Scanline[]) (stream: Stream): Stream =
+    stream |> writeChunk (serializeIdatChunkData bpp scanlines)

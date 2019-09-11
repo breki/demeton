@@ -3,7 +3,7 @@
 open Demeton.PngTypes
 
 
-let filterScanlineNone _ (scanline: Scanline): FilteredScanline =    
+let filterScanlineNone bpp _ (scanline: Scanline): FilteredScanline =    
         [| 
             for i in 0 .. scanline.Length -> 
                 match i with
@@ -12,11 +12,11 @@ let filterScanlineNone _ (scanline: Scanline): FilteredScanline =
         |]
 
 
-let unfilterScanlineNone _ (filtered: FilteredScanline) =
+let unfilterScanlineNone bpp _ (filtered: FilteredScanline) =
     [| for i in 0 .. filtered.Length - 2 -> filtered.[i + 1] |]
 
 
-let filterScanlineSub _ (scanline: Scanline): FilteredScanline = 
+let filterScanlineSub bpp _ (scanline: Scanline): FilteredScanline = 
     [| 
         for i in 0 .. scanline.Length -> 
             match i with
@@ -26,7 +26,7 @@ let filterScanlineSub _ (scanline: Scanline): FilteredScanline =
     |]
 
 
-let unfilterScanlineSub _ (filtered: FilteredScanline): Scanline =
+let unfilterScanlineSub bpp _ (filtered: FilteredScanline): Scanline =
     let scanlineLength = filtered.Length - 1
     let scanline = Array.zeroCreate scanlineLength
 
@@ -45,6 +45,7 @@ let unfilterScanlineSub _ (filtered: FilteredScanline): Scanline =
 
 
 let filterScanlineUp 
+    bpp
     (prevScanline: Scanline option) 
     (scanline: Scanline)
     : FilteredScanline = 
@@ -68,6 +69,7 @@ let filterScanlineUp
 
 
 let unfilterScanlineUp 
+    bpp
     (prevScanline: Scanline option) (filtered: FilteredScanline): Scanline =
     let scanlineLength = filtered.Length - 1
 
@@ -88,6 +90,7 @@ let unfilterScanlineUp
 
 
 let filterScanlineAverage 
+    bpp
     (prevScanline: Scanline option) (scanline: Scanline): FilteredScanline = 
     [| 
         for i in 0 .. scanline.Length -> 
@@ -109,6 +112,7 @@ let filterScanlineAverage
 
 
 let unfilterScanlineAverage 
+    bpp
     (prevScanline: Scanline option) (filtered: FilteredScanline): Scanline =
     [|
         let mutable lastValue = filtered.[1]
@@ -144,6 +148,7 @@ let paethPredictor (a:int) (b:int) (c:int) =
 
 
 let filterScanlinePaeth 
+    bpp
     (prevScanline: Scanline option) (scanline: Scanline): FilteredScanline = 
     [| 
         for i in 0 .. scanline.Length -> 
@@ -170,6 +175,7 @@ let filterScanlinePaeth
 
 
 let unfilterScanlinePaeth 
+    bpp
     (prevScanline: Scanline option) (filtered: FilteredScanline): Scanline =
     [|
         let mutable lastRaw = filtered.[1]
@@ -197,13 +203,13 @@ let unfilterScanlinePaeth
     |]
 
 
-let allPngFilters = [|
+let allPngFilters: ScanlineFilter[] = [|
     filterScanlineNone; filterScanlineSub; filterScanlineUp; 
     filterScanlineAverage; filterScanlinePaeth
 |]
 
 
-let allPngUnfilters = [|
+let allPngUnfilters: ScanlineUnfilter[] = [|
     unfilterScanlineNone; unfilterScanlineSub; unfilterScanlineUp; 
     unfilterScanlineAverage; unfilterScanlinePaeth
 |]
@@ -213,15 +219,18 @@ let sumOfAbsoluteValueOfFilteredScanline (filtered: FilteredScanline): int =
     filtered |> Array.map int |> Array.sum
 
 
-let minSumOfAbsoluteValueSelector 
+let minSumOfAbsoluteValueSelector
+    bpp
     (prevScanline: Scanline option) 
     (scanline: Scanline)
     : FilteredScanline =
 
     let (filtered, _) = 
         allPngFilters 
-        |> Seq.map (fun filter -> filter prevScanline scanline)
-        |> Seq.map (fun filtered -> (filtered, sumOfAbsoluteValueOfFilteredScanline filtered))
+        |> Seq.map (fun filter -> filter bpp prevScanline scanline)
+        |> Seq.map (
+            fun filtered -> 
+                (filtered, sumOfAbsoluteValueOfFilteredScanline filtered))
         |> Seq.minBy (fun (_, sum) -> sum)
 
     filtered
@@ -238,6 +247,7 @@ let minSumOfAbsoluteValueSelector
 /// </returns>
 let filterScanlines 
     (filter: ScanlineFilter)
+    (bpp: int)
     (scanlines: Scanline[])
     : FilteredScanline[]=
 
@@ -249,11 +259,11 @@ let filterScanlines
                 | _ -> Some scanlines.[scanlineIndex - 1]
 
             let scanline = scanlines.[scanlineIndex]
-            yield filter prevScanline scanline
+            yield filter bpp prevScanline scanline
     |]
 
 
-let unfilterScanlines (filteredScanlines: FilteredScanline[]): Scanline[] =
+let unfilterScanlines bpp (filteredScanlines: FilteredScanline[]): Scanline[] =
     [| 
         let mutable prevScanline = None
         for scanlineIndex in 0 .. filteredScanlines.Length - 1 do
@@ -263,7 +273,7 @@ let unfilterScanlines (filteredScanlines: FilteredScanline[]): Scanline[] =
             match filterType with
             | f when f >= 0 && f < allPngUnfilters.Length -> 
                 let unfilteredScanline = 
-                    allPngUnfilters.[filterType] prevScanline filteredScanline
+                    allPngUnfilters.[filterType] bpp prevScanline filteredScanline
                 prevScanline <- Some unfilteredScanline
                 yield unfilteredScanline
             | _ -> 

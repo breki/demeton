@@ -30,9 +30,25 @@ let scanlinesToGrayscale8Bit
 /// <returns>A sequence of scanlines.</returns>
 let grayscale16BitScanlines (imageData: Grayscale16BitImageData): Scanline seq =
     seq {
-        for y in 0..(Array2D.length2 imageData - 1) do
+        for y in 0..(Array2D.length2 imageData - 1) ->
+        [| 
             for x in 0..(Array2D.length1 imageData - 1) do
                 let pixelData = imageData.[x, y]
                 yield ((byte)(pixelData >>> 8))
                 yield ((byte)pixelData)
+        |]
     }
+
+
+let scanlinesToGrayscale16Bit 
+    imageWidth
+    imageHeight
+    (scanlines: Scanline[]): Grayscale16BitImageData =
+
+    let pixelFromScanline (x: int) (scanline: Scanline) =
+        let highByte = scanline.[x * 2]
+        let lowByte = scanline.[x * 2 + 1]
+        ((uint16)highByte) <<< 8 ||| (uint16)lowByte
+
+    Array2D.init 
+        imageWidth imageHeight (fun x y -> pixelFromScanline x scanlines.[y])

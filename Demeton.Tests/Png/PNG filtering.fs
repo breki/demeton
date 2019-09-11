@@ -16,9 +16,10 @@ let ``Can filter scanlines``() =
         [| 0uy; 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy |];
         [| 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy; 10uy |]
     |]
+    let bpp = 1
 
     let filteredScanlines 
-        = filterScanlines minSumOfAbsoluteValueSelector scanlines
+        = filterScanlines minSumOfAbsoluteValueSelector bpp scanlines
     test <@ filteredScanlines |> Seq.length = 2 @>
     test <@ filteredScanlines |> Seq.exists (fun sc -> sc.Length <> 11) |> not @>
 
@@ -58,9 +59,9 @@ let ``Filtering and unfiltering using None filter type returns the same scanline
 
     let (scanline, prevScanline) = scanlines
 
-    let filtered = filterScanlineNone prevScanline scanline
+    let filtered = filterScanlineNone 1 prevScanline scanline
     
-    unfilterScanlineNone prevScanline filtered = scanline 
+    unfilterScanlineNone 1 prevScanline filtered = scanline 
 
 
 [<ScanlinesPairProperty>]
@@ -70,9 +71,9 @@ let ``Filtering and unfiltering using Sub filter type returns the same scanline`
 
     let (scanline, prevScanline) = scanlines
 
-    let filtered = filterScanlineSub prevScanline scanline
+    let filtered = filterScanlineSub 1 prevScanline scanline
     
-    unfilterScanlineSub prevScanline filtered = scanline 
+    unfilterScanlineSub 1 prevScanline filtered = scanline 
 
 
 [<ScanlinesPairProperty>]
@@ -82,9 +83,7 @@ let ``Byte array returned by Up filter always contains filter type as first byte
 
     let (scanline, prevScanline) = scanlines
 
-    let filtered = filterScanlineUp prevScanline scanline
-
-    printf "filtered: %A\n" filtered
+    let filtered = filterScanlineUp 1 prevScanline scanline
 
     filtered.Length >= 1 && filtered.[0] = (byte)FilterType.FilterUp
 
@@ -96,9 +95,9 @@ let ``Filtering and unfiltering using Up filter type returns the same scanline``
 
     let (scanline, prevScanline) = scanlines
 
-    let filtered = filterScanlineUp prevScanline scanline
+    let filtered = filterScanlineUp 1 prevScanline scanline
 
-    unfilterScanlineUp prevScanline filtered = scanline 
+    unfilterScanlineUp 1 prevScanline filtered = scanline 
 
 
 [<ScanlinesPairProperty>]
@@ -108,9 +107,9 @@ let ``Filtering and unfiltering using Average filter type returns the same scanl
 
     let (scanline, prevScanline) = scanlines
 
-    let filtered = filterScanlineAverage prevScanline scanline
+    let filtered = filterScanlineAverage 1 prevScanline scanline
 
-    unfilterScanlineAverage prevScanline filtered = scanline 
+    unfilterScanlineAverage 1 prevScanline filtered = scanline 
 
 
 [<ScanlinesPairProperty>]
@@ -120,9 +119,9 @@ let ``Filtering and unfiltering using Paeth filter type returns the same scanlin
 
     let (scanline, prevScanline) = scanlines
 
-    let filtered = filterScanlinePaeth prevScanline scanline
+    let filtered = filterScanlinePaeth 1 prevScanline scanline
 
-    unfilterScanlinePaeth prevScanline filtered = scanline 
+    unfilterScanlinePaeth 1 prevScanline filtered = scanline 
 
 [<Property>]
 [<Trait("Category", "properties")>]
@@ -135,7 +134,8 @@ let ``Calculates sumOfAbsoluteValueOfFilteredScanline correctly``
 [<Trait("Category", "integration")>]
 let ``Unfiltering scanlines returns the original scanlines``
     (scanlines2d: byte[,]) =
-    printf "Try: %A\n" scanlines2d
+
+    let bpp = 1
 
     let toJaggedArray (arr2d: 'T[,]): 'T[][] =
         [|
@@ -145,6 +145,6 @@ let ``Unfiltering scanlines returns the original scanlines``
 
     let scanlines = toJaggedArray scanlines2d
     let filteredScanlines = 
-        filterScanlines minSumOfAbsoluteValueSelector scanlines
-    let unfilteredScanlines = unfilterScanlines filteredScanlines
+        filterScanlines minSumOfAbsoluteValueSelector bpp scanlines
+    let unfilteredScanlines = unfilterScanlines bpp filteredScanlines
     scanlines = unfilteredScanlines

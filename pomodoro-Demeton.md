@@ -1,4 +1,7 @@
-﻿## Tue 10.9.
+﻿## Wed 11.9.
+- Introduced bbp (bytes per pixel) parameter into IDAT chunk handling and filtering, but I haven't yet updated the filtering code to use it.
+
+## Tue 10.9.
 - Extracted `Demeton.PngChunks` module.
 - Extracted `Demeton.PngPixelFormats` module.
 - Moved functions for binary reading and writing into `Demeton.Binary` module. 
