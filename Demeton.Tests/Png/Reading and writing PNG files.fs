@@ -1,4 +1,4 @@
-﻿module Demeton.Tests.``Writing PNG files``
+﻿module Demeton.Tests.``Reading and writing PNG files``
 
 open Demeton.Binary
 open Demeton.PngTypes
@@ -16,26 +16,12 @@ open System
 open System.IO
 
 
-[<Property>]
-let ``Reading of big endian int is inverse of writing it`` (value: int) = 
-    use stream = new MemoryStream()
-    stream |> writeBigEndianInt32 value |> ignore
-    stream.Seek (0L, SeekOrigin.Begin) |> ignore
-    readBigEndianInt32 stream = value 
-
-[<Property>]
-let ``Reading of big endian uint is inverse of writing it`` (value: uint32) = 
-    use stream = new MemoryStream()
-    stream |> writeBigEndianUInt32 value |> ignore
-    stream.Seek (0L, SeekOrigin.Begin) |> ignore
-    readBigEndianUInt32 stream = value 
-
-
 let givenA8BitGrayscaleImage rndSeed imageWidth imageHeight 
     : Grayscale8BitImageData =
     let rnd = new Random(rndSeed)
 
     Array2D.init imageWidth imageHeight (fun x y -> ((byte)(rnd.Next 256)))
+
 
 [<Fact>]
 let ``Writes PNG signature into a stream``() =
@@ -110,6 +96,7 @@ let ``Deserializing serialized IDAT chunk data results in the original image dat
 
     deserialized = scanlines
 
+
 [<Fact>]
 let ``Can serialize IEND chunk into a byte array``() =
     test <@ 
@@ -169,7 +156,7 @@ let ``Can generate a simplest 8-bit grayscale PNG``() =
 
 
 [<Fact>]
-let ``Generated 8-bit grayscale PNG is recognized by System.Drawing``() =
+let ``Can generate and read a valid 8-bit grayscale PNG``() =
     let imageWidth = 100
     let imageHeight = 80
 
@@ -177,16 +164,24 @@ let ``Generated 8-bit grayscale PNG is recognized by System.Drawing``() =
     let imageData = 
         Array2D.init imageWidth imageHeight (fun _ _ -> (byte)(rnd.Next(255)))
 
-    use stream = new MemoryStream()
+    let imageFileName = Path.GetFullPath("test-grayscale-8.png")
+    printf "Saving test image to %s" imageFileName
+
+    use stream = File.OpenWrite(imageFileName)
 
     stream 
     |> saveGrayscale8BitToStream imageData
     |> ignore
 
-    stream.Flush() |> ignore
-    stream.Seek(0L, SeekOrigin.Begin) |> ignore
+    stream.Close() |> ignore
 
-    use bitmap = System.Drawing.Bitmap.FromStream(stream)
+    use readStream = File.OpenRead(imageFileName)
+
+    readStream
+    |> loadPngFromStream (fun _ -> ()) (fun _ -> ())
+    |> ignore
+
+    use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
     test <@ bitmap.Width = imageWidth @>
     test <@ bitmap.Height = imageHeight @>
 
@@ -211,6 +206,12 @@ let ``Generated 16-bit grayscale PNG is recognized by System.Drawing``() =
     |> ignore
 
     stream.Close() |> ignore
+
+    use readStream = File.OpenRead(imageFileName)
+
+    readStream
+    |> loadPngFromStream (fun _ -> ()) (fun _ -> ())
+    |> ignore
 
     use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
     test <@ bitmap.Width = imageWidth @>

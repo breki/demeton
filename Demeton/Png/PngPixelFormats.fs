@@ -110,3 +110,59 @@ let saveGrayscale16BitToStream
     |> writeIhdrChunk ihdr
     |> writeIdatChunk bpp scanlines
     |> writeIendChunk
+
+
+/// <summary>
+/// Decodes a PNG image from a stream.
+/// </summary>
+/// <param name="onGrayscale8BitLoad">
+/// Function that is called when a 8-bit grayscale image data is decoded.
+/// The image data is provided as the parameter of the call. 
+/// </param>
+/// <param name="onGrayscale16BitLoad">
+/// Function that is called when a 16-bit grayscale image data is decoded.
+/// The image data is provided as the parameter of the call. 
+/// </param>
+/// <param name="stream">The stream containing the PNG image.</param>
+/// <returns>The same stream.</returns>
+let loadPngFromStream 
+    onGrayscale8BitLoad
+    onGrayscale16BitLoad
+    (stream: Stream): Stream =
+    
+    stream |> readSignature |> ignore
+    let ihdr = stream |> readIhdrChunk
+    let imageWidth = ihdr.Width
+    let imageHeight = ihdr.Height
+
+    match (ihdr.ColorType, ihdr.BitDepth) with
+    | (PngColorType.Grayscale, PngBitDepth.BitDepth8) ->
+        let (chunkType, chunkData) = stream |> readChunk
+        match chunkType.TypeName with
+        | "IDAT" -> 
+            let scanlinesRead = 
+                deserializeIdatChunkData 8 imageWidth chunkData
+            let imageDataRead = 
+                scanlinesToGrayscale8Bit 
+                    imageWidth imageHeight scanlinesRead
+            onGrayscale8BitLoad imageDataRead
+            stream
+        | x -> invalidOp 
+                    (sprintf "Expected IDAT PNG chunk, but got %s." x)
+
+    | (PngColorType.Grayscale, PngBitDepth.BitDepth16) ->
+        let (chunkType, chunkData) = stream |> readChunk
+        match chunkType.TypeName with
+        | "IDAT" -> 
+            let scanlinesRead = 
+                deserializeIdatChunkData 16 imageWidth chunkData
+            let imageDataRead = 
+                scanlinesToGrayscale16Bit 
+                    imageWidth imageHeight scanlinesRead
+            onGrayscale16BitLoad imageDataRead
+            stream
+        | x -> invalidOp 
+                    (sprintf "Expected IDAT PNG chunk, but got %s." x)
+
+    | (_, _) -> 
+        invalidOp "This PNG type is currently not supported."

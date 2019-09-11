@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Png\Writing PNG files.fs" />
+    <Compile Include="Reading binary streams.fs" />
+    <Compile Include="Png\Reading and writing PNG files.fs" />
     <Compile Include="Png\PNG compression.fs" />
     <Compile Include="Png\PNG filtering.fs" />
     <EmbeddedResource Include="samples\N00E031.hgt" />

@@ -1,4 +1,5 @@
 ﻿## Wed 11.9.
+- Implemented `loadPngFromStream` function.
 - Implemented `saveGrayscale16BitToStream` function.
 - Implemented `saveGrayscale8BitToStream` function.
 - Implemented bpp support for "Paeth" filter type and thus finished with introducing bpp into filtering.

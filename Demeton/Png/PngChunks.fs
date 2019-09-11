@@ -138,11 +138,17 @@ let deserializeIdatChunkData bpp imageWidth chunkData: Scanline[] =
     |> decompress (chunkData |> Array.skip 4)
 
     let decompressedData = chunkDataStream.ToArray()
-    if decompressedData.Length % (imageWidth + 1) <> 0 then
+
+    let bytesPerPixel = bpp / 8
+    let filteredScanlineLength = imageWidth * bytesPerPixel + 1
+    let scanlinesModulo =
+        decompressedData.Length % filteredScanlineLength
+
+    if scanlinesModulo <> 0 then
         invalidOp "Decompressed IDAT chunk data is invalid."
     else
         let filteredScanlines: FilteredScanline[] = 
-            decompressedData |> Array.chunkBySize (imageWidth + 1)
+            decompressedData |> Array.chunkBySize filteredScanlineLength
 
         unfilterScanlines bpp filteredScanlines
 
