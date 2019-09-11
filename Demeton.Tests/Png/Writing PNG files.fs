@@ -94,6 +94,7 @@ let ``Deserializing serialized IHDR chunk data results in the original IHDR data
     let deserialized = deserializeIhdrChunkData (serializeIhdrChunkData ihdrData)    
     deserialized = ihdrData
 
+
 [<Property(Skip="todo")>]
 let ``Deserializing serialized IDAT chunk data results in the original image data``
     (imageData: Grayscale16BitImageData) =
@@ -138,7 +139,7 @@ let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
 let ``Can generate a simplest 8-bit grayscale PNG``() =
     let imageWidth = 100
     let imageHeight = 80
-    let bpp = 1
+    let bpp = 8
     let ihdr = 
         { Width = imageWidth; Height = imageHeight; 
             BitDepth = PngBitDepth.BitDepth8; 
@@ -179,7 +180,7 @@ let ``Can generate a simplest 8-bit grayscale PNG``() =
 let ``Generated 8-bit grayscale PNG is recognized by System.Drawing``() =
     let imageWidth = 100
     let imageHeight = 80
-    let bpp = 1
+    let bpp = 8
 
     let rnd = Random(123)
     let ihdr = 

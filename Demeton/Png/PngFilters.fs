@@ -3,7 +3,18 @@
 open Demeton.PngTypes
 
 
-let filterScanlineNone bpp _ (scanline: Scanline): FilteredScanline =    
+let bytesPerPixel bpp =
+    let bytes = bpp / 8
+    let bitRemainder = bpp % 8
+    match (bytes, bitRemainder) with
+    | (_, 0) -> bytes
+    | (0, _) -> 
+        invalidOp "Bit depths less than 8 bits are currently not supported."
+    | (_, _) -> 
+        invalidOp "Invalid bpp (bits-per-pixel) value."
+
+
+let filterScanlineNone _ _ (scanline: Scanline): FilteredScanline =    
         [| 
             for i in 0 .. scanline.Length -> 
                 match i with
@@ -12,36 +23,74 @@ let filterScanlineNone bpp _ (scanline: Scanline): FilteredScanline =
         |]
 
 
-let unfilterScanlineNone bpp _ (filtered: FilteredScanline) =
+let unfilterScanlineNone _ _ (filtered: FilteredScanline) =
     [| for i in 0 .. filtered.Length - 2 -> filtered.[i + 1] |]
 
 
+/// <summary>
+/// Filters the specified scaline using the "Sub" PNG filter method.
+/// </summary>
+/// <param name="bpp">Bits per pixel of the image.</param>
+/// <param name="scanline">The scanline that should be filtered.</param>
+/// <returns>The filtered scanline.</returns>
 let filterScanlineSub bpp _ (scanline: Scanline): FilteredScanline = 
+    let bytesPP = bytesPerPixel bpp
+
     [| 
-        for i in 0 .. scanline.Length -> 
-            match i with
-            | 0 -> (byte)FilterType.FilterSub
-            | 1 -> scanline.[0]
-            | x -> scanline.[x-1] - scanline.[x-2]
+        for filteredIndex in 0 .. scanline.Length -> 
+            let scanlineIndex = filteredIndex - 1
+
+            match scanlineIndex with
+            | -1 -> (byte)FilterType.FilterSub
+            | x when x < bytesPP -> scanline.[x]
+            | x -> 
+                scanline.[x] - scanline.[x-bytesPP]
     |]
 
 
+/// <summary>
+/// Converts a filtered scaline back to the original scanline using the "Sub"
+/// PNG filter method.
+/// </summary>
+/// <param name="bpp">Bits per pixel of the image.</param>
+/// <param name="filtered">
+/// The filtered scanline that should be converted.
+/// </param>
+/// <returns>The original (non-filtered) scanline.</returns>
 let unfilterScanlineSub bpp _ (filtered: FilteredScanline): Scanline =
     let scanlineLength = filtered.Length - 1
-    let scanline = Array.zeroCreate scanlineLength
+    let bytesPP = bytesPerPixel bpp
 
-    match scanlineLength with
-    | 0 -> scanline
-    | _ -> 
-        let mutable lastValue = filtered.[1]
-        scanline.[0] <- lastValue
+    match (scanlineLength, scanlineLength % bytesPP) with
+    | (0, _) -> [||]
+    | (_, 0) -> 
+        let scanline = Array.zeroCreate scanlineLength
 
-        for i in 1 .. scanlineLength-1 do
-            let value = lastValue + filtered.[i + 1] 
-            scanline.[i] <- value
-            lastValue <- value
+        // how many pixels are there in the scanline?
+        let pixelCount = scanlineLength / bytesPP
+
+        // for each byte in pixel
+        for pixelByteOffset in 0 .. (bytesPP-1) do
+
+            // keep track of the left neighbor value
+            let mutable leftValue = filtered.[1 + pixelByteOffset]
+
+            // for the first (leftmost) pixel, we cannot subtract the value 
+            // since there is no left neighbor, so we just copy the value from
+            // the filtered scanline
+            scanline.[pixelByteOffset] <- leftValue
+
+            // for the rest of the pixels
+            for i in 1 .. pixelCount-1 do
+                // calculate its index in the scanline
+                let byteIndex = pixelByteOffset + i * bytesPP;
+
+                let value = leftValue + filtered.[1 + byteIndex] 
+                scanline.[byteIndex] <- value
+                leftValue <- value
 
         scanline
+    | (_, _) -> invalidOp "Invalid scanline length"
 
 
 let filterScanlineUp 
