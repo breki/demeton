@@ -1,6 +1,5 @@
 ﻿- implement PNG writing
-    - implement support for 16-bit grayscale images
-    - reading should implement some kind of routing for chunks
+    - implement a generic image loading function
     - document `Demeton.Png` and `Demeton.PngFilters` modules
     - first grayscale (and with transparency, if possible)
 

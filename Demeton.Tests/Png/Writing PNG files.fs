@@ -189,3 +189,29 @@ let ``Generated 8-bit grayscale PNG is recognized by System.Drawing``() =
     use bitmap = System.Drawing.Bitmap.FromStream(stream)
     test <@ bitmap.Width = imageWidth @>
     test <@ bitmap.Height = imageHeight @>
+
+
+[<Fact>]
+let ``Generated 16-bit grayscale PNG is recognized by System.Drawing``() =
+    let imageWidth = 100
+    let imageHeight = 80
+
+    let rnd = Random(123)
+    let imageData = 
+        Array2D.init 
+            imageWidth imageHeight (fun _ _ -> (uint16)(rnd.Next(2<<<16-1)))
+
+    let imageFileName = Path.GetFullPath("test-grayscale-16.png")
+    printf "Saving test image to %s" imageFileName
+
+    use stream = File.OpenWrite(imageFileName)
+
+    stream 
+    |> saveGrayscale16BitToStream imageData
+    |> ignore
+
+    stream.Close() |> ignore
+
+    use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
+    test <@ bitmap.Width = imageWidth @>
+    test <@ bitmap.Height = imageHeight @>
