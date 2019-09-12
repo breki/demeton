@@ -22,7 +22,7 @@ open System.Reflection
 let heightsArrayToImageData (heightsArray: HeightsArray)
     : Grayscale16BitImageData =
 
-    let demHeightToUInt16Value (demHeight: DemHeight option): uint16 =
+    let inline demHeightToUInt16Value (demHeight: DemHeight option): uint16 =
         let missingHeightAsUint16 = 0us
         let zeroHeight = 2s <<< 15
 

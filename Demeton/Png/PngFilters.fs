@@ -16,6 +16,7 @@ let bytesPerPixel bpp =
 
 let filterScanline 
     (filterValue: FilterTypeFunc)
+    (filterType: byte)
     (bytesPP: int)
     (prevScanline: Scanline option) 
     (scanline: Scanline)
@@ -23,8 +24,13 @@ let filterScanline
 
     let mutable sumOfAbsDifferences = 0
 
-    let inline fillFilteredScanlineValue (i: int) =
-        let filteredValue = filterValue i bytesPP prevScanline scanline
+    let inline fillFilteredScanlineValue (filteredScanlineIndex: int) =
+        let filteredValue = 
+            match filteredScanlineIndex with
+            | 0 -> filterType
+            | _ -> 
+                filterValue 
+                    (filteredScanlineIndex-1) bytesPP prevScanline scanline
         sumOfAbsDifferences <- sumOfAbsDifferences + (int) filteredValue
         filteredValue
 
@@ -32,10 +38,8 @@ let filterScanline
         sumOfAbsDifferences)
     
 
-let inline filterTypeNone i _ _ (scanline: Scanline): byte = 
-    match i with
-    | 0 -> (byte)FilterType.FilterNone
-    | x -> scanline.[x - 1]
+let inline filterTypeNone scanlineIndex _ _ (scanline: Scanline): byte = 
+    scanline.[scanlineIndex]
 
 let inline unfilterScanlineNone _ _ (filtered: FilteredScanline) =
     [| for i in 0 .. filtered.Length - 2 -> filtered.[i + 1] |]
@@ -47,14 +51,11 @@ let inline unfilterScanlineNone _ _ (filtered: FilteredScanline) =
 /// <param name="bpp">Bits per pixel of the image.</param>
 /// <param name="scanline">The scanline that should be filtered.</param>
 /// <returns>The filtered scanline.</returns>
-let inline filterTypeSub i bytesPP _ (scanline: Scanline): byte = 
-    let scanlineIndex = i - 1
-
+let inline filterTypeSub scanlineIndex bytesPP _ (scanline: Scanline): byte = 
     match scanlineIndex with
-    | -1 -> (byte)FilterType.FilterSub
-    | x when x < bytesPP -> scanline.[x]
+    | x when x < bytesPP -> scanline.[scanlineIndex]
     | x -> 
-        scanline.[x] - scanline.[x-bytesPP]
+        scanline.[scanlineIndex] - scanline.[scanlineIndex-bytesPP]
 
 /// <summary>
 /// Converts a filtered scaline back to the original scanline using the "Sub"
@@ -109,22 +110,17 @@ let unfilterScanlineSub bytesPP _ (filtered: FilteredScanline): Scanline =
 /// <param name="scanline">The scanline that should be filtered.</param>
 /// <returns>The filtered scanline.</returns>
 let inline filterTypeUp 
-    i
+    scanlineIndex
     _
     (prevScanline: Scanline option) 
     (scanline: Scanline)
     : byte = 
 
-    let scanlineIndex = i - 1
-
-    match scanlineIndex with
-    | -1 -> (byte)FilterType.FilterUp
-    | _ -> 
-        let up = 
-            match prevScanline with
-            | None -> 0uy
-            | Some prevScanline -> prevScanline.[scanlineIndex]
-        scanline.[scanlineIndex] - up
+    let up = 
+        match prevScanline with
+        | None -> 0uy
+        | Some prevScanline -> prevScanline.[scanlineIndex]
+    scanline.[scanlineIndex] - up
 
 
 /// <summary>
@@ -169,24 +165,19 @@ let unfilterScanlineUp
 /// <param name="scanline">The scanline that should be filtered.</param>
 /// <returns>The filtered scanline.</returns>
 let inline filterTypeAverage 
-    i bytesPP (prevScanline: Scanline option) (scanline: Scanline)
+    scanlineIndex bytesPP (prevScanline: Scanline option) (scanline: Scanline)
     : byte = 
 
-    let scanlineIndex = i - 1
-
-    match scanlineIndex with
-    | -1 -> (byte)FilterType.FilterAverage
-    | _ -> 
-        let raw = scanline.[scanlineIndex]
-        let left = 
-            match scanlineIndex with
-            | x when x < bytesPP -> 0
-            | _ -> (int)scanline.[scanlineIndex-bytesPP]
-        let up = 
-            match prevScanline with
-            | None -> 0
-            | Some prev -> (int)prev.[scanlineIndex]
-        raw - (byte)((left + up) / 2)
+    let raw = scanline.[scanlineIndex]
+    let left = 
+        match scanlineIndex with
+        | x when x < bytesPP -> 0
+        | _ -> (int)scanline.[scanlineIndex-bytesPP]
+    let up = 
+        match prevScanline with
+        | None -> 0
+        | Some prev -> (int)prev.[scanlineIndex]
+    raw - (byte)((left + up) / 2)
 
 
 /// <summary>
@@ -262,29 +253,24 @@ let inline paethPredictor (a:int) (b:int) (c:int) =
 /// <param name="scanline">The scanline that should be filtered.</param>
 /// <returns>The filtered scanline.</returns>
 let inline filterTypePaeth 
-    i bytesPP (prevScanline: Scanline option) (scanline: Scanline)
+    scanlineIndex bytesPP (prevScanline: Scanline option) (scanline: Scanline)
     : byte = 
 
-    let scanlineIndex = i - 1
-
-    match scanlineIndex with
-    | -1 -> (byte)FilterType.FilterPaeth
-    | _ -> 
-        let raw = scanline.[scanlineIndex]
-        let left = 
-            match scanlineIndex with
-            | x when x < bytesPP -> 0
-            | _ -> (int)scanline.[scanlineIndex-bytesPP]
-        let up = 
-            match prevScanline with
-            | None -> 0
-            | Some prev -> (int) prev.[scanlineIndex]
-        let upLeft = 
-            match (scanlineIndex, prevScanline) with
-            | (x, _) when x < bytesPP -> 0
-            | (_, None) -> 0
-            | (_, Some prev) -> (int) prev.[scanlineIndex-bytesPP]
-        raw - (byte)(paethPredictor left up upLeft)
+    let raw = scanline.[scanlineIndex]
+    let left = 
+        match scanlineIndex with
+        | x when x < bytesPP -> 0
+        | _ -> (int)scanline.[scanlineIndex-bytesPP]
+    let up = 
+        match prevScanline with
+        | None -> 0
+        | Some prev -> (int) prev.[scanlineIndex]
+    let upLeft = 
+        match (scanlineIndex, prevScanline) with
+        | (x, _) when x < bytesPP -> 0
+        | (_, None) -> 0
+        | (_, Some prev) -> (int) prev.[scanlineIndex-bytesPP]
+    raw - (byte)(paethPredictor left up upLeft)
 
 
 /// <summary>
@@ -362,10 +348,23 @@ let minSumOfAbsoluteDifferencesSelector
     (scanline: Scanline)
     : (FilteredScanline * int) =
 
+    //let mutable bestFilterSoFar: (FilteredScanline * int) 
+    //    = ([||], System.Int32.MaxValue)
+    //for fi in 0 .. (allPngFilters.Length-1) do
+    //    let filterValueFunc = allPngFilters.[fi]
+    //    let filterResult = 
+    //        filterScanline filterValueFunc bytesPP prevScanline scanline
+    //    if snd filterResult < snd bestFilterSoFar then
+    //        bestFilterSoFar <- filterResult
+    //    else ignore()
+
+    //bestFilterSoFar
+
     allPngFilters 
-    |> Array.map (
-        fun filterValueFunc -> 
-                filterScanline filterValueFunc bytesPP prevScanline scanline)
+    |> Array.mapi (
+        fun filterType filterValueFunc -> 
+                filterScanline 
+                    filterValueFunc ((byte)filterType) bytesPP prevScanline scanline)
     |> Array.minBy (fun (_, sum) -> sum)
 
 
