@@ -1,5 +1,8 @@
 ﻿- the whole thing is just too damn slow, how do we speed it up?
-    - main filter method should write the filter type byte instead of letting the filter type function do it
+    - reuse filtered scanline arrays instead of recreating them?
+    - alternative implementation:
+        - one filter method that picks up left, up etc. and then calculates the filter value for each filter type
+        - in the end it copies the best filter to a new filtered scanline that is returned
     - parallelize things?
 
 - update the filter docs to reflect the latest changes
