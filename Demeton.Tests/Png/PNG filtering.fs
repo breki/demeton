@@ -62,9 +62,9 @@ type ScanlinesPairPropertyAttribute() =
 let ``Filtering and unfiltering using None filter type returns the same scanline`` 
         (scanlines: ScanlinesPair) = 
 
-    let (bpp, scanline, prevScanline) = scanlines
+    let (_, scanline, prevScanline) = scanlines
 
-    let filtered = filterScanlineNone 1 prevScanline scanline
+    let (filtered, _) = filterScanlineNone 1 prevScanline scanline
     
     unfilterScanlineNone 1 prevScanline filtered = scanline 
 
@@ -74,7 +74,7 @@ let ``Filtering and unfiltering using None filter type returns the same scanline
 let ``Filtering and unfiltering using Sub filter type returns the same scanline`` 
         (scanlines: ScanlinesPair) = 
     let (bpp, scanline, prevScanline) = scanlines
-    let filtered = filterScanlineSub bpp prevScanline scanline
+    let (filtered, _) = filterScanlineSub bpp prevScanline scanline
     let unfilteredScanline = unfilterScanlineSub bpp prevScanline filtered
     unfilteredScanline = scanline 
 
@@ -86,7 +86,7 @@ let ``Byte array returned by Up filter always contains filter type as first byte
 
     let (bpp, scanline, prevScanline) = scanlines
 
-    let filtered = filterScanlineUp bpp prevScanline scanline
+    let (filtered, _) = filterScanlineUp bpp prevScanline scanline
 
     filtered.Length >= 1 && filtered.[0] = (byte)FilterType.FilterUp
 
@@ -96,7 +96,7 @@ let ``Byte array returned by Up filter always contains filter type as first byte
 let ``Filtering and unfiltering using Up filter type returns the same scanline`` 
         (scanlines: ScanlinesPair) =
     let (bpp, scanline, prevScanline) = scanlines
-    let filtered = filterScanlineUp bpp prevScanline scanline
+    let (filtered, _) = filterScanlineUp bpp prevScanline scanline
     unfilterScanlineUp bpp prevScanline filtered = scanline 
 
 
@@ -107,7 +107,7 @@ let ``Filtering and unfiltering using Average filter type returns the same scanl
 
     let (bpp, scanline, prevScanline) = scanlines
 
-    let filtered = filterScanlineAverage bpp prevScanline scanline
+    let (filtered, _) = filterScanlineAverage bpp prevScanline scanline
 
     let unfilteredScanline = unfilterScanlineAverage bpp prevScanline filtered
     printf "unfilteredScanline: %A\n" unfilteredScanline
@@ -120,15 +120,10 @@ let ``Filtering and unfiltering using Paeth filter type returns the same scanlin
         (scanlines: ScanlinesPair) =
 
     let (bpp, scanline, prevScanline) = scanlines
-    printf "bpp: %d\n" bpp
-    printf "prev scanline: %A\n" prevScanline 
-    printf "scanline: %A\n" scanline 
 
-    let filtered = filterScanlinePaeth bpp prevScanline scanline
-    printf "filtered: %A\n" filtered
+    let (filtered, _) = filterScanlinePaeth bpp prevScanline scanline
 
     let unfilteredScanline = unfilterScanlinePaeth bpp prevScanline filtered 
-    printf "unfilteredScanline: %A\n" unfilteredScanline
     unfilteredScanline = scanline 
 
 [<Property>]

@@ -1,4 +1,5 @@
 ﻿## Thu 12.9.
+- Refactored the filter code to calculate the sum of absolute differences during the filtering.
 - Since the whole thing is very slow, I will no work on optimizing the code.
 - Working on generating PNGs from SRTM HGTs.
 

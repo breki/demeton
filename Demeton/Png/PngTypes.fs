@@ -125,7 +125,8 @@ type FilteredScanline = byte[]
 /// <summary>
 /// Performs PNG filtering of a scanline.
 /// </summary>
-type ScanlineFilter = int -> Scanline option -> Scanline -> FilteredScanline
+type ScanlineFilter = int -> Scanline option -> Scanline 
+                        -> (FilteredScanline * int)
 
 /// <summary>
 /// Performs PNG unfiltering (the opposite of <see cref="ScanlineFilter" /> of 

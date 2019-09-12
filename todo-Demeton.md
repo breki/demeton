@@ -1,4 +1,6 @@
-﻿- the whole thing is just too damn slow, how do we speed it up?
+﻿- refactor filter code to extract commonality
+
+- the whole thing is just too damn slow, how do we speed it up?
     - inline certain functions
     - optimize `minSumOfAbsoluteValueSelector`
 
