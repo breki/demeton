@@ -7,12 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Srtm\Converting HGT to PNG.fs" />
     <Compile Include="Reading binary streams.fs" />
     <Compile Include="Png\Reading and writing PNG files.fs" />
     <Compile Include="Png\PNG compression.fs" />
     <Compile Include="Png\PNG filtering.fs" />
-    <EmbeddedResource Include="samples\N00E031.hgt" />
-    <EmbeddedResource Include="samples\N00E031.SRTMGL1.hgt.zip" />
     <Compile Include="Hillshading.fs" />
     <Compile Include="fetchSrtmHeights tests.fs" />
     <Compile Include="Reading SRTM HGT files.fs" />
@@ -21,6 +20,8 @@
     <Compile Include="Hillshading integration.fs" />
     <Compile Include="DEM file storage tests.fs" />
     <Compile Include="Bounds to DEM tiles.fs" />
+    <EmbeddedResource Include="samples\N00E031.hgt" />
+    <EmbeddedResource Include="samples\N00E031.SRTMGL1.hgt.zip" />
     <Compile Include="ensureTilesAreInCache tests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

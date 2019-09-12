@@ -1,4 +1,8 @@
-﻿## Wed 11.9.
+﻿## Thu 12.9.
+- Since the whole thing is very slow, I will no work on optimizing the code.
+- Working on generating PNGs from SRTM HGTs.
+
+## Wed 11.9.
 - Implemented `loadPngFromStream` function.
 - Implemented `saveGrayscale16BitToStream` function.
 - Implemented `saveGrayscale8BitToStream` function.

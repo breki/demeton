@@ -364,8 +364,22 @@ let allPngUnfilters: ScanlineUnfilter[] = [|
 |]
 
 
-let sumOfAbsoluteValueOfFilteredScanline (filtered: FilteredScanline): int =
-    filtered |> Array.map int |> Array.sum
+/// <summary>
+/// Calculates the sum of absolute differences for the filtered scanline. This
+/// function is used as a heuristic to determine the probably best filter method
+/// for a given scanline.
+/// </summary>
+/// <param name="filtered">
+/// The filtered scanline whose sum of absolute differences should be calculated.
+///</param>
+/// <returns>The sum of absolute differences for the scanline.</returns>
+let inline sumOfAbsoluteValueOfFilteredScanline (filtered: FilteredScanline): int =
+    // Note that the method was rewritten in imperative style for performance
+    // reasons.
+    let mutable sum = 0
+    for i in 0 .. filtered.Length - 1 do
+        sum <- sum + (int)filtered.[i]
+    sum
 
 
 let minSumOfAbsoluteValueSelector
