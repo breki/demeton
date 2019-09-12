@@ -1,10 +1,7 @@
-﻿- refactor filter code to extract commonality
+﻿- the whole thing is just too damn slow, how do we speed it up?
+    - optimize minSumOfAbsoluteDifferencesSelector
 
-- the whole thing is just too damn slow, how do we speed it up?
-    - inline certain functions
-    - optimize `minSumOfAbsoluteValueSelector`
-
-    - sum of absolute differences should be returned by filter method so we don't need to go through the list again
+- update the filter docs to reflect the latest changes
 
 - implement converter of HGT files into PNG
     - also implement decoder back and write property tests
