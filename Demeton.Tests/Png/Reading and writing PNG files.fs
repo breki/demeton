@@ -130,7 +130,8 @@ let ``Can generate a simplest 8-bit grayscale PNG``() =
 
     let rnd = Random(123)
     let imageData = 
-        Array2D.init imageWidth imageHeight (fun _ _ -> (byte)(rnd.Next(255)))
+        Array2D.init imageWidth imageHeight 
+            (fun _ _ -> (byte)(rnd.Next(255)))
     
     use stream = new MemoryStream()
     stream 

@@ -19,7 +19,8 @@ let ``Can filter scanlines``() =
     let bpp = 8
 
     let filteredScanlines 
-        = filterScanlines minSumOfAbsoluteDifferencesSelector bpp scanlines
+        //= filterScanlines minSumOfAbsoluteDifferencesSelector bpp scanlines
+        = filterScanlines2 scanlineFilterMultiple bpp scanlines
     test <@ filteredScanlines |> Seq.length = 2 @>
     test <@ filteredScanlines |> Seq.exists (fun sc -> sc.Length <> 11) |> not @>
 

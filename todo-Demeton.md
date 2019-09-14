@@ -1,4 +1,6 @@
-﻿- the whole thing is just too damn slow, how do we speed it up?
+﻿- reduce the size of the HGT array for the test (for now)
+
+- the whole thing is just too damn slow, how do we speed it up?
     - reuse filtered scanline arrays instead of recreating them?
     - alternative implementation:
         - one filter method that picks up left, up etc. and then calculates the filter value for each filter type

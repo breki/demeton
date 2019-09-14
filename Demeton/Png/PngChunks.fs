@@ -120,8 +120,10 @@ let decompress compressedData (outputStream: Stream) : unit =
 
 
 let serializeIdatChunkData bpp (scanlines: Scanline[]): byte[] =
+    //let filteredScanlines = 
+    //    filterScanlines minSumOfAbsoluteDifferencesSelector bpp scanlines
     let filteredScanlines = 
-        filterScanlines minSumOfAbsoluteDifferencesSelector bpp scanlines
+        filterScanlines2 scanlineFilterMultiple bpp scanlines
     let dataBeforeCompression = Array.concat filteredScanlines
     use compressionStream = new MemoryStream()
 

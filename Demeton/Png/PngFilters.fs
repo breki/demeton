@@ -385,42 +385,76 @@ let filterScanlines
             yield filteredScanline
     |]
 
-type ScanlineFilter2 = byte -> int -> int -> int -> byte
+type ScanlineFilter2 = byte -> byte -> byte -> byte -> byte
 
-let filterTypeNone2 raw _ _ _ = raw
+let inline filterTypeNone2 raw _ _ _ = raw
 
-let filterTypeSub2 raw left _ _ = raw - left
+let inline filterTypeSub2 raw left _ _ = raw - left
 
-let filterTypeUp2 raw _ up _ = raw - up
+let inline filterTypeUp2 raw _ up _ = raw - up
 
-let filterTypeAverage2 raw left up leftUp = raw
+let inline filterTypeAverage2 raw (left: byte) (up: byte) _ 
+    = raw - (byte)(((int)left + (int)up) / 2)
 
-let filterTypePaeth2 raw left up leftUp = raw
+let inline filterTypePaeth2 raw (left: byte) (up: byte) (upLeft: byte) = 
+    raw - (byte)(paethPredictor ((int)left) ((int)up) ((int)upLeft))
 
-let allPngFilters2: ScanlineFilter2[] = [| filterTypeNone2 |]
+let allPngFilters2: ScanlineFilter2[] = 
+    [| filterTypeNone2; filterTypeSub2; filterTypeUp2; filterTypeAverage2;
+        filterTypePaeth2 |]
 
 type ScanlineFilterMultiple = 
-    int -> Scanline option -> Scanline -> FilteredScanline[] -> FilteredScanline
+    int -> Scanline option -> Scanline -> FilteredScanline[] 
+        -> FilteredScanline
 
-let scanlineFilterMultiple 
-    bytesPP prevScanline scanline filteredScanlinesBuffer =
+let scanlineFilterMultiple
+    (bytesPP: int) 
+    (prevScanline: Scanline option) 
+    (scanline: Scanline) 
+    (filteredScanlinesBuffer: FilteredScanline[]) =
+
+    let filtersCount = allPngFilters2.Length
+
+    let sumsOfAbsDiffs: int[] = Array.zeroCreate filtersCount
 
     for scanlineIndex in 0 .. (scanline.Length - 1) do
         let raw = scanline.[scanlineIndex]
         let left = 
             match scanlineIndex with
-            | x when x < bytesPP -> 0
-            | _ -> (int)scanline.[scanlineIndex-bytesPP]
+            | x when x < bytesPP -> 0uy
+            | _ -> scanline.[scanlineIndex-bytesPP]
         let up = 
             match prevScanline with
-            | None -> 0
-            | Some prev -> (int) prev.[scanlineIndex]
+            | None -> 0uy
+            | Some prev -> prev.[scanlineIndex]
         let upLeft = 
             match (scanlineIndex, prevScanline) with
-            | (x, _) when x < bytesPP -> 0
-            | (_, None) -> 0
-            | (_, Some prev) -> (int) prev.[scanlineIndex-bytesPP]
-        
+            | (x, _) when x < bytesPP -> 0uy
+            | (_, None) -> 0uy
+            | (_, Some prev) -> prev.[scanlineIndex-bytesPP]
+
+        for filterIndex in 0 .. (filtersCount - 1) do
+            let filter = allPngFilters2.[filterIndex]
+            let filteredValue = filter raw left up upLeft
+            filteredScanlinesBuffer.[filterIndex].[1 + scanlineIndex] <- 
+                filteredValue
+            sumsOfAbsDiffs.[filterIndex] <- 
+                sumsOfAbsDiffs.[filterIndex] + (int)filteredValue;
+
+    let filteredScanlineWithMinSumOfAbsDiffs() =
+        let mutable minIndex = -1
+        let mutable minValueSoFar = System.Int32.MaxValue
+
+        for i in 0 .. (filtersCount - 1) do
+            let minValueOfFilter = sumsOfAbsDiffs.[i]
+            if minValueOfFilter < minValueSoFar then
+                minIndex <- i
+                minValueSoFar <- minValueOfFilter
+            else ignore()
+
+        filteredScanlinesBuffer.[minIndex]
+
+    filteredScanlineWithMinSumOfAbsDiffs()
 
 let filterScanlines2 
     (filter: ScanlineFilterMultiple)
@@ -428,9 +462,19 @@ let filterScanlines2
     (scanlines: Scanline[])
     : FilteredScanline[]=
 
+    let filterTypesCount = allPngFilters2.Length
+
     let filteredScanlineLength = scanlines.[0].Length + 1
     let filteredScanlinesBuffer: FilteredScanline[] = 
-        Array.init 5 (fun i -> Array.zeroCreate filteredScanlineLength)
+        Array.init 
+            filterTypesCount 
+            (fun i -> Array.zeroCreate filteredScanlineLength)
+
+    let addFilterTypeByteMarks() = 
+        for filterIndex in 0 .. (filterTypesCount-1) do
+            filteredScanlinesBuffer.[filterIndex].[0] <- (byte)filterIndex
+
+    addFilterTypeByteMarks()
 
     let bytesPP = bytesPerPixel bpp
 
@@ -442,7 +486,12 @@ let filterScanlines2
                 | _ -> Some scanlines.[scanlineIndex - 1]
 
             let scanline = scanlines.[scanlineIndex]
-            filter bytesPP prevScanline scanline filteredScanlinesBuffer
+            let filteredScanline = 
+                filter 
+                    bytesPP prevScanline scanline filteredScanlinesBuffer
+            // We have to make a clone of the filtered scanline as the one we
+            // received is reused (as part of the buffer) on each scanline.
+            Array.copy filteredScanline
     |]
 
 
