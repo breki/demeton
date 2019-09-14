@@ -385,8 +385,6 @@ let filterScanlines
             yield filteredScanline
     |]
 
-type ScanlineFilter2 = byte -> byte -> byte -> byte -> byte
-
 let inline filterTypeSub2 raw left = raw - left
 
 let inline filterTypeUp2 raw _ up _ = raw - up
@@ -397,9 +395,11 @@ let inline filterTypeAverage2 raw (left: byte) (up: byte) _
 let inline filterTypePaeth2 raw (left: byte) (up: byte) (upLeft: byte) = 
     raw - (byte)(paethPredictor ((int)left) ((int)up) ((int)upLeft))
 
+
 type ScanlineFilterMultiple = 
     int -> Scanline option -> Scanline -> FilteredScanline[] 
         -> FilteredScanline
+
 
 let scanlineFilterMultiple
     (bytesPP: int) 
@@ -477,20 +477,21 @@ let filterScanlines2
     let filterTypesCount = 5
 
     let filteredScanlineLength = scanlines.[0].Length + 1
-    let filteredScanlinesBuffer: FilteredScanline[] = 
-        Array.init 
-            filterTypesCount 
-            (fun i -> Array.zeroCreate filteredScanlineLength)
-
-    let addFilterTypeByteMarks() = 
-        for filterIndex in 0 .. (filterTypesCount-1) do
-            filteredScanlinesBuffer.[filterIndex].[0] <- (byte)filterIndex
-
-    addFilterTypeByteMarks()
 
     let bytesPP = bytesPerPixel bpp
 
     let filterScanline scanlineIndex =
+        let filteredScanlinesBuffer: FilteredScanline[] = 
+            Array.init 
+                filterTypesCount 
+                (fun i -> Array.zeroCreate filteredScanlineLength)
+
+        let addFilterTypeByteMarks() = 
+            for filterIndex in 0 .. (filterTypesCount-1) do
+                filteredScanlinesBuffer.[filterIndex].[0] <- (byte)filterIndex
+
+        addFilterTypeByteMarks()
+
         let prevScanline =
             match scanlineIndex with
             | 0 -> None
@@ -504,7 +505,7 @@ let filterScanlines2
         // received is reused (as part of the buffer) on each scanline.
         Array.copy filteredScanline
 
-    Array.init scanlines.Length filterScanline
+    Array.Parallel.init scanlines.Length filterScanline
 
 
 let unfilterScanlines bpp (filteredScanlines: FilteredScanline[]): Scanline[] =

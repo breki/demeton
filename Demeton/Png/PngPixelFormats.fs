@@ -14,7 +14,7 @@ open System.IO
 /// <returns>An array of scanlines.</returns>
 let grayscale8BitScanlines (imageData: Grayscale8BitImageData): Scanline[] =
     let imageHeight = Array2D.length2 imageData
-    Array.init 
+    Array.Parallel.init 
         imageHeight 
         (fun y -> imageData.[0..(Array2D.length1 imageData - 1),y])
 
@@ -47,7 +47,7 @@ let grayscale16BitScanlines (imageData: Grayscale16BitImageData): Scanline [] =
 
         scanline
 
-    Array.init imageHeight generateScanline
+    Array.Parallel.init imageHeight generateScanline
 
 
 let scanlinesToGrayscale16Bit 

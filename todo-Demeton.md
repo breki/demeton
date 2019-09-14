@@ -1,5 +1,4 @@
 ﻿- profiling and optimizing the code
-    - parallelize scaline encoding?
     - try to optimize CRC code
     - remove the old code
     - use Memory and Span vs ordinary arrays?
