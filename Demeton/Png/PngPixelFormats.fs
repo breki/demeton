@@ -7,16 +7,16 @@ open Demeton.PngChunks
 open System.IO
 
 /// <summary>
-/// Generates a sequence of scanlines from the specified 8-bit grayscale image
+/// Generates an array of scanlines from the specified 8-bit grayscale image
 /// data.
 /// </summary>
 /// <param name="imageData">The image data to generate scanlines from.</param>
-/// <returns>A sequence of scanlines.</returns>
-let grayscale8BitScanlines (imageData: Grayscale8BitImageData): Scanline seq =
-    seq {
-        for y in 0..(Array2D.length2 imageData - 1) do
-            yield imageData.[0..(Array2D.length1 imageData - 1),y]
-    }
+/// <returns>An array of scanlines.</returns>
+let grayscale8BitScanlines (imageData: Grayscale8BitImageData): Scanline[] =
+    let imageHeight = Array2D.length2 imageData
+    Array.init 
+        imageHeight 
+        (fun y -> imageData.[0..(Array2D.length1 imageData - 1),y])
 
 
 let scanlinesToGrayscale8Bit 
@@ -27,21 +27,23 @@ let scanlinesToGrayscale8Bit
 
 
 /// <summary>
-/// Generates a sequence of scanlines from the specified 16-bit grayscale image
+/// Generates an array of scanlines from the specified 16-bit grayscale image
 /// data.
 /// </summary>
 /// <param name="imageData">The image data to generate scanlines from.</param>
-/// <returns>A sequence of scanlines.</returns>
-let grayscale16BitScanlines (imageData: Grayscale16BitImageData): Scanline seq =
-    seq {
-        for y in 0..(Array2D.length2 imageData - 1) ->
+/// <returns>An array of scanlines.</returns>
+let grayscale16BitScanlines (imageData: Grayscale16BitImageData): Scanline [] =
+    let imageHeight = Array2D.length2 imageData
+
+    let generateScanline y =
         [| 
             for x in 0..(Array2D.length1 imageData - 1) do
                 let pixelData = imageData.[x, y]
                 yield ((byte)(pixelData >>> 8))
                 yield ((byte)pixelData)
         |]
-    }
+
+    Array.init imageHeight generateScanline
 
 
 let scanlinesToGrayscale16Bit 
@@ -76,7 +78,7 @@ let saveGrayscale8BitToStream
             BitDepth = PngBitDepth.BitDepth8; 
             ColorType = PngColorType.Grayscale; 
             InterlaceMethod = PngInterlaceMethod.NoInterlace }
-    let scanlines = grayscale8BitScanlines imageData |> Seq.toArray
+    let scanlines = grayscale8BitScanlines imageData
 
     stream 
     |> writeSignature 

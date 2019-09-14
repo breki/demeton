@@ -1,4 +1,7 @@
-﻿## Thu 12.9.
+﻿## Sat 14.9.
+- Optimized the `scanlineFilterMultiple` function so PNG encoding is much faster now.
+
+## Thu 12.9.
 - Refactored the filter code to calculate a single value instead of the whole scaline, to remove code duplication.
 - Refactored the filter code to calculate the sum of absolute differences during the filtering.
 - Since the whole thing is very slow, I will no work on optimizing the code.

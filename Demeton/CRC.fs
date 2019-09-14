@@ -42,10 +42,12 @@ let crc32 data =
     let rec bitrev count acc n =
         if count = 0 then acc
         else bitrev (count - 1) ((acc <<< 1) ||| (n &&& 1u)) (n >>> 1)
-    let update acc (input:byte) =
+
+    let inline update acc (input:byte) =
         // tupni is input backwards
         let tupni = bitrev 8 0u (uint32 input)
         let crc1 = acc ^^^ (tupni <<< 24)
         let pos = (crc1 >>> 24) &&& 0xffu |> int32
         (crc1 <<< 8) ^^^ crcTable.[pos]
+    
     0xFFffFFffu ^^^ (Seq.fold update 0xFFffFFffu data |> bitrev 32 0u)
