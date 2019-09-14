@@ -419,27 +419,42 @@ let scanlineFilterMultiple
 
     for scanlineIndex in 0 .. (scanline.Length - 1) do
         let raw = scanline.[scanlineIndex]
-        let left = 
-            match scanlineIndex with
-            | x when x < bytesPP -> 0uy
-            | _ -> scanline.[scanlineIndex-bytesPP]
-        let up = 
-            match prevScanline with
-            | None -> 0uy
-            | Some prev -> prev.[scanlineIndex]
-        let upLeft = 
-            match (scanlineIndex, prevScanline) with
-            | (x, _) when x < bytesPP -> 0uy
-            | (_, None) -> 0uy
-            | (_, Some prev) -> prev.[scanlineIndex-bytesPP]
 
-        for filterIndex in 0 .. (filtersCount - 1) do
-            let filter = allPngFilters2.[filterIndex]
-            let filteredValue = filter raw left up upLeft
-            filteredScanlinesBuffer.[filterIndex].[1 + scanlineIndex] <- 
-                filteredValue
-            sumsOfAbsDiffs.[filterIndex] <- 
-                sumsOfAbsDiffs.[filterIndex] + (int)filteredValue;
+        let mutable left = 0uy
+        let mutable up = 0uy
+        let mutable upLeft = 0uy
+
+        if scanlineIndex >= bytesPP then
+            left <- scanline.[scanlineIndex-bytesPP]
+
+        if Option.isSome prevScanline then
+            let prevScanlineVal = prevScanline.Value
+            up <- prevScanlineVal.[scanlineIndex]
+            if scanlineIndex >= bytesPP then
+                upLeft <- prevScanlineVal.[scanlineIndex-bytesPP]
+
+        let filteredScanlineIndex = scanlineIndex + 1
+        let mutable filteredValue = 0uy
+
+        filteredValue <- filterTypeNone2 raw left up upLeft
+        filteredScanlinesBuffer.[0].[filteredScanlineIndex] <- filteredValue
+        sumsOfAbsDiffs.[0] <- sumsOfAbsDiffs.[0] + (int)filteredValue;
+
+        filteredValue <- filterTypeSub2 raw left up upLeft
+        filteredScanlinesBuffer.[1].[filteredScanlineIndex] <- filteredValue
+        sumsOfAbsDiffs.[1] <- sumsOfAbsDiffs.[1] + (int)filteredValue;
+
+        filteredValue <- filterTypeUp2 raw left up upLeft
+        filteredScanlinesBuffer.[2].[filteredScanlineIndex] <- filteredValue
+        sumsOfAbsDiffs.[2] <- sumsOfAbsDiffs.[2] + (int)filteredValue;
+
+        filteredValue <- filterTypeAverage2 raw left up upLeft
+        filteredScanlinesBuffer.[3].[filteredScanlineIndex] <- filteredValue
+        sumsOfAbsDiffs.[3] <- sumsOfAbsDiffs.[3] + (int)filteredValue;
+
+        filteredValue <- filterTypePaeth2 raw left up upLeft
+        filteredScanlinesBuffer.[4].[filteredScanlineIndex] <- filteredValue
+        sumsOfAbsDiffs.[4] <- sumsOfAbsDiffs.[4] + (int)filteredValue;
 
     let filteredScanlineWithMinSumOfAbsDiffs() =
         let mutable minIndex = -1
@@ -478,21 +493,21 @@ let filterScanlines2
 
     let bytesPP = bytesPerPixel bpp
 
-    [| 
-        for scanlineIndex in 0 .. scanlines.Length - 1 ->
-            let prevScanline =
-                match scanlineIndex with
-                | 0 -> None
-                | _ -> Some scanlines.[scanlineIndex - 1]
+    let filterScanline scanlineIndex =
+        let prevScanline =
+            match scanlineIndex with
+            | 0 -> None
+            | _ -> Some scanlines.[scanlineIndex - 1]
 
-            let scanline = scanlines.[scanlineIndex]
-            let filteredScanline = 
-                filter 
-                    bytesPP prevScanline scanline filteredScanlinesBuffer
-            // We have to make a clone of the filtered scanline as the one we
-            // received is reused (as part of the buffer) on each scanline.
-            Array.copy filteredScanline
-    |]
+        let scanline = scanlines.[scanlineIndex]
+        let filteredScanline = 
+            filter 
+                bytesPP prevScanline scanline filteredScanlinesBuffer
+        // We have to make a clone of the filtered scanline as the one we
+        // received is reused (as part of the buffer) on each scanline.
+        Array.copy filteredScanline
+
+    Array.init scanlines.Length filterScanline
 
 
 let unfilterScanlines bpp (filteredScanlines: FilteredScanline[]): Scanline[] =

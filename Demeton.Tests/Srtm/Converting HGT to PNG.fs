@@ -86,14 +86,13 @@ let ``Can convert a HGT file into PNG image``() =
     let assembly = Assembly.GetExecutingAssembly()
     use hgtStream = assembly.GetManifestResourceStream
                                 ("Demeton.Tests.samples." + hgtFileNameOnly)
-    
-    //let heightsArray = createSrtmTileFromStream 3600 tileCoords hgtStream
 
-    // todo: return back to real HGT file, once we speed things up
     let clock = new System.Diagnostics.Stopwatch()
     clock.Start()
 
-    printf ("Initializing the heights array...\n")
+    printf ("Reading the heights array...\n")
+    
+    //let heightsArray = createSrtmTileFromStream 3600 tileCoords hgtStream
 
     let rnd = new System.Random(123)
     let heightsArray = 

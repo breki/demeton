@@ -1,4 +1,6 @@
-﻿- reduce the size of the HGT array for the test (for now)
+﻿- profiling the code
+    - try to optimize CRC code
+    - parallelize scaline encoding?
 
 - the whole thing is just too damn slow, how do we speed it up?
     - reuse filtered scanline arrays instead of recreating them?
