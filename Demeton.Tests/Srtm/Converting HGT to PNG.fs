@@ -75,7 +75,6 @@ let ``Can convert HeightsArray to 16-bit grayscale``() =
     test <@ Array2D.length2 imageData = 150 @>
 
 
-// todo too slow
 [<Fact>]
 [<Trait("Category", "integration")>]
 let ``Can convert a HGT file into PNG image``() =

@@ -1,8 +1,8 @@
 ﻿- profiling and optimizing the code
-    - grayscale8BitScanlines and 16 bit should return arrays, not sequences
-    - try to optimize CRC code
     - parallelize scaline encoding?
+    - try to optimize CRC code
     - remove the old code
+    - use Memory and Span vs ordinary arrays?
 
 - the whole thing is just too damn slow, how do we speed it up?
     - reuse filtered scanline arrays instead of recreating them?

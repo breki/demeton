@@ -387,9 +387,7 @@ let filterScanlines
 
 type ScanlineFilter2 = byte -> byte -> byte -> byte -> byte
 
-let inline filterTypeNone2 raw _ _ _ = raw
-
-let inline filterTypeSub2 raw left _ _ = raw - left
+let inline filterTypeSub2 raw left = raw - left
 
 let inline filterTypeUp2 raw _ up _ = raw - up
 
@@ -398,10 +396,6 @@ let inline filterTypeAverage2 raw (left: byte) (up: byte) _
 
 let inline filterTypePaeth2 raw (left: byte) (up: byte) (upLeft: byte) = 
     raw - (byte)(paethPredictor ((int)left) ((int)up) ((int)upLeft))
-
-let allPngFilters2: ScanlineFilter2[] = 
-    [| filterTypeNone2; filterTypeSub2; filterTypeUp2; filterTypeAverage2;
-        filterTypePaeth2 |]
 
 type ScanlineFilterMultiple = 
     int -> Scanline option -> Scanline -> FilteredScanline[] 
@@ -413,7 +407,8 @@ let scanlineFilterMultiple
     (scanline: Scanline) 
     (filteredScanlinesBuffer: FilteredScanline[]) =
 
-    let filtersCount = allPngFilters2.Length
+    // there are five types of PNG adaptive filters
+    let filtersCount = 5
 
     let sumsOfAbsDiffs: int[] = Array.zeroCreate filtersCount
 
@@ -436,11 +431,12 @@ let scanlineFilterMultiple
         let filteredScanlineIndex = scanlineIndex + 1
         let mutable filteredValue = 0uy
 
-        filteredValue <- filterTypeNone2 raw left up upLeft
+        // this is a shortcut for filter type None
+        filteredValue <- raw
         filteredScanlinesBuffer.[0].[filteredScanlineIndex] <- filteredValue
         sumsOfAbsDiffs.[0] <- sumsOfAbsDiffs.[0] + (int)filteredValue;
 
-        filteredValue <- filterTypeSub2 raw left up upLeft
+        filteredValue <- filterTypeSub2 raw left
         filteredScanlinesBuffer.[1].[filteredScanlineIndex] <- filteredValue
         sumsOfAbsDiffs.[1] <- sumsOfAbsDiffs.[1] + (int)filteredValue;
 
@@ -477,7 +473,8 @@ let filterScanlines2
     (scanlines: Scanline[])
     : FilteredScanline[]=
 
-    let filterTypesCount = allPngFilters2.Length
+    // there are five types of PNG adaptive filters
+    let filterTypesCount = 5
 
     let filteredScanlineLength = scanlines.[0].Length + 1
     let filteredScanlinesBuffer: FilteredScanline[] = 

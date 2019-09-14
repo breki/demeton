@@ -33,15 +33,19 @@ let scanlinesToGrayscale8Bit
 /// <param name="imageData">The image data to generate scanlines from.</param>
 /// <returns>An array of scanlines.</returns>
 let grayscale16BitScanlines (imageData: Grayscale16BitImageData): Scanline [] =
+    let imageWidth = Array2D.length1 imageData
     let imageHeight = Array2D.length2 imageData
 
     let generateScanline y =
-        [| 
-            for x in 0..(Array2D.length1 imageData - 1) do
-                let pixelData = imageData.[x, y]
-                yield ((byte)(pixelData >>> 8))
-                yield ((byte)pixelData)
-        |]
+        let scanline: Scanline = Array.zeroCreate (imageWidth * 2)
+
+        for x in 0 .. (imageWidth-1) do
+            let bx = x <<< 1
+            let pixelData = imageData.[x, y]
+            scanline.[bx] <- byte (pixelData >>> 8)
+            scanline.[bx + 1] <- byte pixelData
+
+        scanline
 
     Array.init imageHeight generateScanline
 
