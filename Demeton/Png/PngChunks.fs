@@ -123,7 +123,7 @@ let serializeIdatChunkData bpp (scanlines: Scanline[]): byte[] =
     //let filteredScanlines = 
     //    filterScanlines minSumOfAbsoluteDifferencesSelector bpp scanlines
     let filteredScanlines = 
-        filterScanlines2 scanlineFilterMultiple bpp scanlines
+        filterScanlines filterScanline bpp scanlines
     let dataBeforeCompression = Array.concat filteredScanlines
     use compressionStream = new MemoryStream()
 
@@ -141,8 +141,8 @@ let deserializeIdatChunkData bpp imageWidth chunkData: Scanline[] =
 
     let decompressedData = chunkDataStream.ToArray()
 
-    let bytesPerPixel = bpp / 8
-    let filteredScanlineLength = imageWidth * bytesPerPixel + 1
+    let bytesPP = bytesPerPixel bpp
+    let filteredScanlineLength = imageWidth * bytesPP + 1
     let scanlinesModulo =
         decompressedData.Length % filteredScanlineLength
 

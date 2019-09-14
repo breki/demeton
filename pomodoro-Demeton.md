@@ -1,4 +1,6 @@
 ﻿## Sat 14.9.
+- Removed old filtering code.
+- Introduced parallelism into scanlines filtering.
 - Optimized the `scanlineFilterMultiple` function so PNG encoding is much faster now.
 
 ## Thu 12.9.

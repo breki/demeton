@@ -1,6 +1,5 @@
 ﻿- profiling and optimizing the code
-    - try to optimize CRC code
-    - remove the old code
+    - try to optimize CRC code?
     - use Memory and Span vs ordinary arrays?
 
 - the whole thing is just too damn slow, how do we speed it up?
