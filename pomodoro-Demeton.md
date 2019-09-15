@@ -1,4 +1,5 @@
 ﻿## Sun 15.9.
+- Added a simple build script that runs tests.
 - Added a SRTM tile rendered as PNG as a sample so we can test decoding of PNGs.
 - Added one more sample SRTM tile. 
 - Removed duplicate sample SRTM tile from the tests project.

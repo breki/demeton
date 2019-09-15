@@ -105,7 +105,7 @@ let ``Can convert HeightsArray to 16-bit grayscale``() =
 
 
 [<Fact>]
-[<Trait("Category", "integration")>]
+[<Trait("Category", "slow")>]
 let ``Can convert a HGT file into PNG image``() =
     let srtmTileId = "N46E015"
     let hgtFileNameOnly = srtmTileId + ".hgt"

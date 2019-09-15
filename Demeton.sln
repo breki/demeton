@@ -8,6 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D6A490FA-409C-4670-97CB-BDC836F3B791}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		build.bat = build.bat
 		pomodoro-Demeton.md = pomodoro-Demeton.md
 		README.md = README.md
 		todo-Demeton.md = todo-Demeton.md
