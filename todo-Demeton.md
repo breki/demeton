@@ -1,5 +1,12 @@
 ﻿- profiling and optimizing the code
-    - try to optimize CRC code?
+    - find a better SRTM tile as a sample
+    - remove duplicate sample tile
+    - encoding heights array to PNG: everything is gray
+    - speed up decoding of PNG images
+        - create a sample big PNG image and add it to samples
+        - write a test for decoding which we can profile
+    - implement decoding the SRTM cell from PNG image
+        - it's too slow right now
     - use Memory and Span vs ordinary arrays?
 
 - the whole thing is just too damn slow, how do we speed it up?

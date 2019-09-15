@@ -7,11 +7,43 @@ open Demeton.PngPixelFormats
 
 open FsUnit
 open Xunit
+open FsCheck.Xunit
 open Swensen.Unquote
 
 open System.IO
 open System.Reflection
 
+
+let missingHeightAsUint16 = 0us
+let zeroHeight = 1s <<< 15
+
+let demHeightToUInt16Value (demHeight: DemHeight option): uint16 =
+    match demHeight with
+    | Some height -> (uint16)((int16)height + zeroHeight)
+    | _ -> missingHeightAsUint16
+
+
+let uint16ValueToDemHeight (value: uint16): DemHeight option =
+    if value = missingHeightAsUint16 then None
+    else Some (DemHeight ((int16)value - zeroHeight))
+
+
+[<Fact>]
+let ``DEM height of 0 is represented as unsigned int16 value of 32768``() =
+    demHeightToUInt16Value (Some 0s) = 32768us
+
+
+[<Fact>]
+let ``Missing DEM height is represented as unsigned int16 value of 0``() =
+    demHeightToUInt16Value (None) = 0us
+
+
+[<Property>]
+let ``DEM height is correctly converted to uint16``(height: DemHeight option)=
+    let converted = demHeightToUInt16Value height
+    let heightReconverted = uint16ValueToDemHeight converted
+    printfn "converted = %d heightReconverted = %A height = %A" converted heightReconverted height
+    heightReconverted = height
 
 /// <summary>
 /// Converts the <see cref="HeightsArray" /> into 16-bit grayscale image data.
@@ -22,14 +54,6 @@ open System.Reflection
 /// <returns>Image data.</returns>
 let heightsArrayToImageData (heightsArray: HeightsArray)
     : Grayscale16BitImageData =
-
-    let inline demHeightToUInt16Value (demHeight: DemHeight option): uint16 =
-        let missingHeightAsUint16 = 0us
-        let zeroHeight = 2s <<< 15
-
-        match demHeight with
-        | Some height -> (uint16)((int16)height + zeroHeight)
-        | _ -> missingHeightAsUint16
 
     Array2D.init 
         heightsArray.Width 
@@ -78,7 +102,7 @@ let ``Can convert HeightsArray to 16-bit grayscale``() =
 [<Fact>]
 [<Trait("Category", "integration")>]
 let ``Can convert a HGT file into PNG image``() =
-    let srtmTileId = "N00E031"
+    let srtmTileId = "N46E015"
     let hgtFileNameOnly = srtmTileId + ".hgt"
     let tileCoords = parseTileId hgtFileNameOnly.[0..6]
 
@@ -95,27 +119,27 @@ let ``Can convert a HGT file into PNG image``() =
 
     //let rnd = new System.Random(123)
     //let heightsArray = 
-    //    HeightsArray({ X = 0; Y = 0}, 1500, 1500,
+    //    HeightsArray(0, 0, 1000, 500,
     //        fun _ -> Some ((int16)(rnd.Next(10000))))
 
-    // todo uncomment once we speed things up
+    printf "%d Encoding heights into the PNG...\n" clock.ElapsedMilliseconds
 
-    //printf "%d Encoding heights into the PNG...\n" clock.ElapsedMilliseconds
-
-    //let pngFileName = srtmTileId + ".png";
-    //use pngWriteStream = File.OpenWrite(pngFileName)
+    let pngFileName = Path.GetFullPath(srtmTileId + ".png")
+    use pngWriteStream = File.OpenWrite(pngFileName)
     
-    //encodeSrtmHeightsArrayToPng heightsArray pngWriteStream |> ignore
-    //pngWriteStream.Close()
+    printf 
+        "%d Writing image to %s ...\n" clock.ElapsedMilliseconds pngFileName
 
-    //printf "%d Encoded.\n" clock.ElapsedMilliseconds
+    encodeSrtmHeightsArrayToPng heightsArray pngWriteStream |> ignore
+    pngWriteStream.Close()
 
-    // todo uncomment once we speed things up
-    //let readSrtmImageData imageData = ignore()
+    printf "%d Reading the image.\n" clock.ElapsedMilliseconds
 
-    //use pngReadStream = File.OpenRead(pngFileName)
-    //pngReadStream
-    //|> loadPngFromStream (fun _ -> ()) readSrtmImageData
-    //|> ignore
+    let readSrtmImageData imageData = ignore()
+
+    use pngReadStream = File.OpenRead(pngFileName)
+    pngReadStream
+    |> loadPngFromStream (fun _ -> ()) readSrtmImageData
+    |> ignore
 
     printf "%d DONE.\n" clock.ElapsedMilliseconds

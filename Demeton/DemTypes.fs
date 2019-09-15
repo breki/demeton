@@ -1,6 +1,7 @@
 ﻿module Demeton.DemTypes 
 
 type DemHeight = int16
+let inline DemHeight x = int16 x
 
 type GlobalCellCoords = (int * int)
 

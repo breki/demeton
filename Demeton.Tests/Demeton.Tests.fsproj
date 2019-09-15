@@ -22,9 +22,13 @@
     <Compile Include="Bounds to DEM tiles.fs" />
     <Compile Include="ensureTilesAreInCache tests.fs" />
     <Compile Include="Program.fs" />
-    <EmbeddedResource Include="samples\N00E031.hgt" />
-    <EmbeddedResource Include="samples\N00E031.SRTMGL1.hgt.zip" />
+    <EmbeddedResource Include="..\samples\N00E031.hgt" Link="samples\N00E031.hgt" />
+    <EmbeddedResource Include="..\samples\N00E031.SRTMGL1.hgt.zip" Link="samples\N00E031.SRTMGL1.hgt.zip" />
+    <EmbeddedResource Include="..\samples\N46E015.hgt" Link="samples\N46E015.hgt" />
+    <EmbeddedResource Include="..\samples\N46E015.SRTMGL1.hgt.zip" Link="samples\N46E015.SRTMGL1.hgt.zip" />
   </ItemGroup>
+
+  <ItemGroup />
 
   <ItemGroup>
     <PackageReference Include="fscheck" Version="2.14.0" />

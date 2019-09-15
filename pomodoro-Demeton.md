@@ -1,4 +1,6 @@
 ﻿## Sun 15.9.
+- Added one more sample SRTM tile. 
+- Removed duplicate sample SRTM tile from the tests project.
 - For performance reasons, `GlobalCellCoords` now just a type alias for a tuple and no longer a record.
 
 ## Sat 14.9.
