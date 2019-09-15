@@ -34,6 +34,11 @@ let ``DEM height of 0 is represented as unsigned int16 value of 32768``() =
 
 
 [<Fact>]
+let ``DEM height of 1000 is represented as unsigned int16 value of 33768``() =
+    demHeightToUInt16Value (Some 1000s) = 33768us
+
+
+[<Fact>]
 let ``Missing DEM height is represented as unsigned int16 value of 0``() =
     demHeightToUInt16Value (None) = 0us
 
