@@ -1,4 +1,4 @@
-﻿// Taken from "Writing a PNG Decoder in F#, Part II" article by Steve Hawley
+﻿// Adapted from "Writing a PNG Decoder in F#, Part II" article by Steve Hawley
 // http://plinth.org/techtalk/?p=207&
 
 module CRC
@@ -38,7 +38,7 @@ let crcTable =
         0x89B8FD09u ; 0x8D79E0BEu ; 0x803AC667u ; 0x84FBDBD0u ; 0x9ABC8BD5u ; 0x9E7D9662u ; 0x933EB0BBu ; 0x97FFAD0Cu ;     
         0xAFB010B1u ; 0xAB710D06u ; 0xA6322BDFu ; 0xA2F33668u ; 0xBCB4666Du ; 0xB8757BDAu ; 0xB5365D03u ; 0xB1F740B4u |]
 
-let crc32 data =
+let crc32 (data: byte[]) =
     let rec bitrev count acc n =
         if count = 0 then acc
         else bitrev (count - 1) ((acc <<< 1) ||| (n &&& 1u)) (n >>> 1)
@@ -50,4 +50,4 @@ let crc32 data =
         let pos = (crc1 >>> 24) &&& 0xffu |> int32
         (crc1 <<< 8) ^^^ crcTable.[pos]
     
-    0xFFffFFffu ^^^ (Seq.fold update 0xFFffFFffu data |> bitrev 32 0u)
+    0xFFffFFffu ^^^ (Array.fold update 0xFFffFFffu data |> bitrev 32 0u)

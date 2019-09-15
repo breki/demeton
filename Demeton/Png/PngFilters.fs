@@ -15,7 +15,10 @@ let bytesPerPixel bpp =
 
 
 let inline unfilterScanlineNone _ _ (filtered: FilteredScanline) =
-    [| for i in 0 .. filtered.Length - 2 -> filtered.[i + 1] |]
+    let scanlineLength = filtered.Length-1
+    let scanline: Scanline = Array.zeroCreate scanlineLength
+    Array.blit filtered 1 scanline 0 scanlineLength
+    scanline
 
 
 /// <summary>
@@ -362,19 +365,27 @@ let unfilterScanlines
 
     let bytesPP = bytesPerPixel bpp
 
-    [| 
-        let mutable prevScanline = None
-        for scanlineIndex in 0 .. filteredScanlines.Length - 1 do
-            let filteredScanline = filteredScanlines.[scanlineIndex]
+    let scanlines: Scanline[] = Array.zeroCreate filteredScanlines.Length
 
-            let filterType = (int)filteredScanline.[0]
-            match filterType with
-            | f when f >= 0 && f < allPngUnfilters.Length -> 
-                let unfilteredScanline = 
-                    allPngUnfilters.[filterType] 
-                        bytesPP prevScanline filteredScanline
-                prevScanline <- Some unfilteredScanline
-                yield unfilteredScanline
-            | _ -> 
-                invalidOp (sprintf "Unsupported PNG filter type %d" filterType)
-    |]
+    let mutable prevScanline = None
+
+    let unfilterScanline filterType filteredScanline =
+        match filterType with
+        | f when f >= 0 && f < allPngUnfilters.Length -> 
+            let unfilteredScanline = 
+                allPngUnfilters.[filterType] 
+                    bytesPP prevScanline filteredScanline
+            prevScanline <- Some unfilteredScanline
+            unfilteredScanline
+        | _ -> 
+            invalidOp (sprintf "Unsupported PNG filter type %d" filterType)
+
+    for scanlineIndex in 0 .. (filteredScanlines.Length-1) do
+        let filteredScanline = filteredScanlines.[scanlineIndex]
+
+        let filterType = int filteredScanline.[0]
+        let scanline = unfilterScanline filterType filteredScanline
+
+        scanlines.[scanlineIndex] <- scanline
+
+    scanlines

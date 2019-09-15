@@ -14,6 +14,7 @@ open Swensen.Unquote
 
 open System
 open System.IO
+open System.Reflection
 
 
 let givenA8BitGrayscaleImage rndSeed imageWidth imageHeight 
@@ -166,7 +167,7 @@ let ``Can generate and read a valid 8-bit grayscale PNG``() =
         Array2D.init imageWidth imageHeight (fun _ _ -> (byte)(rnd.Next(255)))
 
     let imageFileName = Path.GetFullPath("test-grayscale-8.png")
-    printf "Saving test image to %s" imageFileName
+    printfn "Saving test image to %s" imageFileName
 
     use stream = File.OpenWrite(imageFileName)
 
@@ -189,8 +190,8 @@ let ``Can generate and read a valid 8-bit grayscale PNG``() =
 
 [<Fact>]
 let ``Generated 16-bit grayscale PNG is recognized by System.Drawing``() =
-    let imageWidth = 100
-    let imageHeight = 80
+    let imageWidth = 200
+    let imageHeight = 150
 
     let rnd = Random(123)
     let imageData = 
@@ -198,7 +199,7 @@ let ``Generated 16-bit grayscale PNG is recognized by System.Drawing``() =
             imageWidth imageHeight (fun _ _ -> (uint16)(rnd.Next(2<<<16-1)))
 
     let imageFileName = Path.GetFullPath("test-grayscale-16.png")
-    printf "Saving test image to %s" imageFileName
+    printfn "Saving test image to %s" imageFileName
 
     use stream = File.OpenWrite(imageFileName)
 
@@ -217,3 +218,26 @@ let ``Generated 16-bit grayscale PNG is recognized by System.Drawing``() =
     use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
     test <@ bitmap.Width = imageWidth @>
     test <@ bitmap.Height = imageHeight @>
+
+
+[<Fact>]
+[<Trait("Category", "slow")>]
+let ``Can decode 16-bit grayscale image generated from a SRTM tile``() =
+    let assembly = Assembly.GetExecutingAssembly()
+    use pngReadStream = assembly.GetManifestResourceStream
+                                ("Demeton.Tests.samples.test-grayscale-16.png")
+    
+    let clock = new System.Diagnostics.Stopwatch()
+    clock.Start()
+
+    printfn "Decoding the PNG..."
+
+    let readSrtmImageData (imageData: Grayscale16BitImageData) = 
+        test <@ Array2D.length1 imageData = 500 @>
+        test <@ Array2D.length2 imageData = 500 @>
+
+    pngReadStream
+    |> loadPngFromStream (fun _ -> ()) readSrtmImageData
+    |> ignore
+
+    printfn "%d DONE." clock.ElapsedMilliseconds

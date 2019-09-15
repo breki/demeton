@@ -107,7 +107,12 @@ let ``Filtering and unfiltering using None filter type returns the same scanline
             prevScanline 
             scanline
     
-    unfilterScanlineNone bpp prevScanline filtered = scanline 
+    printfn "filtered: %A" filtered
+
+    let unfiltered = unfilterScanlineNone bpp prevScanline filtered
+    printfn "unfiltered: %A" unfiltered
+
+    unfiltered = scanline 
 
 
 [<ScanlinesPairProperty>]

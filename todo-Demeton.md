@@ -1,6 +1,10 @@
-﻿- profiling and optimizing the code
+﻿- add benchmarking tests
+
+- profiling and optimizing the code
     - speed up decoding of PNG images
-        - write a test for decoding which we can profile
+        - unfilter functions should not use array comprehensions
+            - we should try using Spans to directly write into the image's array
+    - speed up CRC processing
     - implement decoding the SRTM cell from PNG image
         - it's too slow right now
     - use Memory and Span vs ordinary arrays?

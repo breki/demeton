@@ -17,13 +17,13 @@ open System.Reflection
 let missingHeightAsUint16 = 0us
 let zeroHeight = 1s <<< 15
 
-let demHeightToUInt16Value (demHeight: DemHeight option): uint16 =
+let inline demHeightToUInt16Value (demHeight: DemHeight option): uint16 =
     match demHeight with
     | Some height -> (uint16)((int16)height + zeroHeight)
     | _ -> missingHeightAsUint16
 
 
-let uint16ValueToDemHeight (value: uint16): DemHeight option =
+let inline uint16ValueToDemHeight (value: uint16): DemHeight option =
     if value = missingHeightAsUint16 then None
     else Some (DemHeight ((int16)value - zeroHeight))
 
@@ -118,7 +118,7 @@ let ``Can convert a HGT file into PNG image``() =
     let clock = new System.Diagnostics.Stopwatch()
     clock.Start()
 
-    printf ("Reading the heights array...\n")
+    printfn ("Reading the heights array...")
     
     let heightsArray = createSrtmTileFromStream 3600 tileCoords hgtStream
 
@@ -127,18 +127,18 @@ let ``Can convert a HGT file into PNG image``() =
     //    HeightsArray(0, 0, 1000, 500,
     //        fun _ -> Some ((int16)(rnd.Next(10000))))
 
-    printf "%d Encoding heights into the PNG...\n" clock.ElapsedMilliseconds
+    printfn "%d Encoding heights into the PNG..." clock.ElapsedMilliseconds
 
     let pngFileName = Path.GetFullPath(srtmTileId + ".png")
     use pngWriteStream = File.OpenWrite(pngFileName)
     
-    printf 
-        "%d Writing image to %s ...\n" clock.ElapsedMilliseconds pngFileName
+    printfn
+        "%d Writing image to %s ..." clock.ElapsedMilliseconds pngFileName
 
     encodeSrtmHeightsArrayToPng heightsArray pngWriteStream |> ignore
     pngWriteStream.Close()
 
-    printf "%d Reading the image.\n" clock.ElapsedMilliseconds
+    printfn "%d Reading the image." clock.ElapsedMilliseconds
 
     let readSrtmImageData imageData = ignore()
 
@@ -147,4 +147,4 @@ let ``Can convert a HGT file into PNG image``() =
     |> loadPngFromStream (fun _ -> ()) readSrtmImageData
     |> ignore
 
-    printf "%d DONE.\n" clock.ElapsedMilliseconds
+    printfn "%d DONE." clock.ElapsedMilliseconds

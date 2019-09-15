@@ -36,7 +36,7 @@ let grayscale16BitScanlines (imageData: Grayscale16BitImageData): Scanline [] =
     let imageWidth = Array2D.length1 imageData
     let imageHeight = Array2D.length2 imageData
 
-    let generateScanline y =
+    let inline generateScanline y =
         let scanline: Scanline = Array.zeroCreate (imageWidth * 2)
 
         for x in 0 .. (imageWidth-1) do
@@ -55,7 +55,7 @@ let scanlinesToGrayscale16Bit
     imageHeight
     (scanlines: Scanline[]): Grayscale16BitImageData =
 
-    let pixelFromScanline (x: int) (scanline: Scanline) =
+    let inline pixelFromScanline (x: int) (scanline: Scanline) =
         let highByte = scanline.[x * 2]
         let lowByte = scanline.[x * 2 + 1]
         ((uint16)highByte) <<< 8 ||| (uint16)lowByte
