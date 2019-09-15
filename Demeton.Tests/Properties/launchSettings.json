@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Demeton.Tests": {
+      "commandName": "Project",
+      "commandLineArgs": "0"
+    }
+  }
+}

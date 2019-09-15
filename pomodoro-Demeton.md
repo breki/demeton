@@ -1,4 +1,5 @@
 ﻿## Sun 15.9.
+- Added benchmarks for byte indexer vs Span access.
 - Speeded up `unfilterScanlineNone` by using `Array.blit` instead of array comprehension.
 - Added a simple build script that runs tests.
 - Added a SRTM tile rendered as PNG as a sample so we can test decoding of PNGs.

@@ -1,6 +1,4 @@
-﻿- add benchmarking tests
-
-- profiling and optimizing the code
+﻿- profiling and optimizing the code
     - speed up decoding of PNG images
         - unfilter functions should not use array comprehensions
             - we should try using Spans to directly write into the image's array
