@@ -3,9 +3,9 @@
 open DemTypes
 
 let merge (heightArrays: HeightsArray list): HeightsArray option =
-    let isCellWithinArray (array: HeightsArray) (cellCoords: GlobalCellCoords) =
-        cellCoords.X >= array.MinCoords.X && cellCoords.X <= array.MaxX 
-            && cellCoords.Y >= array.MinCoords.Y && cellCoords.Y <= array.MaxY
+    let isCellWithinArray (array: HeightsArray) ((cx, cy): GlobalCellCoords) =
+        cx >= array.MinX && cx <= array.MaxX 
+            && cy >= array.MinY && cy <= array.MaxY
 
     let findArrayOfCell 
         (cellCoords: GlobalCellCoords)
@@ -31,8 +31,8 @@ let merge (heightArrays: HeightsArray list): HeightsArray option =
     | [] -> None
     | [ array ] -> Some array
     | _ -> 
-        let minX = heightArrays |> List.map (fun d -> d.MinCoords.X) |> List.min
-        let minY = heightArrays |> List.map (fun d -> d.MinCoords.Y) |> List.min
+        let minX = heightArrays |> List.map (fun d -> d.MinX) |> List.min
+        let minY = heightArrays |> List.map (fun d -> d.MinY) |> List.min
         let maxX = heightArrays |> List.map (fun d -> d.MaxX) |> List.max
         let maxY = heightArrays |> List.map (fun d -> d.MaxY) |> List.max
         let width = maxX - minX + 1
@@ -42,5 +42,4 @@ let merge (heightArrays: HeightsArray list): HeightsArray option =
             heightArrays |> findArrayOfCell coords |> findHeightOfCell coords
 
         Some (
-            HeightsArray(
-                { X = minX; Y = minY }, width, height, heightOfCellInArrays))
+            HeightsArray(minX, minY, width, height, heightOfCellInArrays))

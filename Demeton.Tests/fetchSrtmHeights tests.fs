@@ -7,7 +7,7 @@ open Demeton.SrtmTypes
 open Swensen.Unquote
 
 let returnSomeHeightArray _ =
-    HeightsArray({ X = 0; Y = 0}, 0, 0, (fun _ -> None))
+    HeightsArray(0, 0, 0, 0, (fun _ -> None))
 
 let fetchSomeSrtmTiles tilesCoords =
     tilesCoords 

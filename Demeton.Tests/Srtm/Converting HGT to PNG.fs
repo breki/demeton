@@ -67,8 +67,8 @@ let ``Can convert HeightsArray to 16-bit grayscale``() =
     let rnd = System.Random(123)
 
     let heightsArray = 
-        new HeightsArray({ X = 10; Y = 15}, 
-            100, 150, (fun _ ->  Some ((int16)(rnd.Next(-100, 3000)))))
+        new HeightsArray(
+            10, 15, 100, 150, (fun _ ->  Some ((int16)(rnd.Next(-100, 3000)))))
 
     let imageData = heightsArray |> heightsArrayToImageData
     test <@ Array2D.length1 imageData = 100 @>
@@ -91,22 +91,24 @@ let ``Can convert a HGT file into PNG image``() =
 
     printf ("Reading the heights array...\n")
     
-    //let heightsArray = createSrtmTileFromStream 3600 tileCoords hgtStream
+    let heightsArray = createSrtmTileFromStream 3600 tileCoords hgtStream
 
-    let rnd = new System.Random(123)
-    let heightsArray = 
-        HeightsArray({ X = 0; Y = 0}, 1500, 1500,
-            fun _ -> Some ((int16)(rnd.Next(10000))))
+    //let rnd = new System.Random(123)
+    //let heightsArray = 
+    //    HeightsArray({ X = 0; Y = 0}, 1500, 1500,
+    //        fun _ -> Some ((int16)(rnd.Next(10000))))
 
-    printf "%d Encoding heights into the PNG...\n" clock.ElapsedMilliseconds
+    // todo uncomment once we speed things up
 
-    let pngFileName = srtmTileId + ".png";
-    use pngWriteStream = File.OpenWrite(pngFileName)
+    //printf "%d Encoding heights into the PNG...\n" clock.ElapsedMilliseconds
+
+    //let pngFileName = srtmTileId + ".png";
+    //use pngWriteStream = File.OpenWrite(pngFileName)
     
-    encodeSrtmHeightsArrayToPng heightsArray pngWriteStream |> ignore
-    pngWriteStream.Close()
+    //encodeSrtmHeightsArrayToPng heightsArray pngWriteStream |> ignore
+    //pngWriteStream.Close()
 
-    printf "%d Encoded.\n" clock.ElapsedMilliseconds
+    //printf "%d Encoded.\n" clock.ElapsedMilliseconds
 
     // todo uncomment once we speed things up
     //let readSrtmImageData imageData = ignore()
@@ -116,3 +118,4 @@ let ``Can convert a HGT file into PNG image``() =
     //|> loadPngFromStream (fun _ -> ()) readSrtmImageData
     //|> ignore
 
+    printf "%d DONE.\n" clock.ElapsedMilliseconds

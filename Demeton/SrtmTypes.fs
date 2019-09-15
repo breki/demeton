@@ -13,6 +13,7 @@ type SrtmLongitude = { Value: int } with
         else { Value = i }
 
 [<StructuredFormatDisplay("SrtmTile ({Lon}, {Lat})")>]
+[<Struct>]
 type SrtmTileCoords = { Lon: SrtmLongitude; Lat: SrtmLatitude }
 
 type SrtmTileHgtFile = { TileCoords: SrtmTileCoords; FileName: string }

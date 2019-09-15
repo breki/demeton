@@ -1,4 +1,7 @@
-﻿## Sat 14.9.
+﻿## Sun 15.9.
+- For performance reasons, `GlobalCellCoords` now just a type alias for a tuple and no longer a record.
+
+## Sat 14.9.
 - Removed old filtering code.
 - Introduced parallelism into scanlines filtering.
 - Optimized the `scanlineFilterMultiple` function so PNG encoding is much faster now.

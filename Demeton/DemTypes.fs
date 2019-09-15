@@ -2,28 +2,30 @@
 
 type DemHeight = int16
 
-type GlobalCellCoords = { X : int; Y : int }
+type GlobalCellCoords = (int * int)
 
 type HeightCell = { Coords: GlobalCellCoords; Height : DemHeight option }
 
 type HeightsArray
     (
-        minCoords: GlobalCellCoords,
+        minX: int,
+        minY: int,
         width: int, 
         height: int,
         initializer: (GlobalCellCoords -> DemHeight option)) =
     let cells = 
         Array2D.init<DemHeight option> width height 
-            (fun x y -> initializer { X = minCoords.X + x; Y = minCoords.Y + y})
-    member this.MinCoords = minCoords
+            (fun x y -> initializer (minX +  x, minY + y))
+    member this.MinX = minX
+    member this.MinY = minY
     member this.Width = width
     member this.Height = height
-    member this.MaxX = minCoords.X + width - 1
-    member this.MaxY = minCoords.Y + height - 1
+    member this.MaxX = minX + width - 1
+    member this.MaxY = minY + height - 1
     member this.Cells = cells
     
-    member this.heightAt (coords: GlobalCellCoords) = 
+    member this.heightAt ((x, y): GlobalCellCoords) = 
         let height = this.Cells.[
-            coords.X - this.MinCoords.X, coords.Y - this.MinCoords.Y]
+            x - this.MinX, y - this.MinY]
         height
         

@@ -51,5 +51,5 @@ let ``Can parse south and east tile IDs``() =
 let ``Calculates global coordinates for a given tile ID``() =
     test <@ 
             Srtm.parseTileId "S22E080"
-            |> Srtm.tileCellMinCoords 3600 = { X = 932400; Y = 244800 } 
+            |> Srtm.tileCellMinCoords 3600 = (932400, 244800)
     @>

@@ -76,11 +76,12 @@ let parseTileId (tileId: string) =
     { Lon = longitude; Lat = latitude }
 
 
-let tileCellMinCoords tileSize (tileCoords: SrtmTileCoords) =
-    { 
-        X = (tileCoords.Lon.Value + 179) * tileSize;
-        Y = (tileCoords.Lat.Value + 90) * tileSize
-    }
+let tileCellMinCoords tileSize (tileCoords: SrtmTileCoords)
+    : GlobalCellCoords =
+    (
+        (tileCoords.Lon.Value + 179) * tileSize, 
+        (tileCoords.Lat.Value + 90) * tileSize
+    )
 
 
 let inline heightFromBytes firstByte secondByte =
@@ -112,14 +113,14 @@ let readSrtmHeightsFromStream (stream: Stream): DemHeight option seq =
 let createSrtmTileFromStream tileSize tileCoords stream =
     let heights1DArray = readSrtmHeightsFromStream stream |> Array.ofSeq
 
-    let tileMinCoords = tileCellMinCoords tileSize tileCoords
+    let (tileMinX, tileMinY) = tileCellMinCoords tileSize tileCoords
         
-    let inline heightFrom1DArray (cellCoords: GlobalCellCoords) =
-        let arrayIndex = cellCoords.X - tileMinCoords.X
-                        + (cellCoords.Y - tileMinCoords.Y) * (tileSize + 1)
+    let inline heightFrom1DArray ((cx, cy): GlobalCellCoords) =
+        let arrayIndex = cx - tileMinX
+                        + (cy - tileMinY) * (tileSize + 1)
         heights1DArray.[arrayIndex]
 
-    HeightsArray(tileMinCoords, tileSize, tileSize, heightFrom1DArray)
+    HeightsArray(tileMinX, tileMinY, tileSize, tileSize, heightFrom1DArray)
 
 
 let toLocalCacheTileFile 
