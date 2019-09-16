@@ -22,8 +22,11 @@ let grayscale8BitScanlines (imageData: Grayscale8BitImageData): Scanline[] =
 let scanlinesToGrayscale8Bit 
     imageWidth
     imageHeight
-    (scanlines: Scanline[]): Grayscale8BitImageData =
-    Array2D.init imageWidth imageHeight (fun x y -> scanlines.[y].[x])
+    (imageData: byte[]): Grayscale8BitImageData =
+    Array2D.init 
+        imageWidth 
+        imageHeight 
+        (fun x y -> imageData.[y * imageWidth + x])
 
 
 /// <summary>
@@ -53,15 +56,16 @@ let grayscale16BitScanlines (imageData: Grayscale16BitImageData): Scanline [] =
 let scanlinesToGrayscale16Bit 
     imageWidth
     imageHeight
-    (scanlines: Scanline[]): Grayscale16BitImageData =
+    (imageData: ImageData): Grayscale16BitImageData =
 
-    let inline pixelFromScanline (x: int) (scanline: Scanline) =
-        let highByte = scanline.[x * 2]
-        let lowByte = scanline.[x * 2 + 1]
+    let inline pixelFromImageData x y =
+        let pixelIndex = y * imageWidth * 2 + x * 2
+        let highByte = imageData.[pixelIndex]
+        let lowByte = imageData.[pixelIndex + 1]
         ((uint16)highByte) <<< 8 ||| (uint16)lowByte
 
     Array2D.init 
-        imageWidth imageHeight (fun x y -> pixelFromScanline x scanlines.[y])
+        imageWidth imageHeight (fun x y -> pixelFromImageData x y)
 
 
 /// <summary>
@@ -146,11 +150,10 @@ let loadPngFromStream
         let (chunkType, chunkData) = stream |> readChunk
         match chunkType.TypeName with
         | "IDAT" -> 
-            let scanlinesRead = 
-                deserializeIdatChunkData 8 imageWidth chunkData
+            let imageData = 
+                deserializeIdatChunkData 8 imageWidth imageHeight chunkData
             let imageDataRead = 
-                scanlinesToGrayscale8Bit 
-                    imageWidth imageHeight scanlinesRead
+                scanlinesToGrayscale8Bit imageWidth imageHeight imageData
             onGrayscale8BitLoad imageDataRead
             stream
         | x -> invalidOp 
@@ -160,11 +163,10 @@ let loadPngFromStream
         let (chunkType, chunkData) = stream |> readChunk
         match chunkType.TypeName with
         | "IDAT" -> 
-            let scanlinesRead = 
-                deserializeIdatChunkData 16 imageWidth chunkData
+            let imageData = 
+                deserializeIdatChunkData 16 imageWidth imageHeight chunkData
             let imageDataRead = 
-                scanlinesToGrayscale16Bit 
-                    imageWidth imageHeight scanlinesRead
+                scanlinesToGrayscale16Bit imageWidth imageHeight imageData
             onGrayscale16BitLoad imageDataRead
             stream
         | x -> invalidOp 

@@ -2,6 +2,7 @@
 
 open Demeton.PngTypes
 
+open System
 
 let bytesPerPixel bpp =
     let bytes = bpp / 8
@@ -14,11 +15,9 @@ let bytesPerPixel bpp =
         invalidOp "Invalid bpp (bits-per-pixel) value."
 
 
-let inline unfilterScanlineNone _ _ (filtered: FilteredScanline) =
-    let scanlineLength = filtered.Length-1
-    let scanline: Scanline = Array.zeroCreate scanlineLength
-    Array.blit filtered 1 scanline 0 scanlineLength
-    scanline
+let inline unfilterScanlineNone 
+        (filtered: Span<byte>) (scanline: Span<byte>) =
+    filtered.CopyTo(scanline)
 
 
 /// <summary>
@@ -30,14 +29,13 @@ let inline unfilterScanlineNone _ _ (filtered: FilteredScanline) =
 /// The filtered scanline that should be converted.
 /// </param>
 /// <returns>The original (non-filtered) scanline.</returns>
-let unfilterScanlineSub bytesPP _ (filtered: FilteredScanline): Scanline =
-    let scanlineLength = filtered.Length - 1
+let unfilterScanlineSub 
+    bytesPP (filtered: Span<byte>) (scanline: Span<byte>): unit =
+    let scanlineLength = scanline.Length
 
     match (scanlineLength, scanlineLength % bytesPP) with
-    | (0, _) -> [||]
+    | (0, _) -> ignore()
     | (_, 0) -> 
-        let scanline = Array.zeroCreate scanlineLength
-
         // how many pixels are there in the scanline?
         let pixelCount = scanlineLength / bytesPP
 
@@ -45,7 +43,7 @@ let unfilterScanlineSub bytesPP _ (filtered: FilteredScanline): Scanline =
         for pixelByteOffset in 0 .. (bytesPP-1) do
 
             // keep track of the left neighbor value
-            let mutable leftValue = filtered.[1 + pixelByteOffset]
+            let mutable leftValue = filtered.[pixelByteOffset]
 
             // for the first (leftmost) pixel, we cannot subtract the value 
             // since there is no left neighbor, so we just copy the value from
@@ -57,11 +55,10 @@ let unfilterScanlineSub bytesPP _ (filtered: FilteredScanline): Scanline =
                 // calculate its index in the scanline
                 let byteIndex = pixelByteOffset + i * bytesPP
 
-                let value = leftValue + filtered.[1 + byteIndex] 
+                let value = leftValue + filtered.[byteIndex] 
                 scanline.[byteIndex] <- value
                 leftValue <- value
 
-        scanline
     | (_, _) -> invalidOp "Invalid scanline length"
 
 
@@ -78,23 +75,22 @@ let unfilterScanlineSub bytesPP _ (filtered: FilteredScanline): Scanline =
 /// <returns>The original (non-filtered) scanline.</returns>
 let unfilterScanlineUp 
     _
-    (prevScanline: Scanline option) (filtered: FilteredScanline): Scanline =
-    let scanlineLength = filtered.Length - 1
+    (prevScanline: Span<byte>) 
+    (filtered: Span<byte>)
+    (scanline: Span<byte>)
+    : unit =
+    let scanlineLength = filtered.Length
 
     match scanlineLength with
     | l when (l < 0) -> 
         invalidArg "filtered byte array cannot be empty" "filtered"
-    | 0 -> [||]
+    | 0 -> ignore()
     | _ -> 
-        match prevScanline with
-        | None -> filtered |> Array.skip 1
-        | Some prev -> 
-            let scanline = Array.zeroCreate scanlineLength
-
-            for i in 1 .. scanlineLength do
-                scanline.[i-1] <- filtered.[i] + prev.[i-1]
-
-            scanline
+        match prevScanline.Length with
+        | 0 -> filtered.CopyTo(scanline)
+        | _ -> 
+            for i in 0 .. (scanlineLength-1) do
+                scanline.[i] <- filtered.[i] + prevScanline.[i]
 
 
 /// <summary>
@@ -111,15 +107,16 @@ let unfilterScanlineUp
 /// <returns>The original (non-filtered) scanline.</returns>
 let unfilterScanlineAverage 
     bytesPP
-    (prevScanline: Scanline option) (filtered: FilteredScanline): Scanline =
+    (prevScanline: Span<byte>) 
+    (filtered: Span<byte>)
+    (scanline: Span<byte>)
+    : unit =
 
-    let scanlineLength = filtered.Length - 1
+    let scanlineLength = filtered.Length
 
     match (scanlineLength, scanlineLength % bytesPP) with
-    | (0, _) -> [||]
+    | (0, _) -> ignore()
     | (_, 0) -> 
-        let scanline = Array.zeroCreate scanlineLength
-
         // how many pixels are there in the scanline?
         let pixelCount = scanlineLength / bytesPP
 
@@ -134,18 +131,17 @@ let unfilterScanlineAverage
                 // calculate its index in the scanline
                 let byteIndex = pixelByteOffset + i * bytesPP
 
-                let currentValue = filtered.[1 + byteIndex]
+                let currentValue = filtered.[byteIndex]
                 let up =
-                    match prevScanline with
-                    | None -> 0
-                    | Some prev -> (int)prev.[byteIndex]
+                    match prevScanline.Length with
+                    | 0 -> 0
+                    | _ -> (int)prevScanline.[byteIndex]
 
                 let unfilteredValue = 
                     currentValue + (byte)((left + up) / 2)
                 left <- (int) unfilteredValue
                 scanline.[byteIndex] <- unfilteredValue
 
-        scanline
     | (_, _) -> invalidOp "Invalid scanline length"
 
 
@@ -174,15 +170,16 @@ let inline paethPredictor (a:int) (b:int) (c:int) =
 /// <returns>The original (non-filtered) scanline.</returns>
 let unfilterScanlinePaeth 
     bytesPP
-    (prevScanline: Scanline option) (filtered: FilteredScanline): Scanline =
+    (prevScanline: Span<byte>) 
+    (filtered: Span<byte>)
+    (scanline: Span<byte>)
+    : unit =
 
-    let scanlineLength = filtered.Length - 1
+    let scanlineLength = filtered.Length
 
     match (scanlineLength, scanlineLength % bytesPP) with
-    | (0, _) -> [||]
+    | (0, _) -> ignore()
     | (_, 0) -> 
-        let scanline = Array.zeroCreate scanlineLength
-
         // how many pixels are there in the scanline?
         let pixelCount = scanlineLength / bytesPP
 
@@ -197,30 +194,24 @@ let unfilterScanlinePaeth
                 // calculate its index in the scanline
                 let byteIndex = pixelByteOffset + i * bytesPP
 
-                let currentValue = filtered.[1 + byteIndex]
+                let currentValue = filtered.[byteIndex]
                 let up =
-                    match prevScanline with
-                    | None -> 0
-                    | Some prev -> (int)prev.[byteIndex]
+                    match prevScanline.Length with
+                    | 0 -> 0
+                    | _ -> (int)prevScanline.[byteIndex]
                 let upLeft = 
-                    match (i, prevScanline) with
+                    match (i, prevScanline.Length) with
                     | (0, _) -> 0
-                    | (_, None) -> 0
-                    | (_, Some prev) -> (int)prev.[byteIndex-bytesPP]
+                    | (_, 0) -> 0
+                    | (_, _) -> (int)prevScanline.[byteIndex-bytesPP]
 
                 let unfilteredValue = 
                     currentValue + (byte)(paethPredictor left up upLeft)
                 left <- (int)unfilteredValue
                 scanline.[byteIndex] <- unfilteredValue
 
-        scanline
     | (_, _) -> invalidOp "Invalid scanline length"
 
-
-let allPngUnfilters: ScanlineUnfilter[] = [|
-    unfilterScanlineNone; unfilterScanlineSub; unfilterScanlineUp; 
-    unfilterScanlineAverage; unfilterScanlinePaeth
-|]
 
 let inline filterTypeNone raw = raw
 
@@ -360,32 +351,53 @@ let filterScanlines
     Array.Parallel.init scanlines.Length filterScanline
 
 
+let unfilterScanline 
+    bytesPP
+    filterType 
+    (prevScanline: Span<byte>)
+    (filteredScanline: Span<byte>)
+    (scanline: Span<byte>)
+    : unit =
+
+    match filterType with
+    | 0 -> unfilterScanlineNone filteredScanline scanline
+    | 1 -> unfilterScanlineSub bytesPP filteredScanline scanline
+    | 2 -> unfilterScanlineUp bytesPP prevScanline filteredScanline scanline
+    | 3 -> unfilterScanlineAverage bytesPP prevScanline filteredScanline scanline
+    | 4 -> unfilterScanlinePaeth bytesPP prevScanline filteredScanline scanline
+    | _ -> 
+        invalidOp (sprintf "Unsupported PNG filter type %d" filterType)
+
+
 let unfilterScanlines 
-    bpp (filteredScanlines: FilteredScanline[]): Scanline[] =
+    imageWidth imageHeight bpp (filteredImageData: byte[]): ImageData =
 
     let bytesPP = bytesPerPixel bpp
+    let scanlineLength = imageWidth * bytesPP
 
-    let scanlines: Scanline[] = Array.zeroCreate filteredScanlines.Length
+    let imageData: ImageData = 
+        Array.zeroCreate (scanlineLength * imageHeight)
 
-    let mutable prevScanline = None
+    let mutable prevScanline = new Span<byte>()
+    
+    for scanlineIndex in 0 .. (imageHeight-1) do
+        let filteredScanlineFirstByteIndex = 
+            scanlineIndex * (scanlineLength + 1)
+        let filterType = int filteredImageData.[filteredScanlineFirstByteIndex]
 
-    let unfilterScanline filterType filteredScanline =
-        match filterType with
-        | f when f >= 0 && f < allPngUnfilters.Length -> 
-            let unfilteredScanline = 
-                allPngUnfilters.[filterType] 
-                    bytesPP prevScanline filteredScanline
-            prevScanline <- Some unfilteredScanline
-            unfilteredScanline
-        | _ -> 
-            invalidOp (sprintf "Unsupported PNG filter type %d" filterType)
+        let filteredScanline = 
+            new Span<byte>(
+                filteredImageData, 
+                filteredScanlineFirstByteIndex + 1,
+                scanlineLength)
+        let scanline = 
+            new Span<byte>(
+                imageData,
+                scanlineIndex * scanlineLength,
+                scanlineLength)
 
-    for scanlineIndex in 0 .. (filteredScanlines.Length-1) do
-        let filteredScanline = filteredScanlines.[scanlineIndex]
+        unfilterScanline 
+            bytesPP filterType prevScanline filteredScanline scanline
+        prevScanline <- scanline
 
-        let filterType = int filteredScanline.[0]
-        let scanline = unfilterScanline filterType filteredScanline
-
-        scanlines.[scanlineIndex] <- scanline
-
-    scanlines
+    imageData

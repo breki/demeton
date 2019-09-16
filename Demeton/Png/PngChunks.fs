@@ -133,7 +133,7 @@ let serializeIdatChunkData bpp (scanlines: Scanline[]): byte[] =
     compressionStream.ToArray()
 
 
-let deserializeIdatChunkData bpp imageWidth chunkData: Scanline[] =
+let deserializeIdatChunkData bpp imageWidth imageHeight chunkData: ImageData =
     use chunkDataStream = new MemoryStream()
     chunkDataStream 
     // skips the first 4 bytes as there represent the chunk type
@@ -149,10 +149,8 @@ let deserializeIdatChunkData bpp imageWidth chunkData: Scanline[] =
     if scanlinesModulo <> 0 then
         invalidOp "Decompressed IDAT chunk data is invalid."
     else
-        let filteredScanlines: FilteredScanline[] = 
-            decompressedData |> Array.chunkBySize filteredScanlineLength
-
-        unfilterScanlines bpp filteredScanlines
+        let filteredScanlines = decompressedData
+        unfilterScanlines imageWidth imageHeight bpp filteredScanlines
 
 
 let writeIdatChunk (bpp: int) (scanlines: Scanline[]) (stream: Stream): Stream =

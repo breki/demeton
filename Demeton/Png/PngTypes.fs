@@ -5,6 +5,8 @@
 // http://www.libpng.org/pub/png/book/chapter08.html
 // https://www.w3.org/TR/REC-png-961001
 
+open System
+
 /// <summary>
 /// A single-byte integer giving the number of bits per sample or per palette 
 /// index (not per pixel).
@@ -112,6 +114,8 @@ type Grayscale8BitImageData = byte[,]
 /// </summary>
 type Grayscale16BitImageData = uint16[,]
 
+type ImageData = byte[]
+
 /// <summary>
 /// A row of pixels within an image, represented as a byte array.
 /// </summary>
@@ -131,8 +135,3 @@ type ScanlineFilter = int -> Scanline option -> Scanline -> (Scanline * int)
 /// Performs PNG filtering of a scanline value.
 /// </summary>
 type FilterTypeFunc = int -> int -> Scanline option -> Scanline -> byte
-
-/// <summary>
-/// Performs PNG unfiltering of a scanline.
-/// </summary>
-type ScanlineUnfilter = int -> Scanline option -> FilteredScanline -> Scanline

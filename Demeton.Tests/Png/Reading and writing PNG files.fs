@@ -81,21 +81,22 @@ let ``Deserializing serialized IHDR chunk data results in the original IHDR data
     let deserialized = deserializeIhdrChunkData (serializeIhdrChunkData ihdrData)    
     deserialized = ihdrData
 
-
-[<Property(Skip="todo")>]
-let ``Deserializing serialized IDAT chunk data results in the original image data``
-    (imageData: Grayscale16BitImageData) =
+// todo uncomment this test once we switch to simple byte arrays
+//[<Property(Skip="todo")>]
+//let ``Deserializing serialized IDAT chunk data results in the original image data``
+//    (imageData: Grayscale16BitImageData) =
     
-    let bpp = 2
+//    let bpp = 2
 
-    let imageWidth = Array2D.length1 imageData
-    let scanlines = grayscale16BitScanlines imageData |> Seq.toArray
+//    let imageWidth = Array2D.length1 imageData
+//    let imageHeight = Array2D.length2 imageData
+//    let scanlines = grayscale16BitScanlines imageData |> Seq.toArray
 
-    let deserialized = 
-        deserializeIdatChunkData bpp imageWidth 
-            (serializeIdatChunkData bpp scanlines)    
+//    let deserialized = 
+//        deserializeIdatChunkData bpp imageWidth imageHeight
+//            (serializeIdatChunkData bpp scanlines)    
 
-    deserialized = scanlines
+//    deserialized = scanlines
 
 
 [<Fact>]
@@ -149,7 +150,8 @@ let ``Can generate a simplest 8-bit grayscale PNG``() =
     test <@ chunkType = ChunkType("IDAT") @>
 
     let scanlinesRead = 
-        deserializeIdatChunkData bpp readIhdrData.Width chunkData
+        deserializeIdatChunkData 
+            bpp readIhdrData.Width readIhdrData.Height chunkData
     let imageDataRead = 
         scanlinesToGrayscale8Bit 
             readIhdrData.Width readIhdrData.Height scanlinesRead
