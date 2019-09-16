@@ -313,7 +313,7 @@ let filterScanlines
     imageHeight
     (bpp: int)
     (imageData: ImageData)
-    : FilteredScanline[]=
+    : FilteredImageData =
 
     // there are five types of PNG adaptive filters
     let filterTypesCount = 5
@@ -350,7 +350,8 @@ let filterScanlines
         // received is reused (as part of the buffer) on each scanline.
         Array.copy filteredScanline
 
-    Array.Parallel.init imageHeight filterScanline
+    let filteredScanlines = Array.Parallel.init imageHeight filterScanline
+    filteredScanlines |> Array.concat
 
 
 let unfilterScanline 

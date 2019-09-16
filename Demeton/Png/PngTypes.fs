@@ -116,6 +116,8 @@ type Grayscale16BitImageData = uint16[,]
 
 type ImageData = byte[]
 
+type FilteredImageData = byte[]
+
 /// <summary>
 /// A row of pixels within an image, represented as a byte array.
 /// </summary>

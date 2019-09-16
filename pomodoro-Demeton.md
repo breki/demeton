@@ -1,4 +1,5 @@
 ﻿## Mon 16.9.
+- `filterScanlines` function now returns `FilteredImageData` instead of an array of `FilteredScanlines`.
 - Images no longer work with scanlines, but with raw image data byte arrays instead.
 - Switched to using Spans for unfiltering PNGs.
 

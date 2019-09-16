@@ -23,15 +23,11 @@ let ``Can filter scanlines``() =
     let imageWidth = scanlines.[0].Length
     let imageHeight = scanlines.Length
 
-    let filteredScanlines 
-        = filterScanlines 
+    let filteredImageData = 
+        filterScanlines 
             filterScanline imageWidth imageHeight bpp rawImageData
-    test <@ filteredScanlines |> Array.length = 2 @>
-    test <@ 
-            filteredScanlines 
-            |> Array.exists (fun sc -> sc.Length <> 11) 
-            |> not 
-        @>
+
+    test <@ filteredImageData.Length = (imageWidth + 1) * 2 @>
 
 
 type ScanlinesPair = (int * Scanline * Scanline option)
