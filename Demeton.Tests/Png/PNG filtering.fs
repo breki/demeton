@@ -30,7 +30,7 @@ let ``Can filter scanlines``() =
     test <@ filteredImageData.Length = (imageWidth + 1) * 2 @>
 
 
-type ScanlinesPair = (int * Scanline * Scanline option)
+type ScanlinesPair = (int * byte[] * byte[] option)
 type ScanlinesGenerator =
     static member ScanlinesPair() =
         // a generator for bits-per-pixel value
@@ -63,8 +63,8 @@ let filterScanlineUsingFilterType
     filterTypeFunc
     filterTypeByte
     bytesPP 
-    (prevScanline: Scanline option) 
-    (scanline: Scanline) 
+    (prevScanline: Span<byte>) 
+    (scanline: Span<byte>) 
     : FilteredScanline = 
     let filteredScanline = Array.zeroCreate (scanline.Length+1)
     filteredScanline.[0] <- filterTypeByte
@@ -79,11 +79,10 @@ let filterScanlineUsingFilterType
         if scanlineIndex >= bytesPP then
             left <- scanline.[scanlineIndex-bytesPP]
 
-        if Option.isSome prevScanline then
-            let prevScanlineVal = prevScanline.Value
-            up <- prevScanlineVal.[scanlineIndex]
+        if prevScanline.Length > 0 then
+            up <- prevScanline.[scanlineIndex]
             if scanlineIndex >= bytesPP then
-                upLeft <- prevScanlineVal.[scanlineIndex-bytesPP]
+                upLeft <- prevScanline.[scanlineIndex-bytesPP]
 
         let filteredScanlineIndex = scanlineIndex + 1
         filteredScanline.[filteredScanlineIndex] <- 
@@ -104,13 +103,20 @@ let ``Filtering and unfiltering using None filter type returns the same scanline
 
     let (bpp, scanline, prevScanline) = scanlines
 
+    let prevScanlineSpan =
+        match prevScanline with
+        | None -> new Span<byte>()
+        | Some prev -> new Span<byte>(prev)
+
+    let scanlineSpan = new Span<byte>(scanline)
+
     let filtered = 
         filterScanlineUsingFilterType 
             (fun r l u ul -> r) 
             ((byte)FilterType.FilterNone) 
             bpp 
-            prevScanline 
-            scanline
+            prevScanlineSpan
+            scanlineSpan
     let filteredSpan = new Span<byte>(filtered, 1, filtered.Length - 1)
 
     let unfilteredSpan = 
@@ -127,13 +133,20 @@ let ``Filtering and unfiltering using Sub filter type returns the same scanline`
         (scanlines: ScanlinesPair) = 
     let (bpp, scanline, prevScanline) = scanlines
 
+    let prevScanlineSpan =
+        match prevScanline with
+        | None -> new Span<byte>()
+        | Some prev -> new Span<byte>(prev)
+
+    let scanlineSpan = new Span<byte>(scanline)
+
     let filtered = 
         filterScanlineUsingFilterType 
             filterTypeSub 
             ((byte)FilterType.FilterSub) 
             bpp 
-            prevScanline 
-            scanline
+            prevScanlineSpan
+            scanlineSpan
 
     let filteredSpan = new Span<byte>(filtered, 1, filtered.Length - 1)
 
@@ -150,13 +163,21 @@ let ``Filtering and unfiltering using Sub filter type returns the same scanline`
 let ``Filtering and unfiltering using Up filter type returns the same scanline`` 
         (scanlines: ScanlinesPair) =
     let (bpp, scanline, prevScanline) = scanlines
+
+    let prevScanlineSpan =
+        match prevScanline with
+        | None -> new Span<byte>()
+        | Some prev -> new Span<byte>(prev)
+
+    let scanlineSpan = new Span<byte>(scanline)
+
     let filtered = 
         filterScanlineUsingFilterType 
             filterTypeUp 
             ((byte)FilterType.FilterUp) 
             bpp 
-            prevScanline 
-            scanline
+            prevScanlineSpan
+            scanlineSpan
 
     let prevScanlineSpan =
         match prevScanline with
@@ -180,13 +201,20 @@ let ``Filtering and unfiltering using Average filter type returns the same scanl
 
     let (bpp, scanline, prevScanline) = scanlines
 
+    let prevScanlineSpan =
+        match prevScanline with
+        | None -> new Span<byte>()
+        | Some prev -> new Span<byte>(prev)
+
+    let scanlineSpan = new Span<byte>(scanline)
+
     let filtered = 
         filterScanlineUsingFilterType 
             filterTypeAverage 
             ((byte)FilterType.FilterAverage) 
             bpp 
-            prevScanline 
-            scanline
+            prevScanlineSpan
+            scanlineSpan
 
     let prevScanlineSpan =
         match prevScanline with
@@ -210,13 +238,20 @@ let ``Filtering and unfiltering using Paeth filter type returns the same scanlin
 
     let (bpp, scanline, prevScanline) = scanlines
 
+    let prevScanlineSpan =
+        match prevScanline with
+        | None -> new Span<byte>()
+        | Some prev -> new Span<byte>(prev)
+
+    let scanlineSpan = new Span<byte>(scanline)
+
     let filtered = 
         filterScanlineUsingFilterType 
             filterTypePaeth 
             ((byte)FilterType.FilterPaeth) 
             bpp 
-            prevScanline 
-            scanline
+            prevScanlineSpan
+            scanlineSpan
     
     let prevScanlineSpan =
         match prevScanline with

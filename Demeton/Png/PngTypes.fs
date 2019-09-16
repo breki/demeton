@@ -119,21 +119,6 @@ type ImageData = byte[]
 type FilteredImageData = byte[]
 
 /// <summary>
-/// A row of pixels within an image, represented as a byte array.
-/// </summary>
-type Scanline = byte[]
-
-/// <summary>
 /// A filtered row of pixels within an image, represented as a byte array.
 /// </summary>
 type FilteredScanline = byte[]
-
-/// <summary>
-/// Filters of a scanline.
-/// </summary>
-type ScanlineFilter = int -> Scanline option -> Scanline -> (Scanline * int)
-
-/// <summary>
-/// Performs PNG filtering of a scanline value.
-/// </summary>
-type FilterTypeFunc = int -> int -> Scanline option -> Scanline -> byte
