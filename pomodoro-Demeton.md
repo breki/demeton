@@ -1,4 +1,5 @@
 ﻿## Mon 16.9.
+- Images no longer work with scanlines, but with raw image data byte arrays instead.
 - Switched to using Spans for unfiltering PNGs.
 
 ## Sun 15.9.

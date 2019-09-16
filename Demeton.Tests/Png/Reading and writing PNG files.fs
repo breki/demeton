@@ -91,7 +91,7 @@ let ``Deserializing serialized IDAT chunk data results in the original image dat
 
     let imageWidth = Array2D.length1 imageData
     let imageHeight = Array2D.length2 imageData
-    let (rawImageData, _) = grayscale16BitScanlines imageData
+    let rawImageData = grayscale16BitRawImageData imageData
 
     printfn "rawImageData: %A" rawImageData
     
@@ -122,13 +122,7 @@ let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
     let imageHeight = 5
     let imageData = givenA8BitGrayscaleImage 123 imageWidth imageHeight
 
-    let (rawImageData, scanlines) = grayscale8BitScanlines imageData
-    test <@ scanlines |> Array.length = imageHeight @>
-    test <@ 
-            scanlines |> Array.exists (fun sc -> sc.Length <> imageWidth) |> not 
-        @>
-    test <@ scanlines |> Array.head = getLine 0 imageData @>
-    test <@ scanlines |> Array.skip 1 |> Array.head = getLine 1 imageData @>
+    let rawImageData = grayscale8BitRawImageData imageData
 
     test <@ rawImageData |> Array.length = imageWidth * imageHeight @>
     test <@ (Array.sub rawImageData 0 imageWidth) = getLine 0 imageData @>
@@ -167,7 +161,7 @@ let ``Can generate a simplest 8-bit grayscale PNG``() =
         deserializeIdatChunkData 
             bpp readIhdrData.Width readIhdrData.Height chunkData
     let imageDataRead = 
-        scanlinesToGrayscale8Bit 
+        rawImageDataToGrayscale8Bit 
             readIhdrData.Width readIhdrData.Height scanlinesRead
 
     test <@ imageDataRead = imageData @>

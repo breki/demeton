@@ -7,31 +7,22 @@ open Demeton.PngChunks
 open System.IO
 
 /// <summary>
-/// Generates an array of scanlines from the specified 8-bit grayscale image
-/// data.
+/// Generates a byte array of raw image data from the specified 8-bit 
+/// grayscale image data.
 /// </summary>
 /// <param name="imageData">The image data to generate scanlines from.</param>
-/// <returns>An array of scanlines.</returns>
-let grayscale8BitScanlines (imageData: Grayscale8BitImageData)
-    : (ImageData * Scanline[]) =
+/// <returns>A byte array of raw image data.</returns>
+let grayscale8BitRawImageData (imageData: Grayscale8BitImageData): ImageData =
     let imageWidth = Array2D.length1 imageData
     let imageHeight = Array2D.length2 imageData
 
     let imageData2DTo1D i =
         byte (imageData.[i % imageWidth, i / imageWidth])
 
-    let rawImageData: ImageData = 
-        Array.Parallel.init (imageWidth * imageHeight) imageData2DTo1D
-
-    let scanlines =
-        Array.Parallel.init 
-            imageHeight 
-            (fun y -> imageData.[0..(Array2D.length1 imageData - 1),y])
-
-    (rawImageData, scanlines)
+    Array.Parallel.init (imageWidth * imageHeight) imageData2DTo1D
 
 
-let scanlinesToGrayscale8Bit 
+let rawImageDataToGrayscale8Bit 
     imageWidth
     imageHeight
     (imageData: byte[]): Grayscale8BitImageData =
@@ -47,8 +38,8 @@ let scanlinesToGrayscale8Bit
 /// </summary>
 /// <param name="imageData">The image data to generate scanlines from.</param>
 /// <returns>An array of scanlines.</returns>
-let grayscale16BitScanlines (imageData: Grayscale16BitImageData)
-    : (ImageData * Scanline []) =
+let grayscale16BitRawImageData (imageData: Grayscale16BitImageData)
+    : ImageData =
     let imageWidth = Array2D.length1 imageData
     let imageHeight = Array2D.length2 imageData
 
@@ -60,29 +51,11 @@ let grayscale16BitScanlines (imageData: Grayscale16BitImageData)
         match i % 2 with
         | 0 -> byte (pixelValue >>> 8)
         | _ -> byte pixelValue
-
-    let rawImageData: ImageData =
-        Array.Parallel.init 
-            (imageWidth * imageHeight * 2)
-            imageData2DTo1D
-
-    let inline generateScanline y =
-        let scanline: Scanline = Array.zeroCreate (imageWidth * 2)
-
-        for x in 0 .. (imageWidth-1) do
-            let bx = x <<< 1
-            let pixelData = imageData.[x, y]
-            scanline.[bx] <- byte (pixelData >>> 8)
-            scanline.[bx + 1] <- byte pixelData
-
-        scanline
-
-    let scanlines = Array.Parallel.init imageHeight generateScanline
-
-    (rawImageData, scanlines)
+    
+    Array.Parallel.init (imageWidth * imageHeight * 2) imageData2DTo1D
 
 
-let scanlinesToGrayscale16Bit 
+let rawImageDataToGrayscale16Bit 
     imageWidth
     imageHeight
     (imageData: ImageData): Grayscale16BitImageData =
@@ -115,7 +88,7 @@ let saveGrayscale8BitToStream
             BitDepth = PngBitDepth.BitDepth8; 
             ColorType = PngColorType.Grayscale; 
             InterlaceMethod = PngInterlaceMethod.NoInterlace }
-    let (rawImageData, _) = grayscale8BitScanlines imageData
+    let rawImageData = grayscale8BitRawImageData imageData
 
     stream 
     |> writeSignature 
@@ -142,7 +115,7 @@ let saveGrayscale16BitToStream
             BitDepth = PngBitDepth.BitDepth16; 
             ColorType = PngColorType.Grayscale; 
             InterlaceMethod = PngInterlaceMethod.NoInterlace }
-    let (rawImageData, _) = grayscale16BitScanlines imageData
+    let rawImageData = grayscale16BitRawImageData imageData
 
     stream 
     |> writeSignature 
@@ -182,7 +155,7 @@ let loadPngFromStream
             let imageData = 
                 deserializeIdatChunkData 8 imageWidth imageHeight chunkData
             let imageDataRead = 
-                scanlinesToGrayscale8Bit imageWidth imageHeight imageData
+                rawImageDataToGrayscale8Bit imageWidth imageHeight imageData
             onGrayscale8BitLoad imageDataRead
             stream
         | x -> invalidOp 
@@ -195,7 +168,7 @@ let loadPngFromStream
             let imageData = 
                 deserializeIdatChunkData 16 imageWidth imageHeight chunkData
             let imageDataRead = 
-                scanlinesToGrayscale16Bit imageWidth imageHeight imageData
+                rawImageDataToGrayscale16Bit imageWidth imageHeight imageData
             onGrayscale16BitLoad imageDataRead
             stream
         | x -> invalidOp 
