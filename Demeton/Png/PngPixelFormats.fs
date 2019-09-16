@@ -115,12 +115,12 @@ let saveGrayscale8BitToStream
             BitDepth = PngBitDepth.BitDepth8; 
             ColorType = PngColorType.Grayscale; 
             InterlaceMethod = PngInterlaceMethod.NoInterlace }
-    let (rawImageData, scanlines) = grayscale8BitScanlines imageData
+    let (rawImageData, _) = grayscale8BitScanlines imageData
 
     stream 
     |> writeSignature 
     |> writeIhdrChunk ihdr
-    |> writeIdatChunk bpp rawImageData scanlines
+    |> writeIdatChunk imageWidth imageHeight bpp rawImageData
     |> writeIendChunk
 
 
@@ -142,12 +142,12 @@ let saveGrayscale16BitToStream
             BitDepth = PngBitDepth.BitDepth16; 
             ColorType = PngColorType.Grayscale; 
             InterlaceMethod = PngInterlaceMethod.NoInterlace }
-    let (rawImageData, scanlines) = grayscale16BitScanlines imageData
+    let (rawImageData, _) = grayscale16BitScanlines imageData
 
     stream 
     |> writeSignature 
     |> writeIhdrChunk ihdr
-    |> writeIdatChunk bpp rawImageData scanlines
+    |> writeIdatChunk imageWidth imageHeight bpp rawImageData
     |> writeIendChunk
 
 

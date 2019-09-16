@@ -84,16 +84,22 @@ let ``Deserializing serialized IHDR chunk data results in the original IHDR data
 [<Property>]
 let ``Deserializing serialized IDAT chunk data results in the original image data``
     (imageData: Grayscale16BitImageData) =
+
+    printfn "imageData: %A" imageData
     
     let bpp = 16
 
     let imageWidth = Array2D.length1 imageData
     let imageHeight = Array2D.length2 imageData
-    let (rawImageData, scanlines) = grayscale16BitScanlines imageData
+    let (rawImageData, _) = grayscale16BitScanlines imageData
 
+    printfn "rawImageData: %A" rawImageData
+    
     let deserialized = 
         deserializeIdatChunkData bpp imageWidth imageHeight
-            (serializeIdatChunkData bpp rawImageData scanlines)    
+            (serializeIdatChunkData imageWidth imageHeight bpp rawImageData)    
+
+    printfn "deserialized: %A" deserialized
 
     deserialized = rawImageData
 

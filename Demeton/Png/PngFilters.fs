@@ -309,20 +309,21 @@ let filterScanline
 /// </returns>
 let filterScanlines 
     (filter: ScanlineFilterMultiple)
+    imageWidth
+    imageHeight
     (bpp: int)
     (imageData: ImageData)
-    (scanlines: Scanline[])
     : FilteredScanline[]=
 
     // there are five types of PNG adaptive filters
     let filterTypesCount = 5
 
-    let filteredScanlineLength = 
-        match scanlines.Length with
-        | 0 -> 0
-        | _ -> scanlines.[0].Length + 1
-
     let bytesPP = bytesPerPixel bpp
+    let scanlineLength = imageWidth * bytesPP
+    let filteredScanlineLength = scanlineLength + 1
+
+    let scanlineFromImageData index =
+        Array.sub imageData (index * scanlineLength) scanlineLength
 
     let filterScanline scanlineIndex =
         let filteredScanlinesBuffer: FilteredScanline[] = 
@@ -339,9 +340,9 @@ let filterScanlines
         let prevScanline =
             match scanlineIndex with
             | 0 -> None
-            | _ -> Some scanlines.[scanlineIndex - 1]
+            | _ -> Some (scanlineFromImageData (scanlineIndex - 1))
 
-        let scanline = scanlines.[scanlineIndex]
+        let scanline = scanlineFromImageData(scanlineIndex)
         let filteredScanline = 
             filter 
                 bytesPP prevScanline scanline filteredScanlinesBuffer
@@ -349,7 +350,7 @@ let filterScanlines
         // received is reused (as part of the buffer) on each scanline.
         Array.copy filteredScanline
 
-    Array.Parallel.init scanlines.Length filterScanline
+    Array.Parallel.init imageHeight filterScanline
 
 
 let unfilterScanline 

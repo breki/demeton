@@ -20,10 +20,12 @@ let ``Can filter scanlines``() =
     let bpp = 8
 
     let rawImageData = scanlines |> Array.concat
+    let imageWidth = scanlines.[0].Length
+    let imageHeight = scanlines.Length
 
     let filteredScanlines 
-        //= filterScanlines minSumOfAbsoluteDifferencesSelector bpp scanlines
-        = filterScanlines filterScanline bpp rawImageData scanlines
+        = filterScanlines 
+            filterScanline imageWidth imageHeight bpp rawImageData
     test <@ filteredScanlines |> Array.length = 2 @>
     test <@ 
             filteredScanlines 

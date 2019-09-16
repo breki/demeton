@@ -120,9 +120,14 @@ let decompress compressedData (outputStream: Stream) : unit =
 
 
 let serializeIdatChunkData 
-    bpp (imageData: ImageData) (scanlines: Scanline[]): byte[] =
+    imageWidth 
+    imageHeight 
+    bpp 
+    (imageData: ImageData) 
+    : byte[] =
     let filteredScanlines = 
-        filterScanlines filterScanline bpp imageData scanlines
+        filterScanlines 
+            filterScanline imageWidth imageHeight bpp imageData
     let dataBeforeCompression = Array.concat filteredScanlines
     use compressionStream = new MemoryStream()
 
@@ -153,9 +158,11 @@ let deserializeIdatChunkData bpp imageWidth imageHeight chunkData: ImageData =
 
 
 let writeIdatChunk 
+    imageWidth
+    imageHeight
     (bpp: int) 
     (imageData: ImageData) 
-    (scanlines: Scanline[]) 
     (stream: Stream)
     : Stream =
-    stream |> writeChunk (serializeIdatChunkData bpp imageData scanlines)
+    stream 
+    |> writeChunk (serializeIdatChunkData imageWidth imageHeight bpp imageData)
