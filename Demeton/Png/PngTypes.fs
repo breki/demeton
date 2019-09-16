@@ -5,8 +5,6 @@
 // http://www.libpng.org/pub/png/book/chapter08.html
 // https://www.w3.org/TR/REC-png-961001
 
-open System
-
 /// <summary>
 /// A single-byte integer giving the number of bits per sample or per palette 
 /// index (not per pixel).

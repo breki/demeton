@@ -1,6 +1,4 @@
-﻿- check if there are any more optimizations/deletions possible
-
-- profiling and optimizing the code
+﻿- profiling and optimizing the code
     - we should try using Spans to directly write into the image's array
         - we need Grayscale8BitImageData as 2d array or should we work with 1d byte array instead? - MEASURE!
     - speed up decoding of PNG images

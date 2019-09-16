@@ -1,13 +1,16 @@
 ﻿module Demeton.Tests.DummyConsole
 
 open BenchmarkDotNet.Running
-open Demeton.BenchmarkingTests
+open Demeton.Benchmarks.ArrayAccess
+open Demeton.Benchmarks.Array1Dvs2D
 
 let defaultSwitch () = 
-    BenchmarkSwitcher [| typeof<ArrayAccessComparison> |]
+    BenchmarkSwitcher 
+        [| 
+            typeof<ArrayAccessComparison>;
+            typeof<Array1Dvs2DComparison> 
+        |]
 
-// Added this because VS keeps switching the test project from a class library
-// to a console and then giving me warnings about the missing entry point.
 [<EntryPoint>]
 let main args =
     let summary = defaultSwitch().Run args

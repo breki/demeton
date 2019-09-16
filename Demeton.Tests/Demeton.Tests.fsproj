@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="BenchmarkingTests.fs" />
+    <Compile Include="Benchmarks\Array1Dvs2D.fs" />
+    <Compile Include="Benchmarks\ArrayAccess.fs" />
     <Compile Include="Srtm\Converting HGT to PNG.fs" />
     <Compile Include="Reading binary streams.fs" />
     <Compile Include="Png\Reading and writing PNG files.fs" />

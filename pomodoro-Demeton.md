@@ -1,4 +1,5 @@
 ﻿## Mon 16.9.
+- Added 2D vs 1D array access benchmarks.
 - `filterScanlines` now, instead of creating an array for each filtered scanline, uses one single `FilteredImageData` and feeds the scanline data into it.
 - Redesigned `ScanlinesGenerator` to not use obsolete `Scanline` type abbreviation.
 - `filterScanlines` function now returns `FilteredImageData` instead of an array of `FilteredScanlines`.

@@ -1,4 +1,4 @@
-﻿module Demeton.BenchmarkingTests
+﻿module Demeton.Benchmarks.ArrayAccess
 
 open BenchmarkDotNet.Attributes
 open System
