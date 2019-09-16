@@ -81,22 +81,22 @@ let ``Deserializing serialized IHDR chunk data results in the original IHDR data
     let deserialized = deserializeIhdrChunkData (serializeIhdrChunkData ihdrData)    
     deserialized = ihdrData
 
-// todo uncomment this test once we switch to simple byte arrays
-//[<Property(Skip="todo")>]
-//let ``Deserializing serialized IDAT chunk data results in the original image data``
-//    (imageData: Grayscale16BitImageData) =
+[<Property>]
+let ``Deserializing serialized IDAT chunk data results in the original image data``
+    (imageData: Grayscale16BitImageData) =
     
-//    let bpp = 2
+    let bpp = 16
 
-//    let imageWidth = Array2D.length1 imageData
-//    let imageHeight = Array2D.length2 imageData
-//    let scanlines = grayscale16BitScanlines imageData |> Seq.toArray
+    let imageWidth = Array2D.length1 imageData
+    let imageHeight = Array2D.length2 imageData
+    let scanlines = grayscale16BitScanlines imageData
+    let imageDataBytes = scanlines |> Array.concat
 
-//    let deserialized = 
-//        deserializeIdatChunkData bpp imageWidth imageHeight
-//            (serializeIdatChunkData bpp scanlines)    
+    let deserialized = 
+        deserializeIdatChunkData bpp imageWidth imageHeight
+            (serializeIdatChunkData bpp scanlines)    
 
-//    deserialized = scanlines
+    deserialized = imageDataBytes
 
 
 [<Fact>]

@@ -9,6 +9,7 @@ open FsCheck
 open FsCheck.Xunit
 open Swensen.Unquote
 
+open System
 
 [<Fact>]
 let ``Can filter scanlines``() =
@@ -92,97 +93,142 @@ type ScanlinesPairPropertyAttribute() =
         (Arbitrary = [| typeof<ScanlinesGenerator> |],
         QuietOnSuccess = true)
 
-// todo uncomment this test once we switch to simple byte arrays
-//[<ScanlinesPairProperty>]
-//[<Trait("Category", "properties")>]
-//let ``Filtering and unfiltering using None filter type returns the same scanline`` 
-//        (scanlines: ScanlinesPair) = 
+[<ScanlinesPairProperty>]
+[<Trait("Category", "properties")>]
+let ``Filtering and unfiltering using None filter type returns the same scanline`` 
+        (scanlines: ScanlinesPair) = 
 
-//    let (bpp, scanline, prevScanline) = scanlines
+    let (bpp, scanline, prevScanline) = scanlines
 
-//    let filtered = 
-//        filterScanlineUsingFilterType 
-//            (fun r l u ul -> r) 
-//            ((byte)FilterType.FilterNone) 
-//            bpp 
-//            prevScanline 
-//            scanline
+    let filtered = 
+        filterScanlineUsingFilterType 
+            (fun r l u ul -> r) 
+            ((byte)FilterType.FilterNone) 
+            bpp 
+            prevScanline 
+            scanline
+    let filteredSpan = new Span<byte>(filtered, 1, filtered.Length - 1)
 
-//    let unfiltered = unfilterScanlineNone bpp prevScanline filtered
+    let unfilteredSpan = 
+        new Span<byte>(Array.zeroCreate scanline.Length)
 
-//    unfiltered = scanline 
+    unfilterScanlineNone filteredSpan unfilteredSpan
 
-
-//[<ScanlinesPairProperty>]
-//[<Trait("Category", "properties")>]
-//let ``Filtering and unfiltering using Sub filter type returns the same scanline`` 
-//        (scanlines: ScanlinesPair) = 
-//    let (bpp, scanline, prevScanline) = scanlines
-
-//    let filtered = 
-//        filterScanlineUsingFilterType 
-//            filterTypeSub 
-//            ((byte)FilterType.FilterSub) 
-//            bpp 
-//            prevScanline 
-//            scanline
-//    let unfilteredScanline = unfilterScanlineSub bpp prevScanline filtered
-//    unfilteredScanline = scanline 
+    unfilteredSpan.ToArray() = scanline 
 
 
-//[<ScanlinesPairProperty>]
-//[<Trait("Category", "properties")>]
-//let ``Filtering and unfiltering using Up filter type returns the same scanline`` 
-//        (scanlines: ScanlinesPair) =
-//    let (bpp, scanline, prevScanline) = scanlines
-//    let filtered = 
-//        filterScanlineUsingFilterType 
-//            filterTypeUp 
-//            ((byte)FilterType.FilterUp) 
-//            bpp 
-//            prevScanline 
-//            scanline
-//    unfilterScanlineUp bpp prevScanline filtered = scanline 
+[<ScanlinesPairProperty>]
+[<Trait("Category", "properties")>]
+let ``Filtering and unfiltering using Sub filter type returns the same scanline`` 
+        (scanlines: ScanlinesPair) = 
+    let (bpp, scanline, prevScanline) = scanlines
+
+    let filtered = 
+        filterScanlineUsingFilterType 
+            filterTypeSub 
+            ((byte)FilterType.FilterSub) 
+            bpp 
+            prevScanline 
+            scanline
+
+    let filteredSpan = new Span<byte>(filtered, 1, filtered.Length - 1)
+
+    let unfilteredSpan = 
+        new Span<byte>(Array.zeroCreate scanline.Length)
+
+    unfilterScanlineSub bpp filteredSpan unfilteredSpan
+    
+    unfilteredSpan.ToArray() = scanline 
 
 
-//[<ScanlinesPairProperty>]
-//[<Trait("Category", "properties")>]
-//let ``Filtering and unfiltering using Average filter type returns the same scanline`` 
-//        (scanlines: ScanlinesPair) =
+[<ScanlinesPairProperty>]
+[<Trait("Category", "properties")>]
+let ``Filtering and unfiltering using Up filter type returns the same scanline`` 
+        (scanlines: ScanlinesPair) =
+    let (bpp, scanline, prevScanline) = scanlines
+    let filtered = 
+        filterScanlineUsingFilterType 
+            filterTypeUp 
+            ((byte)FilterType.FilterUp) 
+            bpp 
+            prevScanline 
+            scanline
 
-//    let (bpp, scanline, prevScanline) = scanlines
+    let prevScanlineSpan =
+        match prevScanline with
+        | None -> new Span<byte>()
+        | Some prev -> new Span<byte>(prev)
 
-//    let filtered = 
-//        filterScanlineUsingFilterType 
-//            filterTypeAverage 
-//            ((byte)FilterType.FilterAverage) 
-//            bpp 
-//            prevScanline 
-//            scanline
+    let filteredSpan = new Span<byte>(filtered, 1, filtered.Length - 1)
 
-//    let unfilteredScanline = unfilterScanlineAverage bpp prevScanline filtered
-//    unfilteredScanline = scanline 
+    let unfilteredSpan = 
+        new Span<byte>(Array.zeroCreate scanline.Length)
 
+    unfilterScanlineUp bpp prevScanlineSpan filteredSpan unfilteredSpan
 
-//[<ScanlinesPairProperty>]
-//[<Trait("Category", "properties")>]
-//let ``Filtering and unfiltering using Paeth filter type returns the same scanline`` 
-//        (scanlines: ScanlinesPair) =
-
-//    let (bpp, scanline, prevScanline) = scanlines
-
-//    let filtered = 
-//        filterScanlineUsingFilterType 
-//            filterTypePaeth 
-//            ((byte)FilterType.FilterPaeth) 
-//            bpp 
-//            prevScanline 
-//            scanline
-
-//    let unfilteredScanline = unfilterScanlinePaeth bpp prevScanline filtered 
-//    unfilteredScanline = scanline 
+    unfilteredSpan.ToArray() = scanline 
 
 
+[<ScanlinesPairProperty>]
+[<Trait("Category", "properties")>]
+let ``Filtering and unfiltering using Average filter type returns the same scanline`` 
+        (scanlines: ScanlinesPair) =
+
+    let (bpp, scanline, prevScanline) = scanlines
+
+    let filtered = 
+        filterScanlineUsingFilterType 
+            filterTypeAverage 
+            ((byte)FilterType.FilterAverage) 
+            bpp 
+            prevScanline 
+            scanline
+
+    let prevScanlineSpan =
+        match prevScanline with
+        | None -> new Span<byte>()
+        | Some prev -> new Span<byte>(prev)
+
+    let filteredSpan = new Span<byte>(filtered, 1, filtered.Length - 1)
+
+    let unfilteredSpan = 
+        new Span<byte>(Array.zeroCreate scanline.Length)
+
+    unfilterScanlineAverage bpp prevScanlineSpan filteredSpan unfilteredSpan
+    
+    unfilteredSpan.ToArray() = scanline 
+
+
+[<ScanlinesPairProperty>]
+[<Trait("Category", "properties")>]
+let ``Filtering and unfiltering using Paeth filter type returns the same scanline`` 
+        (scanlines: ScanlinesPair) =
+
+    let (bpp, scanline, prevScanline) = scanlines
+
+    let filtered = 
+        filterScanlineUsingFilterType 
+            filterTypePaeth 
+            ((byte)FilterType.FilterPaeth) 
+            bpp 
+            prevScanline 
+            scanline
+    
+    let prevScanlineSpan =
+        match prevScanline with
+        | None -> new Span<byte>()
+        | Some prev -> new Span<byte>(prev)
+
+    let filteredSpan = new Span<byte>(filtered, 1, filtered.Length - 1)
+
+    let unfilteredSpan = 
+        new Span<byte>(Array.zeroCreate scanline.Length)
+
+    unfilterScanlinePaeth bpp prevScanlineSpan filteredSpan unfilteredSpan
+    
+    unfilteredSpan.ToArray() = scanline
+
+// todo fix this test once we move to spans for filtering, too
 //[<Property>]
 //[<Trait("Category", "integration")>]
 //let ``Unfiltering scanlines returns the original scanlines``
