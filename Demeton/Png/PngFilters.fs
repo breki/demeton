@@ -227,38 +227,61 @@ let inline filterTypePaeth raw (left: byte) (up: byte) (upLeft: byte) =
 
 
 type ScanlineFilterMultiple = 
-    int -> Scanline option -> Scanline -> FilteredScanline[] 
+    int -> Span<byte> -> Span<byte> -> FilteredScanline[] 
         -> FilteredScanline
 
 
-let filterScanline
+let scanlineFromImageData imageData scanlineLength index: Span<byte> =
+    new Span<byte>(imageData, index * scanlineLength, scanlineLength)
+
+
+let useBestFilterForScanline 
+    imageData
+    scanlineIndex
     (bytesPP: int) 
-    (prevScanline: Scanline option) 
-    (scanline: Scanline) 
-    (filteredScanlinesBuffer: FilteredScanline[]) =
-
+    scanlineLength 
+    filteredScanlineLength =
     // there are five types of PNG adaptive filters
-    let filtersCount = 5
+    let filterTypesCount = 5
 
-    let sumsOfAbsDiffs: int[] = Array.zeroCreate filtersCount
+    let filteredScanlinesBuffer: FilteredScanline[] = 
+        Array.init 
+            filterTypesCount 
+            (fun i -> Array.zeroCreate filteredScanlineLength)
 
-    for scanlineIndex in 0 .. (scanline.Length - 1) do
-        let raw = scanline.[scanlineIndex]
+    let addFilterTypeByteMarks() = 
+        for filterIndex in 0 .. (filterTypesCount-1) do
+            filteredScanlinesBuffer.[filterIndex].[0] <- (byte)filterIndex
+
+    addFilterTypeByteMarks()
+
+    let prevScanline =
+        match scanlineIndex with
+        | 0 -> new Span<byte>()
+        | _ -> scanlineFromImageData 
+                imageData scanlineLength (scanlineIndex-1)
+
+    let scanline = 
+        scanlineFromImageData imageData scanlineLength scanlineIndex
+
+    let sumsOfAbsDiffs: int[] = Array.zeroCreate filterTypesCount
+
+    for scanlineByteIndex in 0 .. (scanline.Length - 1) do
+        let raw = scanline.[scanlineByteIndex]
 
         let mutable left = 0uy
         let mutable up = 0uy
         let mutable upLeft = 0uy
 
-        if scanlineIndex >= bytesPP then
-            left <- scanline.[scanlineIndex-bytesPP]
+        if scanlineByteIndex >= bytesPP then
+            left <- scanline.[scanlineByteIndex-bytesPP]
 
-        if Option.isSome prevScanline then
-            let prevScanlineVal = prevScanline.Value
-            up <- prevScanlineVal.[scanlineIndex]
-            if scanlineIndex >= bytesPP then
-                upLeft <- prevScanlineVal.[scanlineIndex-bytesPP]
+        if prevScanline.Length > 0 then
+            up <- prevScanline.[scanlineByteIndex]
+            if scanlineByteIndex >= bytesPP then
+                upLeft <- prevScanline.[scanlineByteIndex-bytesPP]
 
-        let filteredScanlineIndex = scanlineIndex + 1
+        let filteredScanlineIndex = scanlineByteIndex + 1
         let mutable filteredValue = 0uy
 
         // this is a shortcut for filter type None
@@ -286,7 +309,7 @@ let filterScanline
         let mutable minIndex = -1
         let mutable minValueSoFar = System.Int32.MaxValue
 
-        for i in 0 .. (filtersCount - 1) do
+        for i in 0 .. (filterTypesCount - 1) do
             let minValueOfFilter = sumsOfAbsDiffs.[i]
             if minValueOfFilter < minValueSoFar then
                 minIndex <- i
@@ -308,49 +331,33 @@ let filterScanline
 /// original scanline.
 /// </returns>
 let filterScanlines 
-    (filter: ScanlineFilterMultiple)
     imageWidth
     imageHeight
     (bpp: int)
     (imageData: ImageData)
     : FilteredImageData =
 
-    // there are five types of PNG adaptive filters
-    let filterTypesCount = 5
-
     let bytesPP = bytesPerPixel bpp
     let scanlineLength = imageWidth * bytesPP
     let filteredScanlineLength = scanlineLength + 1
 
-    let scanlineFromImageData index =
-        Array.sub imageData (index * scanlineLength) scanlineLength
-
     let filterScanline scanlineIndex =
-        let filteredScanlinesBuffer: FilteredScanline[] = 
-            Array.init 
-                filterTypesCount 
-                (fun i -> Array.zeroCreate filteredScanlineLength)
-
-        let addFilterTypeByteMarks() = 
-            for filterIndex in 0 .. (filterTypesCount-1) do
-                filteredScanlinesBuffer.[filterIndex].[0] <- (byte)filterIndex
-
-        addFilterTypeByteMarks()
-
-        let prevScanline =
-            match scanlineIndex with
-            | 0 -> None
-            | _ -> Some (scanlineFromImageData (scanlineIndex - 1))
-
-        let scanline = scanlineFromImageData(scanlineIndex)
         let filteredScanline = 
-            filter 
-                bytesPP prevScanline scanline filteredScanlinesBuffer
+            useBestFilterForScanline 
+                imageData 
+                scanlineIndex 
+                bytesPP 
+                scanlineLength 
+                filteredScanlineLength
+
         // We have to make a clone of the filtered scanline as the one we
         // received is reused (as part of the buffer) on each scanline.
         Array.copy filteredScanline
 
-    let filteredScanlines = Array.Parallel.init imageHeight filterScanline
+    let filteredScanlines = 
+        Array.Parallel.init 
+            imageHeight 
+            filterScanline
     filteredScanlines |> Array.concat
 
 

@@ -13,6 +13,7 @@ open System
 
 [<Fact>]
 let ``Can filter scanlines``() =
+    // todo construct image data array instead of (obsolete) scanlines
     let scanlines = [|
         [| 0uy; 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy |];
         [| 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy; 10uy |]
@@ -24,8 +25,7 @@ let ``Can filter scanlines``() =
     let imageHeight = scanlines.Length
 
     let filteredImageData = 
-        filterScanlines 
-            filterScanline imageWidth imageHeight bpp rawImageData
+        filterScanlines imageWidth imageHeight bpp rawImageData
 
     test <@ filteredImageData.Length = (imageWidth + 1) * 2 @>
 
