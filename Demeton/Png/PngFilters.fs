@@ -3,6 +3,7 @@
 open Demeton.PngTypes
 
 open System
+open System.Threading.Tasks
 
 let bytesPerPixel bpp =
     let bytes = bpp / 8
@@ -247,7 +248,7 @@ let useBestFilterForScanline
     let filteredScanlinesBuffer: FilteredScanline[] = 
         Array.init 
             filterTypesCount 
-            (fun i -> Array.zeroCreate filteredScanlineLength)
+            (fun _ -> Array.zeroCreate filteredScanlineLength)
 
     let addFilterTypeByteMarks() = 
         for filterIndex in 0 .. (filterTypesCount-1) do
@@ -341,7 +342,10 @@ let filterScanlines
     let scanlineLength = imageWidth * bytesPP
     let filteredScanlineLength = scanlineLength + 1
 
-    let filterScanline scanlineIndex =
+    let filteredImageData: FilteredImageData = 
+        Array.zeroCreate (filteredScanlineLength * imageHeight)
+
+    let filterScanline scanlineIndex: unit =
         let filteredScanline = 
             useBestFilterForScanline 
                 imageData 
@@ -350,15 +354,28 @@ let filterScanlines
                 scanlineLength 
                 filteredScanlineLength
 
-        // We have to make a clone of the filtered scanline as the one we
-        // received is reused (as part of the buffer) on each scanline.
-        Array.copy filteredScanline
+        // Copy the chosen filtered scanline into the big array.
+        let filteredScanlineImageDataIndex = 
+            scanlineIndex * filteredScanlineLength
+        Array.blit 
+            filteredScanline 
+            0 
+            filteredImageData 
+            filteredScanlineImageDataIndex
+            filteredScanlineLength
 
-    let filteredScanlines = 
-        Array.Parallel.init 
-            imageHeight 
-            filterScanline
-    filteredScanlines |> Array.concat
+    Parallel.For(
+        0, 
+        imageHeight, 
+        fun (scanlineIndex) -> filterScanline scanlineIndex)
+    |> ignore
+
+    filteredImageData
+    //let filteredScanlines = 
+    //    Array.Parallel.init 
+    //        imageHeight 
+    //        filterScanline
+    //filteredScanlines |> Array.concat
 
 
 let unfilterScanline 
