@@ -1,6 +1,5 @@
 ﻿- profiling and optimizing the code
-    - we should try using Spans to directly write into the image's array
-        - we need Grayscale8BitImageData as 2d array or should we work with 1d byte array instead? - MEASURE!
+    - replace 2D arrays with 1D ones
     - speed up decoding of PNG images
     - speed up CRC processing
         - direct encoding instead of recursion/loop?
