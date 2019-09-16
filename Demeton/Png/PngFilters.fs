@@ -310,6 +310,7 @@ let filterScanline
 let filterScanlines 
     (filter: ScanlineFilterMultiple)
     (bpp: int)
+    (imageData: ImageData)
     (scanlines: Scanline[])
     : FilteredScanline[]=
 

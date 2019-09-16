@@ -12,11 +12,23 @@ open System.IO
 /// </summary>
 /// <param name="imageData">The image data to generate scanlines from.</param>
 /// <returns>An array of scanlines.</returns>
-let grayscale8BitScanlines (imageData: Grayscale8BitImageData): Scanline[] =
+let grayscale8BitScanlines (imageData: Grayscale8BitImageData)
+    : (ImageData * Scanline[]) =
+    let imageWidth = Array2D.length1 imageData
     let imageHeight = Array2D.length2 imageData
-    Array.Parallel.init 
-        imageHeight 
-        (fun y -> imageData.[0..(Array2D.length1 imageData - 1),y])
+
+    let imageData2DTo1D i =
+        byte (imageData.[i % imageWidth, i / imageWidth])
+
+    let rawImageData: ImageData = 
+        Array.Parallel.init (imageWidth * imageHeight) imageData2DTo1D
+
+    let scanlines =
+        Array.Parallel.init 
+            imageHeight 
+            (fun y -> imageData.[0..(Array2D.length1 imageData - 1),y])
+
+    (rawImageData, scanlines)
 
 
 let scanlinesToGrayscale8Bit 
@@ -35,9 +47,24 @@ let scanlinesToGrayscale8Bit
 /// </summary>
 /// <param name="imageData">The image data to generate scanlines from.</param>
 /// <returns>An array of scanlines.</returns>
-let grayscale16BitScanlines (imageData: Grayscale16BitImageData): Scanline [] =
+let grayscale16BitScanlines (imageData: Grayscale16BitImageData)
+    : (ImageData * Scanline []) =
     let imageWidth = Array2D.length1 imageData
     let imageHeight = Array2D.length2 imageData
+
+    let imageData2DTo1D i =
+        let x = i / 2 % imageWidth
+        let y = i / (imageWidth * 2)
+        let pixelValue = imageData.[x, y]
+
+        match i % 2 with
+        | 0 -> byte (pixelValue >>> 8)
+        | _ -> byte pixelValue
+
+    let rawImageData: ImageData =
+        Array.Parallel.init 
+            (imageWidth * imageHeight * 2)
+            imageData2DTo1D
 
     let inline generateScanline y =
         let scanline: Scanline = Array.zeroCreate (imageWidth * 2)
@@ -50,7 +77,9 @@ let grayscale16BitScanlines (imageData: Grayscale16BitImageData): Scanline [] =
 
         scanline
 
-    Array.Parallel.init imageHeight generateScanline
+    let scanlines = Array.Parallel.init imageHeight generateScanline
+
+    (rawImageData, scanlines)
 
 
 let scanlinesToGrayscale16Bit 
@@ -86,12 +115,12 @@ let saveGrayscale8BitToStream
             BitDepth = PngBitDepth.BitDepth8; 
             ColorType = PngColorType.Grayscale; 
             InterlaceMethod = PngInterlaceMethod.NoInterlace }
-    let scanlines = grayscale8BitScanlines imageData
+    let (rawImageData, scanlines) = grayscale8BitScanlines imageData
 
     stream 
     |> writeSignature 
     |> writeIhdrChunk ihdr
-    |> writeIdatChunk bpp scanlines
+    |> writeIdatChunk bpp rawImageData scanlines
     |> writeIendChunk
 
 
@@ -113,12 +142,12 @@ let saveGrayscale16BitToStream
             BitDepth = PngBitDepth.BitDepth16; 
             ColorType = PngColorType.Grayscale; 
             InterlaceMethod = PngInterlaceMethod.NoInterlace }
-    let scanlines = grayscale16BitScanlines imageData |> Seq.toArray
+    let (rawImageData, scanlines) = grayscale16BitScanlines imageData
 
     stream 
     |> writeSignature 
     |> writeIhdrChunk ihdr
-    |> writeIdatChunk bpp scanlines
+    |> writeIdatChunk bpp rawImageData scanlines
     |> writeIendChunk
 
 

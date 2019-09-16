@@ -19,11 +19,17 @@ let ``Can filter scanlines``() =
     |]
     let bpp = 8
 
+    let rawImageData = scanlines |> Array.concat
+
     let filteredScanlines 
         //= filterScanlines minSumOfAbsoluteDifferencesSelector bpp scanlines
-        = filterScanlines filterScanline bpp scanlines
-    test <@ filteredScanlines |> Seq.length = 2 @>
-    test <@ filteredScanlines |> Seq.exists (fun sc -> sc.Length <> 11) |> not @>
+        = filterScanlines filterScanline bpp rawImageData scanlines
+    test <@ filteredScanlines |> Array.length = 2 @>
+    test <@ 
+            filteredScanlines 
+            |> Array.exists (fun sc -> sc.Length <> 11) 
+            |> not 
+        @>
 
 
 type ScanlinesPair = (int * Scanline * Scanline option)

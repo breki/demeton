@@ -89,14 +89,13 @@ let ``Deserializing serialized IDAT chunk data results in the original image dat
 
     let imageWidth = Array2D.length1 imageData
     let imageHeight = Array2D.length2 imageData
-    let scanlines = grayscale16BitScanlines imageData
-    let imageDataBytes = scanlines |> Array.concat
+    let (rawImageData, scanlines) = grayscale16BitScanlines imageData
 
     let deserialized = 
         deserializeIdatChunkData bpp imageWidth imageHeight
-            (serializeIdatChunkData bpp scanlines)    
+            (serializeIdatChunkData bpp rawImageData scanlines)    
 
-    deserialized = imageDataBytes
+    deserialized = rawImageData
 
 
 [<Fact>]
@@ -117,11 +116,20 @@ let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
     let imageHeight = 5
     let imageData = givenA8BitGrayscaleImage 123 imageWidth imageHeight
 
-    let scanlines = grayscale8BitScanlines imageData
-    test <@ scanlines |> Seq.length = imageHeight @>
-    test <@ scanlines |> Seq.exists (fun sc -> sc.Length <> imageWidth) |> not @>
-    test <@ scanlines |> Seq.head = getLine 0 imageData @>
-    test <@ scanlines |> Seq.skip 1 |> Seq.head = getLine 1 imageData @>
+    let (rawImageData, scanlines) = grayscale8BitScanlines imageData
+    test <@ scanlines |> Array.length = imageHeight @>
+    test <@ 
+            scanlines |> Array.exists (fun sc -> sc.Length <> imageWidth) |> not 
+        @>
+    test <@ scanlines |> Array.head = getLine 0 imageData @>
+    test <@ scanlines |> Array.skip 1 |> Array.head = getLine 1 imageData @>
+
+    test <@ rawImageData |> Array.length = imageWidth * imageHeight @>
+    test <@ (Array.sub rawImageData 0 imageWidth) = getLine 0 imageData @>
+    test <@ 
+            (Array.sub rawImageData imageWidth imageWidth) = 
+                getLine 1 imageData 
+        @>
 
 
 [<Fact>]

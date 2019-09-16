@@ -47,7 +47,6 @@ let ``Missing DEM height is represented as unsigned int16 value of 0``() =
 let ``DEM height is correctly converted to uint16``(height: DemHeight option)=
     let converted = demHeightToUInt16Value height
     let heightReconverted = uint16ValueToDemHeight converted
-    printfn "converted = %d heightReconverted = %A height = %A" converted heightReconverted height
     heightReconverted = height
 
 /// <summary>
