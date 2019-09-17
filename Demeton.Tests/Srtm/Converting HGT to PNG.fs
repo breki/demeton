@@ -56,11 +56,10 @@ let ``DEM height is correctly converted to uint16``(height: DemHeight option)=
 /// A <see cref="HeightsArray" /> that holds heights data to be converted.
 /// </param>
 /// <returns>Image data.</returns>
-let heightsArrayToImageData (heightsArray: HeightsArray)
-    : Grayscale16BitImageData =
+let heightsArrayToImageData (heightsArray: HeightsArray): ImageData =
 
-    Array2D.init 
-        heightsArray.Width 
+    grayscale16BitImageData
+        heightsArray.Width
         heightsArray.Height
         (fun x y -> heightsArray.Cells.[x, y] |> demHeightToUInt16Value)
 
@@ -80,14 +79,18 @@ let encodeSrtmHeightsArrayToPng
     (heightsArray: HeightsArray)
     (outputStream: Stream): Stream =
 
-    let imageData: Grayscale16BitImageData = 
-        heightsArrayToImageData heightsArray
+    let imageData = heightsArrayToImageData heightsArray
+
+    let ihdr = { 
+        Width = heightsArray.Width
+        Height = heightsArray.Height
+        BitDepth = PngBitDepth.BitDepth16
+        ColorType = PngColorType.Grayscale
+        InterlaceMethod = PngInterlaceMethod.NoInterlace
+        }
 
     outputStream 
-    |> saveGrayscale16BitToStream imageData
-    |> ignore
-
-    outputStream
+    |> savePngToStream ihdr imageData
 
 
 [<Fact>]
@@ -99,8 +102,7 @@ let ``Can convert HeightsArray to 16-bit grayscale``() =
             10, 15, 100, 150, (fun _ ->  Some ((int16)(rnd.Next(-100, 3000)))))
 
     let imageData = heightsArray |> heightsArrayToImageData
-    test <@ Array2D.length1 imageData = 100 @>
-    test <@ Array2D.length2 imageData = 150 @>
+    test <@ Array.length imageData = 100 * 150 * 2 @>
 
 
 [<Fact>]

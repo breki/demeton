@@ -106,13 +106,6 @@ type IhdrData = {
         | (_, _) -> 
             invalidOp "This PNG type is currently not supported."
 
-
-/// <summary>
-/// Represents a 16-bit grayscale image data as a two-dimensional array of 
-/// pixels.
-/// </summary>
-type Grayscale16BitImageData = uint16[,]
-
 type ImageData = byte[]
 
 type FilteredImageData = byte[]

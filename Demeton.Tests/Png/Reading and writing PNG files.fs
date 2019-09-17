@@ -82,35 +82,65 @@ let ``Deserializing serialized IHDR chunk data results in the original IHDR data
     deserialized = ihdrData
 
 [<Property>]
-let ``Deserializing serialized IDAT chunk data results in the original image data``
-    (imageData: Grayscale16BitImageData) =
+let ``some test``() =
+    let x = gen {
+        let! n = Arb.generate<int>
+        return n
+    }
 
-    //printfn "imageData: %A" imageData
+    printfn "x = %A" x
+
+
+//type ImageDataGenerator =
+//    static member ImageData() =   
+//        let bytesPerPixel = Gen.elements [| 1; 2; 3; 4 |]
+//        let imageWidth = Gen.choose (0, 250)
+//        let imageHeight = Gen.choose (0, 250)
+//        let arrayProperties = 
+//            Gen.zip3 bytesPerPixel imageWidth imageHeight
+//            |> Arb.fromGen
+
+//        //let arraySize = bytesPerPixel * imageWidth * imageHeight
+
+//        let randomByteValue = Arb.generate<byte>
+        
+//        randomByteValue 
+//        |> Gen.a
+//        |> Gen.arrayOfLength arraySize
+//        |> Arb.fromGen
+
+
+
+//[<Property>]
+//let ``Deserializing serialized IDAT chunk data results in the original image data``
+//    imageWidth imageHeight =
+
+//    //printfn "imageData: %A" imageData
     
-    let bpp = 16
+//    let bpp = 16
 
-    let imageWidth = Array2D.length1 imageData
-    let imageHeight = Array2D.length2 imageData
-    let rawImageData = grayscale16BitRawImageData imageData
+//    let rawImageData = Array.init 
+//        (imageWidth * imageHeight * 2)
+//        (fun i -> )
 
-    //printfn "rawImageData: %A" rawImageData
+//    //printfn "rawImageData: %A" rawImageData
     
-    let deserialized = 
-        deserializeIdatChunkData bpp imageWidth imageHeight
-            (serializeIdatChunkData imageWidth imageHeight bpp rawImageData)    
+//    let deserialized = 
+//        deserializeIdatChunkData bpp imageWidth imageHeight
+//            (serializeIdatChunkData imageWidth imageHeight bpp rawImageData)    
 
-    //printfn "deserialized: %A" deserialized
+//    //printfn "deserialized: %A" deserialized
 
-    deserialized = rawImageData
+//    deserialized = rawImageData
 
 
-[<Fact>]
-let ``Can serialize IEND chunk into a byte array``() =
-    test <@ 
-            serializeIendChunkData() = [| 
-                (byte)'I'; (byte)'E'; (byte)'N'; (byte)'D'
-            |] 
-        @>
+//[<Fact>]
+//let ``Can serialize IEND chunk into a byte array``() =
+//    test <@ 
+//            serializeIendChunkData() = [| 
+//                (byte)'I'; (byte)'E'; (byte)'N'; (byte)'D'
+//            |] 
+//        @>
 
 
 [<Fact>]
@@ -194,10 +224,20 @@ let ``Generated 16-bit grayscale PNG is recognized by System.Drawing``() =
     let imageWidth = 200
     let imageHeight = 150
 
+    let ihdr = { 
+        Width = imageWidth
+        Height = imageHeight 
+        BitDepth = PngBitDepth.BitDepth16
+        ColorType = PngColorType.Grayscale
+        InterlaceMethod = PngInterlaceMethod.NoInterlace
+        }
+
     let rnd = Random(123)
     let imageData = 
-        Array2D.init 
-            imageWidth imageHeight (fun _ _ -> (uint16)(rnd.Next(2<<<16-1)))
+        grayscale16BitImageData 
+            imageWidth 
+            imageHeight
+            (fun _ _ -> (uint16)(rnd.Next(2<<<16-1)))
 
     let imageFileName = Path.GetFullPath("test-grayscale-16.png")
     printfn "Saving test image to %s" imageFileName
@@ -205,7 +245,7 @@ let ``Generated 16-bit grayscale PNG is recognized by System.Drawing``() =
     use stream = File.OpenWrite(imageFileName)
 
     stream 
-    |> saveGrayscale16BitToStream imageData
+    |> savePngToStream ihdr imageData
     |> ignore
 
     stream.Close() |> ignore

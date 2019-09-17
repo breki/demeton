@@ -40,37 +40,58 @@ open System.IO
 /// </summary>
 /// <param name="imageData">The image data to generate scanlines from.</param>
 /// <returns>An array of scanlines.</returns>
-let grayscale16BitRawImageData (imageData: Grayscale16BitImageData)
-    : ImageData =
-    let imageWidth = Array2D.length1 imageData
-    let imageHeight = Array2D.length2 imageData
+//let grayscale16BitRawImageData (imageData: Grayscale16BitImageData)
+//    : ImageData =
+//    let imageWidth = Array2D.length1 imageData
+//    let imageHeight = Array2D.length2 imageData
 
-    let imageData2DTo1D i =
+//    let imageData2DTo1D i =
+//        let x = i / 2 % imageWidth
+//        let y = i / (imageWidth * 2)
+//        let pixelValue = imageData.[x, y]
+
+//        match i % 2 with
+//        | 0 -> byte (pixelValue >>> 8)
+//        | _ -> byte pixelValue
+    
+//    Array.Parallel.init (imageWidth * imageHeight * 2) imageData2DTo1D
+
+
+//let rawImageDataToGrayscale16Bit 
+//    imageWidth
+//    imageHeight
+//    (imageData: ImageData): Grayscale16BitImageData =
+
+//    let inline pixelFromImageData x y =
+//        let pixelIndex = y * imageWidth * 2 + x * 2
+//        let highByte = imageData.[pixelIndex]
+//        let lowByte = imageData.[pixelIndex + 1]
+//        ((uint16)highByte) <<< 8 ||| (uint16)lowByte
+
+//    Array2D.init 
+//        imageWidth imageHeight (fun x y -> pixelFromImageData x y)
+
+
+let grayscale16BitImageData 
+    imageWidth 
+    imageHeight 
+    (initializer: int -> int -> uint16): ImageData =
+
+    // todo: instead of initializer (which calculates the same pixel value) twice,
+    // we should have for loops
+    let initializerFlat i =
         let x = i / 2 % imageWidth
         let y = i / (imageWidth * 2)
-        let pixelValue = imageData.[x, y]
+
+        let pixelValue = initializer x y
 
         match i % 2 with
         | 0 -> byte (pixelValue >>> 8)
         | _ -> byte pixelValue
-    
-    Array.Parallel.init (imageWidth * imageHeight * 2) imageData2DTo1D
 
-
-let rawImageDataToGrayscale16Bit 
-    imageWidth
-    imageHeight
-    (imageData: ImageData): Grayscale16BitImageData =
-
-    let inline pixelFromImageData x y =
-        let pixelIndex = y * imageWidth * 2 + x * 2
-        let highByte = imageData.[pixelIndex]
-        let lowByte = imageData.[pixelIndex + 1]
-        ((uint16)highByte) <<< 8 ||| (uint16)lowByte
-
-    Array2D.init 
-        imageWidth imageHeight (fun x y -> pixelFromImageData x y)
-
+    Array.init 
+        (imageWidth * imageHeight * 2)
+        initializerFlat
 
 /// <summary>
 /// Saves the specified 8-bit grayscale image to a stream.
@@ -94,33 +115,6 @@ let savePngToStream
     |> writeSignature 
     |> writeIhdrChunk ihdr
     |> writeIdatChunk ihdr.Width ihdr.Height ihdr.BitsPerPixel imageData
-    |> writeIendChunk
-
-
-/// <summary>
-/// Saves the specified 16-bit grayscale image to a stream.
-/// </summary>
-/// <param name="imageData">The data of the image to be saved.</param>
-/// <param name="stream">The stream the image should be written to.</param>
-/// <returns>The same stream.</returns>
-let saveGrayscale16BitToStream 
-    (imageData: Grayscale16BitImageData) 
-    (stream: Stream): Stream =
-
-    let imageWidth = Array2D.length1 imageData
-    let imageHeight = Array2D.length2 imageData
-    let bpp = 16
-    let ihdr = 
-        { Width = imageWidth; Height = imageHeight; 
-            BitDepth = PngBitDepth.BitDepth16; 
-            ColorType = PngColorType.Grayscale; 
-            InterlaceMethod = PngInterlaceMethod.NoInterlace }
-    let rawImageData = grayscale16BitRawImageData imageData
-
-    stream 
-    |> writeSignature 
-    |> writeIhdrChunk ihdr
-    |> writeIdatChunk imageWidth imageHeight bpp rawImageData
     |> writeIendChunk
 
 
