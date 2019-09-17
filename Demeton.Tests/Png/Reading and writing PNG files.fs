@@ -18,10 +18,10 @@ open System.Reflection
 
 
 let givenA8BitGrayscaleImage rndSeed imageWidth imageHeight 
-    : Grayscale8BitImageData =
+    : ImageData =
     let rnd = new Random(rndSeed)
 
-    Array2D.init imageWidth imageHeight (fun x y -> ((byte)(rnd.Next 256)))
+    Array.init (imageWidth*imageHeight) (fun _ -> ((byte)(rnd.Next 256)))
 
 
 [<Fact>]
@@ -85,7 +85,7 @@ let ``Deserializing serialized IHDR chunk data results in the original IHDR data
 let ``Deserializing serialized IDAT chunk data results in the original image data``
     (imageData: Grayscale16BitImageData) =
 
-    printfn "imageData: %A" imageData
+    //printfn "imageData: %A" imageData
     
     let bpp = 16
 
@@ -93,13 +93,13 @@ let ``Deserializing serialized IDAT chunk data results in the original image dat
     let imageHeight = Array2D.length2 imageData
     let rawImageData = grayscale16BitRawImageData imageData
 
-    printfn "rawImageData: %A" rawImageData
+    //printfn "rawImageData: %A" rawImageData
     
     let deserialized = 
         deserializeIdatChunkData bpp imageWidth imageHeight
             (serializeIdatChunkData imageWidth imageHeight bpp rawImageData)    
 
-    printfn "deserialized: %A" deserialized
+    //printfn "deserialized: %A" deserialized
 
     deserialized = rawImageData
 
@@ -114,38 +114,25 @@ let ``Can serialize IEND chunk into a byte array``() =
 
 
 [<Fact>]
-let ``Can transform 8-bit grayscale image into a sequence of scanlines``() =
-    let getLine line (imageData: Grayscale8BitImageData) =
-        imageData.[0..(Array2D.length1 imageData - 1), line]
-
-    let imageWidth = 10
-    let imageHeight = 5
-    let imageData = givenA8BitGrayscaleImage 123 imageWidth imageHeight
-
-    let rawImageData = grayscale8BitRawImageData imageData
-
-    test <@ rawImageData |> Array.length = imageWidth * imageHeight @>
-    test <@ (Array.sub rawImageData 0 imageWidth) = getLine 0 imageData @>
-    test <@ 
-            (Array.sub rawImageData imageWidth imageWidth) = 
-                getLine 1 imageData 
-        @>
-
-
-[<Fact>]
 let ``Can generate a simplest 8-bit grayscale PNG``() =
     let imageWidth = 100
     let imageHeight = 80
-    let bpp = 8
 
+    let ihdr = { 
+        Width = imageWidth
+        Height = imageHeight 
+        BitDepth = PngBitDepth.BitDepth8
+        ColorType = PngColorType.Grayscale
+        InterlaceMethod = PngInterlaceMethod.NoInterlace
+        }
+    
     let rnd = Random(123)
     let imageData = 
-        Array2D.init imageWidth imageHeight 
-            (fun _ _ -> (byte)(rnd.Next(255)))
+        Array.init (imageWidth*imageHeight) (fun _ -> (byte)(rnd.Next(255)))
     
     use stream = new MemoryStream()
     stream 
-    |> saveGrayscale8BitToStream imageData
+    |> savePngToStream ihdr imageData
     |> ignore
 
     stream.Flush() |> ignore
@@ -157,12 +144,9 @@ let ``Can generate a simplest 8-bit grayscale PNG``() =
     let (chunkType, chunkData) = stream |> readChunk
     test <@ chunkType = ChunkType("IDAT") @>
 
-    let scanlinesRead = 
-        deserializeIdatChunkData 
-            bpp readIhdrData.Width readIhdrData.Height chunkData
     let imageDataRead = 
-        rawImageDataToGrayscale8Bit 
-            readIhdrData.Width readIhdrData.Height scanlinesRead
+        deserializeIdatChunkData 
+            ihdr.BitsPerPixel readIhdrData.Width readIhdrData.Height chunkData
 
     test <@ imageDataRead = imageData @>
 
@@ -172,9 +156,17 @@ let ``Can generate and read a valid 8-bit grayscale PNG``() =
     let imageWidth = 100
     let imageHeight = 80
 
+    let ihdr = { 
+        Width = imageWidth
+        Height = imageHeight 
+        BitDepth = PngBitDepth.BitDepth8
+        ColorType = PngColorType.Grayscale
+        InterlaceMethod = PngInterlaceMethod.NoInterlace
+        }
+
     let rnd = Random(123)
     let imageData = 
-        Array2D.init imageWidth imageHeight (fun _ _ -> (byte)(rnd.Next(255)))
+        Array.init (imageWidth*imageHeight) (fun _ -> (byte)(rnd.Next(255)))
 
     let imageFileName = Path.GetFullPath("test-grayscale-8.png")
     printfn "Saving test image to %s" imageFileName
@@ -182,16 +174,15 @@ let ``Can generate and read a valid 8-bit grayscale PNG``() =
     use stream = File.OpenWrite(imageFileName)
 
     stream 
-    |> saveGrayscale8BitToStream imageData
+    |> savePngToStream ihdr imageData
     |> ignore
 
     stream.Close() |> ignore
 
     use readStream = File.OpenRead(imageFileName)
 
-    readStream
-    |> loadPngFromStream (fun _ -> ()) (fun _ -> ())
-    |> ignore
+    let (ihdrRead, imageDataRead) = 
+        readStream |> loadPngFromStream 
 
     use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
     test <@ bitmap.Width = imageWidth @>
@@ -221,9 +212,8 @@ let ``Generated 16-bit grayscale PNG is recognized by System.Drawing``() =
 
     use readStream = File.OpenRead(imageFileName)
 
-    readStream
-    |> loadPngFromStream (fun _ -> ()) (fun _ -> ())
-    |> ignore
+    let (ihdrRead, imageDataRead) = 
+        readStream |> loadPngFromStream 
 
     use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
     test <@ bitmap.Width = imageWidth @>
@@ -242,12 +232,11 @@ let ``Can decode 16-bit grayscale image generated from a SRTM tile``() =
 
     printfn "Decoding the PNG..."
 
-    let readSrtmImageData (imageData: Grayscale16BitImageData) = 
-        test <@ Array2D.length1 imageData = 500 @>
-        test <@ Array2D.length2 imageData = 500 @>
+    let (ihdrRead, imageDataRead) = 
+        pngReadStream |> loadPngFromStream 
 
-    pngReadStream
-    |> loadPngFromStream (fun _ -> ()) readSrtmImageData
-    |> ignore
+    test <@ ihdrRead.Width = 500 @>
+    test <@ ihdrRead.Height = 500 @>
+    test <@ imageDataRead.Length = (500*500*2) @>
 
     printfn "%d DONE." clock.ElapsedMilliseconds

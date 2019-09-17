@@ -142,8 +142,7 @@ let ``Can convert a HGT file into PNG image``() =
     let readSrtmImageData imageData = ignore()
 
     use pngReadStream = File.OpenRead(pngFileName)
-    pngReadStream
-    |> loadPngFromStream (fun _ -> ()) readSrtmImageData
-    |> ignore
+    let (ihdr, imageData) =
+        pngReadStream |> loadPngFromStream
 
     printfn "%d DONE." clock.ElapsedMilliseconds

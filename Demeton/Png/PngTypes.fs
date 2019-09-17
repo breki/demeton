@@ -98,13 +98,14 @@ type IhdrData = {
         /// Indicates the transmission order of the image data.
         /// </summary>
         InterlaceMethod: PngInterlaceMethod
-    }
+    } with
+    member this.BitsPerPixel = 
+        match (this.ColorType, this.BitDepth) with
+        | (PngColorType.Grayscale, PngBitDepth.BitDepth8) -> 8
+        | (PngColorType.Grayscale, PngBitDepth.BitDepth16) -> 16
+        | (_, _) -> 
+            invalidOp "This PNG type is currently not supported."
 
-/// <summary>
-/// Represents a 8-bit grayscale image data as a two-dimensional array of 
-/// pixels.
-/// </summary>
-type Grayscale8BitImageData = byte[,]
 
 /// <summary>
 /// Represents a 16-bit grayscale image data as a two-dimensional array of 

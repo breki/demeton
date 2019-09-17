@@ -6,30 +6,32 @@ open Demeton.PngChunks
 
 open System.IO
 
+// todo remove when no longer needed:
+
 /// <summary>
 /// Generates a byte array of raw image data from the specified 8-bit 
 /// grayscale image data.
 /// </summary>
 /// <param name="imageData">The image data to generate scanlines from.</param>
 /// <returns>A byte array of raw image data.</returns>
-let grayscale8BitRawImageData (imageData: Grayscale8BitImageData): ImageData =
-    let imageWidth = Array2D.length1 imageData
-    let imageHeight = Array2D.length2 imageData
+//let grayscale8BitRawImageData (imageData: Grayscale8BitImageData): ImageData =
+//    let imageWidth = Array2D.length1 imageData
+//    let imageHeight = Array2D.length2 imageData
 
-    let imageData2DTo1D i =
-        byte (imageData.[i % imageWidth, i / imageWidth])
+//    let imageData2DTo1D i =
+//        byte (imageData.[i % imageWidth, i / imageWidth])
 
-    Array.Parallel.init (imageWidth * imageHeight) imageData2DTo1D
+//    Array.Parallel.init (imageWidth * imageHeight) imageData2DTo1D
 
 
-let rawImageDataToGrayscale8Bit 
-    imageWidth
-    imageHeight
-    (imageData: byte[]): Grayscale8BitImageData =
-    Array2D.init 
-        imageWidth 
-        imageHeight 
-        (fun x y -> imageData.[y * imageWidth + x])
+//let rawImageDataToGrayscale8Bit 
+//    imageWidth
+//    imageHeight
+//    (imageData: byte[]): Grayscale8BitImageData =
+//    Array2D.init 
+//        imageWidth 
+//        imageHeight 
+//        (fun x y -> imageData.[y * imageWidth + x])
 
 
 /// <summary>
@@ -76,24 +78,22 @@ let rawImageDataToGrayscale16Bit
 /// <param name="imageData">The data of the image to be saved.</param>
 /// <param name="stream">The stream the image should be written to.</param>
 /// <returns>The same stream.</returns>
-let saveGrayscale8BitToStream 
-    (imageData: Grayscale8BitImageData) 
+let savePngToStream 
+    (ihdr: IhdrData)
+    (imageData: ImageData) 
     (stream: Stream): Stream =
 
-    let imageWidth = Array2D.length1 imageData
-    let imageHeight = Array2D.length2 imageData
-    let bpp = 8
-    let ihdr = 
-        { Width = imageWidth; Height = imageHeight; 
-            BitDepth = PngBitDepth.BitDepth8; 
-            ColorType = PngColorType.Grayscale; 
-            InterlaceMethod = PngInterlaceMethod.NoInterlace }
-    let rawImageData = grayscale8BitRawImageData imageData
+    let bpp = 
+        match (ihdr.ColorType, ihdr.BitDepth) with
+        | (PngColorType.Grayscale, PngBitDepth.BitDepth8) -> 8
+        | (PngColorType.Grayscale, PngBitDepth.BitDepth16) -> 16
+        | (_, _) -> 
+            invalidOp "This PNG type is currently not supported."
 
     stream 
     |> writeSignature 
     |> writeIhdrChunk ihdr
-    |> writeIdatChunk imageWidth imageHeight bpp rawImageData
+    |> writeIdatChunk ihdr.Width ihdr.Height ihdr.BitsPerPixel imageData
     |> writeIendChunk
 
 
@@ -137,42 +137,21 @@ let saveGrayscale16BitToStream
 /// </param>
 /// <param name="stream">The stream containing the PNG image.</param>
 /// <returns>The same stream.</returns>
-let loadPngFromStream 
-    onGrayscale8BitLoad
-    onGrayscale16BitLoad
-    (stream: Stream): Stream =
+let loadPngFromStream (stream: Stream) : (IhdrData * ImageData) =
     
     stream |> readSignature |> ignore
     let ihdr = stream |> readIhdrChunk
     let imageWidth = ihdr.Width
     let imageHeight = ihdr.Height
 
-    match (ihdr.ColorType, ihdr.BitDepth) with
-    | (PngColorType.Grayscale, PngBitDepth.BitDepth8) ->
-        let (chunkType, chunkData) = stream |> readChunk
-        match chunkType.TypeName with
-        | "IDAT" -> 
-            let imageData = 
-                deserializeIdatChunkData 8 imageWidth imageHeight chunkData
-            let imageDataRead = 
-                rawImageDataToGrayscale8Bit imageWidth imageHeight imageData
-            onGrayscale8BitLoad imageDataRead
-            stream
-        | x -> invalidOp 
-                    (sprintf "Expected IDAT PNG chunk, but got %s." x)
+    let (chunkType, chunkData) = stream |> readChunk
 
-    | (PngColorType.Grayscale, PngBitDepth.BitDepth16) ->
-        let (chunkType, chunkData) = stream |> readChunk
-        match chunkType.TypeName with
-        | "IDAT" -> 
-            let imageData = 
-                deserializeIdatChunkData 16 imageWidth imageHeight chunkData
-            let imageDataRead = 
-                rawImageDataToGrayscale16Bit imageWidth imageHeight imageData
-            onGrayscale16BitLoad imageDataRead
-            stream
-        | x -> invalidOp 
-                    (sprintf "Expected IDAT PNG chunk, but got %s." x)
+    match chunkType.TypeName with
+    | "IDAT" -> 
+        let imageData = 
+            deserializeIdatChunkData 
+                ihdr.BitsPerPixel imageWidth imageHeight chunkData
 
-    | (_, _) -> 
-        invalidOp "This PNG type is currently not supported."
+        (ihdr, imageData)
+    | x -> invalidOp 
+                (sprintf "Expected IDAT PNG chunk, but got %s." x)

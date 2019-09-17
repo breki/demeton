@@ -1,4 +1,9 @@
-﻿## Mon 16.9.
+﻿## Tue 17.9.
+- No longer using a 2D array to represent 8-bit grayscale images.
+- `IhdrData` now has the `BitsPerPixel` calculated property.
+- `loadPngFromStream` function now returns an `IhdrData` * `ImageData` tuple.
+
+## Mon 16.9.
 - Added 2D vs 1D array access benchmarks.
 - `filterScanlines` now, instead of creating an array for each filtered scanline, uses one single `FilteredImageData` and feeds the scanline data into it.
 - Redesigned `ScanlinesGenerator` to not use obsolete `Scanline` type abbreviation.
