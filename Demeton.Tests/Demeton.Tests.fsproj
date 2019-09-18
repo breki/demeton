@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-    <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
     <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <RuntimeFrameworkVersion>2.2.6</RuntimeFrameworkVersion>
+    <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
   </PropertyGroup>
 
   <ItemGroup>

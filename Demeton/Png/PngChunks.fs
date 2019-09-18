@@ -126,7 +126,12 @@ let serializeIdatChunkData
     (imageData: ImageData) 
     : byte[] =
     let filteredImageData = 
-        filterScanlines imageWidth imageHeight bpp imageData
+        filterScanlines 
+            imageWidth 
+            imageHeight 
+            bpp 
+            imageData 
+            useBestFilterForScanline
     let dataBeforeCompression = filteredImageData
     use compressionStream = new MemoryStream()
 

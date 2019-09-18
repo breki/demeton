@@ -8,7 +8,7 @@ open BenchmarkDotNet.Attributes
 type PngFilterComparison() = 
     let mutable imageData: ImageData = [||]
 
-    [<Params (3600)>] 
+    [<Params (5000)>] 
     member val public ImageSize = 0 with get, set
 
     [<IterationSetup>]
@@ -20,5 +20,11 @@ type PngFilterComparison() =
                 (fun _ -> byte (rnd.Next(256)))
 
     [<Benchmark>]
-    member self.Filter1() = 
-        filterScanlines self.ImageSize self.ImageSize 16 imageData
+    member self.FilterScanlinesOld() = 
+        filterScanlines 
+            self.ImageSize self.ImageSize 16 imageData useBestFilterForScanline
+
+    [<Benchmark>]
+    member self.FilterScanlinesWithSeparateFirstLineHandling() = 
+        filterScanlinesWithFirstLineSeparated 
+            self.ImageSize self.ImageSize 16 imageData
