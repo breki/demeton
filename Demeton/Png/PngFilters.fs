@@ -247,6 +247,17 @@ let addFilterTypeByteMarks(filteredScanlinesBuffer: FilteredScanline[]) =
         filteredScanlinesBuffer.[filterIndex].[0] <- (byte)filterIndex
 
 
+let createFilteredScanlinesBuffer filteredScanlineLength =
+    let filteredScanlinesBuffer: FilteredScanline[] = 
+        Array.init 
+            5 
+            (fun _ -> Array.zeroCreate filteredScanlineLength)
+
+    addFilterTypeByteMarks filteredScanlinesBuffer
+
+    filteredScanlinesBuffer
+
+
 let filteredScanlineWithMinSumOfAbsDiffs 
     (filteredScanlinesBuffer: FilteredScanline[]) 
     (sumsOfAbsDiffs: int[]) =
@@ -274,12 +285,8 @@ let useBestFilterForScanline
     // there are five types of PNG adaptive filters
     let filterTypesCount = 5
 
-    let filteredScanlinesBuffer: FilteredScanline[] = 
-        Array.init 
-            filterTypesCount 
-            (fun _ -> Array.zeroCreate filteredScanlineLength)
-
-    addFilterTypeByteMarks filteredScanlinesBuffer
+    let filteredScanlinesBuffer = 
+        createFilteredScanlinesBuffer filteredScanlineLength
 
     let prevScanline =
         match scanlineIndex with
@@ -340,16 +347,9 @@ let filterFirstScanline
     imageData
     (bytesPP: int) 
     scanlineLength 
-    filteredScanlineLength =
+    (filteredScanlinesBuffer: FilteredScanline[]) =
     // there are five types of PNG adaptive filters
     let filterTypesCount = 5
-
-    let filteredScanlinesBuffer: FilteredScanline[] = 
-        Array.init 
-            filterTypesCount 
-            (fun _ -> Array.zeroCreate filteredScanlineLength)
-
-    addFilterTypeByteMarks filteredScanlinesBuffer
 
     let scanline = 
         scanlineFromImageData imageData scanlineLength 0
@@ -402,16 +402,9 @@ let filterNonFirstScanline
     scanlineIndex
     (bytesPP: int) 
     scanlineLength 
-    filteredScanlineLength =
+    (filteredScanlinesBuffer: FilteredScanline[]) =
     // there are five types of PNG adaptive filters
     let filterTypesCount = 5
-
-    let filteredScanlinesBuffer: FilteredScanline[] = 
-        Array.init 
-            filterTypesCount 
-            (fun _ -> Array.zeroCreate filteredScanlineLength)
-
-    addFilterTypeByteMarks filteredScanlinesBuffer
 
     let prevScanline = 
         scanlineFromImageData 
@@ -531,7 +524,7 @@ let filterScanlinesWithFirstLineSeparated
     let filteredImageData: FilteredImageData = 
         Array.zeroCreate (filteredScanlineLength * imageHeight)
 
-    let filterScanline scanlineIndex: unit =
+    let filterScanline scanlineIndex filteredScanlinesBuffer: unit =
         let filteredScanline = 
             match scanlineIndex with
             | 0 -> 
@@ -539,15 +532,14 @@ let filterScanlinesWithFirstLineSeparated
                     imageData 
                     bytesPP 
                     scanlineLength 
-                    filteredScanlineLength
+                    filteredScanlinesBuffer
             | _ -> 
                 filterNonFirstScanline
                     imageData 
                     scanlineIndex 
                     bytesPP 
                     scanlineLength 
-                    filteredScanlineLength
-
+                    filteredScanlinesBuffer
 
         // Copy the chosen filtered scanline into the big array.
         let filteredScanlineImageDataIndex = 
@@ -559,10 +551,17 @@ let filterScanlinesWithFirstLineSeparated
             filteredScanlineImageDataIndex
             filteredScanlineLength
 
+    let forInit() = createFilteredScanlinesBuffer filteredScanlineLength
+    let forBody scanlineIndex _ filteredScanlinesBuffer = 
+        filterScanline scanlineIndex filteredScanlinesBuffer
+        filteredScanlinesBuffer
+
     Parallel.For(
         0, 
         imageHeight, 
-        fun (scanlineIndex) -> filterScanline scanlineIndex)
+        forInit,
+        forBody,
+        fun (_) -> ignore())
     |> ignore
 
     filteredImageData

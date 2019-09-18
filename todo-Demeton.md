@@ -1,5 +1,11 @@
-﻿- possible PNG encoding performance improvements
+﻿62.06
+58.78
+52.19 ms
+
+- possible PNG encoding performance improvements
     - keep the buffer in the same thread?
+        - use a more advanced version of Parallel.For that initializes buffers and then gives them to the scanline filter function
+    
     - separate filter code for the first line (when there is no previous scanline)
         - simple Array copy for None filter (instead of the for loop) and for the Up filter on the first scanline
     - split IDAT into several chunks that can be CRC-processed in parallel
