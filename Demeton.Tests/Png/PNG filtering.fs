@@ -59,6 +59,12 @@ type ScanlinesGenerator =
         |> Arb.fromGen
 
 
+type ScanlinesPairPropertyAttribute() = 
+    inherit PropertyAttribute
+        (Arbitrary = [| typeof<ScanlinesGenerator> |],
+        QuietOnSuccess = true)
+
+
 let filterScanlineUsingFilterType
     filterTypeFunc
     filterTypeByte
@@ -90,11 +96,6 @@ let filterScanlineUsingFilterType
 
     filteredScanline
 
-
-type ScanlinesPairPropertyAttribute() = 
-    inherit PropertyAttribute
-        (Arbitrary = [| typeof<ScanlinesGenerator> |],
-        QuietOnSuccess = true)
 
 [<ScanlinesPairProperty>]
 [<Trait("Category", "properties")>]

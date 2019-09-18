@@ -1,7 +1,4 @@
-﻿- replace 2D arrays with 1D ones
-    - instead of 2D arrays, provide functions for working with them
-
-- profiling and optimizing the code
+﻿- profiling and optimizing the code
     - speed up decoding of PNG images
     - speed up CRC processing
         - direct encoding instead of recursion/loop?

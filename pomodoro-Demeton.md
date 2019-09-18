@@ -1,5 +1,8 @@
-﻿## Tue 17.9.
-- No longer using a 2D array to represent 8-bit grayscale images.
+﻿## Wed 18.9.
+- Updated the "deserializing/serializing IDAT chunk" test case.
+
+## Tue 17.9.
+- No longer using a 2D array to represent 8-bit and 16-bit grayscale images.
 - `IhdrData` now has the `BitsPerPixel` calculated property.
 - `loadPngFromStream` function now returns an `IhdrData` * `ImageData` tuple.
 

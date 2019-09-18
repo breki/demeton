@@ -81,66 +81,53 @@ let ``Deserializing serialized IHDR chunk data results in the original IHDR data
     let deserialized = deserializeIhdrChunkData (serializeIhdrChunkData ihdrData)    
     deserialized = ihdrData
 
-[<Property>]
-let ``some test``() =
-    let x = gen {
-        let! n = Arb.generate<int>
-        return n
-    }
 
-    printfn "x = %A" x
+type TestImageData = (int * int * int)
 
-
-//type ImageDataGenerator =
-//    static member ImageData() =   
-//        let bytesPerPixel = Gen.elements [| 1; 2; 3; 4 |]
-//        let imageWidth = Gen.choose (0, 250)
-//        let imageHeight = Gen.choose (0, 250)
-//        let arrayProperties = 
-//            Gen.zip3 bytesPerPixel imageWidth imageHeight
-//            |> Arb.fromGen
-
-//        //let arraySize = bytesPerPixel * imageWidth * imageHeight
-
-//        let randomByteValue = Arb.generate<byte>
+type TestImageDataGenerator =
+    static member TestImageData() =   
+        let bytesPerPixel = Gen.elements [| 1; 2; 3; 4 |]
+        let imageWidth = Gen.choose (0, 50)
+        let imageHeight = Gen.choose (0, 50)
         
-//        randomByteValue 
-//        |> Gen.a
-//        |> Gen.arrayOfLength arraySize
-//        |> Arb.fromGen
+        Gen.zip3 bytesPerPixel imageWidth imageHeight
+        |> Gen.map (fun (bpp, w, h) -> TestImageData(bpp, w, h))
+        |> Arb.fromGen
 
 
+type TestImageDataPropertyAttribute() = 
+    inherit PropertyAttribute
+        (Arbitrary = [| typeof<TestImageDataGenerator> |],
+        QuietOnSuccess = true)
 
-//[<Property>]
-//let ``Deserializing serialized IDAT chunk data results in the original image data``
-//    imageWidth imageHeight =
 
-//    //printfn "imageData: %A" imageData
+[<TestImageDataProperty>]
+let ``Deserializing serialized IDAT chunk data results in the original image data``
+    (testImageData: TestImageData) =
+
+    let (bytesPerPixel, imageWidth, imageHeight) = testImageData
+    let bpp = bytesPerPixel * 8
+
+    let rnd = new System.Random()
+    let rawImageData = 
+        Array.init 
+            (imageWidth * imageHeight * bytesPerPixel)
+            (fun i -> byte (rnd.Next 256))
     
-//    let bpp = 16
+    let deserialized = 
+        deserializeIdatChunkData bpp imageWidth imageHeight
+            (serializeIdatChunkData imageWidth imageHeight bpp rawImageData)    
 
-//    let rawImageData = Array.init 
-//        (imageWidth * imageHeight * 2)
-//        (fun i -> )
-
-//    //printfn "rawImageData: %A" rawImageData
-    
-//    let deserialized = 
-//        deserializeIdatChunkData bpp imageWidth imageHeight
-//            (serializeIdatChunkData imageWidth imageHeight bpp rawImageData)    
-
-//    //printfn "deserialized: %A" deserialized
-
-//    deserialized = rawImageData
+    deserialized = rawImageData
 
 
-//[<Fact>]
-//let ``Can serialize IEND chunk into a byte array``() =
-//    test <@ 
-//            serializeIendChunkData() = [| 
-//                (byte)'I'; (byte)'E'; (byte)'N'; (byte)'D'
-//            |] 
-//        @>
+[<Fact>]
+let ``Can serialize IEND chunk into a byte array``() =
+    test <@ 
+            serializeIendChunkData() = [| 
+                (byte)'I'; (byte)'E'; (byte)'N'; (byte)'D'
+            |] 
+        @>
 
 
 [<Fact>]
