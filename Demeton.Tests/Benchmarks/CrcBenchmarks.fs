@@ -16,4 +16,4 @@ type Crc32Comparison() =
         array <- Array.init self.ArraySize (fun _ -> byte (rnd.Next(256)))
 
     [<Benchmark>]
-    member self.Crc5() = crc32 array
+    member self.Crc() = crc32 array

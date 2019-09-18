@@ -1,4 +1,5 @@
 ﻿- possible PNG encoding performance improvements
+    - add benchmarking for the existing code before we start implementing new one
     - separate filter code for the first line (when there is no previous scanline)
         - simple Array copy for None filter (instead of the for loop) and for the Up filter on the first scanline
     - split IDAT into several chunks that can be CRC-processed in parallel

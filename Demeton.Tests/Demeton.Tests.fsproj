@@ -3,10 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Benchmarks\PngFilterBenchmarks.fs" />
     <Compile Include="Benchmarks\CrcBenchmarks.fs" />
     <Compile Include="Benchmarks\Array1Dvs2D.fs" />
     <Compile Include="Benchmarks\ArrayAccess.fs" />
