@@ -131,44 +131,6 @@ let ``Can serialize IEND chunk into a byte array``() =
 
 
 [<Fact>]
-let ``Can generate a simplest 8-bit grayscale PNG``() =
-    let imageWidth = 100
-    let imageHeight = 80
-
-    let ihdr = { 
-        Width = imageWidth
-        Height = imageHeight 
-        BitDepth = PngBitDepth.BitDepth8
-        ColorType = PngColorType.Grayscale
-        InterlaceMethod = PngInterlaceMethod.NoInterlace
-        }
-    
-    let rnd = Random(123)
-    let imageData = 
-        Array.init (imageWidth*imageHeight) (fun _ -> (byte)(rnd.Next(255)))
-    
-    use stream = new MemoryStream()
-    stream 
-    |> savePngToStream ihdr imageData
-    |> ignore
-
-    stream.Flush() |> ignore
-
-    stream.Seek(0L, SeekOrigin.Begin) |> ignore
-    stream |> readSignature |> ignore
-    let readIhdrData = stream |> readIhdrChunk
-
-    let (chunkType, chunkData) = stream |> readChunk
-    test <@ chunkType = ChunkType("IDAT") @>
-
-    let imageDataRead = 
-        deserializeIdatChunkData 
-            ihdr.BitsPerPixel readIhdrData.Width readIhdrData.Height chunkData
-
-    test <@ imageDataRead = imageData @>
-
-
-[<Fact>]
 let ``Can generate and read a valid 8-bit grayscale PNG``() =
     let imageWidth = 100
     let imageHeight = 80
@@ -247,13 +209,14 @@ let ``Generated 16-bit grayscale PNG is recognized by System.Drawing``() =
     test <@ bitmap.Height = imageHeight @>
 
 
+// todo: this test doesn't actually work on an SRTM tile
 [<Fact>]
 [<Trait("Category", "slow")>]
 let ``Can decode 16-bit grayscale image generated from a SRTM tile``() =
     let assembly = Assembly.GetExecutingAssembly()
     use pngReadStream = assembly.GetManifestResourceStream
                                 ("Demeton.Tests.samples.test-grayscale-16.png")
-    
+                                //("Demeton.Tests.samples.N46E015.png")    
     let clock = new System.Diagnostics.Stopwatch()
     clock.Start()
 
