@@ -38,59 +38,8 @@ let crcTable =
         0x89B8FD09u ; 0x8D79E0BEu ; 0x803AC667u ; 0x84FBDBD0u ; 0x9ABC8BD5u ; 0x9E7D9662u ; 0x933EB0BBu ; 0x97FFAD0Cu ;     
         0xAFB010B1u ; 0xAB710D06u ; 0xA6322BDFu ; 0xA2F33668u ; 0xBCB4666Du ; 0xB8757BDAu ; 0xB5365D03u ; 0xB1F740B4u |]
 
-let reversedBytes = 
-    [| 0uy; 128uy; 64uy; 192uy; 32uy; 160uy; 96uy; 224uy; 16uy; 144uy; 80uy; 
-        208uy; 48uy; 176uy; 112uy; 240uy; 8uy; 136uy; 72uy; 200uy; 40uy; 168uy; 
-        104uy; 232uy; 24uy; 152uy; 88uy; 216uy; 56uy; 184uy; 120uy; 248uy; 4uy; 
-        132uy; 68uy; 196uy; 36uy; 164uy; 100uy; 228uy; 20uy; 148uy; 84uy; 212uy; 
-        52uy; 180uy; 116uy; 244uy; 12uy; 140uy; 76uy; 204uy; 44uy; 172uy; 108uy; 
-        236uy; 28uy; 156uy; 92uy; 220uy; 60uy; 188uy; 124uy; 252uy; 2uy; 130uy; 
-        66uy; 194uy; 34uy; 162uy; 98uy; 226uy; 18uy; 146uy; 82uy; 210uy; 50uy; 
-        178uy; 114uy; 242uy; 10uy; 138uy; 74uy; 202uy; 42uy; 170uy; 106uy; 
-        234uy; 26uy; 154uy; 90uy; 218uy; 58uy; 186uy; 122uy; 250uy; 6uy; 134uy; 
-        70uy; 198uy; 38uy; 166uy; 102uy; 230uy; 22uy; 150uy; 86uy; 214uy; 54uy; 
-        182uy; 118uy; 246uy; 14uy; 142uy; 78uy; 206uy; 46uy; 174uy; 110uy; 
-        238uy; 30uy; 158uy; 94uy; 222uy; 62uy; 190uy; 126uy; 254uy; 1uy; 129uy; 
-        65uy; 193uy; 33uy; 161uy; 97uy; 225uy; 17uy; 145uy; 81uy; 209uy; 49uy; 
-        177uy; 113uy; 241uy; 9uy; 137uy; 73uy; 201uy; 41uy; 169uy; 105uy; 233uy; 
-        25uy; 153uy; 89uy; 217uy; 57uy; 185uy; 121uy; 249uy; 5uy; 133uy; 69uy; 
-        197uy; 37uy; 165uy; 101uy; 229uy; 21uy; 149uy; 85uy; 213uy; 53uy; 181uy; 
-        117uy; 245uy; 13uy; 141uy; 77uy; 205uy; 45uy; 173uy; 109uy; 237uy; 29uy; 
-        157uy; 93uy; 221uy; 61uy; 189uy; 125uy; 253uy; 3uy; 131uy; 67uy; 195uy; 
-        35uy; 163uy; 99uy; 227uy; 19uy; 147uy; 83uy; 211uy; 51uy; 179uy; 115uy; 
-        243uy; 11uy; 139uy; 75uy; 203uy; 43uy; 171uy; 107uy; 235uy; 27uy; 155uy; 
-        91uy; 219uy; 59uy; 187uy; 123uy; 251uy; 7uy; 135uy; 71uy; 199uy; 39uy; 
-        167uy; 103uy; 231uy; 23uy; 151uy; 87uy; 215uy; 55uy; 183uy; 119uy; 
-        247uy; 15uy; 143uy; 79uy; 207uy; 47uy; 175uy; 111uy; 239uy; 31uy; 159uy; 
-        95uy; 223uy; 63uy; 191uy; 127uy; 255uy |]
-
-
 let reversedBytesShift24 = 
     [| 0u; 2147483648u; 1073741824u; 3221225472u; 536870912u; 2684354560u; 1610612736u; 3758096384u; 268435456u; 2415919104u; 1342177280u; 3489660928u; 805306368u; 2952790016u; 1879048192u; 4026531840u; 134217728u; 2281701376u; 1207959552u; 3355443200u; 671088640u; 2818572288u; 1744830464u; 3892314112u; 402653184u; 2550136832u; 1476395008u; 3623878656u; 939524096u; 3087007744u; 2013265920u; 4160749568u; 67108864u; 2214592512u; 1140850688u; 3288334336u; 603979776u; 2751463424u; 1677721600u; 3825205248u; 335544320u; 2483027968u; 1409286144u; 3556769792u; 872415232u; 3019898880u; 1946157056u; 4093640704u; 201326592u; 2348810240u; 1275068416u; 3422552064u; 738197504u; 2885681152u; 1811939328u; 3959422976u; 469762048u; 2617245696u; 1543503872u; 3690987520u; 1006632960u; 3154116608u; 2080374784u; 4227858432u; 33554432u; 2181038080u; 1107296256u; 3254779904u; 570425344u; 2717908992u; 1644167168u; 3791650816u; 301989888u; 2449473536u; 1375731712u; 3523215360u; 838860800u; 2986344448u; 1912602624u; 4060086272u; 167772160u; 2315255808u; 1241513984u; 3388997632u; 704643072u; 2852126720u; 1778384896u; 3925868544u; 436207616u; 2583691264u; 1509949440u; 3657433088u; 973078528u; 3120562176u; 2046820352u; 4194304000u; 100663296u; 2248146944u; 1174405120u; 3321888768u; 637534208u; 2785017856u; 1711276032u; 3858759680u; 369098752u; 2516582400u; 1442840576u; 3590324224u; 905969664u; 3053453312u; 1979711488u; 4127195136u; 234881024u; 2382364672u; 1308622848u; 3456106496u; 771751936u; 2919235584u; 1845493760u; 3992977408u; 503316480u; 2650800128u; 1577058304u; 3724541952u; 1040187392u; 3187671040u; 2113929216u; 4261412864u; 16777216u; 2164260864u; 1090519040u; 3238002688u; 553648128u; 2701131776u; 1627389952u; 3774873600u; 285212672u; 2432696320u; 1358954496u; 3506438144u; 822083584u; 2969567232u; 1895825408u; 4043309056u; 150994944u; 2298478592u; 1224736768u; 3372220416u; 687865856u; 2835349504u; 1761607680u; 3909091328u; 419430400u; 2566914048u; 1493172224u; 3640655872u; 956301312u; 3103784960u; 2030043136u; 4177526784u; 83886080u; 2231369728u; 1157627904u; 3305111552u; 620756992u; 2768240640u; 1694498816u; 3841982464u; 352321536u; 2499805184u; 1426063360u; 3573547008u; 889192448u; 3036676096u; 1962934272u; 4110417920u; 218103808u; 2365587456u; 1291845632u; 3439329280u; 754974720u; 2902458368u; 1828716544u; 3976200192u; 486539264u; 2634022912u; 1560281088u; 3707764736u; 1023410176u; 3170893824u; 2097152000u; 4244635648u; 50331648u; 2197815296u; 1124073472u; 3271557120u; 587202560u; 2734686208u; 1660944384u; 3808428032u; 318767104u; 2466250752u; 1392508928u; 3539992576u; 855638016u; 3003121664u; 1929379840u; 4076863488u; 184549376u; 2332033024u; 1258291200u; 3405774848u; 721420288u; 2868903936u; 1795162112u; 3942645760u; 452984832u; 2600468480u; 1526726656u; 3674210304u; 989855744u; 3137339392u; 2063597568u; 4211081216u; 117440512u; 2264924160u; 1191182336u; 3338665984u; 654311424u; 2801795072u; 1728053248u; 3875536896u; 385875968u; 2533359616u; 1459617792u; 3607101440u; 922746880u; 3070230528u; 1996488704u; 4143972352u; 251658240u; 2399141888u; 1325400064u; 3472883712u; 788529152u; 2936012800u; 1862270976u; 4009754624u; 520093696u; 2667577344u; 1593835520u; 3741319168u; 1056964608u; 3204448256u; 2130706432u; 4278190080u |]
-
-let crc32 (data: byte[]) =
-    let rec bitrev count acc n =
-        if count = 0 then acc
-        else bitrev (count - 1) ((acc <<< 1) ||| (n &&& 1u)) (n >>> 1)
-
-    let inline update acc (input:byte) =
-        // tupni is input backwards
-        let tupni = bitrev 8 0u (uint32 input)
-        let crc1 = acc ^^^ (tupni <<< 24)
-        let pos = (crc1 >>> 24) &&& 0xffu |> int32
-        (crc1 <<< 8) ^^^ crcTable.[pos]
-    
-    0xFFffFFffu ^^^ (Array.fold update 0xFFffFFffu data |> bitrev 32 0u)
-
-
-let inline bitrev8 (value: byte): uint32 =
-    let mutable valueRemaining = value
-    let mutable accumulator = 0u
-    for i in 0 .. 7 do
-        accumulator <- 
-            (accumulator <<< 1) ||| uint32 (valueRemaining &&& 1uy)
-        valueRemaining <- valueRemaining >>> 1
-    accumulator
 
 let inline bitrev32 (value: uint32): uint32 =
     let mutable valueRemaining = value
@@ -101,40 +50,7 @@ let inline bitrev32 (value: uint32): uint32 =
         valueRemaining <- valueRemaining >>> 1
     accumulator
 
-let crc32_2 (data: byte[]) =
-    let update acc (input:byte) =
-        // tupni is input backwards
-        let tupni = bitrev8 input
-        let crc1 = acc ^^^ (tupni <<< 24)
-        let pos = (crc1 >>> 24) &&& 0xffu |> int32
-        (crc1 <<< 8) ^^^ crcTable.[pos]
-    
-    0xFFffFFffu ^^^ (Array.fold update 0xFFffFFffu data |> bitrev32)
-
-
-let crc32_3 (data: byte[]) =
-    let update acc (input:byte) =
-        // tupni is input backwards
-        let tupni = uint32 reversedBytes.[int input]
-        let crc1 = acc ^^^ (tupni <<< 24)
-        let pos = (crc1 >>> 24) &&& 0xffu |> int32
-        (crc1 <<< 8) ^^^ crcTable.[pos]
-    
-    0xFFffFFffu ^^^ (Array.fold update 0xFFffFFffu data |> bitrev32)
-
-
-let crc32_4 (data: byte[]) =
-    let update acc (input:byte) =
-        // tupni is input backwards
-        let tupni = reversedBytesShift24.[int input]
-        let crc1 = acc ^^^ tupni
-        let pos = (crc1 >>> 24) &&& 0xffu |> int32
-        (crc1 <<< 8) ^^^ crcTable.[pos]
-    
-    0xFFffFFffu ^^^ (Array.fold update 0xFFffFFffu data |> bitrev32)
-
-
-let crc32_5 (data: byte[]) =
+let crc32 (data: byte[]) =
     let calc() =
         let dataLenMinus1 = data.Length - 1
 
@@ -148,17 +64,3 @@ let crc32_5 (data: byte[]) =
         acc
     
     0xFFffFFffu ^^^ (calc() |> bitrev32)
-
-
-let crc32_6 (data: byte[]) =
-    let calc() =
-        let mutable acc = 0xFFffFFffu
-        for input in data do
-            let tupni = reversedBytesShift24.[int input]
-            let crc1 = acc ^^^ tupni
-            let pos = (crc1 >>> 24) &&& 0xffu |> int32
-            acc <- (crc1 <<< 8) ^^^ crcTable.[pos]
-        acc
-    
-    0xFFffFFffu ^^^ (calc() |> bitrev32)
-

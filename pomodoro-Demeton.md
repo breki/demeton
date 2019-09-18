@@ -1,4 +1,5 @@
 ﻿## Wed 18.9.
+- Chosen the fastest `crc32` variant as the new implementation.
 - Implemented several alternative `crc32` functions and added benchmarks for them.
 - Updated the "deserializing/serializing IDAT chunk" test case.
 

@@ -169,9 +169,9 @@ let ``Can generate and read a valid 8-bit grayscale PNG``() =
 
 
 [<Fact>]
-let ``Generated 16-bit grayscale PNG is recognized by System.Drawing``() =
-    let imageWidth = 200
-    let imageHeight = 150
+let ``Can generate and read a valid 16-bit grayscale PNG``() =
+    let imageWidth = 500
+    let imageHeight = 500
 
     let ihdr = { 
         Width = imageWidth

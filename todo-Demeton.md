@@ -1,5 +1,9 @@
-﻿- profiling and optimizing the code
-    - speed up CRC processing
+﻿- possible PNG encoding performance improvements
+    - separate filter code for the first line (when there is no previous scanline)
+        - simple Array copy for None filter (instead of the for loop) and for the Up filter on the first scanline
+    - split IDAT into several chunks that can be CRC-processed in parallel
+
+- profiling and optimizing the code
     - profile PNG encoding 
     - profile and speed up PNG decoding 
         - test on a larger image
