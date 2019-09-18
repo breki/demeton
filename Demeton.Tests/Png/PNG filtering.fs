@@ -25,8 +25,7 @@ let ``Can filter scanlines``() =
     let imageHeight = scanlines.Length
 
     let filteredImageData = 
-        filterScanlines 
-            imageWidth imageHeight bpp rawImageData useBestFilterForScanline
+        filterScanlines imageWidth imageHeight bpp rawImageData 
 
     test <@ filteredImageData.Length = (imageWidth + 1) * 2 @>
 
@@ -42,23 +41,8 @@ let ``Filtering large images``() =
             (imageSize * imageSize * 2) 
             (fun _ -> byte (rnd.Next(256)))
 
-    filterScanlines imageSize imageSize 16 imageData useBestFilterForScanline
+    filterScanlines imageSize imageSize 16 imageData 
     |> ignore
-
-
-[<Fact>]
-[<Trait("Category", "slow")>]
-let ``Filtering large images using new filtering code``() =
-    let imageSize = 2000
-
-    let rnd = new System.Random(34545)
-    let imageData = 
-        Array.init 
-            (imageSize * imageSize * 2) 
-            (fun _ -> byte (rnd.Next(256)))
-
-    filterScanlinesWithFirstLineSeparated 
-        imageSize imageSize 16 imageData |> ignore
 
 
 type ScanlinesPair = (int * byte[] * byte[] option)

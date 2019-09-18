@@ -276,73 +276,6 @@ let filteredScanlineWithMinSumOfAbsDiffs
     filteredScanlinesBuffer.[minIndex]
 
 
-let useBestFilterForScanline
-    imageData
-    scanlineIndex
-    (bytesPP: int) 
-    scanlineLength 
-    filteredScanlineLength =
-    // there are five types of PNG adaptive filters
-    let filterTypesCount = 5
-
-    let filteredScanlinesBuffer = 
-        createFilteredScanlinesBuffer filteredScanlineLength
-
-    let prevScanline =
-        match scanlineIndex with
-        | 0 -> new Span<byte>()
-        | _ -> scanlineFromImageData 
-                imageData scanlineLength (scanlineIndex-1)
-
-    let scanline = 
-        scanlineFromImageData imageData scanlineLength scanlineIndex
-
-    let sumsOfAbsDiffs: int[] = Array.zeroCreate filterTypesCount
-
-    for scanlineByteIndex in 0 .. (scanline.Length - 1) do
-        let raw = scanline.[scanlineByteIndex]
-
-        let mutable left = 0uy
-        let mutable up = 0uy
-        let mutable upLeft = 0uy
-
-        if scanlineByteIndex >= bytesPP then
-            left <- scanline.[scanlineByteIndex-bytesPP]
-
-        if prevScanline.Length > 0 then
-            up <- prevScanline.[scanlineByteIndex]
-            if scanlineByteIndex >= bytesPP then
-                upLeft <- prevScanline.[scanlineByteIndex-bytesPP]
-
-        let filteredScanlineIndex = scanlineByteIndex + 1
-        let mutable filteredValue = 0uy
-
-        // this is a shortcut for filter type None
-        filteredValue <- raw
-        filteredScanlinesBuffer.[0].[filteredScanlineIndex] <- filteredValue
-        sumsOfAbsDiffs.[0] <- sumsOfAbsDiffs.[0] + (int)filteredValue;
-
-        filteredValue <- filterTypeSub raw left 0 0
-        filteredScanlinesBuffer.[1].[filteredScanlineIndex] <- filteredValue
-        sumsOfAbsDiffs.[1] <- sumsOfAbsDiffs.[1] + (int)filteredValue;
-
-        filteredValue <- filterTypeUp raw left up upLeft
-        filteredScanlinesBuffer.[2].[filteredScanlineIndex] <- filteredValue
-        sumsOfAbsDiffs.[2] <- sumsOfAbsDiffs.[2] + (int)filteredValue;
-
-        filteredValue <- filterTypeAverage raw left up upLeft
-        filteredScanlinesBuffer.[3].[filteredScanlineIndex] <- filteredValue
-        sumsOfAbsDiffs.[3] <- sumsOfAbsDiffs.[3] + (int)filteredValue;
-
-        filteredValue <- filterTypePaeth raw left up upLeft
-        filteredScanlinesBuffer.[4].[filteredScanlineIndex] <- filteredValue
-        sumsOfAbsDiffs.[4] <- sumsOfAbsDiffs.[4] + (int)filteredValue;
-
-    filteredScanlineWithMinSumOfAbsDiffs 
-        filteredScanlinesBuffer
-        sumsOfAbsDiffs
-
-
 let filterFirstScanline
     imageData
     (bytesPP: int) 
@@ -468,49 +401,6 @@ let filterNonFirstScanline
 /// original scanline.
 /// </returns>
 let filterScanlines 
-    imageWidth
-    imageHeight
-    (bpp: int)
-    (imageData: ImageData)
-    (scanlineFilter: ScanlineFilter)
-    : FilteredImageData =
-
-    let bytesPP = bytesPerPixel bpp
-    let scanlineLength = imageWidth * bytesPP
-    let filteredScanlineLength = scanlineLength + 1
-
-    let filteredImageData: FilteredImageData = 
-        Array.zeroCreate (filteredScanlineLength * imageHeight)
-
-    let filterScanline scanlineIndex: unit =
-        let filteredScanline = 
-            scanlineFilter 
-                imageData 
-                scanlineIndex 
-                bytesPP 
-                scanlineLength 
-                filteredScanlineLength
-
-        // Copy the chosen filtered scanline into the big array.
-        let filteredScanlineImageDataIndex = 
-            scanlineIndex * filteredScanlineLength
-        Array.blit 
-            filteredScanline 
-            0 
-            filteredImageData 
-            filteredScanlineImageDataIndex
-            filteredScanlineLength
-
-    Parallel.For(
-        0, 
-        imageHeight, 
-        fun (scanlineIndex) -> filterScanline scanlineIndex)
-    |> ignore
-
-    filteredImageData
-
-
-let filterScanlinesWithFirstLineSeparated 
     imageWidth
     imageHeight
     (bpp: int)

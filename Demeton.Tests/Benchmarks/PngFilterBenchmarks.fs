@@ -20,11 +20,5 @@ type PngFilterComparison() =
                 (fun _ -> byte (rnd.Next(256)))
 
     [<Benchmark>]
-    member self.FilterScanlinesOld() = 
-        filterScanlines 
-            self.ImageSize self.ImageSize 16 imageData useBestFilterForScanline
-
-    [<Benchmark>]
-    member self.FilterScanlinesWithSeparateFirstLineHandling() = 
-        filterScanlinesWithFirstLineSeparated 
-            self.ImageSize self.ImageSize 16 imageData
+    member self.FilterScanlines() = 
+        filterScanlines self.ImageSize self.ImageSize 16 imageData
