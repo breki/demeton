@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs" />
     <Compile Include="Benchmarks\PngFilterBenchmarks.fs" />
     <Compile Include="Benchmarks\CrcBenchmarks.fs" />
     <Compile Include="Benchmarks\Array1Dvs2D.fs" />
@@ -27,6 +26,7 @@
     <Compile Include="DEM file storage tests.fs" />
     <Compile Include="Bounds to DEM tiles.fs" />
     <Compile Include="ensureTilesAreInCache tests.fs" />
+    <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs" />
     <Compile Include="Program.fs" />
     <EmbeddedResource Include="..\samples\test-grayscale-16.png" Link="samples\test-grayscale-16.png" />
     <EmbeddedResource Include="..\samples\N46E015.png" Link="samples\N46E015.png" />

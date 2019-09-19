@@ -1,4 +1,5 @@
 ﻿## Thu 19.9.
+- Implemented the first test case in ImportSrtmTilesCommand tests.
 - Tried out various deflate parameters to improve the compression rate, but none of them did much.
 - Finished optimizing PNG decoding.
 - Fixed a bug in `Demeton.Binary.readBytes()` that prevented the method from ever finishing.
