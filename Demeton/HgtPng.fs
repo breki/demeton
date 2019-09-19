@@ -28,12 +28,15 @@ let inline uint16ValueToDemHeight (value: uint16): DemHeight option =
 /// A <see cref="HeightsArray" /> that holds heights data to be converted.
 /// </param>
 /// <returns>Image data.</returns>
-let heightsArrayToImageData (heightsArray: HeightsArray): ImageData =
+let heightsArrayToImageData 
+    (heightMappingFunc: DemHeight option -> uint16)
+    (heightsArray: HeightsArray)
+    : ImageData =
 
     grayscale16BitImageData
         heightsArray.Width
         heightsArray.Height
-        (fun x y -> heightsArray.Cells.[x, y] |> demHeightToUInt16Value)
+        (fun x y -> heightsArray.Cells.[x, y] |> heightMappingFunc)
 
 
 /// <summary>
@@ -51,7 +54,7 @@ let encodeSrtmHeightsArrayToPng
     (heightsArray: HeightsArray)
     (outputStream: Stream): Stream =
 
-    let imageData = heightsArrayToImageData heightsArray
+    let imageData = heightsArrayToImageData demHeightToUInt16Value heightsArray 
 
     let ihdr = { 
         Width = heightsArray.Width

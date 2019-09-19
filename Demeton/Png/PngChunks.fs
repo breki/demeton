@@ -97,9 +97,21 @@ let serializeIendChunkData(): byte[] =
 let writeIendChunk (stream: Stream): Stream =
     stream |> writeChunk (serializeIendChunkData())
 
-
+/// <summary>
+/// Compresses the byte array into the specified output stream using Deflate
+/// algorithm.
+/// </summary>
+/// <param name="data">The byte array to compress.</param>
+/// <param name="outputStream">
+/// The output stream the compressed data should be written to.</param>
 let compress data (outputStream: Stream) : unit =
-    let deflater = new Deflater()
+    // Using the default compression level since I experimented with 
+    // BEST_COMPRESSION but it did not improve the compression rate 
+    // significantly, while it was much slower to execute.
+    let deflater = new Deflater(Deflater.DEFAULT_COMPRESSION)
+    // Using the default deflate strategy since the alternatives did not 
+    // produce any better results.
+    deflater.SetStrategy(DeflateStrategy.Default);
     deflater.SetInput(data)
     deflater.Finish()
 
@@ -110,6 +122,13 @@ let compress data (outputStream: Stream) : unit =
         outputStream.Write(compressionBuffer, 0, producedBytesCount)
 
 
+/// <summary>
+/// Decompresses the compressed byte array into the specified output stream 
+/// using Inflate algorithm.
+/// </summary>
+/// <param name="compressedData">The byte array to decompress.</param>
+/// <param name="outputStream">
+/// The output stream the decompressed data should be written to.</param>
 let decompress compressedData (outputStream: Stream) : unit =
     let inflater = new Inflater()
     inflater.SetInput(compressedData)

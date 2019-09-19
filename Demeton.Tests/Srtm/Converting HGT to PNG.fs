@@ -44,7 +44,8 @@ let ``Can convert HeightsArray to 16-bit grayscale``() =
         new HeightsArray(
             10, 15, 100, 150, (fun _ ->  Some ((int16)(rnd.Next(-100, 3000)))))
 
-    let imageData = heightsArray |> heightsArrayToImageData
+    let imageData = 
+        heightsArray |> heightsArrayToImageData demHeightToUInt16Value
     test <@ Array.length imageData = 100 * 150 * 2 @>
 
 
@@ -65,11 +66,6 @@ let ``Can convert a HGT file into PNG image``() =
     printfn ("Reading the heights array...")
     
     let heightsArray = createSrtmTileFromStream 3600 tileCoords hgtStream
-
-    //let rnd = new System.Random(123)
-    //let heightsArray = 
-    //    HeightsArray(0, 0, 1000, 500,
-    //        fun _ -> Some ((int16)(rnd.Next(10000))))
 
     printfn "%d Encoding heights into the PNG..." clock.ElapsedMilliseconds
 

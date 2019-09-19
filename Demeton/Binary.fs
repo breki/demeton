@@ -27,6 +27,7 @@ let writeBytes (bytes: byte[]) (stream: Stream): Stream =
     stream
 
 
+// todo: make the buffer size configurable
 let readBytes length (stream: Stream): byte[] =
     // todo: this method is reusable
     let rec copyToStream 

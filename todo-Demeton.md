@@ -1,6 +1,4 @@
-﻿- test to check whether the compression rate can be improved by using a different mapping from height to raw bytes
-
-- define a console command that imports HGT files into PNGs for a given area
+﻿- define a console command that imports HGT files into PNGs for a given area
 
 - possible PNG encoding performance improvements
     - split IDAT into several chunks that can be CRC-processed in parallel
@@ -8,8 +6,6 @@
 - profiling and optimizing the code
     - profile PNG encoding 
     - implement decoding the SRTM cell from PNG image
-        - it's too slow right now
-    - can we try different deflate strategies (see the [document](http://optipng.sourceforge.net/pngtech/optipng.html))?
 
 - implement console commands for encoding and decoding HGTS into PNGS so we can see the real speed (without debugging)
     - https://github.com/commandlineparser/commandline

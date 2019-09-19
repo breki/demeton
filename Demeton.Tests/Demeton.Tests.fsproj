@@ -15,7 +15,7 @@
     <Compile Include="Srtm\Converting HGT to PNG.fs" />
     <Compile Include="Reading binary streams.fs" />
     <Compile Include="Png\Reading and writing PNG files.fs" />
-    <Compile Include="Png\PNG compression.fs" />
+    <Compile Include="Png\IDAT compression.fs" />
     <Compile Include="Png\PNG filtering.fs" />
     <Compile Include="Hillshading.fs" />
     <Compile Include="fetchSrtmHeights tests.fs" />
