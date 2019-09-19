@@ -4,7 +4,7 @@ open Demeton.Binary
 open Demeton.PngTypes
 open Demeton.PngFiltering
 open Demeton.PngUnfiltering
-open Demeton.Png
+open Demeton.PngStructure
 
 open System.IO
 open ICSharpCode.SharpZipLib.Zip.Compression

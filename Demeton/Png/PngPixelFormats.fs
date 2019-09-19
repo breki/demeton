@@ -1,7 +1,7 @@
 ﻿module Demeton.PngPixelFormats
 
 open Demeton.PngTypes
-open Demeton.Png
+open Demeton.PngStructure
 open Demeton.PngChunks
 
 open System.IO

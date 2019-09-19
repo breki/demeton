@@ -2,7 +2,7 @@
 
 open Demeton.Binary
 open Demeton.PngTypes
-open Demeton.Png
+open Demeton.PngStructure
 open Demeton.PngChunks
 open Demeton.PngPixelFormats
 

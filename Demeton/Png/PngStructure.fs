@@ -1,4 +1,4 @@
-﻿module Demeton.Png
+﻿module Demeton.PngStructure
 
 open Demeton.Binary
 open Demeton.PngTypes
