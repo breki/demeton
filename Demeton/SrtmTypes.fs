@@ -20,6 +20,6 @@ type SrtmTileHgtFile = { TileCoords: SrtmTileCoords; FileName: string }
 
 type FetchSrtmTiles = SrtmTileCoords seq -> SrtmTileHgtFile seq
 
-type ReadSrtmTile = SrtmTileHgtFile -> HeightsArray
+type SrtmTileReader = SrtmTileHgtFile -> HeightsArray
 
 

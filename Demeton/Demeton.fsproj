@@ -21,6 +21,7 @@
     <Compile Include="Srtm.fs" />
     <Compile Include="HgtPng.fs" />
     <Compile Include="Hillshading.fs" />
+    <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="SharpZipLib.NETStandard" Version="1.0.7" />

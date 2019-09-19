@@ -1,4 +1,5 @@
 ﻿- define a console command that imports HGT files into PNGs for a given area
+    - logging function
 
 - possible PNG encoding performance improvements
     - split IDAT into several chunks that can be CRC-processed in parallel

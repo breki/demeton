@@ -146,7 +146,7 @@ let ensureTilesAreInCache
 let fetchSrtmHeights 
     (tilesToUse: SrtmTileCoords seq)
     (fetchSrtmTiles: FetchSrtmTiles)
-    (readSrtmTile: ReadSrtmTile)
+    (readSrtmTile: SrtmTileReader)
     : HeightsArray option = 
     let srtmTiles = fetchSrtmTiles tilesToUse
     match srtmTiles with

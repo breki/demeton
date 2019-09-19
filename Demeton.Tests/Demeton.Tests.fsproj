@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs" />
     <Compile Include="Benchmarks\PngFilterBenchmarks.fs" />
     <Compile Include="Benchmarks\CrcBenchmarks.fs" />
     <Compile Include="Benchmarks\Array1Dvs2D.fs" />
