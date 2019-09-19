@@ -5,6 +5,7 @@ open Demeton.PngTypes
 open Demeton.PngStructure
 open Demeton.PngChunks
 open Demeton.PngPixelFormats
+open Demeton.Png
 
 open FsCheck
 open FsCheck.Xunit

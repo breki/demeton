@@ -4,6 +4,7 @@ open Demeton.DemTypes
 open Demeton.Srtm
 open Demeton.PngTypes
 open Demeton.PngPixelFormats
+open Demeton.Png
 
 open FsUnit
 open Xunit
