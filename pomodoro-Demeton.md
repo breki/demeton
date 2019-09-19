@@ -1,4 +1,5 @@
 ﻿## Thu 19.9.
+- Started working on the console command line interface.
 - Implemented the first test case in ImportSrtmTilesCommand tests.
 - Tried out various deflate parameters to improve the compression rate, but none of them did much.
 - Finished optimizing PNG decoding.

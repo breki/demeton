@@ -2,7 +2,7 @@
   "profiles": {
     "Demeton.Console": {
       "commandName": "Project",
-      "commandLineArgs": "decode-png E:\\src\\demeton\\Demeton.Console\\bin\\Release\\netcoreapp2.2\\N46E015.png"
+      "commandLineArgs": "import --bounds 10,20,30,40"
     }
   }
 }
