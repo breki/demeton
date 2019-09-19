@@ -1,4 +1,5 @@
 ﻿- move unfiltering code into a separate file
+- fix any todos
 
 - possible PNG encoding performance improvements
     - split IDAT into several chunks that can be CRC-processed in parallel
@@ -10,6 +11,7 @@
         - one option would be to skip CRC checks
     - implement decoding the SRTM cell from PNG image
         - it's too slow right now
+    - can we try different deflate strategies (see the [document](http://optipng.sourceforge.net/pngtech/optipng.html))?
 
 - go through the PNG code:
     - fix any todos

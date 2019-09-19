@@ -2,7 +2,8 @@
 
 open Demeton.Binary
 open Demeton.PngTypes
-open Demeton.PngFilters
+open Demeton.PngFiltering
+open Demeton.PngUnfiltering
 open Demeton.Png
 
 open System.IO

@@ -7,7 +7,8 @@
     <Compile Include="Binary.fs" />
     <Compile Include="CRC.fs" />
     <Compile Include="Png\PngTypes.fs" />
-    <Compile Include="Png\PngFilters.fs" />
+    <Compile Include="Png\PngFiltering.fs" />
+    <Compile Include="Png\PngUnfiltering.fs" />
     <Compile Include="Png\Png.fs" />
     <Compile Include="Png\PngChunks.fs" />
     <Compile Include="Png\PngPixelFormats.fs" />
