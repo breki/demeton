@@ -14,16 +14,14 @@ open System
 
 [<Fact>]
 let ``Can filter scanlines``() =
-    // todo construct image data array instead of (obsolete) scanlines
-    let scanlines = [|
-        [| 0uy; 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy |];
-        [| 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy; 10uy |]
+    let rawImageData = [|
+        0uy; 1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy;
+        1uy; 2uy; 3uy; 4uy; 5uy; 6uy; 7uy; 8uy; 9uy; 10uy;
     |]
     let bpp = 8
 
-    let rawImageData = scanlines |> Array.concat
-    let imageWidth = scanlines.[0].Length
-    let imageHeight = scanlines.Length
+    let imageWidth = 10
+    let imageHeight = 2
 
     let filteredImageData = 
         filterScanlines imageWidth imageHeight bpp rawImageData 
@@ -283,23 +281,3 @@ let ``Filtering and unfiltering using Paeth filter type returns the same scanlin
     unfilterScanlinePaeth bpp prevScanlineSpan filteredSpan unfilteredSpan
     
     unfilteredSpan.ToArray() = scanline
-
-// todo fix this test once we move to spans for filtering, too
-//[<Property>]
-//[<Trait("Category", "integration")>]
-//let ``Unfiltering scanlines returns the original scanlines``
-//    (scanlines2d: byte[,]) =
-
-//    let bpp = 8
-
-//    let toJaggedArray (arr2d: 'T[,]): 'T[][] =
-//        [|
-//            for row in 0 .. (Array2D.length2 arr2d - 1) ->
-//                arr2d.[0..(Array2D.length1 arr2d - 1), row]
-//        |]
-
-//    let scanlines = toJaggedArray scanlines2d
-//    let filteredScanlines = 
-//        filterScanlines filterScanline bpp scanlines
-//    let unfilteredScanlines = unfilterScanlines bpp filteredScanlines
-//    scanlines = unfilteredScanlines

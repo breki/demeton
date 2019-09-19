@@ -210,14 +210,11 @@ let ``Can generate and read a valid 16-bit grayscale PNG``() =
     test <@ bitmap.Height = imageHeight @>
 
 
-// todo: this test doesn't actually work on an SRTM tile
 [<Fact>]
-[<Trait("Category", "slow")>]
 let ``Can decode 16-bit grayscale image generated from a SRTM tile``() =
     let assembly = Assembly.GetExecutingAssembly()
     use pngReadStream = assembly.GetManifestResourceStream
-                                ("Demeton.Tests.samples.test-grayscale-16.png")
-                                //("Demeton.Tests.samples.N46E015.png")    
+                                ("Demeton.Tests.samples.N46E015.png")    
     let clock = new System.Diagnostics.Stopwatch()
     clock.Start()
 
@@ -226,8 +223,8 @@ let ``Can decode 16-bit grayscale image generated from a SRTM tile``() =
     let (ihdrRead, imageDataRead) = 
         pngReadStream |> loadPngFromStream 
 
-    test <@ ihdrRead.Width = 500 @>
-    test <@ ihdrRead.Height = 500 @>
-    test <@ imageDataRead.Length = (500*500*2) @>
+    test <@ ihdrRead.Width = 3600 @>
+    test <@ ihdrRead.Height = 3600 @>
+    test <@ imageDataRead.Length = (3600*3600*2) @>
 
     printfn "%d DONE." clock.ElapsedMilliseconds

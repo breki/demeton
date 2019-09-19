@@ -17,6 +17,6 @@ let grayscale16BitImageData
 
             imageData.[byteIndex] <- byte (pixelValue >>> 8)
             imageData.[byteIndex+1] <- byte pixelValue
-            byteIndex <- byteIndex + 1
+            byteIndex <- byteIndex + 2
 
     imageData

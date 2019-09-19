@@ -39,7 +39,7 @@ let readBytes length (stream: Stream): byte[] =
         let bytesRead = fromStream.Read(buffer, 0, maxBytesToRead)
         toStream.Write(buffer, 0, bytesRead)
 
-        let remainingLength = length - bytesRead
+        let remainingLength = bytesToCopy - bytesRead
         match remainingLength with
         | 0 -> ignore()
         | _ -> copyToStream remainingLength buffer fromStream toStream
