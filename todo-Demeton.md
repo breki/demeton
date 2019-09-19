@@ -1,5 +1,6 @@
-﻿- profile and speed up PNG decoding 
-    - can we improve the unfilter types code?
+﻿- test to check whether the compression rate can be improved by using a different mapping from height to raw bytes
+
+- define a console command that imports HGT files into PNGs for a given area
 
 - possible PNG encoding performance improvements
     - split IDAT into several chunks that can be CRC-processed in parallel

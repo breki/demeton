@@ -1,4 +1,5 @@
 ﻿## Thu 19.9.
+- Finished optimizing PNG decoding.
 - Fixed a bug in `Demeton.Binary.readBytes()` that prevented the method from ever finishing.
 - Added some test commands into the `Demeton.Console` so can test the real-life speed of PNG encoding/decoding.
 - Speeded up `grayscale16BitImageData` function.

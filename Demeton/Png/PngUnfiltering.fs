@@ -4,7 +4,6 @@ open Demeton.PngTypes
 open Demeton.PngFiltering
 
 open System
-open System.Threading.Tasks
 
 
 let inline unfilterScanlineNone 
@@ -25,33 +24,28 @@ let unfilterScanlineSub
     bytesPP (filtered: Span<byte>) (scanline: Span<byte>): unit =
     let scanlineLength = scanline.Length
 
-    match (scanlineLength, scanlineLength % bytesPP) with
-    | (0, _) -> ignore()
-    | (_, 0) -> 
-        // how many pixels are there in the scanline?
-        let pixelCount = scanlineLength / bytesPP
+    // how many pixels are there in the scanline?
+    let pixelCount = scanlineLength / bytesPP
+    let pixelCountMinus1 = pixelCount-1
 
-        // for each byte in pixel
-        for pixelByteOffset in 0 .. (bytesPP-1) do
+    // for each byte in pixel
+    for pixelByteOffset in 0 .. (bytesPP-1) do
+        // keep track of the left neighbor value
+        let mutable leftValue = filtered.[pixelByteOffset]
 
-            // keep track of the left neighbor value
-            let mutable leftValue = filtered.[pixelByteOffset]
+        // for the first (leftmost) pixel, we cannot subtract the value 
+        // since there is no left neighbor, so we just copy the value from
+        // the filtered scanline
+        scanline.[pixelByteOffset] <- leftValue
 
-            // for the first (leftmost) pixel, we cannot subtract the value 
-            // since there is no left neighbor, so we just copy the value from
-            // the filtered scanline
-            scanline.[pixelByteOffset] <- leftValue
+        // for the rest of the pixels
+        for i in 1 .. pixelCountMinus1 do
+            // calculate its index in the scanline
+            let byteIndex = pixelByteOffset + i * bytesPP
 
-            // for the rest of the pixels
-            for i in 1 .. pixelCount-1 do
-                // calculate its index in the scanline
-                let byteIndex = pixelByteOffset + i * bytesPP
-
-                let value = leftValue + filtered.[byteIndex] 
-                scanline.[byteIndex] <- value
-                leftValue <- value
-
-    | (_, _) -> invalidOp "Invalid scanline length"
+            let value = leftValue + filtered.[byteIndex] 
+            scanline.[byteIndex] <- value
+            leftValue <- value
 
 
 /// <summary>
@@ -73,16 +67,11 @@ let unfilterScanlineUp
     : unit =
     let scanlineLength = filtered.Length
 
-    match scanlineLength with
-    | l when (l < 0) -> 
-        invalidArg "filtered byte array cannot be empty" "filtered"
-    | 0 -> ignore()
+    match prevScanline.Length with
+    | 0 -> filtered.CopyTo(scanline)
     | _ -> 
-        match prevScanline.Length with
-        | 0 -> filtered.CopyTo(scanline)
-        | _ -> 
-            for i in 0 .. (scanlineLength-1) do
-                scanline.[i] <- filtered.[i] + prevScanline.[i]
+        for i in 0 .. (scanlineLength-1) do
+            scanline.[i] <- filtered.[i] + prevScanline.[i]
 
 
 /// <summary>
@@ -106,35 +95,31 @@ let unfilterScanlineAverage
 
     let scanlineLength = filtered.Length
 
-    match (scanlineLength, scanlineLength % bytesPP) with
-    | (0, _) -> ignore()
-    | (_, 0) -> 
-        // how many pixels are there in the scanline?
-        let pixelCount = scanlineLength / bytesPP
+    // how many pixels are there in the scanline?
+    let pixelCount = scanlineLength / bytesPP
+    let pixelCountMinus1 = pixelCount-1
 
-        // for each byte in pixel
-        for pixelByteOffset in 0 .. (bytesPP-1) do
+    // for each byte in pixel
+    for pixelByteOffset in 0 .. (bytesPP-1) do
 
-            // keep track of the left (previous) neighbor value
-            let mutable left = 0
+        // keep track of the left (previous) neighbor value
+        let mutable left = 0
         
-            // for each pixel
-            for i in 0 .. pixelCount-1 do
-                // calculate its index in the scanline
-                let byteIndex = pixelByteOffset + i * bytesPP
+        // for each pixel
+        for i in 0 .. pixelCountMinus1 do
+            // calculate its index in the scanline
+            let byteIndex = pixelByteOffset + i * bytesPP
 
-                let currentValue = filtered.[byteIndex]
-                let up =
-                    match prevScanline.Length with
-                    | 0 -> 0
-                    | _ -> (int)prevScanline.[byteIndex]
+            let currentValue = filtered.[byteIndex]
+            let up =
+                match prevScanline.Length with
+                | 0 -> 0
+                | _ -> (int)prevScanline.[byteIndex]
 
-                let unfilteredValue = 
-                    currentValue + (byte)((left + up) / 2)
-                left <- (int) unfilteredValue
-                scanline.[byteIndex] <- unfilteredValue
-
-    | (_, _) -> invalidOp "Invalid scanline length"
+            let unfilteredValue = 
+                currentValue + (byte)((left + up) / 2)
+            left <- (int) unfilteredValue
+            scanline.[byteIndex] <- unfilteredValue
 
 
 /// <summary>
@@ -158,40 +143,36 @@ let unfilterScanlinePaeth
 
     let scanlineLength = filtered.Length
 
-    match (scanlineLength, scanlineLength % bytesPP) with
-    | (0, _) -> ignore()
-    | (_, 0) -> 
-        // how many pixels are there in the scanline?
-        let pixelCount = scanlineLength / bytesPP
+    // how many pixels are there in the scanline?
+    let pixelCount = scanlineLength / bytesPP
+    let pixelCountMinus1 = pixelCount-1
 
-        // for each byte in pixel
-        for pixelByteOffset in 0 .. (bytesPP-1) do
+    // for each byte in pixel
+    for pixelByteOffset in 0 .. (bytesPP-1) do
 
-            // keep track of the left (previous) neighbor value
-            let mutable left = 0
+        // keep track of the left (previous) neighbor value
+        let mutable left = 0
 
-            // for each pixel
-            for i in 0 .. pixelCount-1 do
-                // calculate its index in the scanline
-                let byteIndex = pixelByteOffset + i * bytesPP
+        // for each pixel
+        for i in 0 .. pixelCountMinus1 do
+            // calculate its index in the scanline
+            let byteIndex = pixelByteOffset + i * bytesPP
 
-                let currentValue = filtered.[byteIndex]
-                let up =
-                    match prevScanline.Length with
-                    | 0 -> 0
-                    | _ -> (int)prevScanline.[byteIndex]
-                let upLeft = 
-                    match (i, prevScanline.Length) with
-                    | (0, _) -> 0
-                    | (_, 0) -> 0
-                    | (_, _) -> (int)prevScanline.[byteIndex-bytesPP]
+            let currentValue = filtered.[byteIndex]
+            let up =
+                match prevScanline.Length with
+                | 0 -> 0
+                | _ -> (int)prevScanline.[byteIndex]
+            let upLeft = 
+                match (i, prevScanline.Length) with
+                | (0, _) -> 0
+                | (_, 0) -> 0
+                | (_, _) -> (int)prevScanline.[byteIndex-bytesPP]
 
-                let unfilteredValue = 
-                    currentValue + (byte)(paethPredictor left up upLeft)
-                left <- (int)unfilteredValue
-                scanline.[byteIndex] <- unfilteredValue
-
-    | (_, _) -> invalidOp "Invalid scanline length"
+            let unfilteredValue = 
+                currentValue + (byte)(paethPredictor left up upLeft)
+            left <- (int)unfilteredValue
+            scanline.[byteIndex] <- unfilteredValue
 
 
 let unfilterScanline 
