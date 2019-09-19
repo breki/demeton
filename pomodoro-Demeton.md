@@ -1,4 +1,8 @@
-﻿## Wed 18.9.
+﻿## Thu 19.9.
+- Speeded up `grayscale16BitImageData` function.
+- Reorganized and renamed PNG modules.
+
+## Wed 18.9.
 - Implemented an alternative PNG filtering code which runs around 20% faster.
 - Chosen the fastest `crc32` variant as the new implementation.
 - Implemented several alternative `crc32` functions and added benchmarks for them.
