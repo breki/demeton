@@ -4,7 +4,7 @@ open System.IO.Compression;
 open Demeton.Srtm
 open Demeton.HgtPng
 open Demeton.Png
-open Demeton.GeometryTypes
+open Demeton.Commands.ImportSrtmTilesCommand
 
 let hgtFileName (demFile : string) = demFile + ".hgt"
 
@@ -84,13 +84,6 @@ let decodePng (pngFileName: string) =
 
     0
 
-
-type ImportOptions = {
-    Bounds: Bounds option
-    SrtmDir: string
-    LocalCacheDir: string
-}
-
 let displayHelp exitCode = 
     // todo: add code to display all the available commands
     printfn "We'll display help text here soon..."
@@ -99,45 +92,6 @@ let displayHelp exitCode =
 let handleUnknownCommand commandName =
     printfn "Unknown command '%s'." commandName
     1
-
-
-let handleUnknownArgument arg =
-    sprintf "Unknown argument '%s'." arg
-
-
-let parseBounds (value: string) (options: Result<ImportOptions, string>): 
-    Result<ImportOptions, string> =
-    let splits = value.Split (',') |> Array.map (fun s -> Double.Parse s)
-    
-    match splits.Length with
-    | 4 -> 
-        match options with
-        | Ok opt -> Ok { opt with Bounds = Some { MinLon = splits.[0]; MinLat = splits.[1]; MaxLon = splits.[2]; MaxLat = splits.[3] }}
-        | _ -> options
-    | _ -> Error "Invalid bounds value"
-
-
-let parseImportArgs (args: string list): 
-    Result<ImportOptions, string> =
-
-    let mutable argsRemaining = args
-    let mutable options: Result<ImportOptions, string> = 
-        Ok { Bounds = None; SrtmDir = "srtm"; LocalCacheDir = "cache" }
-
-    while argsRemaining.Length > 0 do
-        let arg = args |> List.head
-
-        let (newArgsRemaining, newOptionsResult) =
-            match arg with
-            | "--bounds" -> 
-                (argsRemaining |> List.skip 2, parseBounds args.[1] options)
-            | _ -> 
-                ([], Error (handleUnknownArgument arg))
-
-        argsRemaining <- newArgsRemaining
-        options <- newOptionsResult
-
-    options
 
 
 let importTiles options =
@@ -154,7 +108,7 @@ let parseArgsAndRun (args: string[]) =
             let parseResult = 
                 args |> Array.toList |> List.tail |> parseImportArgs 
             match parseResult with
-            | Ok options -> importTiles options
+            | Ok (_, options) -> importTiles options
             | Error errMessage -> 
                 printfn "Parsing error: %s" errMessage
                 1

@@ -9,6 +9,25 @@ open Swensen.Unquote
 open System.IO
 
 
+let isError errorMessage result =
+    match result with
+    | Ok _ -> false
+    | Error actualMessage -> actualMessage = errorMessage
+
+
+[<Fact>]
+let ``Report error when bounds parameter is missing``() =
+    let result = parseImportArgs []
+    test <@ result |> isError "`bounds` parameter is missing." @>
+
+
+[<Fact>]
+let ``Report error when bounds value is missing``() =
+    let result = parseImportArgs [ "--bounds" ]
+    test <@ result |> isError "`bounds` parameter's value is missing." @>
+
+
+
 [<Fact>]
 let ``Imports all tiles within the specified boundaries``() =
     let tilesCoords = [

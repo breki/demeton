@@ -1,5 +1,6 @@
 ﻿- define a console command that imports HGT files into PNGs for a given area
     - move the cmd line parsing code to the Demeton library and write tests
+        - separate command line parsing from the execution
     - logging function
 
 - possible PNG encoding performance improvements
