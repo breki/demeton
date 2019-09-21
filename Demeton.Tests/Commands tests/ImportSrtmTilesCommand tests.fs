@@ -30,8 +30,24 @@ let ``Reports error when bounds value is missing``() =
 [<Fact>]
 let ``Reports error when bounds value is not made of 4 parts``() =
     let result = parseImportArgs [ "--bounds"; "10,20" ]
+    test <@ 
+            result |> isError "`bounds` parameter's value is invalid." 
+    @>
+
+
+[<Fact>]
+let ``Reports error when at least one of bounds parts is not a number``() =
+    let result = parseImportArgs [ "--bounds"; "10,20,a,30" ]
     test <@ result |> isError "`bounds` parameter's value is invalid." @>
 
+
+[<Fact>]
+let ``Reports error when longitude value is out of bounds``() =
+    let result = parseImportArgs [ "--bounds"; "-500,20,25,30" ]
+    test <@ 
+            result 
+            |> isError "`bounds` parameter's value is invalid, longitude value is out of range." 
+        @>
 
 
 [<Fact>]

@@ -7,6 +7,16 @@
     <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Benchmarks\PngFilterBenchmarks.fs" />
     <Compile Include="Benchmarks\CrcBenchmarks.fs" />

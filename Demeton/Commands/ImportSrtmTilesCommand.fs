@@ -4,6 +4,7 @@ open Demeton.GeometryTypes
 open Demeton.SrtmTypes
 open Demeton.DemTypes
 open System
+open System.Globalization
 open System.IO
 
 
@@ -54,17 +55,71 @@ let withError errorMessage (_: ParsingContext) =
     Error errorMessage
 
 
+let withOptions (updatedOptions: ImportOptions) (context: ParsingContext)
+    :ParsingContext =
+    let (args, _) = context
+    (args, updatedOptions)
+
 let parseBounds (context: ParsingContext) =
     match nextArg context with
     | None -> context |> withError "`bounds` parameter's value is missing."
     | Some value -> 
-        let splits = value.Split (',') |> Array.map (fun s -> Double.Parse s)
-    
+        let tryParseFloat (value: string) =
+            match Double.TryParse
+                (
+                value,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture) with
+            | (true, parsed) -> Some parsed
+            | _ -> None
+
+        let isLongitudeInRange value = value >= -179. && value <= 180.
+        let isLatitudeInRange value = value >= -90. && value <= 90.
+
+        let boundsFromParsedParts (parts: float option array)
+            : Result<Bounds, string> =
+            let minLon = Option.get parts.[0]
+            let minLat = Option.get parts.[1]
+            let maxLon = Option.get parts.[2]
+            let maxLat = Option.get parts.[3]
+            match (minLon, minLat, maxLon, maxLat) with
+            | (x, _, _, _) when not (isLongitudeInRange x) 
+                -> Error "longitude value is out of range"
+            | (_, _, x, _) when not (isLongitudeInRange x) 
+                -> Error "longitude value is out of range"
+            | (_, x, _, _) when not (isLatitudeInRange x) 
+                -> Error "latitude value is out of range"
+            | (_, _, _, x) when not (isLatitudeInRange x) 
+                -> Error "latitude value is out of range"
+            | _ -> Ok { 
+                        MinLon = minLon
+                        MinLat = Option.get parts.[1]
+                        MaxLon = Option.get parts.[2]
+                        MaxLat = Option.get parts.[3]
+                    }
+
+        let splits = value.Split (',') 
+
         match splits.Length with
         | 4 -> 
-            let (args, options) = context
-            Ok (args,  { options with Bounds = Some { MinLon = splits.[0]; MinLat = splits.[1]; MaxLon = splits.[2]; MaxLat = splits.[3] }})
-        | _ -> context |> withError "Invalid bounds value"
+            let parsedSplits = splits |> Array.map tryParseFloat
+            let hasAnyInvalidParts = parsedSplits |> Array.exists Option.isNone
+            match hasAnyInvalidParts with
+            | true -> 
+                context |> withError "`bounds` parameter's value is invalid."
+            | false ->
+                let bounds = boundsFromParsedParts parsedSplits
+                match bounds with
+                | Error msg -> 
+                    context 
+                    |> withError ("`bounds` parameter's value is invalid, " + msg + ".")
+                | Ok boundsVal -> 
+                    let (_, oldOptions) = context
+                    context 
+                    |> withOptions ({ oldOptions with Bounds = Some boundsVal })
+                    |> Result.Ok
+
+        | _ -> context |> withError "`bounds` parameter's value is invalid."
 
 
 let parseImportArgs (args: string list): ParsingResult =
