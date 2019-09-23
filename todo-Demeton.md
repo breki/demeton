@@ -1,4 +1,5 @@
 ﻿- command line
+    - separate generic parser code and its tests
 
 - possible PNG encoding performance improvements
     - split IDAT into several chunks that can be CRC-processed in parallel
