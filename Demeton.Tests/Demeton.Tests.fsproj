@@ -22,6 +22,7 @@
     <Compile Include="Benchmarks\CrcBenchmarks.fs" />
     <Compile Include="Benchmarks\Array1Dvs2D.fs" />
     <Compile Include="Benchmarks\ArrayAccess.fs" />
+    <Compile Include="Srtm\fetchSrtmTile tests.fs" />
     <Compile Include="Srtm\ensureTilesAreInCache tests.fs" />
     <Compile Include="Srtm\SRTM tile ID tests.fs" />
     <Compile Include="Srtm\fetchSrtmHeights tests.fs" />

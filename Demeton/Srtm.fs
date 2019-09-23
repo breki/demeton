@@ -4,6 +4,7 @@ open GeometryTypes
 open IOTypes
 open DemTypes
 open SrtmTypes
+open FileSystem
 
 open System
 open System.IO
@@ -124,9 +125,9 @@ let createSrtmTileFromStream tileSize tileCoords stream =
 
 
 let toLocalCacheTileFile 
-    (tileCoords: SrtmTileCoords) 
-    (localCacheDir: string) : SrtmTileHgtFile =
-    let tileHgtFileName = sprintf "%s.hgt" (tileId tileCoords)
+    (localCacheDir: string) 
+    (tileCoords: SrtmTileCoords) : SrtmTileHgtFile =
+    let tileHgtFileName = sprintf "%s.png" (tileId tileCoords)
 
     { 
         TileCoords = tileCoords; 
@@ -139,13 +140,22 @@ let ensureTilesAreInCache
     (localCacheDir: string)
     : SrtmTileHgtFile list =
     tiles 
-    |> List.map (fun x -> toLocalCacheTileFile x localCacheDir)
+    |> List.map (fun x -> toLocalCacheTileFile localCacheDir x)
 
 
-let fetchSrtmTile (tile: SrtmTileCoords): HeightsArray option =
-    invalidOp("todo: importSrtmTile")
-// (createPngTileFile: string -> Stream)
-// (encodeSrtmTileToPng: SrtmToPngEncoder)
+type SrtmPngTileReader = string -> HeightsArray
+
+let fetchSrtmTile 
+    (localCacheDir: string)
+    (fileExists: FileExistsChecker)
+    (pngTileReader: SrtmPngTileReader)
+    (tile: SrtmTileCoords)
+    : HeightsArray option =
+    let localTileFile = toLocalCacheTileFile localCacheDir tile
+
+    match fileExists localTileFile.FileName with
+    | true -> Some (pngTileReader localTileFile.FileName)
+    | false -> invalidOp "todo: "
 
 
 let fetchSrtmHeights 
