@@ -95,6 +95,9 @@ let handleUnknownCommand commandName =
 
 
 let importTiles options =
+    // todo implement importTiles
+    //let tilesCords = boundsToTiles options.Bounds
+
     printfn "import: %A %s %s" options.Bounds options.SrtmDir options.LocalCacheDir
     0
 

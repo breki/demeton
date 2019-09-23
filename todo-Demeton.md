@@ -1,5 +1,8 @@
-﻿- command line
-    - separate generic parser code and its tests
+﻿- define a function that imports a single SRTM tile
+    - whole workflow -> check if PNG exists -> unzip, read HGT, encode to PNG, delete HGT
+
+- command line
+    - command line help text
 
 - possible PNG encoding performance improvements
     - split IDAT into several chunks that can be CRC-processed in parallel

@@ -142,13 +142,22 @@ let ensureTilesAreInCache
     |> List.map (fun x -> toLocalCacheTileFile x localCacheDir)
 
 
-// todo: fetchSrtmHeights need to merge the fetched tiles together
+let fetchSrtmTile (tile: SrtmTileCoords): HeightsArray option =
+    invalidOp("todo: importSrtmTile")
+// (createPngTileFile: string -> Stream)
+// (encodeSrtmTileToPng: SrtmToPngEncoder)
+
+
 let fetchSrtmHeights 
     (tilesToUse: SrtmTileCoords seq)
-    (fetchSrtmTiles: FetchSrtmTiles)
     (readSrtmTile: SrtmTileReader)
     : HeightsArray option = 
-    let srtmTiles = fetchSrtmTiles tilesToUse
-    match srtmTiles with
-    | tiles when Seq.isEmpty tiles -> None
-    | _ -> Some (readSrtmTile (srtmTiles |> Seq.head))
+
+    let tilesHeightsArrays = 
+        tilesToUse 
+        |> Seq.map (fun tileCoords -> readSrtmTile tileCoords)
+        |> Seq.filter Option.isSome
+        |> Seq.map Option.get
+        |> Seq.toList
+
+    Dem.merge tilesHeightsArrays

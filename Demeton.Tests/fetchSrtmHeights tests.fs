@@ -9,17 +9,12 @@ open Swensen.Unquote
 let returnSomeHeightArray _ =
     HeightsArray(0, 0, 0, 0, (fun _ -> None))
 
-let fetchSomeSrtmTiles tilesCoords =
-    tilesCoords 
-    |> Seq.map (fun tc -> { TileCoords = tc; FileName = "sometile" } );
-
 [<Fact>]
 let ``Returns None if there are no tiles to fetch``() =
     let srtmHeights = 
         Demeton.Srtm.fetchSrtmHeights 
             [] 
-            (fun _ -> Seq.empty<SrtmTileHgtFile>) 
-            returnSomeHeightArray 
+            (fun _ -> None) 
     srtmHeights |> should equal None
     test <@ (srtmHeights |> Option.isNone) = true @>
 
@@ -30,8 +25,7 @@ let ``Returns HeightArray when at least one tile was found``() =
     let srtmHeights = 
         Demeton.Srtm.fetchSrtmHeights 
             tilesToUse
-            fetchSomeSrtmTiles
-            returnSomeHeightArray
+            (fun x -> Some (returnSomeHeightArray x))
     srtmHeights |> should be ofExactType<HeightsArray option>
     test <@ (srtmHeights |> Option.isSome) = true @>
    

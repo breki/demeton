@@ -16,9 +16,9 @@ type ImportOptions = {
 }
 
 
-
 let boundsParameter = "bounds"
 let srtmDirParameter = "srtm-dir"
+let localCacheDirParameter = "local-cache-dir"
 
 
 let parseBounds (value: string) (context: ParsingContext<ImportOptions>) =
@@ -87,13 +87,20 @@ let parseBounds (value: string) (context: ParsingContext<ImportOptions>) =
         |> invalidParameter boundsParameter "it should consist of 4 numbers"
 
 
-let parseSrtmDir srtmDir context =
+let parseSrtmDir value context =
     let (_, oldOptions) = context
     context 
     |> consumeArg
-    |> withOptions ({ oldOptions with SrtmDir = srtmDir })
+    |> withOptions ({ oldOptions with SrtmDir = value })
     |> Result.Ok
-    
+
+
+let parseLocalCacheDir value context =
+    let (_, oldOptions) = context
+    context 
+    |> consumeArg
+    |> withOptions ({ oldOptions with LocalCacheDir = value })
+    |> Result.Ok
 
 
 let parseImportArgs (args: string list): ParsingResult<ImportOptions> =
@@ -112,6 +119,8 @@ let parseImportArgs (args: string list): ParsingResult<ImportOptions> =
                 parseParameter boundsParameter parseBounds context
             | Some "--srtm-dir" -> 
                 parseParameter srtmDirParameter parseSrtmDir context
+            | Some "--local-cache-dir" -> 
+                parseParameter localCacheDirParameter parseLocalCacheDir context
             | Some unknownArg ->
                 Error (sprintf "Unrecognized parameter '%s'." unknownArg)
             | None -> invalidOp "BUG: this should never happen"
@@ -146,17 +155,15 @@ type SrtmToPngEncoder = HeightsArray -> Stream -> unit
 /// writes it into the provides stream.
 /// </param>
 let import 
-    (tiles: SrtmTileHgtFile seq)
+    (tiles: SrtmTileCoords seq)
     (readTile: SrtmTileReader)
-    (createPngTileFile: string -> Stream)
-    (encodeSrtmTileToPng: SrtmToPngEncoder)
     : unit = 
 
-    for tileFile in tiles do
-        let heightsArray = readTile tileFile
-        let tileId = Demeton.Srtm.tileId tileFile.TileCoords
-
-        use pngStream = createPngTileFile tileId
-        encodeSrtmTileToPng heightsArray pngStream
+    for tileCoords in tiles do
+        printf "Looking for SRTM tile %s... " (Demeton.Srtm.tileId tileCoords)
+        let heightsArrayOption = readTile tileCoords
+        match heightsArrayOption with
+        | None -> printfn " the tile does not exist, moving to the next one."
+        | _ -> printfn " imported."
 
     ignore()

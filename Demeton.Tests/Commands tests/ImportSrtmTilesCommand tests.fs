@@ -109,7 +109,7 @@ let ``Parses valid bounds values``() =
 
 
 [<Fact>]
-let ``The default SRTM dir is 'srtm``() =
+let ``The default SRTM dir is 'srtm'``() =
     let result = parseImportArgs [ "--bounds"; "-10.1,20,25,70.4" ]
     test <@ 
             (result |> parsedOptions).SrtmDir = "srtm"
@@ -131,34 +131,43 @@ let ``Parses the SRTM dir parameter``() =
 
 
 [<Fact>]
+let ``The default local cache dir is 'cache'``() =
+    let result = parseImportArgs [ "--bounds"; "-10.1,20,25,70.4" ]
+    test <@ 
+            (result |> parsedOptions).LocalCacheDir = "cache"
+        @>
+
+
+[<Fact>]
+let ``Parses the local cache dir parameter``() =
+    let localCacheDirValue = "somewhere/else"
+
+    let result = 
+        parseImportArgs [ 
+        "--local-cache-dir"; localCacheDirValue
+        "--bounds"; "-10.1,20,25,70.4";
+        ]
+    test <@ 
+            (result |> parsedOptions).LocalCacheDir = localCacheDirValue
+        @>
+
+
+[<Fact>]
 let ``Imports all tiles within the specified boundaries``() =
     let tilesCoords = [
         { Lon = SrtmLongitude.fromInt 15; Lat = SrtmLatitude.fromInt 45 }
         { Lon = SrtmLongitude.fromInt 16; Lat = SrtmLatitude.fromInt 46 }
     ]
 
-    let tileFiles = 
-        tilesCoords 
-        |> List.map (fun tc -> { TileCoords = tc; FileName = "somefile" } )
-
-    let mutable tilesRead: SrtmTileHgtFile list = []
+    let mutable tilesRead = []
     let mutable heightsArraysProduced: HeightsArray list = []
 
-    let readTile (tileFile: SrtmTileHgtFile): HeightsArray =
-        tilesRead <- tileFile :: tilesRead
+    let readTile (tilesCoords: SrtmTileCoords): HeightsArray option =
+        tilesRead <- tilesCoords :: tilesRead
         let heightsArray = HeightsArray (0, 0, 10, 10, fun x -> None)
         heightsArraysProduced <- heightsArray :: heightsArraysProduced
-        heightsArray
+        Some heightsArray
 
-    let createPngFile tileId = new MemoryStream() :> Stream
-
-    let mutable heightsArraysEncoded: HeightsArray list = []
-
-    let pngEncoder heightsArray stream =
-        heightsArraysEncoded <- heightsArray :: heightsArraysEncoded
-        ignore()
-
-    import tileFiles readTile createPngFile pngEncoder
+    import tilesCoords readTile
 
     test <@ heightsArraysProduced.Length = tilesCoords.Length @>
-    test <@ heightsArraysProduced = heightsArraysEncoded @>
