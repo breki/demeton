@@ -74,6 +74,7 @@ let encodeSrtmHeightsArrayToPng
 let convertZippedHgtTileToPng
     (readZipFileEntry: ZipFileEntryReader)
     createSrtmTileFromStream
+    encodeHeightsArrayIntoPngFile
     (zippedHgtFile: SrtmTileFile)
     pngFileName =
     
@@ -86,4 +87,6 @@ let convertZippedHgtTileToPng
         createSrtmTileFromStream 
             3600 zippedHgtFile.TileCoords zipEntryStream
 
-    ignore()
+    encodeHeightsArrayIntoPngFile heightsArray pngFileName
+
+    heightsArray
