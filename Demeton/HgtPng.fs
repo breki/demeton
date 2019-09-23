@@ -71,10 +71,22 @@ let encodeSrtmHeightsArrayToPng
     |> savePngToStream ihdr imageData
 
 
+let encodeHeightsArrayIntoPngFile
+    (ensureDirectoryExists: string -> string)
+    openFile
+    heightsArray 
+    pngFileName =
+
+    ensureDirectoryExists (pngFileName |> Paths.directory) |> ignore
+
+    use stream = openFile pngFileName
+    encodeSrtmHeightsArrayToPng heightsArray stream |> ignore
+
+
 let convertZippedHgtTileToPng
     (readZipFileEntry: ZipFileEntryReader)
     createSrtmTileFromStream
-    encodeHeightsArrayIntoPngFile
+    encodeTileIntoPngFile
     (zippedHgtFile: SrtmTileFile)
     pngFileName =
     
@@ -87,6 +99,6 @@ let convertZippedHgtTileToPng
         createSrtmTileFromStream 
             3600 zippedHgtFile.TileCoords zipEntryStream
 
-    encodeHeightsArrayIntoPngFile heightsArray pngFileName
+    encodeTileIntoPngFile heightsArray pngFileName
 
     heightsArray

@@ -1,4 +1,5 @@
 ﻿## Mon 23.9.
+- Implemented `encodeHeightsArrayIntoPngFile` function.
 - Implemented `openZipFileEntry` function.
 - Finished implementing `convertZippedHgtTileToPng` function.
 - Finished implementing `fetchSrtmTile` function.

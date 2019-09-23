@@ -1,5 +1,4 @@
-﻿- implement ZipFileEntryReader
-- implement encodeHeightsArrayIntoPngFile
+﻿- implement encodeHeightsArrayIntoPngFile
 
 - https://fsprojects.github.io/FSharp.Formatting/metadata.html
 - command line
