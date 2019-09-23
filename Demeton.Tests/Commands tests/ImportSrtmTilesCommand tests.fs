@@ -123,8 +123,14 @@ let ``The default SRTM dir is 'srtm``() =
 
 
 [<Fact>]
-let ``Reports error when SRTM value is missing``() =
+let ``Reports error when SRTM dir value is missing (1)``() =
     let result = parseImportArgs [ "--srtm-dir" ]
+    test <@ result |> isError "'srtm-dir' parameter's value is missing." @>
+
+
+[<Fact>]
+let ``Reports error when SRTM dir value is missing (2)``() =
+    let result = parseImportArgs [ "--srtm-dir"; "--bounds" ]
     test <@ result |> isError "'srtm-dir' parameter's value is missing." @>
 
 

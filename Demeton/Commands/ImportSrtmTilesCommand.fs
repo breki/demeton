@@ -72,89 +72,90 @@ let invalidParameter parameter reason context =
     context |> withError message
 
 
+let parseParameter parameterName parseValue (context: ParsingContext) =
+    match nextArg context with
+    | None -> context |> parameterValueIsMissing parameterName
+    | (Some x) when x.StartsWith("--") ->
+        context |> parameterValueIsMissing parameterName
+    | Some parameterValue -> parseValue parameterValue context
+
+
 let boundsParameter = "bounds"
 let srtmDirParameter = "srtm-dir"
 
 
+let parseBounds (value: string) (context: ParsingContext) =
+    let tryParseFloat (value: string) =
+        match Double.TryParse
+            (
+            value,
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture) with
+        | (true, parsed) -> Some parsed
+        | _ -> None
 
-let parseBounds (context: ParsingContext) =
-    match nextArg context with
-    | None -> context |> parameterValueIsMissing boundsParameter
-    | Some value -> 
-        let tryParseFloat (value: string) =
-            match Double.TryParse
-                (
-                value,
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture) with
-            | (true, parsed) -> Some parsed
-            | _ -> None
+    let isLongitudeInRange value = value >= -179. && value <= 180.
+    let isLatitudeInRange value = value >= -90. && value <= 90.
 
-        let isLongitudeInRange value = value >= -179. && value <= 180.
-        let isLatitudeInRange value = value >= -90. && value <= 90.
+    let boundsFromParsedParts (parts: float option array)
+        : Result<Bounds, string> =
+        let minLon = Option.get parts.[0]
+        let minLat = Option.get parts.[1]
+        let maxLon = Option.get parts.[2]
+        let maxLat = Option.get parts.[3]
+        match (minLon, minLat, maxLon, maxLat) with
+        | (x, _, _, _) when not (isLongitudeInRange x) 
+            -> Error "longitude value is out of range"
+        | (_, _, x, _) when not (isLongitudeInRange x) 
+            -> Error "longitude value is out of range"
+        | (_, x, _, _) when not (isLatitudeInRange x) 
+            -> Error "latitude value is out of range"
+        | (_, _, _, x) when not (isLatitudeInRange x) 
+            -> Error "latitude value is out of range"
+        | (min, _, max, _) when min > max 
+            -> Error "max longitude value is smaller than min longitude value"
+        | (_, min, _, max) when min > max 
+            -> Error "max latitude value is smaller than min latitude value"
+        | _ -> Ok { 
+                    MinLon = minLon
+                    MinLat = minLat
+                    MaxLon = maxLon
+                    MaxLat = maxLat
+                }
 
-        let boundsFromParsedParts (parts: float option array)
-            : Result<Bounds, string> =
-            let minLon = Option.get parts.[0]
-            let minLat = Option.get parts.[1]
-            let maxLon = Option.get parts.[2]
-            let maxLat = Option.get parts.[3]
-            match (minLon, minLat, maxLon, maxLat) with
-            | (x, _, _, _) when not (isLongitudeInRange x) 
-                -> Error "longitude value is out of range"
-            | (_, _, x, _) when not (isLongitudeInRange x) 
-                -> Error "longitude value is out of range"
-            | (_, x, _, _) when not (isLatitudeInRange x) 
-                -> Error "latitude value is out of range"
-            | (_, _, _, x) when not (isLatitudeInRange x) 
-                -> Error "latitude value is out of range"
-            | (min, _, max, _) when min > max 
-                -> Error "max longitude value is smaller than min longitude value"
-            | (_, min, _, max) when min > max 
-                -> Error "max latitude value is smaller than min latitude value"
-            | _ -> Ok { 
-                        MinLon = minLon
-                        MinLat = minLat
-                        MaxLon = maxLon
-                        MaxLat = maxLat
-                    }
+    let splits = value.Split (',') 
 
-        let splits = value.Split (',') 
-
-        match splits.Length with
-        | 4 -> 
-            let parsedSplits = splits |> Array.map tryParseFloat
-            let hasAnyInvalidParts = parsedSplits |> Array.exists Option.isNone
-            match hasAnyInvalidParts with
-            | true -> 
-                context 
-                |> invalidParameter boundsParameter "it should consist of numbers only"
-            | false ->
-                let bounds = boundsFromParsedParts parsedSplits
-                match bounds with
-                | Error reason -> 
-                    context |> invalidParameter boundsParameter reason
-                | Ok boundsVal -> 
-                    let (_, oldOptions) = context
-                    context 
-                    |> consumeArg
-                    |> withOptions ({ oldOptions with Bounds = Some boundsVal })
-                    |> Result.Ok
-
-        | _ -> 
+    match splits.Length with
+    | 4 -> 
+        let parsedSplits = splits |> Array.map tryParseFloat
+        let hasAnyInvalidParts = parsedSplits |> Array.exists Option.isNone
+        match hasAnyInvalidParts with
+        | true -> 
             context 
-            |> invalidParameter boundsParameter "it should consist of 4 numbers"
+            |> invalidParameter boundsParameter "it should consist of numbers only"
+        | false ->
+            let bounds = boundsFromParsedParts parsedSplits
+            match bounds with
+            | Error reason -> 
+                context |> invalidParameter boundsParameter reason
+            | Ok boundsVal -> 
+                let (_, oldOptions) = context
+                context 
+                |> consumeArg
+                |> withOptions ({ oldOptions with Bounds = Some boundsVal })
+                |> Result.Ok
 
-
-let parseSrtmDir (context: ParsingContext) =
-    match nextArg context with
-    | None -> context |> parameterValueIsMissing srtmDirParameter
-    | Some srtmDir ->
-        let (_, oldOptions) = context
+    | _ -> 
         context 
-        |> consumeArg
-        |> withOptions ({ oldOptions with SrtmDir = srtmDir })
-        |> Result.Ok
+        |> invalidParameter boundsParameter "it should consist of 4 numbers"
+
+
+let parseSrtmDir srtmDir context =
+    let (_, oldOptions) = context
+    context 
+    |> consumeArg
+    |> withOptions ({ oldOptions with SrtmDir = srtmDir })
+    |> Result.Ok
     
 
 
@@ -170,8 +171,10 @@ let parseImportArgs (args: string list): ParsingResult =
 
         parsingResult <-
             match arg with
-            | Some "--bounds" -> parseBounds context
-            | Some "--srtm-dir" -> parseSrtmDir context
+            | Some "--bounds" ->
+                parseParameter boundsParameter parseBounds context
+            | Some "--srtm-dir" -> 
+                parseParameter srtmDirParameter parseSrtmDir context
             | Some unknownArg ->
                 Error (sprintf "Unrecognized parameter '%s'." unknownArg)
             | None -> invalidOp "BUG: this should never happen"
