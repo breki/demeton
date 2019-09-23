@@ -1,5 +1,14 @@
-﻿module Demeton.CommandLineParsing
+﻿/// <summary>
+/// Contains types and functions for parsing command line parameters.
+/// </summary>
+module Demeton.CommandLineParsing
 
+/// <summary>
+/// A tuple holding the current context of the parser. The first item is a list
+/// of command line arguments that have not been consumed yet by the parser.
+/// The second item is the generic options type into which the parser stores 
+/// parsed information.
+/// </summary>
 type ParsingContext<'TOptions> = string list * 'TOptions
 type ParsingResult<'TOptions> = Result<ParsingContext<'TOptions>, string>
 
