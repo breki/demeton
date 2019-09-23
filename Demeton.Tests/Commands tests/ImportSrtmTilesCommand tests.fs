@@ -28,12 +28,6 @@ let ``Reports error when bounds parameter is missing``() =
     test <@ result |> isError "'bounds' parameter is missing." @>
 
 
-[<Fact>]
-let ``Reports error when bounds value is missing``() =
-    let result = parseImportArgs [ "--bounds" ]
-    test <@ result |> isError "'bounds' parameter's value is missing." @>
-
-
 [<Theory>]
 [<InlineData("10,20")>]
 [<InlineData("10,20,30")>]
@@ -120,18 +114,6 @@ let ``The default SRTM dir is 'srtm``() =
     test <@ 
             (result |> parsedOptions).SrtmDir = "srtm"
         @>
-
-
-[<Fact>]
-let ``Reports error when SRTM dir value is missing (1)``() =
-    let result = parseImportArgs [ "--srtm-dir" ]
-    test <@ result |> isError "'srtm-dir' parameter's value is missing." @>
-
-
-[<Fact>]
-let ``Reports error when SRTM dir value is missing (2)``() =
-    let result = parseImportArgs [ "--srtm-dir"; "--bounds" ]
-    test <@ result |> isError "'srtm-dir' parameter's value is missing." @>
 
 
 [<Fact>]

@@ -36,6 +36,7 @@
     <Compile Include="DEM file storage tests.fs" />
     <Compile Include="Bounds to DEM tiles.fs" />
     <Compile Include="ensureTilesAreInCache tests.fs" />
+    <Compile Include="Generic command line parsing.fs" />
     <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs" />
     <Compile Include="Program.fs" />
     <EmbeddedResource Include="..\samples\test-grayscale-16.png" Link="samples\test-grayscale-16.png" />

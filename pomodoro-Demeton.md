@@ -1,4 +1,5 @@
 ﻿## Mon 23.9.
+- Separated the generic command line parsing code and its tests.
 - Made a more generic way of parsing command line parameters.
 - Made a more generic way of constructing error messages in the command line parser.
 - More test cases for  import command line parsing.
