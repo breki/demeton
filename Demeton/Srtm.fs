@@ -124,14 +124,25 @@ let createSrtmTileFromStream tileSize tileCoords stream =
     HeightsArray(tileMinX, tileMinY, tileSize, tileSize, heightFrom1DArray)
 
 
-let toLocalCacheTileFile 
-    (localCacheDir: string) 
+let toZippedSrtmTileFile
+    (srtmDir: string) 
     (tileCoords: SrtmTileCoords) : SrtmTileHgtFile =
-    let tileHgtFileName = sprintf "%s.png" (tileId tileCoords)
+    let zippedTileFileName = sprintf "%s.SRTMGL1.hgt.zip" (tileId tileCoords)
 
     { 
         TileCoords = tileCoords; 
-        FileName = Path.Combine(localCacheDir, tileHgtFileName) 
+        FileName = Path.Combine(srtmDir, zippedTileFileName) 
+    }
+
+
+let toLocalCacheTileFile 
+    (localCacheDir: string) 
+    (tileCoords: SrtmTileCoords) : SrtmTileHgtFile =
+    let tilePngFileName = sprintf "%s.png" (tileId tileCoords)
+
+    { 
+        TileCoords = tileCoords; 
+        FileName = Path.Combine(localCacheDir, tilePngFileName) 
     }
 
 
@@ -144,18 +155,29 @@ let ensureTilesAreInCache
 
 
 type SrtmPngTileReader = string -> HeightsArray
+type SrtmHgtToPngTileConverter = string -> string -> HeightsArray
 
 let fetchSrtmTile 
+    (srtmDir: string)
     (localCacheDir: string)
     (fileExists: FileExistsChecker)
     (pngTileReader: SrtmPngTileReader)
+    (pngTileConverter: SrtmHgtToPngTileConverter)
     (tile: SrtmTileCoords)
     : HeightsArray option =
     let localTileFile = toLocalCacheTileFile localCacheDir tile
 
     match fileExists localTileFile.FileName with
     | true -> Some (pngTileReader localTileFile.FileName)
-    | false -> invalidOp "todo: "
+    | false -> 
+        let zippedSrtmTileFile = toZippedSrtmTileFile srtmDir tile
+
+        match fileExists zippedSrtmTileFile.FileName with
+        | false -> None
+        | true -> 
+            Some (pngTileConverter 
+                zippedSrtmTileFile.FileName 
+                localTileFile.FileName)
 
 
 let fetchSrtmHeights 
