@@ -42,27 +42,33 @@ let nextArgResult (result: ParsingResult<'TOptions>)
         | _ -> (Some (args |> List.head), (args |> List.tail, options))
     | _ -> invalidOp "Parsing is already in a failed state."
 
-
+/// <summary>
+/// Consumes the first argument in the parsing context's arguments list
+/// and returns a new parsing context with the remaining arguments.
+/// </summary>
 let consumeArg (context: ParsingContext<'TOptions>) =
     let (args, result) = context 
     (args |> List.tail, result)
 
-
-let hasMoreArgs (context: ParsingContext<'TOptions>) =
-    let (args, _) = context
-    args.Length > 0
-
-
-let hasMoreArgsResult (context: ParsingResult<'TOptions>) =
+/// <summary>
+/// Indicates whether there are remaining arguments to parse from the parsing
+/// context.
+/// </summary>
+let hasMoreArgs (context: ParsingResult<'TOptions>) =
     match context with
     | Ok (args, _) -> args.Length > 0
     | Error _ -> false
 
-
+/// <summary>
+/// Constructs a parsing result indicating a parsing error with the specified
+/// error message.
+/// </summary>
 let withError errorMessage (_: ParsingContext<'TOptions>) =
     Error errorMessage
 
-
+/// <summary>
+/// Creates a new parsing context with the updated options.
+/// </summary>
 let withOptions 
     (updatedOptions: 'TOptions) 
     (context: ParsingContext<'TOptions>)
@@ -70,12 +76,17 @@ let withOptions
     let (args, _) = context
     (args, updatedOptions)
 
-
+/// <summary>
+/// Constructs a parsing result indicating a missing parameter value error.
+/// </summary>
 let parameterValueIsMissing parameter context =
     let message = (sprintf "'%s' parameter's value is missing." parameter)
     context |> withError message
 
 
+/// <summary>
+/// Constructs a parsing result indicating an invalid parameter value error.
+/// </summary>
 let invalidParameter parameter reason context =
     let message = 
         sprintf "'%s' parameter's value is invalid, %s." parameter reason

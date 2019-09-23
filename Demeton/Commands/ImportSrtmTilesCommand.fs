@@ -110,7 +110,7 @@ let parseImportArgs (args: string list): ParsingResult<ImportOptions> =
     let mutable parsingResult: ParsingResult<ImportOptions> = 
         Ok (args, defaultOptions)
 
-    while hasMoreArgsResult parsingResult do
+    while hasMoreArgs parsingResult do
         let (arg, context) = nextArgResult parsingResult
 
         parsingResult <-
