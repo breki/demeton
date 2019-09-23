@@ -56,9 +56,10 @@ let withError errorMessage (_: ParsingContext) =
 
 
 let withOptions (updatedOptions: ImportOptions) (context: ParsingContext)
-    :ParsingContext =
+    : ParsingContext =
     let (args, _) = context
     (args, updatedOptions)
+
 
 let parseBounds (context: ParsingContext) =
     match nextArg context with
@@ -91,11 +92,15 @@ let parseBounds (context: ParsingContext) =
                 -> Error "latitude value is out of range"
             | (_, _, _, x) when not (isLatitudeInRange x) 
                 -> Error "latitude value is out of range"
+            | (min, _, max, _) when min > max 
+                -> Error "max longitude value is smaller than min longitude value"
+            | (_, min, _, max) when min > max 
+                -> Error "max latitude value is smaller than min latitude value"
             | _ -> Ok { 
                         MinLon = minLon
-                        MinLat = Option.get parts.[1]
-                        MaxLon = Option.get parts.[2]
-                        MaxLat = Option.get parts.[3]
+                        MinLat = minLat
+                        MaxLon = maxLon
+                        MaxLat = maxLat
                     }
 
         let splits = value.Split (',') 
@@ -106,7 +111,8 @@ let parseBounds (context: ParsingContext) =
             let hasAnyInvalidParts = parsedSplits |> Array.exists Option.isNone
             match hasAnyInvalidParts with
             | true -> 
-                context |> withError "`bounds` parameter's value is invalid."
+                context 
+                |> withError "`bounds` parameter's value is invalid, it should consist of numbers only."
             | false ->
                 let bounds = boundsFromParsedParts parsedSplits
                 match bounds with
@@ -116,10 +122,13 @@ let parseBounds (context: ParsingContext) =
                 | Ok boundsVal -> 
                     let (_, oldOptions) = context
                     context 
+                    |> consumeArg
                     |> withOptions ({ oldOptions with Bounds = Some boundsVal })
                     |> Result.Ok
 
-        | _ -> context |> withError "`bounds` parameter's value is invalid."
+        | _ -> 
+            context 
+            |> withError "`bounds` parameter's value is invalid, it should consist of 4 numbers."
 
 
 let parseImportArgs (args: string list): ParsingResult =
@@ -136,7 +145,7 @@ let parseImportArgs (args: string list): ParsingResult =
             match arg with
             | Some "--bounds" -> parseBounds context
             | Some unknownArg ->
-                Error (sprintf "Unknown argument '%s'." unknownArg)
+                Error (sprintf "Unrecognized parameter '%s'." unknownArg)
             | None -> invalidOp "BUG: this should never happen"
 
     match parsingResult with

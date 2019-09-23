@@ -10,6 +10,15 @@
       <NamedTestSelector>
         <TestName>Demeton.Tests.IDAT compression.Determining the compression rate</TestName>
       </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Demeton.Tests.Reading SRTM HGT files.Can read HGT file</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Demeton.Tests.PNG filtering.Filtering large images</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Demeton.Tests.Reading and writing PNG files.Can decode 16-bit grayscale image generated from a SRTM tile</TestName>
+      </NamedTestSelector>
     </IgnoredTests>
   </Settings>
 </ProjectConfiguration>

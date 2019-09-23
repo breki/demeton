@@ -211,6 +211,7 @@ let ``Can generate and read a valid 16-bit grayscale PNG``() =
 
 
 [<Fact>]
+[<Trait("Category", "slow")>]
 let ``Can decode 16-bit grayscale image generated from a SRTM tile``() =
     let assembly = Assembly.GetExecutingAssembly()
     use pngReadStream = assembly.GetManifestResourceStream

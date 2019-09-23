@@ -1,4 +1,7 @@
-﻿## Sat 21.9.
+﻿## Mon 23.9.
+- More test cases for  import command line parsing.
+
+## Sat 21.9.
 - Implemented more test cases for import command line parsing.
 
 ## Thu 19.9.
