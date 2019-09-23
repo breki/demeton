@@ -10,16 +10,29 @@ module Demeton.CommandLineParsing
 /// parsed information.
 /// </summary>
 type ParsingContext<'TOptions> = string list * 'TOptions
+
+/// <summary>
+/// The result of parsing. In case the parsing was successful, it contains
+/// parsing context. In case of errors, the object contains an error message.
+/// </summary>
 type ParsingResult<'TOptions> = Result<ParsingContext<'TOptions>, string>
 
-
+/// <summary>
+/// Fetches the next argument from the arguments list stored in the parsing 
+/// context. Returns <c>None</c> if there are no arguments left.
+/// </summary>
 let nextArg (context: ParsingContext<'TOptions>) =
     let (args, _) = context 
     match args.Length with
     | 0 -> None
     | _ -> Some (args |> List.head)
 
-
+/// <summary>
+/// Fetches the next argument from the arguments list stored in the parsing 
+/// context, which is itself inside the parsing result. Returns <c>None</c> if 
+/// there are no arguments left. In case the parsing result is an error, throws
+/// an exception.
+/// </summary>
 let nextArgResult (result: ParsingResult<'TOptions>)
     : (string option * ParsingContext<'TOptions>) =
     match result with
