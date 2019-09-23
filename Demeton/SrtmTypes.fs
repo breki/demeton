@@ -16,7 +16,7 @@ type SrtmLongitude = { Value: int } with
 [<Struct>]
 type SrtmTileCoords = { Lon: SrtmLongitude; Lat: SrtmLatitude }
 
-type SrtmTileHgtFile = { TileCoords: SrtmTileCoords; FileName: string }
+type SrtmTileFile = { TileCoords: SrtmTileCoords; FileName: string }
 
 type SrtmTileReader = SrtmTileCoords -> HeightsArray option
 

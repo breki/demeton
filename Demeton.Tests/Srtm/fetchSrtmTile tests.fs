@@ -12,6 +12,10 @@ let localCacheDir = "some/cache"
 let mutable zippedTilesInSrtmStorage: (string * HeightsArray) list = []
 let mutable pngFilesInLocalCacheDir: (string * HeightsArray) list = []
 
+let init() =
+    zippedTilesInSrtmStorage <- []
+    pngFilesInLocalCacheDir <- []
+
 let withPngTilePresentInLocalCache tileId =
     let fileContents = HeightsArray(10, 20, 5, 5, (fun _ -> None))
     let fileInCache = (
@@ -53,6 +57,8 @@ let pngTileConverter zippedTileFileName _ =
 
 [<Fact>]
 let ``If PNG tile is already in local cache, return that one``() =
+    init()
+
     let tileId = "N46E015"
     let tileCoords = parseTileId tileId
 
@@ -71,6 +77,8 @@ let ``If PNG tile is already in local cache, return that one``() =
 
 [<Fact>]
 let ``If PNG tile is not in the cache and there is no zipped tile in the SRTM storage, returns None``() =
+    init()
+
     let tileId = "N46E015"
     let tileCoords = parseTileId tileId
 
@@ -87,6 +95,8 @@ let ``If PNG tile is not in the cache and there is no zipped tile in the SRTM st
 
 [<Fact>]
 let ``If PNG tile is not in the cache and there is a zipped tile in the SRTM storage, converts it to PNG and returns it``() =
+    init()
+
     let tileId = "N46E015"
     let tileCoords = parseTileId tileId
 

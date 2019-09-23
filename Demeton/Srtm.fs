@@ -126,7 +126,7 @@ let createSrtmTileFromStream tileSize tileCoords stream =
 
 let toZippedSrtmTileFile
     (srtmDir: string) 
-    (tileCoords: SrtmTileCoords) : SrtmTileHgtFile =
+    (tileCoords: SrtmTileCoords) : SrtmTileFile =
     let zippedTileFileName = sprintf "%s.SRTMGL1.hgt.zip" (tileId tileCoords)
 
     { 
@@ -137,7 +137,7 @@ let toZippedSrtmTileFile
 
 let toLocalCacheTileFile 
     (localCacheDir: string) 
-    (tileCoords: SrtmTileCoords) : SrtmTileHgtFile =
+    (tileCoords: SrtmTileCoords) : SrtmTileFile =
     let tilePngFileName = sprintf "%s.png" (tileId tileCoords)
 
     { 
@@ -149,13 +149,14 @@ let toLocalCacheTileFile
 let ensureTilesAreInCache 
     (tiles: SrtmTileCoords list) 
     (localCacheDir: string)
-    : SrtmTileHgtFile list =
+    : SrtmTileFile list =
     tiles 
     |> List.map (fun x -> toLocalCacheTileFile localCacheDir x)
 
 
 type SrtmPngTileReader = string -> HeightsArray
 type SrtmHgtToPngTileConverter = string -> string -> HeightsArray
+
 
 let fetchSrtmTile 
     (srtmDir: string)

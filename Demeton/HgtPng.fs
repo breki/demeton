@@ -4,7 +4,10 @@ open DemTypes
 open Demeton.PngTypes
 open Demeton.PngPixelFormats
 open Demeton.Png
+open Demeton.SrtmTypes
+open Demeton.Srtm
 open System.IO
+open FileSystem
 
 
 let missingHeightAsUint16 = 0us
@@ -66,3 +69,21 @@ let encodeSrtmHeightsArrayToPng
 
     outputStream 
     |> savePngToStream ihdr imageData
+
+
+let convertZippedHgtTileToPng
+    (readZipFileEntry: ZipFileEntryReader)
+    createSrtmTileFromStream
+    (zippedHgtFile: SrtmTileFile)
+    pngFileName =
+    
+    let zippedEntryName = tileId zippedHgtFile.TileCoords + ".hgt"
+
+    let zipEntryStream = 
+        readZipFileEntry zippedHgtFile.FileName zippedEntryName
+
+    let heightsArray =
+        createSrtmTileFromStream 
+            3600 zippedHgtFile.TileCoords zipEntryStream
+
+    ignore()

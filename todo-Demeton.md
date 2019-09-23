@@ -1,5 +1,4 @@
-﻿- define a function that imports a single SRTM tile
-    - whole workflow -> check if PNG exists -> unzip, read HGT, encode to PNG, delete HGT
+﻿- implement SrtmHgtToPngTileConverter
 
 - https://fsprojects.github.io/FSharp.Formatting/metadata.html
 - command line
