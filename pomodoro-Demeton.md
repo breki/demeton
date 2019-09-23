@@ -1,4 +1,5 @@
 ﻿## Mon 23.9.
+- Implemented `openZipFileEntry` function.
 - Finished implementing `convertZippedHgtTileToPng` function.
 - Finished implementing `fetchSrtmTile` function.
 - Separated the generic command line parsing code and its tests.

@@ -1,4 +1,5 @@
-﻿- implement SrtmHgtToPngTileConverter
+﻿- implement ZipFileEntryReader
+- implement encodeHeightsArrayIntoPngFile
 
 - https://fsprojects.github.io/FSharp.Formatting/metadata.html
 - command line
