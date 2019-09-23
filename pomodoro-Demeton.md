@@ -1,4 +1,5 @@
 ﻿## Mon 23.9.
+- Made a more generic way of constructing error messages in the command line parser.
 - More test cases for  import command line parsing.
 
 ## Sat 21.9.

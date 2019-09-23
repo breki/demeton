@@ -61,9 +61,25 @@ let withOptions (updatedOptions: ImportOptions) (context: ParsingContext)
     (args, updatedOptions)
 
 
+let parameterValueIsMissing parameter context =
+    let message = (sprintf "'%s' parameter's value is missing." parameter)
+    context |> withError message
+
+
+let invalidParameter parameter reason context =
+    let message = 
+        sprintf "'%s' parameter's value is invalid, %s." parameter reason
+    context |> withError message
+
+
+let boundsParameter = "bounds"
+let srtmDirParameter = "srtm-dir"
+
+
+
 let parseBounds (context: ParsingContext) =
     match nextArg context with
-    | None -> context |> withError "`bounds` parameter's value is missing."
+    | None -> context |> parameterValueIsMissing boundsParameter
     | Some value -> 
         let tryParseFloat (value: string) =
             match Double.TryParse
@@ -112,13 +128,12 @@ let parseBounds (context: ParsingContext) =
             match hasAnyInvalidParts with
             | true -> 
                 context 
-                |> withError "`bounds` parameter's value is invalid, it should consist of numbers only."
+                |> invalidParameter boundsParameter "it should consist of numbers only"
             | false ->
                 let bounds = boundsFromParsedParts parsedSplits
                 match bounds with
-                | Error msg -> 
-                    context 
-                    |> withError ("`bounds` parameter's value is invalid, " + msg + ".")
+                | Error reason -> 
+                    context |> invalidParameter boundsParameter reason
                 | Ok boundsVal -> 
                     let (_, oldOptions) = context
                     context 
@@ -128,7 +143,19 @@ let parseBounds (context: ParsingContext) =
 
         | _ -> 
             context 
-            |> withError "`bounds` parameter's value is invalid, it should consist of 4 numbers."
+            |> invalidParameter boundsParameter "it should consist of 4 numbers"
+
+
+let parseSrtmDir (context: ParsingContext) =
+    match nextArg context with
+    | None -> context |> parameterValueIsMissing srtmDirParameter
+    | Some srtmDir ->
+        let (_, oldOptions) = context
+        context 
+        |> consumeArg
+        |> withOptions ({ oldOptions with SrtmDir = srtmDir })
+        |> Result.Ok
+    
 
 
 let parseImportArgs (args: string list): ParsingResult =
@@ -144,6 +171,7 @@ let parseImportArgs (args: string list): ParsingResult =
         parsingResult <-
             match arg with
             | Some "--bounds" -> parseBounds context
+            | Some "--srtm-dir" -> parseSrtmDir context
             | Some unknownArg ->
                 Error (sprintf "Unrecognized parameter '%s'." unknownArg)
             | None -> invalidOp "BUG: this should never happen"
@@ -151,7 +179,7 @@ let parseImportArgs (args: string list): ParsingResult =
     match parsingResult with
     | Ok (_, finalOptions) ->
         match finalOptions.Bounds with
-        | None -> Error "`bounds` parameter is missing."
+        | None -> Error "'bounds' parameter is missing."
         | _ -> parsingResult
     | _ -> parsingResult
 
