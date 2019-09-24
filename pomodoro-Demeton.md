@@ -1,4 +1,7 @@
-﻿## Mon 23.9.
+﻿## Tue 24.9.
+- Added more code documentation.
+
+## Mon 23.9.
 - Implemented `encodeHeightsArrayIntoPngFile` function.
 - Implemented `openZipFileEntry` function.
 - Finished implementing `convertZippedHgtTileToPng` function.

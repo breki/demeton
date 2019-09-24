@@ -116,11 +116,12 @@ let parseImportArgs (args: string list): ParsingResult<ImportOptions> =
         parsingResult <-
             match arg with
             | Some "--bounds" ->
-                parseParameter boundsParameter parseBounds context
+                parseParameterValue boundsParameter parseBounds context
             | Some "--srtm-dir" -> 
-                parseParameter srtmDirParameter parseSrtmDir context
+                parseParameterValue srtmDirParameter parseSrtmDir context
             | Some "--local-cache-dir" -> 
-                parseParameter localCacheDirParameter parseLocalCacheDir context
+                parseParameterValue 
+                    localCacheDirParameter parseLocalCacheDir context
             | Some unknownArg ->
                 Error (sprintf "Unrecognized parameter '%s'." unknownArg)
             | None -> invalidOp "BUG: this should never happen"

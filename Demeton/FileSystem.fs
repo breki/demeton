@@ -1,4 +1,8 @@
-﻿module FileSystem
+﻿/// <summary>
+/// Contains functions for working with files and directories 
+/// in a functional way.
+/// </summary>
+module FileSystem
 
 open System.IO
 open System.IO.Compression

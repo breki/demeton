@@ -92,8 +92,12 @@ let invalidParameter parameter reason context =
         sprintf "'%s' parameter's value is invalid, %s." parameter reason
     context |> withError message
 
-
-let parseParameter 
+/// <summary>
+/// Parses a parameter value using the provided <see cref="parseValue" />
+/// function. If there is no parameter value, the function indicates that
+/// with an error parsing result.
+/// </summary>
+let parseParameterValue 
     parameterName parseValue (context: ParsingContext<'TOptions>) =
     match nextArg context with
     | None -> context |> parameterValueIsMissing parameterName
