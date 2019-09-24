@@ -18,6 +18,8 @@ type FileExistsChecker = string -> bool
 /// </summary>
 type ZipFileEntryReader = string -> string -> Stream
 
+let fileExists fileName = File.Exists(fileName)
+
 /// <summary>
 /// Deletes a directory if it exists. If it does not exist, does nothing.
 /// </summary>

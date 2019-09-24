@@ -20,3 +20,16 @@ let grayscale16BitImageData
             byteIndex <- byteIndex + 2
 
     imageData
+
+
+let grayscale16BitPixel 
+    (imageData: byte[])
+    imageWidth
+    imageHeight
+    x
+    y
+    : uint16 =
+    let pixelIndex = x * 2 + y * imageWidth
+    let highByte = uint16 imageData.[pixelIndex]
+    let lowByte = uint16 imageData.[pixelIndex + 1]
+    highByte <<< 8 ||| lowByte

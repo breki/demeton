@@ -83,6 +83,27 @@ let encodeHeightsArrayIntoPngFile
     encodeSrtmHeightsArrayToPng heightsArray stream |> ignore
 
 
+let decodeSrtmTileFromPngFile
+    openFile
+    pngFileName
+    : HeightsArray =
+    // todo write tests for it
+    use stream = openFile pngFileName
+    let (ihdr, imageData) = stream |> loadPngFromStream
+
+    let tileId = pngFileName |> Paths.fileNameWithoutExtension
+    let tileCoords = Srtm.parseTileId tileId
+    let (minX, minY) = Srtm.tileCellMinCoords 3600 tileCoords
+
+    HeightsArray(minX, minY, 3600, 3600,
+        (fun (gx, gy) -> 
+            let lx = gx - minX
+            let ly = gy - minY
+            let pixelValue = 
+                grayscale16BitPixel imageData ihdr.Width ihdr.Height lx ly
+            uint16ValueToDemHeight pixelValue))
+
+
 let convertZippedHgtTileToPng
     (readZipFileEntry: ZipFileEntryReader)
     createSrtmTileFromStream

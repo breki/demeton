@@ -1,4 +1,6 @@
 ﻿- try to put all the pieces together so that the command is running
+    - parallelize the importing process
+        - fix logging so it can work in parallel mode
 
 - https://fsprojects.github.io/FSharp.Formatting/metadata.html
 - command line

@@ -5,6 +5,7 @@ open Demeton.Srtm
 open Demeton.HgtPng
 open Demeton.Png
 open Demeton.Commands.ImportSrtmTilesCommand
+open Demeton.DemTypes
 
 let hgtFileName (demFile : string) = demFile + ".hgt"
 
@@ -95,10 +96,29 @@ let handleUnknownCommand commandName =
 
 
 let importTiles options =
-    // todo implement importTiles
-    //let tilesCords = boundsToTiles options.Bounds
+    let tilesCords = boundsToTiles (Option.get options.Bounds) |> Seq.toArray
 
-    printfn "import: %A %s %s" options.Bounds options.SrtmDir options.LocalCacheDir
+    let pngTileReader =
+        decodeSrtmTileFromPngFile
+            FileSystem.openFileToRead
+
+    let pngTileConverter = 
+        convertZippedHgtTileToPng 
+            FileSystem.openZipFileEntry
+            createSrtmTileFromStream
+            (encodeHeightsArrayIntoPngFile
+                FileSystem.ensureDirectoryExists
+                FileSystem.openFileToWrite)
+
+    import 
+        tilesCords 
+        (fetchSrtmTile 
+            options.SrtmDir
+            options.LocalCacheDir
+            FileSystem.fileExists
+            pngTileReader
+            pngTileConverter)
+
     0
 
 

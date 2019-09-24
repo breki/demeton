@@ -5,6 +5,7 @@ open Demeton.Srtm
 
 open Xunit
 open Swensen.Unquote
+open Demeton.SrtmTypes
 
 let srtmDir = "some/srtm/dir"
 let localCacheDir = "some/cache"
@@ -49,10 +50,11 @@ let pngFileReader fileNameToFind =
         |> List.find (fun (fileName, _) -> fileName = fileNameToFind)
     contents
 
-let pngTileConverter zippedTileFileName _ =
+let pngTileConverter (zippedTileFile: SrtmTileFile) _ =
     let (_, contents) =
         zippedTilesInSrtmStorage
-        |> List.find (fun (fileName, _) -> fileName = zippedTileFileName)
+        |> List.find (fun (fileName, _) -> 
+            fileName = zippedTileFile.FileName)
     contents
 
 [<Fact>]

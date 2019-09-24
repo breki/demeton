@@ -1,4 +1,6 @@
 ﻿## Tue 24.9.
+- Pieced together all of the code for the import tiles command.
+- Added FAKE build script.
 - Added more code documentation.
 
 ## Mon 23.9.

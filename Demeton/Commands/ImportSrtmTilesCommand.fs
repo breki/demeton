@@ -156,15 +156,16 @@ type SrtmToPngEncoder = HeightsArray -> Stream -> unit
 /// writes it into the provides stream.
 /// </param>
 let import 
-    (tiles: SrtmTileCoords seq)
+    (tiles: SrtmTileCoords[])
     (readTile: SrtmTileReader)
     : unit = 
 
-    for tileCoords in tiles do
+    tiles |> Array.Parallel.iter (fun tileCoords ->
         printf "Looking for SRTM tile %s... " (Demeton.Srtm.tileId tileCoords)
         let heightsArrayOption = readTile tileCoords
         match heightsArrayOption with
         | None -> printfn " the tile does not exist, moving to the next one."
         | _ -> printfn " imported."
+        )
 
     ignore()

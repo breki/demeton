@@ -155,7 +155,7 @@ let ensureTilesAreInCache
 
 
 type SrtmPngTileReader = string -> HeightsArray
-type SrtmHgtToPngTileConverter = string -> string -> HeightsArray
+type SrtmHgtToPngTileConverter = SrtmTileFile -> string -> HeightsArray
 
 
 let fetchSrtmTile 
@@ -177,7 +177,7 @@ let fetchSrtmTile
         | false -> None
         | true -> 
             Some (pngTileConverter 
-                zippedSrtmTileFile.FileName 
+                zippedSrtmTileFile 
                 localTileFile.FileName)
 
 
