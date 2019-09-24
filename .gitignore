@@ -39,3 +39,6 @@ WebApp
 _NCrunch_*
 # Default ignored files
 .idea/.idea.Demeton/.idea/workspace.xml
+.fake
+build
+*.fsx.lock

@@ -110,6 +110,7 @@ let parseArgsAndRun (args: string[]) =
         | "import" -> 
             let parseResult = 
                 args |> Array.toList |> List.tail |> parseImportArgs 
+
             match parseResult with
             | Ok (_, options) -> importTiles options
             | Error errMessage -> 

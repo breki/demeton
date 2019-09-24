@@ -1,4 +1,4 @@
-﻿- implement encodeHeightsArrayIntoPngFile
+﻿- try to put all the pieces together so that the command is running
 
 - https://fsprojects.github.io/FSharp.Formatting/metadata.html
 - command line
