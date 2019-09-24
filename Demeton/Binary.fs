@@ -1,4 +1,7 @@
-﻿module Demeton.Binary
+﻿/// <summary>
+/// Contains functions for reading and writing of binary data in streams.
+/// </summary>
+module Demeton.Binary
 
 open System.IO
 
