@@ -1,9 +1,4 @@
-﻿- logging
-    - how do we expose logging?
-    - fix problems with multithreading logging
-    - logging time?
-
-- fix todos if possible
+﻿- fix todos if possible
 - remove code that's no longer used (look into local cache functions)
 
 - DEM performance improvements

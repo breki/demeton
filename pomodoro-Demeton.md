@@ -1,4 +1,5 @@
 ﻿## Wed 25.9.
+- Implemented a simple logging API.
 - Renamed `ImageData` to `RawImageData`.
 - Introduced `CachingStatus` to avoid the import command having to read already imported tiles.
 - Removed some obsolete code from the console project.

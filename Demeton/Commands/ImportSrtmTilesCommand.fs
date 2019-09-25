@@ -168,16 +168,17 @@ let import
         match cachingStatus with
         | Tile.CachingStatus.NotCached ->
             let tileId = (Tile.tileId tileCoords)
-            printfn "Looking for SRTM tile %s... " tileId
+            Log.info "Looking for SRTM tile %s... " tileId
             let heightsArrayOption = readTile tileCoords
             match heightsArrayOption with
             | None -> 
-                printfn "Tile %s does not exist, moving to the next one." tileId
-            | _ -> printfn "Tile %s imported." tileId
+                Log.info 
+                    "Tile %s does not exist, moving to the next one." tileId
+            | _ -> Log.info "Tile %s imported." tileId
         | _ -> ignore()
 
         )
 
-    printfn "All tiles were imported into the local cache."
+    Log.info "All tiles were imported into the local cache."
 
     ignore()

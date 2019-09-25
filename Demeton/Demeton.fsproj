@@ -4,6 +4,7 @@
     <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Log.fs" />
     <Compile Include="Pth.fs" />
     <Compile Include="FileSys.fs" />
     <Compile Include="CommandLineParsing.fs" />
