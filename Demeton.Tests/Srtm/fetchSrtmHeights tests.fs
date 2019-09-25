@@ -3,7 +3,8 @@
 open FsUnit
 open Xunit
 open Demeton.DemTypes
-open Demeton.SrtmTypes
+open Demeton.Srtm.Types
+open Demeton.Srtm.Funcs
 open Swensen.Unquote
 
 let returnSomeHeightArray _ =
@@ -11,10 +12,7 @@ let returnSomeHeightArray _ =
 
 [<Fact>]
 let ``Returns None if there are no tiles to fetch``() =
-    let srtmHeights = 
-        Demeton.Srtm.fetchSrtmHeights 
-            [] 
-            (fun _ -> None) 
+    let srtmHeights = fetchSrtmHeights [] (fun _ -> None) 
     srtmHeights |> should equal None
     test <@ (srtmHeights |> Option.isNone) = true @>
 
@@ -23,7 +21,7 @@ let ``Returns HeightArray when at least one tile was found``() =
     let tilesToUse = [ 
         { Lon = SrtmLongitude.fromInt 1; Lat = SrtmLatitude.fromInt 1 } ]
     let srtmHeights = 
-        Demeton.Srtm.fetchSrtmHeights 
+        fetchSrtmHeights 
             tilesToUse
             (fun x -> Some (returnSomeHeightArray x))
     srtmHeights |> should be ofExactType<HeightsArray option>

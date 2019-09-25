@@ -1,8 +1,8 @@
 ﻿open System
 open System.IO;
 open System.IO.Compression;
-open Demeton.Srtm
-open Demeton.HgtPng
+open Demeton.Srtm.Funcs
+open Demeton.Srtm.Png
 open Png.File
 open Demeton.Commands.ImportSrtmTilesCommand
 

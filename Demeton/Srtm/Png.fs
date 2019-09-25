@@ -1,11 +1,11 @@
-﻿module Demeton.HgtPng
+﻿module Demeton.Srtm.Png
 
-open DemTypes
+open Demeton.DemTypes
 open Png.Types
 open Png.PixelFormats
 open Png.File
-open Demeton.SrtmTypes
-open Demeton.Srtm
+open Demeton.Srtm.Types
+open Demeton.Srtm.Funcs
 open System.IO
 
 
@@ -91,8 +91,8 @@ let decodeSrtmTileFromPngFile
     let (ihdr, imageData) = stream |> loadPngFromStream
 
     let tileId = pngFileName |> Pth.fileNameWithoutExtension
-    let tileCoords = Srtm.parseTileId tileId
-    let (minX, minY) = Srtm.tileCellMinCoords 3600 tileCoords
+    let tileCoords = parseTileId tileId
+    let (minX, minY) = tileCellMinCoords 3600 tileCoords
 
     HeightsArray(minX, minY, 3600, 3600,
         (fun (gx, gy) -> 

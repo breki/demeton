@@ -1,6 +1,5 @@
 ﻿module Demeton.IOTypes
 
-open System
 open System.IO;
 
 type FunctionalStreamReader(stream: Stream) =

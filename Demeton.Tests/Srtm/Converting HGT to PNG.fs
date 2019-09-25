@@ -1,8 +1,8 @@
 ﻿module Demeton.Tests.``Converting HGT to PNG``
 
 open Demeton.DemTypes
-open Demeton.Srtm
-open Demeton.HgtPng
+open Demeton.Srtm.Funcs
+open Demeton.Srtm.Png
 open Png.File
 
 open FsUnit

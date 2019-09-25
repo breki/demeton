@@ -1,7 +1,7 @@
 ﻿module ``convertZippedHgtTileToPng tests``
 
-open Demeton.HgtPng
-open Demeton.Srtm
+open Demeton.Srtm.Funcs
+open Demeton.Srtm.Png
 
 open Xunit
 open Swensen.Unquote

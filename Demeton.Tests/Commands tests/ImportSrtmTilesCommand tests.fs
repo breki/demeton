@@ -2,12 +2,11 @@
 
 open Demeton.Commands.ImportSrtmTilesCommand
 open Demeton.GeometryTypes
-open Demeton.SrtmTypes
+open Demeton.Srtm.Types
 open Demeton.DemTypes
 
 open Xunit
 open Swensen.Unquote
-open System.IO
 
 
 let isError errorMessage result =

@@ -1,7 +1,7 @@
 ﻿module ``encodeHeightsArrayIntoPngFile tests``
 
 open Demeton.DemTypes
-open Demeton.HgtPng
+open Demeton.Srtm.Png
 open Xunit
 open Swensen.Unquote
 open System.IO

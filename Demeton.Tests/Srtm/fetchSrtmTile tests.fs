@@ -1,11 +1,11 @@
 ﻿module ``fetchSrtmTile tests``
 
 open Demeton.DemTypes
-open Demeton.Srtm
+open Demeton.Srtm.Types
+open Demeton.Srtm.Funcs
 
 open Xunit
 open Swensen.Unquote
-open Demeton.SrtmTypes
 
 let srtmDir = "some/srtm/dir"
 let localCacheDir = "some/cache"

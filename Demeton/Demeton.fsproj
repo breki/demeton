@@ -20,9 +20,9 @@
     <Compile Include="GeometryTypes.fs" />
     <Compile Include="DemTypes.fs" />
     <Compile Include="Dem.fs" />
-    <Compile Include="SrtmTypes.fs" />
-    <Compile Include="Srtm.fs" />
-    <Compile Include="HgtPng.fs" />
+    <Compile Include="Srtm\Types.fs" />
+    <Compile Include="Srtm\Funcs.fs" />
+    <Compile Include="Srtm\Png.fs" />
     <Compile Include="Hillshading.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
   </ItemGroup>

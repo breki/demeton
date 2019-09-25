@@ -1,4 +1,7 @@
 ﻿- clean up namespaces/module names a little
+    - separate generic DEM code from SRTM
+    - extract tile-oriented SRTM funcs to a separate module
+    - restructure SRTM-oriented test code into a separate folder
 
 - try to put all the pieces together so that the command is running
     - parallelize the importing process

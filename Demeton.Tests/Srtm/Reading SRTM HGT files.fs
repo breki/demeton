@@ -1,7 +1,7 @@
 ﻿module Demeton.Tests.``Reading SRTM HGT files``
 
-open Demeton.SrtmTypes
-open Demeton.Srtm
+open Demeton.Srtm.Types
+open Demeton.Srtm.Funcs
 
 open System
 open System.IO;

@@ -2,6 +2,7 @@
 
 open Demeton
 open Demeton.GeometryTypes
+open Demeton.Srtm.Funcs
 open System;
 open System.IO
 
@@ -90,8 +91,8 @@ let aspectSlope
     invalidOp "todo"
 
 let hillshade (bounds: Bounds): Stream option =
-    let neededTiles = Srtm.boundsToTiles bounds
+    let neededTiles = boundsToTiles bounds
 
-    let neededTilesFiles = Srtm.ensureTilesAreInCache neededTiles
+    let neededTilesFiles = ensureTilesAreInCache neededTiles
 
     None

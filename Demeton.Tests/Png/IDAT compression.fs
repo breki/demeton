@@ -1,9 +1,8 @@
 ﻿module Demeton.Tests.``IDAT compression``
 
 open Png.Chunks
-open Demeton.Srtm
-open Demeton.HgtPng
-open Demeton.DemTypes
+open Demeton.Srtm.Funcs
+open Demeton.Srtm.Png
 
 open System.IO
 open System.Reflection
@@ -12,7 +11,6 @@ open FsUnit
 open FsCheck
 open FsCheck.Xunit
 open Xunit
-open Demeton
 
 
 // https://csharp.hotexamples.com/examples/ICSharpCode.SharpZipLib.Zip.Compression/Deflater/-/php-deflater-class-examples.html

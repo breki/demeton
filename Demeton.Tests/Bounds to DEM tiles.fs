@@ -2,7 +2,8 @@
 
 open Demeton
 open Demeton.GeometryTypes
-open Demeton.SrtmTypes
+open Demeton.Srtm.Types
+open Demeton.Srtm.Funcs
 
 open FsUnit
 open Xunit
@@ -17,7 +18,7 @@ let ``Two tiles are equal``() =
 let ``When bounds cover just a single tile``() =
     let bounds = { 
         MinLon = 10.1; MinLat = 20.1; MaxLon = 10.2; MaxLat = 20.2 }
-    let tiles = bounds |> Srtm.boundsToTiles
+    let tiles = bounds |> boundsToTiles
     tiles |> should equal [ 
         { Lon = SrtmLongitude.fromInt 10; Lat = SrtmLatitude.fromInt 20 } ]
 
@@ -25,7 +26,7 @@ let ``When bounds cover just a single tile``() =
 let ``When bounds cover multiple tiles``() =
     let bounds = { 
         MinLon = 10.1; MinLat = 20.1; MaxLon = 11.2; MaxLat = 21.2 }
-    let tiles = bounds |> Srtm.boundsToTiles
+    let tiles = bounds |> boundsToTiles
     tiles |> should equal [ 
         { Lon = SrtmLongitude.fromInt 10; Lat = SrtmLatitude.fromInt 20 } 
         { Lon = SrtmLongitude.fromInt 11; Lat = SrtmLatitude.fromInt 20 } 
