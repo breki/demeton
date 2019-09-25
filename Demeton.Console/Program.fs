@@ -5,6 +5,7 @@ open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 open Png.File
 open Demeton.Commands.ImportSrtmTilesCommand
+open Demeton.Srtm
 
 let hgtFileName (demFile : string) = demFile + ".hgt"
 
@@ -44,7 +45,7 @@ let downloadAndUnzipHgtFile() =
 let encodePng (hgtFileName: string) = 
     let srtmTileId = Path.GetFileNameWithoutExtension (hgtFileName)
 
-    let tileCoords = parseTileId srtmTileId
+    let tileCoords = Tile.parseTileId srtmTileId
 
     use hgtStream = File.OpenRead hgtFileName
 

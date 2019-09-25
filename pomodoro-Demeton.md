@@ -1,4 +1,5 @@
 ﻿## Wed 25.9.
+- Separated SRTM tile-oriented functions into `Tile` module.
 - Separated SRTM code into its own subnamespace and renamed its modules.
 - Renamed PNG modules so they start with `Png` namespace.
 - Fixed "Imports all tiles within the specified boundaries" test case to run now that the import function employs parallelization.

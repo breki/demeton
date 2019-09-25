@@ -26,64 +26,6 @@ let boundsToTiles (bounds: Bounds): SrtmTileCoords list =
     ]
 
 
-let latitudeCharSign (latitude: SrtmLatitude) =
-    match latitude with
-    | x when x.Value >= 0 -> 'N'
-    | _ -> 'S'
-
-
-let longitudeCharSign (longitude: SrtmLongitude) =
-    match longitude with
-    | x when x.Value >= 0 -> 'E'
-    | _ -> 'W'
-
-
-let tileId (tileCoords: SrtmTileCoords) =
-    let latSign = latitudeCharSign tileCoords.Lat
-    let lonSign = longitudeCharSign tileCoords.Lon
-
-    sprintf 
-        "%c%02d%c%03d" 
-        latSign (abs tileCoords.Lat.Value) lonSign (abs tileCoords.Lon.Value)
-
-
-let parseTileId (tileId: string) =
-    let latitudeCharSign = tileId.[0]
-    let latitudeSign = 
-        match latitudeCharSign with
-        | 'N' -> 1
-        | 'S' -> -1
-        | _ -> raise(InvalidOperationException
-                (sprintf "Invalid SRTM tile ID: '%s'" tileId))
-
-    let longitudeCharSign = tileId.[3]
-
-    let longitudeSign = 
-        match longitudeCharSign with
-        | 'W' -> -1
-        | 'E' -> 1
-        | _ -> raise(InvalidOperationException
-                (sprintf "Invalid SRTM tile ID: '%s'" tileId))
-
-    let latitudeStr = tileId.[1..2]
-    let latitudeInt = Int32.Parse latitudeStr * latitudeSign
-    let latitude = SrtmLatitude.fromInt latitudeInt
-
-    let longitudeStr = tileId.[4..6]
-    let longitudeInt = Int32.Parse longitudeStr * longitudeSign
-    let longitude = SrtmLongitude.fromInt longitudeInt
-
-    { Lon = longitude; Lat = latitude }
-
-
-let tileCellMinCoords tileSize (tileCoords: SrtmTileCoords)
-    : GlobalCellCoords =
-    (
-        (tileCoords.Lon.Value + 179) * tileSize, 
-        (tileCoords.Lat.Value + 90) * tileSize
-    )
-
-
 let inline heightFromBytes firstByte secondByte =
     let height: int16 = (int16)firstByte <<< 8 ||| (int16)secondByte
     match height with
@@ -113,7 +55,7 @@ let readSrtmHeightsFromStream (stream: Stream): DemHeight option seq =
 let createSrtmTileFromStream tileSize tileCoords stream =
     let heights1DArray = readSrtmHeightsFromStream stream |> Array.ofSeq
 
-    let (tileMinX, tileMinY) = tileCellMinCoords tileSize tileCoords
+    let (tileMinX, tileMinY) = Tile.tileCellMinCoords tileSize tileCoords
         
     let inline heightFrom1DArray ((cx, cy): GlobalCellCoords) =
         let arrayIndex = cx - tileMinX
@@ -126,7 +68,8 @@ let createSrtmTileFromStream tileSize tileCoords stream =
 let toZippedSrtmTileFile
     (srtmDir: string) 
     (tileCoords: SrtmTileCoords) : SrtmTileFile =
-    let zippedTileFileName = sprintf "%s.SRTMGL1.hgt.zip" (tileId tileCoords)
+    let zippedTileFileName = 
+        sprintf "%s.SRTMGL1.hgt.zip" (Tile.tileId tileCoords)
 
     { 
         TileCoords = tileCoords; 
@@ -137,7 +80,7 @@ let toZippedSrtmTileFile
 let toLocalCacheTileFile 
     (localCacheDir: string) 
     (tileCoords: SrtmTileCoords) : SrtmTileFile =
-    let tilePngFileName = sprintf "%s.png" (tileId tileCoords)
+    let tilePngFileName = sprintf "%s.png" (Tile.tileId tileCoords)
 
     { 
         TileCoords = tileCoords; 

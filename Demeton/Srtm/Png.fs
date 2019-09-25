@@ -91,8 +91,8 @@ let decodeSrtmTileFromPngFile
     let (ihdr, imageData) = stream |> loadPngFromStream
 
     let tileId = pngFileName |> Pth.fileNameWithoutExtension
-    let tileCoords = parseTileId tileId
-    let (minX, minY) = tileCellMinCoords 3600 tileCoords
+    let tileCoords = Tile.parseTileId tileId
+    let (minX, minY) = Tile.tileCellMinCoords 3600 tileCoords
 
     HeightsArray(minX, minY, 3600, 3600,
         (fun (gx, gy) -> 
@@ -110,7 +110,7 @@ let convertZippedHgtTileToPng
     (zippedHgtFile: SrtmTileFile)
     pngFileName =
     
-    let zippedEntryName = tileId zippedHgtFile.TileCoords + ".hgt"
+    let zippedEntryName = Tile.tileId zippedHgtFile.TileCoords + ".hgt"
 
     let zipEntryStream = 
         readZipFileEntry zippedHgtFile.FileName zippedEntryName

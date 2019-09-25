@@ -1,12 +1,12 @@
 ﻿module ``convertZippedHgtTileToPng tests``
 
-open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 
 open Xunit
 open Swensen.Unquote
 open System.IO
 open Demeton.DemTypes
+open Demeton.Srtm
 
 let withZipFileEntry(): Stream =
     new MemoryStream() :> Stream
@@ -48,7 +48,7 @@ let expectHeightsArrayToBeEncodedIntoPngFile
 [<Fact>]
 let ``Opens HGT file entry in the zip file``() =
     let tileId = "N00E031"
-    let tileCoords = parseTileId tileId
+    let tileCoords = Tile.parseTileId tileId
     let zipFileName = "some/dir/N00E031.SRTMGL1.hgt.zip"
     let entryName = "N00E031.hgt"
     let pngFileName = "some/other/N00E031.png"
@@ -65,7 +65,7 @@ let ``Opens HGT file entry in the zip file``() =
 [<Fact>]
 let ``Reads the zipped HGT tile as heights array``() =
     let tileId = "N00E031"
-    let tileCoords = parseTileId tileId
+    let tileCoords = Tile.parseTileId tileId
     let zipFileName = "some/dir/N00E031.SRTMGL1.hgt.zip"
     let pngFileName = "some/other/N00E031.png"
 
@@ -83,7 +83,7 @@ let ``Reads the zipped HGT tile as heights array``() =
 [<Fact>]
 let ``Encodes the read SRTM heights array into PNG file``() =
     let tileId = "N00E031"
-    let tileCoords = parseTileId tileId
+    let tileCoords = Tile.parseTileId tileId
     let zipFileName = "some/dir/N00E031.SRTMGL1.hgt.zip"
     let pngFileName = "some/other/N00E031.png"
 
@@ -101,7 +101,7 @@ let ``Encodes the read SRTM heights array into PNG file``() =
 [<Fact>]
 let ``Returns the read heights array``() =
     let tileId = "N00E031"
-    let tileCoords = parseTileId tileId
+    let tileCoords = Tile.parseTileId tileId
     let zipFileName = "some/dir/N00E031.SRTMGL1.hgt.zip"
     let pngFileName = "some/other/N00E031.png"
 

@@ -1,6 +1,7 @@
 ﻿module Demeton.Tests.``IDAT compression``
 
 open Png.Chunks
+open Demeton.Srtm
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 
@@ -40,7 +41,7 @@ let ``Inflating a deflated data returns the original data``
 let ``Determining the compression rate``() =
     let srtmTileId = "N46E015"
     let hgtFileNameOnly = srtmTileId + ".hgt"
-    let tileCoords = parseTileId hgtFileNameOnly.[0..6]
+    let tileCoords = Tile.parseTileId hgtFileNameOnly.[0..6]
 
     let assembly = Assembly.GetExecutingAssembly()
     use hgtStream = assembly.GetManifestResourceStream

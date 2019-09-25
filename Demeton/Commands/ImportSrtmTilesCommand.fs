@@ -2,12 +2,12 @@
 
 open Demeton.GeometryTypes    
 open Demeton.Srtm.Types
-open Demeton.Srtm.Funcs
 open Demeton.DemTypes
 open Demeton.CommandLineParsing
 open System
 open System.Globalization
 open System.IO
+open Demeton.Srtm
 
 
 type ImportOptions = {
@@ -162,7 +162,7 @@ let import
     : unit = 
 
     tiles |> Array.Parallel.iter (fun tileCoords ->
-        printf "Looking for SRTM tile %s... " (tileId tileCoords)
+        printf "Looking for SRTM tile %s... " (Tile.tileId tileCoords)
         let heightsArrayOption = readTile tileCoords
         match heightsArrayOption with
         | None -> printfn " the tile does not exist, moving to the next one."

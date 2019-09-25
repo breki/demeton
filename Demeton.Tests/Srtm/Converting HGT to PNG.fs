@@ -1,6 +1,7 @@
 ﻿module Demeton.Tests.``Converting HGT to PNG``
 
 open Demeton.DemTypes
+open Demeton.Srtm
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 open Png.File
@@ -54,7 +55,7 @@ let ``Can convert HeightsArray to 16-bit grayscale``() =
 let ``Can convert a HGT file into PNG image``() =
     let srtmTileId = "N46E015"
     let hgtFileNameOnly = srtmTileId + ".hgt"
-    let tileCoords = parseTileId hgtFileNameOnly.[0..6]
+    let tileCoords = Tile.parseTileId hgtFileNameOnly.[0..6]
 
     let assembly = Assembly.GetExecutingAssembly()
     use hgtStream = assembly.GetManifestResourceStream

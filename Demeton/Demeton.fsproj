@@ -21,6 +21,7 @@
     <Compile Include="DemTypes.fs" />
     <Compile Include="Dem.fs" />
     <Compile Include="Srtm\Types.fs" />
+    <Compile Include="Srtm\Tile.fs" />
     <Compile Include="Srtm\Funcs.fs" />
     <Compile Include="Srtm\Png.fs" />
     <Compile Include="Hillshading.fs" />

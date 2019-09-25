@@ -1,6 +1,7 @@
 ﻿module ``fetchSrtmTile tests``
 
 open Demeton.DemTypes
+open Demeton.Srtm
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 
@@ -62,7 +63,7 @@ let ``If PNG tile is already in local cache, return that one``() =
     init()
 
     let tileId = "N46E015"
-    let tileCoords = parseTileId tileId
+    let tileCoords = Tile.parseTileId tileId
 
     let heightsArray = withPngTilePresentInLocalCache tileId
 
@@ -82,7 +83,7 @@ let ``If PNG tile is not in the cache and there is no zipped tile in the SRTM st
     init()
 
     let tileId = "N46E015"
-    let tileCoords = parseTileId tileId
+    let tileCoords = Tile.parseTileId tileId
 
     let heightsArrayReturned = 
         fetchSrtmTile 
@@ -100,7 +101,7 @@ let ``If PNG tile is not in the cache and there is a zipped tile in the SRTM sto
     init()
 
     let tileId = "N46E015"
-    let tileCoords = parseTileId tileId
+    let tileCoords = Tile.parseTileId tileId
 
     let heightsArray = withZippedTilePresentInSrtmStorage tileId
 
