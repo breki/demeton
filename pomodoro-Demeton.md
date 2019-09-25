@@ -1,4 +1,7 @@
-﻿## Tue 24.9.
+﻿## Wed 25.9.
+- Renamed `FileSystem` module to `FileSys` and added `RequireQualifiedAccess` attribute to it.
+
+## Tue 24.9.
 - Pieced together all of the code for the import tiles command.
 - Added FAKE build script.
 - Added more code documentation.

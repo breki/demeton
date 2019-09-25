@@ -1,6 +1,5 @@
 ﻿module ``Zip_files_tests``
 
-open FileSystem
 open System.IO
 open System.Reflection
 open Swensen.Unquote
@@ -18,7 +17,7 @@ let ``Can read zip file entry``() =
     resourceStream.CopyTo(zipOutputFileStream)
     zipOutputFileStream.Close()
 
-    use stream = openZipFileEntry zipFileName "N46E015.hgt"
+    use stream = FileSys.openZipFileEntry zipFileName "N46E015.hgt"
     use copiedStream = new MemoryStream()
     stream.CopyTo (copiedStream)
 

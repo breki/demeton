@@ -4,7 +4,6 @@ open GeometryTypes
 open IOTypes
 open DemTypes
 open SrtmTypes
-open FileSystem
 
 open System
 open System.IO
@@ -161,7 +160,7 @@ type SrtmHgtToPngTileConverter = SrtmTileFile -> string -> HeightsArray
 let fetchSrtmTile 
     (srtmDir: string)
     (localCacheDir: string)
-    (fileExists: FileExistsChecker)
+    (fileExists: FileSys.FileExistsChecker)
     (pngTileReader: SrtmPngTileReader)
     (pngTileConverter: SrtmHgtToPngTileConverter)
     (tile: SrtmTileCoords)

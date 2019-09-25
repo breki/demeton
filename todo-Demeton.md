@@ -1,4 +1,6 @@
-﻿- try to put all the pieces together so that the command is running
+﻿- clean up namespaces/module names a little
+
+- try to put all the pieces together so that the command is running
     - parallelize the importing process
         - fix logging so it can work in parallel mode
 

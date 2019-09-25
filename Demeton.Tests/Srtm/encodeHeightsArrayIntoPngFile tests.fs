@@ -25,17 +25,17 @@ let ``Writes the encoded PNG image to the specified file``() =
     let heightsArray = HeightsArray(10, 20, 5, 5, (fun _ -> None))
     let localCacheDir = @"dir1\dir2"
 
-    FileSystem.deleteDirectoryIfExists localCacheDir |> ignore
+    FileSys.deleteDirectoryIfExists localCacheDir |> ignore
 
     let pngFileName = localCacheDir |> Paths.combine "file.png"
 
     encodeHeightsArrayIntoPngFile 
-        FileSystem.ensureDirectoryExists
-        FileSystem.openFileToWrite
+        FileSys.ensureDirectoryExists
+        FileSys.openFileToWrite
         heightsArray 
         pngFileName
 
-    use writtenFileStream = FileSystem.openFileToRead pngFileName
+    use writtenFileStream = FileSys.openFileToRead pngFileName
     use memoryStream = new MemoryStream()
     writtenFileStream.CopyTo(memoryStream)
 

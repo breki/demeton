@@ -7,7 +7,6 @@ open Demeton.Png
 open Demeton.SrtmTypes
 open Demeton.Srtm
 open System.IO
-open FileSystem
 
 
 let missingHeightAsUint16 = 0us
@@ -105,7 +104,7 @@ let decodeSrtmTileFromPngFile
 
 
 let convertZippedHgtTileToPng
-    (readZipFileEntry: ZipFileEntryReader)
+    (readZipFileEntry: FileSys.ZipFileEntryReader)
     createSrtmTileFromStream
     encodeTileIntoPngFile
     (zippedHgtFile: SrtmTileFile)

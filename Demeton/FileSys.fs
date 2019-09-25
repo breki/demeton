@@ -2,7 +2,8 @@
 /// Contains functions for working with files and directories 
 /// in a functional way.
 /// </summary>
-module FileSystem
+[<RequireQualifiedAccess>]
+module FileSys
 
 open System.IO
 open System.IO.Compression

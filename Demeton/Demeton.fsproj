@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Paths.fs" />
-    <Compile Include="FileSystem.fs" />
+    <Compile Include="FileSys.fs" />
     <Compile Include="CommandLineParsing.fs" />
     <Compile Include="Binary.fs" />
     <Compile Include="CRC.fs" />

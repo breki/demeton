@@ -100,22 +100,22 @@ let importTiles options =
 
     let pngTileReader =
         decodeSrtmTileFromPngFile
-            FileSystem.openFileToRead
+            FileSys.openFileToRead
 
     let pngTileConverter = 
         convertZippedHgtTileToPng 
-            FileSystem.openZipFileEntry
+            FileSys.openZipFileEntry
             createSrtmTileFromStream
             (encodeHeightsArrayIntoPngFile
-                FileSystem.ensureDirectoryExists
-                FileSystem.openFileToWrite)
+                FileSys.ensureDirectoryExists
+                FileSys.openFileToWrite)
 
     import 
         tilesCords 
         (fetchSrtmTile 
             options.SrtmDir
             options.LocalCacheDir
-            FileSystem.fileExists
+            FileSys.fileExists
             pngTileReader
             pngTileConverter)
 
