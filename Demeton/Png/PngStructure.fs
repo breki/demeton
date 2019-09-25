@@ -72,8 +72,10 @@ let writeChunk
 let readChunk (stream: Stream): (ChunkType * byte[]) =
     let chunkDataLength = stream |> readBigEndianInt32
 
+    let bufferLength = 10 * 1024 * 1024
     // '4' is for the chunk type
-    let chunkTypeAndDataBytes = stream |> readBytes (4 + chunkDataLength)
+    let chunkTypeAndDataBytes = 
+        stream |> readBytes bufferLength (4 + chunkDataLength)
     let chunkCrc = stream |> readBigEndianUInt32
 
     let chunkTypeInBytes = chunkTypeAndDataBytes |> Array.take 4

@@ -18,6 +18,9 @@ type FileExistsChecker = string -> bool
 /// </summary>
 type ZipFileEntryReader = string -> string -> Stream
 
+/// <summary>
+/// Determines whether the specified file exists.
+/// </summary>
 let fileExists fileName = File.Exists(fileName)
 
 /// <summary>

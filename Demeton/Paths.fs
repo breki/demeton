@@ -22,5 +22,8 @@ let extension (extension: string) (path: string): string =
 /// </summary>
 let directory (path: string): string = Path.GetDirectoryName(path)
 
+/// <summary>
+/// Returns the file name of the specified path string without the extension.
+/// </summary>
 let fileNameWithoutExtension (path: string) = 
     Path.GetFileNameWithoutExtension(path)
