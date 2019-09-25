@@ -1,7 +1,8 @@
 ﻿/// <summary>
 /// Contains functions for reading and writing of binary data in streams.
 /// </summary>
-module Demeton.Binary
+[<RequireQualifiedAccess>]
+module Bnry
 
 open System.IO
 

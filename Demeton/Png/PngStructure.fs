@@ -1,6 +1,5 @@
 ﻿module Demeton.PngStructure
 
-open Demeton.Binary
 open Demeton.PngTypes
 
 open System
@@ -22,7 +21,7 @@ let readSignature (stream: Stream): Stream =
     let signatureLength = pngSignature.Length
 
     let signatureRead = 
-        [| for i in 0 .. (signatureLength-1) -> readByte stream |]
+        [| for i in 0 .. (signatureLength-1) -> Bnry.readByte stream |]
 
     if signatureRead = pngSignature then stream
     else invalidOp "Invalid PNG signature"
@@ -36,7 +35,7 @@ let readSignature (stream: Stream): Stream =
 /// <returns>The same instance of the stream.</returns>
 let writeChunkType (chunkType: ChunkType) (stream: Stream): Stream = 
     for i in 0 .. chunkType.TypeName.Length - 1 do
-        stream |> writeByte ((byte) chunkType.TypeName.[i]) |> ignore
+        stream |> Bnry.writeByte ((byte) chunkType.TypeName.[i]) |> ignore
 
     stream
 
@@ -46,7 +45,7 @@ let readChunkType (expectedChunkType: ChunkType) (stream: Stream): Stream =
 
     for i in 0 .. typeName.Length - 1 do
         let expectedChar = typeName.[i]
-        let actualChar = (char) (readByte stream)
+        let actualChar = (char) (Bnry.readByte stream)
         if actualChar = expectedChar then ignore()
         else
             invalidOp (sprintf "Unexpected PNG chunk type read (expected %s)." typeName)
@@ -64,19 +63,19 @@ let writeChunk
     let chunkCrc = CRC.crc32 chunkTypeAndDataBytes
 
     stream
-    |> writeBigEndianInt32 chunkDataLength
-    |> writeBytes chunkTypeAndDataBytes
-    |> writeBigEndianUInt32 chunkCrc
+    |> Bnry.writeBigEndianInt32 chunkDataLength
+    |> Bnry.writeBytes chunkTypeAndDataBytes
+    |> Bnry.writeBigEndianUInt32 chunkCrc
 
 
 let readChunk (stream: Stream): (ChunkType * byte[]) =
-    let chunkDataLength = stream |> readBigEndianInt32
+    let chunkDataLength = stream |> Bnry.readBigEndianInt32
 
     let bufferLength = 10 * 1024 * 1024
     // '4' is for the chunk type
     let chunkTypeAndDataBytes = 
-        stream |> readBytes bufferLength (4 + chunkDataLength)
-    let chunkCrc = stream |> readBigEndianUInt32
+        stream |> Bnry.readBytes bufferLength (4 + chunkDataLength)
+    let chunkCrc = stream |> Bnry.readBigEndianUInt32
 
     let chunkTypeInBytes = chunkTypeAndDataBytes |> Array.take 4
 

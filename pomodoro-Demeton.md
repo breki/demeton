@@ -1,4 +1,5 @@
 ﻿## Wed 25.9.
+- Renamed `Demeton.Binary` module to `Bnry` and added `RequireQualifiedAccess` attribute to it.
 - Renamed `Paths` module to `Pth`.
 - Renamed `FileSystem` module to `FileSys` and added `RequireQualifiedAccess` attribute to it.
 

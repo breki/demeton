@@ -1,6 +1,5 @@
 ﻿module Demeton.PngChunks
 
-open Demeton.Binary
 open Demeton.PngTypes
 open Demeton.PngFiltering
 open Demeton.PngUnfiltering
@@ -23,13 +22,13 @@ let serializeIhdrChunkData (ihdr: IhdrData): byte[] =
 
     stream
     |> writeChunkType (ChunkType("IHDR"))
-    |> writeBigEndianInt32 ihdr.Width
-    |> writeBigEndianInt32 ihdr.Height
-    |> writeByte ((byte)ihdr.BitDepth)
-    |> writeByte ((byte)ihdr.ColorType)
-    |> writeByte ((byte)PngCompressionMethod.DeflateInflate)
-    |> writeByte ((byte)PngFilterMethod.AdaptiveFiltering)
-    |> writeByte ((byte)ihdr.InterlaceMethod)
+    |> Bnry.writeBigEndianInt32 ihdr.Width
+    |> Bnry.writeBigEndianInt32 ihdr.Height
+    |> Bnry.writeByte ((byte)ihdr.BitDepth)
+    |> Bnry.writeByte ((byte)ihdr.ColorType)
+    |> Bnry.writeByte ((byte)PngCompressionMethod.DeflateInflate)
+    |> Bnry.writeByte ((byte)PngFilterMethod.AdaptiveFiltering)
+    |> Bnry.writeByte ((byte)ihdr.InterlaceMethod)
     |> ignore
 
     stream.ToArray()
@@ -37,7 +36,7 @@ let serializeIhdrChunkData (ihdr: IhdrData): byte[] =
 
 let deserializeIhdrChunkData (bytes: byte[]) =
     let assertNextByteIs expected stream =
-        let nextByte = readByte stream
+        let nextByte = Bnry.readByte stream
 
         if nextByte = expected then stream
         else 
@@ -49,15 +48,15 @@ let deserializeIhdrChunkData (bytes: byte[]) =
     stream |> readChunkType (ChunkType("IHDR")) |> ignore
 
     { 
-        Width = readBigEndianInt32 stream;
-        Height = readBigEndianInt32 stream;
-        BitDepth = LanguagePrimitives.EnumOfValue (readByte stream);
-        ColorType = LanguagePrimitives.EnumOfValue (readByte stream);
+        Width = Bnry.readBigEndianInt32 stream;
+        Height = Bnry.readBigEndianInt32 stream;
+        BitDepth = LanguagePrimitives.EnumOfValue (Bnry.readByte stream);
+        ColorType = LanguagePrimitives.EnumOfValue (Bnry.readByte stream);
         InterlaceMethod = 
             stream 
             |> assertNextByteIs ((byte)PngCompressionMethod.DeflateInflate)
             |> assertNextByteIs ((byte)PngFilterMethod.AdaptiveFiltering)
-            |> readByte 
+            |> Bnry.readByte 
             |> LanguagePrimitives.EnumOfValue 
     }
 

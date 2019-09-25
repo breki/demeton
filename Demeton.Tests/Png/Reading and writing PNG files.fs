@@ -1,6 +1,5 @@
 ﻿module Demeton.Tests.``Reading and writing PNG files``
 
-open Demeton.Binary
 open Demeton.PngTypes
 open Demeton.PngStructure
 open Demeton.PngChunks
@@ -42,7 +41,7 @@ let ``Writes chunk into a stream``() =
         use stream = new MemoryStream()
         stream 
         |> writeChunkType (new ChunkType("TEST"))
-        |> writeBigEndianInt32 1212234 |> ignore
+        |> Bnry.writeBigEndianInt32 1212234 |> ignore
         stream.ToArray();
 
     use stream = new MemoryStream()
