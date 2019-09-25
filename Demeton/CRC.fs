@@ -1,7 +1,8 @@
 ﻿// Adapted from "Writing a PNG Decoder in F#, Part II" article by Steve Hawley
 // http://plinth.org/techtalk/?p=207&
 
-module Demeton.CRC
+[<RequireQualifiedAccess>]
+module Crc
 
 let crcTable = 
     [|

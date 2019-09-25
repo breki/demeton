@@ -60,7 +60,7 @@ let writeChunk
     : Stream =
     let chunkDataLength = chunkTypeAndDataBytes.Length - 4
 
-    let chunkCrc = CRC.crc32 chunkTypeAndDataBytes
+    let chunkCrc = Crc.crc32 chunkTypeAndDataBytes
 
     stream
     |> Bnry.writeBigEndianInt32 chunkDataLength
@@ -82,7 +82,7 @@ let readChunk (stream: Stream): (ChunkType * byte[]) =
     let chunkType = 
         ChunkType(System.Text.ASCIIEncoding.ASCII.GetString(chunkTypeInBytes))
 
-    let expectedChunkCrc = CRC.crc32 chunkTypeAndDataBytes
+    let expectedChunkCrc = Crc.crc32 chunkTypeAndDataBytes
     if chunkCrc <> expectedChunkCrc 
         then invalidOp (sprintf "Wrong CRC for PNG chunk type %A." chunkType)
     else 

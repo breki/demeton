@@ -1,4 +1,6 @@
 ﻿## Wed 25.9.
+- Fixed "Imports all tiles within the specified boundaries" test case to run now that the import function employs parallelization.
+- Renamed `Demeton.Crc` module to `Crc` and added `RequireQualifiedAccess` attribute to it.
 - Renamed `Demeton.Binary` module to `Bnry` and added `RequireQualifiedAccess` attribute to it.
 - Renamed `Paths` module to `Pth`.
 - Renamed `FileSystem` module to `FileSys` and added `RequireQualifiedAccess` attribute to it.

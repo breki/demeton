@@ -159,13 +159,17 @@ let ``Imports all tiles within the specified boundaries``() =
         { Lon = SrtmLongitude.fromInt 16; Lat = SrtmLatitude.fromInt 46 }
     |]
 
+    // we use a lock because the import function employs parallelization
+    let threadsLock = "some lock"
     let mutable tilesRead = []
     let mutable heightsArraysProduced: HeightsArray list = []
 
     let readTile (tilesCoords: SrtmTileCoords): HeightsArray option =
-        tilesRead <- tilesCoords :: tilesRead
+        lock threadsLock (fun () -> tilesRead <- tilesCoords :: tilesRead)
         let heightsArray = HeightsArray (0, 0, 10, 10, fun x -> None)
-        heightsArraysProduced <- heightsArray :: heightsArraysProduced
+        lock threadsLock (
+            fun () -> 
+                heightsArraysProduced <- heightsArray :: heightsArraysProduced)
         Some heightsArray
 
     import tilesCoords readTile

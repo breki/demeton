@@ -1,7 +1,5 @@
 ﻿module Demeton.Benchmarks.CrcBenchmarks
 
-open Demeton.CRC
-
 open BenchmarkDotNet.Attributes
 
 type Crc32Comparison() = 
@@ -16,4 +14,4 @@ type Crc32Comparison() =
         array <- Array.init self.ArraySize (fun _ -> byte (rnd.Next(256)))
 
     [<Benchmark>]
-    member self.Crc() = crc32 array
+    member self.Crc() = Crc.crc32 array
