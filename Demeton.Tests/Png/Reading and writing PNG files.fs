@@ -18,7 +18,7 @@ open System.Reflection
 
 
 let givenA8BitGrayscaleImage rndSeed imageWidth imageHeight 
-    : ImageData =
+    : RawImageData =
     let rnd = new Random(rndSeed)
 
     Array.init (imageWidth*imageHeight) (fun _ -> ((byte)(rnd.Next 256)))

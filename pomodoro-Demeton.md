@@ -1,4 +1,5 @@
 ﻿## Wed 25.9.
+- Renamed `ImageData` to `RawImageData`.
 - Introduced `CachingStatus` to avoid the import command having to read already imported tiles.
 - Removed some obsolete code from the console project.
 - Separated SRTM tile-oriented functions into `Tile` module.

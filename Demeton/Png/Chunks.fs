@@ -142,7 +142,7 @@ let serializeIdatChunkData
     imageWidth 
     imageHeight 
     bpp 
-    (imageData: ImageData) 
+    (imageData: RawImageData) 
     : byte[] =
     let filteredImageData = 
         filterScanlines 
@@ -159,7 +159,7 @@ let serializeIdatChunkData
     compressionStream.ToArray()
 
 
-let deserializeIdatChunkData bpp imageWidth imageHeight chunkData: ImageData =
+let deserializeIdatChunkData bpp imageWidth imageHeight chunkData: RawImageData =
     use chunkDataStream = new MemoryStream()
     chunkDataStream 
     // skips the first 4 bytes as there represent the chunk type
@@ -183,7 +183,7 @@ let writeIdatChunk
     imageWidth
     imageHeight
     (bpp: int) 
-    (imageData: ImageData) 
+    (imageData: RawImageData) 
     (stream: Stream)
     : Stream =
     stream 

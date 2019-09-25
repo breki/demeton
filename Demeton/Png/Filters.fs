@@ -62,7 +62,7 @@ let inline filterTypePaethFirstLine raw (left: byte) = raw - left
 let scanlineFromImageData imageData scanlineLength index: Span<byte> =
     new Span<byte>(imageData, index * scanlineLength, scanlineLength)
 
-type ScanlineFilter = ImageData -> int -> int -> int -> int -> FilteredScanline
+type ScanlineFilter = RawImageData -> int -> int -> int -> int -> FilteredScanline
 
 let addFilterTypeByteMarks(filteredScanlinesBuffer: FilteredScanline[]) = 
     for filterIndex in 0 .. 4 do
@@ -226,7 +226,7 @@ let filterScanlines
     imageWidth
     imageHeight
     (bpp: int)
-    (imageData: ImageData)
+    (imageData: RawImageData)
     : FilteredImageData =
 
     let bytesPP = bytesPerPixel bpp

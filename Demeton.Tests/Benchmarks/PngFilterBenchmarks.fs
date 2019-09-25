@@ -6,7 +6,7 @@ open Png.Filters
 open BenchmarkDotNet.Attributes
 
 type PngFilterComparison() = 
-    let mutable imageData: ImageData = [||]
+    let mutable imageData: RawImageData = [||]
 
     [<Params (2000)>] 
     member val public ImageSize = 0 with get, set

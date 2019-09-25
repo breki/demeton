@@ -1,9 +1,13 @@
-﻿module Png.Types
-
-// https://en.wikipedia.org/wiki/Portable_Network_Graphics
-// https://www.w3.org/TR/PNG/#11IHDR
-// http://www.libpng.org/pub/png/book/chapter08.html
-// https://www.w3.org/TR/REC-png-961001
+﻿/// <summary>
+/// Contains type definitions for the PNG reading and writing functionality.
+/// </summary>
+/// <remarks>
+/// https://en.wikipedia.org/wiki/Portable_Network_Graphics
+/// https://www.w3.org/TR/PNG/#11IHDR
+/// http://www.libpng.org/pub/png/book/chapter08.html
+/// https://www.w3.org/TR/REC-png-961001
+/// </remarks>
+module Png.Types
 
 /// <summary>
 /// A single-byte integer giving the number of bits per sample or per palette 
@@ -99,6 +103,13 @@ type IhdrData = {
         /// </summary>
         InterlaceMethod: PngInterlaceMethod
     } with
+
+    /// <summary>
+    /// Calculates the number of bits per pixel needed for this instance of 
+    /// IHDR data. It currently only supports 8-bit and 16-bit grayscale images
+    /// because we use these to encode SRTM tiles. For all other image types
+    /// it throws an exception.
+    /// </summary>
     member this.BitsPerPixel = 
         match (this.ColorType, this.BitDepth) with
         | (PngColorType.Grayscale, PngBitDepth.BitDepth8) -> 8
@@ -106,8 +117,14 @@ type IhdrData = {
         | (_, _) -> 
             invalidOp "This PNG type is currently not supported."
 
-type ImageData = byte[]
+/// <summary>
+/// Raw image data represented as a byte array.
+/// </summary>
+type RawImageData = byte[]
 
+/// <summary>
+/// A byte array representing a sequence of filtered scanlines of the image.
+/// </summary>
 type FilteredImageData = byte[]
 
 /// <summary>

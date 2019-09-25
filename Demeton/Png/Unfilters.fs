@@ -194,12 +194,12 @@ let unfilterScanline
 
 
 let unfilterScanlines 
-    imageWidth imageHeight bpp (filteredImageData: byte[]): ImageData =
+    imageWidth imageHeight bpp (filteredImageData: byte[]): RawImageData =
 
     let bytesPP = bytesPerPixel bpp
     let scanlineLength = imageWidth * bytesPP
 
-    let imageData: ImageData = 
+    let imageData: RawImageData = 
         Array.zeroCreate (scanlineLength * imageHeight)
 
     let mutable prevScanline = new Span<byte>()

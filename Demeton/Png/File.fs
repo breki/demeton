@@ -14,7 +14,7 @@ open System.IO
 /// <returns>The same stream.</returns>
 let savePngToStream 
     (ihdr: IhdrData)
-    (imageData: ImageData) 
+    (imageData: RawImageData) 
     (stream: Stream): Stream =
 
     let bpp = 
@@ -44,7 +44,7 @@ let savePngToStream
 /// </param>
 /// <param name="stream">The stream containing the PNG image.</param>
 /// <returns>The same stream.</returns>
-let loadPngFromStream (stream: Stream) : (IhdrData * ImageData) =
+let loadPngFromStream (stream: Stream) : (IhdrData * RawImageData) =
     
     stream |> readSignature |> ignore
     let ihdr = stream |> readIhdrChunk

@@ -6,7 +6,7 @@ open Png.Types
 let grayscale16BitImageData 
     imageWidth 
     imageHeight 
-    (initializer: int -> int -> uint16): ImageData =
+    (initializer: int -> int -> uint16): RawImageData =
 
     let imageData = Array.zeroCreate (imageWidth * imageHeight * 2)
 

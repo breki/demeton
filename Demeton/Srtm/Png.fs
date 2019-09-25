@@ -32,7 +32,7 @@ let inline uint16ValueToDemHeight (value: uint16): DemHeight option =
 let heightsArrayToImageData 
     (heightMappingFunc: DemHeight option -> uint16)
     (heightsArray: HeightsArray)
-    : ImageData =
+    : RawImageData =
 
     grayscale16BitImageData
         heightsArray.Width
