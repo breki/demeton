@@ -5,7 +5,6 @@ open Png.Types
 open Png.PixelFormats
 open Png.File
 open Demeton.Srtm.Types
-open Demeton.Srtm.Funcs
 open System.IO
 
 

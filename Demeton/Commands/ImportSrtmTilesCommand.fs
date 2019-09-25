@@ -162,11 +162,13 @@ let import
     : unit = 
 
     tiles |> Array.Parallel.iter (fun tileCoords ->
-        printf "Looking for SRTM tile %s... " (Tile.tileId tileCoords)
+        let tileId = (Tile.tileId tileCoords)
+        printfn "Looking for SRTM tile %s... " tileId
         let heightsArrayOption = readTile tileCoords
         match heightsArrayOption with
-        | None -> printfn " the tile does not exist, moving to the next one."
-        | _ -> printfn " imported."
+        | None -> 
+            printfn "Tile %s does not exist, moving to the next one." tileId
+        | _ -> printfn "Tile %s imported." tileId
         )
 
     ignore()

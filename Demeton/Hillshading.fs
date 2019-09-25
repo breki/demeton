@@ -1,6 +1,5 @@
 ﻿module Demeton.Hillshading
 
-open Demeton
 open Demeton.GeometryTypes
 open Demeton.Srtm.Funcs
 open System;

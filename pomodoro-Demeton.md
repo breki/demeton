@@ -1,4 +1,5 @@
 ﻿## Wed 25.9.
+- Removed some obsolete code from the console project.
 - Separated SRTM tile-oriented functions into `Tile` module.
 - Separated SRTM code into its own subnamespace and renamed its modules.
 - Renamed PNG modules so they start with `Png` namespace.

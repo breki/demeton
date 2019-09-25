@@ -1,13 +1,16 @@
-﻿- clean up namespaces/module names a little
-    - restructure SRTM-oriented test code into a separate folder
+﻿- logging
+    - how do we expose logging?
+    - fix problems with multithreading logging
+    - logging time?
 
-- try to put all the pieces together so that the command is running
-    - parallelize the importing process
-        - fix logging so it can work in parallel mode
+- fix todos if possible
+- remove code that's no longer used (look into local cache functions)
+
+- DEM performance improvements
+    - switch to using 1D array instead of 2D for heights (for performance reasons)
+    - stop using an optional height in the HeightsArray (for performance reasons)
 
 - https://fsprojects.github.io/FSharp.Formatting/metadata.html
-- command line
-    - command line help text
 
 - possible PNG encoding performance improvements
     - split IDAT into several chunks that can be CRC-processed in parallel
@@ -16,9 +19,6 @@
     - profile PNG encoding 
     - implement decoding the SRTM cell from PNG image
 
-- implement console commands for encoding and decoding HGTS into PNGS so we can see the real speed (without debugging)
-    - https://github.com/commandlineparser/commandline
-
 - go through the PNG code:
     - fix any todos
     - clean it up
@@ -26,9 +26,6 @@
     - update the docs
 
 - add support for RGBA
-
-- switch to using 1D array instead of 2D for heights (for performance reasons)
-- stop using an optional height in the HeightsArray (for performance reasons)
 
 - hillshading algorithm
     - takes the `HeightsArray` and executes the Igor's shading algorithm

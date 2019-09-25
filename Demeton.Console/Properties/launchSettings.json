@@ -2,7 +2,7 @@
   "profiles": {
     "Demeton.Console": {
       "commandName": "Project",
-      "commandLineArgs": "import --bounds 9.995362,46.057985,16.077393,47.963445 --srtm-dir \\\\hobbit\\SRTM"
+      "commandLineArgs": "import --bounds 4.262676,42.90816,16.962471,48.502048 --srtm-dir \\\\hobbit\\SRTM"
     }
   }
 }
