@@ -158,17 +158,26 @@ type SrtmToPngEncoder = HeightsArray -> Stream -> unit
 /// </param>
 let import 
     (tiles: SrtmTileCoords[])
+    (checkCaching: Tile.CachingStatusChecker)
     (readTile: SrtmTileReader)
     : unit = 
 
     tiles |> Array.Parallel.iter (fun tileCoords ->
-        let tileId = (Tile.tileId tileCoords)
-        printfn "Looking for SRTM tile %s... " tileId
-        let heightsArrayOption = readTile tileCoords
-        match heightsArrayOption with
-        | None -> 
-            printfn "Tile %s does not exist, moving to the next one." tileId
-        | _ -> printfn "Tile %s imported." tileId
+        let cachingStatus = checkCaching tileCoords
+
+        match cachingStatus with
+        | Tile.CachingStatus.NotCached ->
+            let tileId = (Tile.tileId tileCoords)
+            printfn "Looking for SRTM tile %s... " tileId
+            let heightsArrayOption = readTile tileCoords
+            match heightsArrayOption with
+            | None -> 
+                printfn "Tile %s does not exist, moving to the next one." tileId
+            | _ -> printfn "Tile %s imported." tileId
+        | _ -> ignore()
+
         )
+
+    printfn "All tiles were imported into the local cache."
 
     ignore()

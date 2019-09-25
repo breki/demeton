@@ -99,6 +99,22 @@ let ensureTilesAreInCache
 type SrtmPngTileReader = string -> HeightsArray
 type SrtmHgtToPngTileConverter = SrtmTileFile -> string -> HeightsArray
 
+let checkSrtmTileCachingStatus
+    (srtmDir: string)
+    (localCacheDir: string)
+    (fileExists: FileSys.FileExistsChecker)
+    (tile: SrtmTileCoords)
+    = 
+    let localTileFile = toLocalCacheTileFile localCacheDir tile
+
+    match fileExists localTileFile.FileName with
+    | true -> Tile.CachingStatus.Cached
+    | false -> 
+        let zippedSrtmTileFile = toZippedSrtmTileFile srtmDir tile
+
+        match fileExists zippedSrtmTileFile.FileName with
+        | false -> Tile.CachingStatus.DoesNotExist
+        | true -> Tile.CachingStatus.NotCached
 
 let fetchSrtmTile 
     (srtmDir: string)

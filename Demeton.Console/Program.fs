@@ -15,6 +15,12 @@ let handleUnknownCommand commandName =
 let importTiles options =
     let tilesCords = boundsToTiles (Option.get options.Bounds) |> Seq.toArray
 
+    let cachingStatusChecker =
+        checkSrtmTileCachingStatus
+            options.SrtmDir
+            options.LocalCacheDir
+            FileSys.fileExists
+
     let pngTileReader =
         decodeSrtmTileFromPngFile
             FileSys.openFileToRead
@@ -29,6 +35,7 @@ let importTiles options =
 
     import 
         tilesCords 
+        cachingStatusChecker
         (fetchSrtmTile 
             options.SrtmDir
             options.LocalCacheDir

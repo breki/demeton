@@ -2,6 +2,7 @@
 
 open Demeton.Commands.ImportSrtmTilesCommand
 open Demeton.GeometryTypes
+open Demeton.Srtm
 open Demeton.Srtm.Types
 open Demeton.DemTypes
 
@@ -163,6 +164,9 @@ let ``Imports all tiles within the specified boundaries``() =
     let mutable tilesRead = []
     let mutable heightsArraysProduced: HeightsArray list = []
 
+    let checkCachingStatus (tilesCoords: SrtmTileCoords) = 
+        Tile.CachingStatus.NotCached
+
     let readTile (tilesCoords: SrtmTileCoords): HeightsArray option =
         lock threadsLock (fun () -> tilesRead <- tilesCoords :: tilesRead)
         let heightsArray = HeightsArray (0, 0, 10, 10, fun x -> None)
@@ -171,6 +175,6 @@ let ``Imports all tiles within the specified boundaries``() =
                 heightsArraysProduced <- heightsArray :: heightsArraysProduced)
         Some heightsArray
 
-    import tilesCoords readTile
+    import tilesCoords checkCachingStatus readTile
 
     test <@ heightsArraysProduced.Length = tilesCoords.Length @>
