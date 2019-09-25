@@ -76,7 +76,7 @@ let encodeHeightsArrayIntoPngFile
     heightsArray 
     pngFileName =
 
-    ensureDirectoryExists (pngFileName |> Paths.directory) |> ignore
+    ensureDirectoryExists (pngFileName |> Pth.directory) |> ignore
 
     use stream = openFile pngFileName
     encodeSrtmHeightsArrayToPng heightsArray stream |> ignore
@@ -90,7 +90,7 @@ let decodeSrtmTileFromPngFile
     use stream = openFile pngFileName
     let (ihdr, imageData) = stream |> loadPngFromStream
 
-    let tileId = pngFileName |> Paths.fileNameWithoutExtension
+    let tileId = pngFileName |> Pth.fileNameWithoutExtension
     let tileCoords = Srtm.parseTileId tileId
     let (minX, minY) = Srtm.tileCellMinCoords 3600 tileCoords
 

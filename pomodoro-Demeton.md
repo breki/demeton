@@ -1,4 +1,5 @@
 ﻿## Wed 25.9.
+- Renamed `Paths` module to `Pth`.
 - Renamed `FileSystem` module to `FileSys` and added `RequireQualifiedAccess` attribute to it.
 
 ## Tue 24.9.

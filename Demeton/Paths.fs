@@ -2,7 +2,7 @@
 /// Contains functions for manipulating file paths in a functional way.
 /// </summary>
 [<RequireQualifiedAccess>]
-module Paths
+module Pth
 
 open System.IO
 
