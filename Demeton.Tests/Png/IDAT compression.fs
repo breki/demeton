@@ -1,6 +1,6 @@
 ﻿module Demeton.Tests.``IDAT compression``
 
-open Demeton.PngChunks
+open Png.Chunks
 open Demeton.Srtm
 open Demeton.HgtPng
 open Demeton.DemTypes

@@ -1,9 +1,9 @@
-﻿module Demeton.PngChunks
+﻿module Png.Chunks
 
-open Demeton.PngTypes
-open Demeton.PngFiltering
-open Demeton.PngUnfiltering
-open Demeton.PngStructure
+open Png.Types
+open Png.Filters
+open Png.Unfilters
+open Png.FileStructure
 
 open System.IO
 open ICSharpCode.SharpZipLib.Zip.Compression

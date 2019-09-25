@@ -1,8 +1,8 @@
-﻿module Demeton.Png
+﻿module Png.File
 
-open Demeton.PngTypes
-open Demeton.PngStructure
-open Demeton.PngChunks
+open Png.Types
+open Png.FileStructure
+open Png.Chunks
 
 open System.IO
 

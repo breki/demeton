@@ -1,6 +1,6 @@
-﻿module Demeton.PngPixelFormats
+﻿module Png.PixelFormats
 
-open Demeton.PngTypes
+open Png.Types
 
 
 let grayscale16BitImageData 

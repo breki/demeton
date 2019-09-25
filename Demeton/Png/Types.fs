@@ -1,4 +1,4 @@
-﻿module Demeton.PngTypes
+﻿module Png.Types
 
 // https://en.wikipedia.org/wiki/Portable_Network_Graphics
 // https://www.w3.org/TR/PNG/#11IHDR

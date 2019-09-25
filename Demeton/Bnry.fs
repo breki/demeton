@@ -88,14 +88,13 @@ let readBigEndianInt32 (stream: Stream): int =
     ||| (((int)(readByte stream)) <<< 8)
     ||| (((int)(readByte stream)))
 
-// todo docs
 /// <summary>
-/// Writes the specified unsigned integer value to a stream using the big 
+/// Writes the specified 32-bit unsigned integer value to a stream using the big 
 /// endian order.
 //// </summary>
-/// <param name="value">The unsigned integer value to be written.</param>
+/// <param name="value">The 32-bit unsigned integer value to be written.</param>
 /// <param name="stream">
-/// The stream the unsigned integer value should be written to.
+/// The stream the 32-bit unsigned integer value should be written to.
 /// </param>
 /// <returns>The same instance of the stream.</returns>
 let writeBigEndianUInt32 (value: uint32) (stream: Stream): Stream =
@@ -105,7 +104,9 @@ let writeBigEndianUInt32 (value: uint32) (stream: Stream): Stream =
     |> writeByte ((byte)(value >>> 8))
     |> writeByte ((byte)value)
 
-
+/// <summary>
+/// Reads a big-endian encoded 32-bit unsigned integer from the stream.
+/// </summary>
 let readBigEndianUInt32 (stream: Stream): uint32 =
     (((uint32)(readByte stream)) <<< 24)
     ||| (((uint32)(readByte stream)) <<< 16)

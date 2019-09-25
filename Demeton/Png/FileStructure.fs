@@ -1,6 +1,6 @@
-﻿module Demeton.PngStructure
+﻿module Png.FileStructure
 
-open Demeton.PngTypes
+open Png.Types
 
 open System
 open System.IO

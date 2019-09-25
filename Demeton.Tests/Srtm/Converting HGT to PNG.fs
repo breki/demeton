@@ -3,7 +3,7 @@
 open Demeton.DemTypes
 open Demeton.Srtm
 open Demeton.HgtPng
-open Demeton.Png
+open Png.File
 
 open FsUnit
 open Xunit

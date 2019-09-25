@@ -1,8 +1,8 @@
 ﻿module Demeton.Tests.``PNG filtering``
 
-open Demeton.PngTypes
-open Demeton.PngFiltering
-open Demeton.PngUnfiltering
+open Png.Types
+open Png.Filters
+open Png.Unfilters
 
 open FsUnit
 open Xunit

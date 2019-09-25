@@ -1,4 +1,5 @@
 ﻿## Wed 25.9.
+- Renamed PNG modules so they start with `Png` namespace.
 - Fixed "Imports all tiles within the specified boundaries" test case to run now that the import function employs parallelization.
 - Renamed `Demeton.Crc` module to `Crc` and added `RequireQualifiedAccess` attribute to it.
 - Renamed `Demeton.Binary` module to `Bnry` and added `RequireQualifiedAccess` attribute to it.

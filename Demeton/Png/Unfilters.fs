@@ -1,7 +1,7 @@
-﻿module Demeton.PngUnfiltering
+﻿module Png.Unfilters
 
-open Demeton.PngTypes
-open Demeton.PngFiltering
+open Png.Types
+open Png.Filters
 
 open System
 

@@ -1,9 +1,9 @@
 ﻿module Demeton.HgtPng
 
 open DemTypes
-open Demeton.PngTypes
-open Demeton.PngPixelFormats
-open Demeton.Png
+open Png.Types
+open Png.PixelFormats
+open Png.File
 open Demeton.SrtmTypes
 open Demeton.Srtm
 open System.IO

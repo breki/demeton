@@ -3,9 +3,8 @@ open System.IO;
 open System.IO.Compression;
 open Demeton.Srtm
 open Demeton.HgtPng
-open Demeton.Png
+open Png.File
 open Demeton.Commands.ImportSrtmTilesCommand
-open Demeton.DemTypes
 
 let hgtFileName (demFile : string) = demFile + ".hgt"
 

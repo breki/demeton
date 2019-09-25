@@ -1,10 +1,10 @@
 ﻿module Demeton.Tests.``Reading and writing PNG files``
 
-open Demeton.PngTypes
-open Demeton.PngStructure
-open Demeton.PngChunks
-open Demeton.PngPixelFormats
-open Demeton.Png
+open Png.Types
+open Png.FileStructure
+open Png.Chunks
+open Png.PixelFormats
+open Png.File
 
 open FsCheck
 open FsCheck.Xunit

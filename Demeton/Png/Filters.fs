@@ -1,6 +1,6 @@
-﻿module Demeton.PngFiltering
+﻿module Png.Filters
 
-open Demeton.PngTypes
+open Png.Types
 
 open System
 open System.Threading.Tasks
