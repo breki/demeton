@@ -171,10 +171,12 @@ let import
             Log.info "Looking for SRTM tile %s... " tileId
             let heightsArrayOption = readTile tileCoords
             match heightsArrayOption with
-            | None -> 
+            | Ok None -> 
                 Log.info 
                     "Tile %s does not exist, moving to the next one." tileId
-            | _ -> Log.info "Tile %s imported." tileId
+            | Ok _ -> Log.info "Tile %s imported." tileId
+            | Error msg -> 
+                Log.error "Tile %s could not be imported: %s." tileId msg
         | _ -> ignore()
 
         )

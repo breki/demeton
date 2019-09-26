@@ -1,10 +1,21 @@
-﻿module Png.Filters
+﻿/// <summary>
+/// Contains functions for PNG adaptive filtering of image scanlines.
+/// </summary>
+module Png.Filters
 
 open Png.Types
 
 open System
 open System.Threading.Tasks
 
+/// <summary>
+/// Calculates the bytes per pixel number based on the specified bith depth 
+/// value.
+/// </summary>
+/// <remarks>
+/// Note that the method currently does not support bit depths less than 8 and
+/// throws an exception if such a value is provided.
+/// </remarks>
 let bytesPerPixel bpp =
     let bytes = bpp / 8
     let bitRemainder = bpp % 8
@@ -15,7 +26,9 @@ let bytesPerPixel bpp =
     | (_, _) -> 
         invalidOp "Invalid bpp (bits-per-pixel) value."
 
-
+/// <summary>
+/// Calculates Paeth predictor value. Used by Paeth filter type.
+/// </summary>
 let inline paethPredictor (a:int) (b:int) (c:int) = 
     let p = a + b - c
     let pa = abs (p - a)
@@ -26,44 +39,59 @@ let inline paethPredictor (a:int) (b:int) (c:int) =
     | (_, _, _) when pb <= pc -> b
     | _ -> c
 
-
 /// <summary>
-/// Converts a filtered scaline back to the original scanline using the 
-/// "Paeth" PNG filter method.
+/// Implements PNG adaptive filter type "None".
 /// </summary>
-/// <param name="bpp">Bits per pixel of the image.</param>
-/// <param name="prevScanline">
-/// The previous (upper) scanline that is used to calculate filter values.
-/// </param>
-/// <param name="filtered">
-/// The filtered scanline that should be converted.
-/// </param>
-/// <returns>The original (non-filtered) scanline.</returns>
-
-
 let inline filterTypeNone raw = raw
 
+/// <summary>
+/// Implements PNG adaptive filter type "Sub".
+/// </summary>
 let inline filterTypeSub raw left _ _ = raw - left
 
+/// <summary>
+/// Implements PNG adaptive filter type "Up".
+/// </summary>
 let inline filterTypeUp raw _ up _ = raw - up
 
-let inline filterTypeAverage raw (left: byte) (up: byte) _ 
-    = raw - (byte)(((int)left + (int)up) / 2)
-
+/// <summary>
+/// Implements PNG adaptive filter type "Average" for the first scanline
+/// (the one that does not have any scanlines above it).
+/// </summary>
 let inline filterTypeAverageFirstLine raw (left: byte)
     = raw - byte ((int left) / 2)
 
+/// <summary>
+/// Implements PNG adaptive filter type "Average" for non-first scanlines
+/// (those that have a scanline above them).
+/// </summary>
+let inline filterTypeAverage raw (left: byte) (up: byte) _ 
+    = raw - (byte)(((int)left + (int)up) / 2)
+
+/// <summary>
+/// Implements PNG adaptive filter type "Paeth" for the first scanline
+/// (the one that does not have any scanlines above it).
+/// </summary>
+let inline filterTypePaethFirstLine raw (left: byte) = raw - left
+
+/// <summary>
+/// Implements PNG adaptive filter type "Paeth" for non-first scanlines
+/// (those that have a scanline above them).
+/// </summary>
 let inline filterTypePaeth raw (left: byte) (up: byte) (upLeft: byte) = 
     raw - (byte)(paethPredictor ((int)left) ((int)up) ((int)upLeft))
 
-let inline filterTypePaethFirstLine raw (left: byte) = raw - left
-
-
+/// <summary>
+/// Returns a Span of a scanline specified by its index (row number).
+/// </summary>
 let scanlineFromImageData imageData scanlineLength index: Span<byte> =
     new Span<byte>(imageData, index * scanlineLength, scanlineLength)
 
-type ScanlineFilter = RawImageData -> int -> int -> int -> int -> FilteredScanline
-
+/// <summary>
+/// Adds filter type mark (the first byte of the filtered scanline) to each of
+/// the filtered scanlines buffers (each buffer corresponds to one of the filter
+/// types).
+/// </summary>
 let addFilterTypeByteMarks(filteredScanlinesBuffer: FilteredScanline[]) = 
     for filterIndex in 0 .. 4 do
         filteredScanlinesBuffer.[filterIndex].[0] <- (byte)filterIndex

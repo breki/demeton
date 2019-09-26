@@ -19,6 +19,9 @@
       <NamedTestSelector>
         <TestName>Demeton.Tests.Reading and writing PNG files.Can decode 16-bit grayscale image generated from a SRTM tile</TestName>
       </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>decodeSrtmTileFromPngFile tests.Can decode a valid PNG-encoded SRTM tile</TestName>
+      </NamedTestSelector>
     </IgnoredTests>
   </Settings>
 </ProjectConfiguration>

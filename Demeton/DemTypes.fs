@@ -30,3 +30,8 @@ type HeightsArray
             x - this.MinX, y - this.MinY]
         height
         
+/// <summary>
+/// A result of an operation that can return an optional 
+/// <see cref="HeightsArray" />.
+/// </summary>
+type HeightsArrayResult = Result<HeightsArray option, string>

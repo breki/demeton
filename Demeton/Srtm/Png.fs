@@ -84,23 +84,30 @@ let encodeHeightsArrayIntoPngFile
 let decodeSrtmTileFromPngFile
     openFile
     pngFileName
-    : HeightsArray =
+    : Result<HeightsArray, string> =
     // todo write tests for it
     use stream = openFile pngFileName
+
+    // todo: ensure the PNG is encoded as 3600*3600 16-bit grayscale
     let (ihdr, imageData) = stream |> loadPngFromStream
 
-    let tileId = pngFileName |> Pth.fileNameWithoutExtension
-    let tileCoords = Tile.parseTileId tileId
-    let (minX, minY) = Tile.tileCellMinCoords 3600 tileCoords
+    match (ihdr.Width, ihdr.Height) with
+    | (3600, 3600) -> 
+        let tileId = pngFileName |> Pth.fileNameWithoutExtension
+        let tileCoords = Tile.parseTileId tileId
+        let (minX, minY) = Tile.tileCellMinCoords 3600 tileCoords
 
-    HeightsArray(minX, minY, 3600, 3600,
-        (fun (gx, gy) -> 
+        // todo implement a more performant way to initialize the heights array
+        let srtmTileInitialize (gx, gy) =
             let lx = gx - minX
             let ly = gy - minY
             let pixelValue = 
                 grayscale16BitPixel imageData ihdr.Width ihdr.Height lx ly
-            uint16ValueToDemHeight pixelValue))
+            uint16ValueToDemHeight pixelValue
 
+        Ok (HeightsArray(minX, minY, 3600, 3600, srtmTileInitialize))
+    | (_, _) -> 
+        Error "This image size of this PNG does not correspond to the SRTM tile."
 
 let convertZippedHgtTileToPng
     (readZipFileEntry: FileSys.ZipFileEntryReader)

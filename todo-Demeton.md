@@ -1,4 +1,7 @@
 ﻿- fix todos if possible
+    - write tests for decodeSrtmTileFromPngFile
+    - decodeSrtmTileFromPngFile should return Result instead of exception when the PNG is not valid
+
 - remove code that's no longer used (look into local cache functions)
 
 - DEM performance improvements

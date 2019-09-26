@@ -18,12 +18,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="TestHelp.fs" />
     <Compile Include="FileSystem tests\Zip files tests.fs" />
     <Compile Include="Benchmarks\PngFilterBenchmarks.fs" />
     <Compile Include="Benchmarks\CrcBenchmarks.fs" />
     <Compile Include="Benchmarks\Array1Dvs2D.fs" />
     <Compile Include="Benchmarks\ArrayAccess.fs" />
     <Compile Include="Srtm\encodeHeightsArrayIntoPngFile tests.fs" />
+    <Compile Include="Srtm\decodeSrtmTileFromPngFile tests.fs" />
     <Compile Include="Srtm\convertZippedHgtTileToPng tests.fs" />
     <Compile Include="Srtm\fetchSrtmTile tests.fs" />
     <Compile Include="Srtm\ensureTilesAreInCache tests.fs" />

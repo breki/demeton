@@ -18,6 +18,6 @@ type SrtmTileCoords = { Lon: SrtmLongitude; Lat: SrtmLatitude }
 
 type SrtmTileFile = { TileCoords: SrtmTileCoords; FileName: string }
 
-type SrtmTileReader = SrtmTileCoords -> HeightsArray option
+type SrtmTileReader = SrtmTileCoords -> HeightsArrayResult
 
 

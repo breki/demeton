@@ -49,7 +49,7 @@ let pngFileReader fileNameToFind =
     let (_, contents) =
         pngFilesInLocalCacheDir
         |> List.find (fun (fileName, _) -> fileName = fileNameToFind)
-    contents
+    Ok contents
 
 let pngTileConverter (zippedTileFile: SrtmTileFile) _ =
     let (_, contents) =
@@ -76,7 +76,7 @@ let ``If PNG tile is already in local cache, return that one``() =
             pngTileConverter
             tileCoords
 
-    test <@ heightsArrayReturned = Some heightsArray @>
+    test <@ heightsArrayReturned = Ok (Some heightsArray) @>
 
 [<Fact>]
 let ``If PNG tile is not in the cache and there is no zipped tile in the SRTM storage, returns None``() =
@@ -94,7 +94,7 @@ let ``If PNG tile is not in the cache and there is no zipped tile in the SRTM st
             pngTileConverter
             tileCoords
 
-    test <@ heightsArrayReturned = None @>
+    test <@ heightsArrayReturned = Ok None @>
 
 [<Fact>]
 let ``If PNG tile is not in the cache and there is a zipped tile in the SRTM storage, converts it to PNG and returns it``() =
@@ -114,5 +114,4 @@ let ``If PNG tile is not in the cache and there is a zipped tile in the SRTM sto
             pngTileConverter
             tileCoords
 
-    test <@ heightsArrayReturned = Some heightsArray @>
-    
+    test <@ heightsArrayReturned = Ok (Some heightsArray) @>    

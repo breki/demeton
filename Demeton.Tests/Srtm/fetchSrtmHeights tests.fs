@@ -6,15 +6,15 @@ open Demeton.DemTypes
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 open Swensen.Unquote
+open TestHelp
 
 let returnSomeHeightArray _ =
     HeightsArray(0, 0, 0, 0, (fun _ -> None))
 
 [<Fact>]
 let ``Returns None if there are no tiles to fetch``() =
-    let srtmHeights = fetchSrtmHeights [] (fun _ -> None) 
-    srtmHeights |> should equal None
-    test <@ (srtmHeights |> Option.isNone) = true @>
+    let srtmHeights = fetchSrtmHeights [] (fun _ -> Ok None) 
+    test <@ srtmHeights = Ok None @>
 
 [<Fact>]
 let ``Returns HeightArray when at least one tile was found``() =
@@ -23,7 +23,7 @@ let ``Returns HeightArray when at least one tile was found``() =
     let srtmHeights = 
         fetchSrtmHeights 
             tilesToUse
-            (fun x -> Some (returnSomeHeightArray x))
-    srtmHeights |> should be ofExactType<HeightsArray option>
-    test <@ (srtmHeights |> Option.isSome) = true @>
+            (fun x -> Ok (Some (returnSomeHeightArray x)))
+    test <@ isOk srtmHeights @>
+    test <@ Option.isSome (resultValue srtmHeights) @>
    

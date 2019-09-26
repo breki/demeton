@@ -8,12 +8,7 @@ open Demeton.DemTypes
 
 open Xunit
 open Swensen.Unquote
-
-
-let isError errorMessage result =
-    match result with
-    | Ok _ -> false
-    | Error actualMessage -> actualMessage = errorMessage
+open TestHelp
 
 
 let parsedOptions result: ImportOptions =
@@ -167,13 +162,13 @@ let ``Imports all tiles within the specified boundaries``() =
     let checkCachingStatus (tilesCoords: SrtmTileCoords) = 
         Tile.CachingStatus.NotCached
 
-    let readTile (tilesCoords: SrtmTileCoords): HeightsArray option =
+    let readTile (tilesCoords: SrtmTileCoords): HeightsArrayResult =
         lock threadsLock (fun () -> tilesRead <- tilesCoords :: tilesRead)
         let heightsArray = HeightsArray (0, 0, 10, 10, fun x -> None)
         lock threadsLock (
             fun () -> 
                 heightsArraysProduced <- heightsArray :: heightsArraysProduced)
-        Some heightsArray
+        Ok (Some heightsArray)
 
     import tilesCoords checkCachingStatus readTile
 

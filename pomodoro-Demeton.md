@@ -1,4 +1,7 @@
-﻿## Wed 25.9.
+﻿## Thu 26.9.
+- `SrtmTileReader` now returns a Result to improve error handling.
+
+## Wed 25.9.
 - Implemented a simple logging API.
 - Renamed `ImageData` to `RawImageData`.
 - Introduced `CachingStatus` to avoid the import command having to read already imported tiles.

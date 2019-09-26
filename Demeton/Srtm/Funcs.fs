@@ -96,7 +96,7 @@ let ensureTilesAreInCache
     |> List.map (fun x -> toLocalCacheTileFile localCacheDir x)
 
 
-type SrtmPngTileReader = string -> HeightsArray
+type SrtmPngTileReader = string -> Result<HeightsArray, string>
 type SrtmHgtToPngTileConverter = SrtmTileFile -> string -> HeightsArray
 
 let checkSrtmTileCachingStatus
@@ -123,32 +123,51 @@ let fetchSrtmTile
     (pngTileReader: SrtmPngTileReader)
     (pngTileConverter: SrtmHgtToPngTileConverter)
     (tile: SrtmTileCoords)
-    : HeightsArray option =
+    : HeightsArrayResult =
     let localTileFile = toLocalCacheTileFile localCacheDir tile
 
     match fileExists localTileFile.FileName with
-    | true -> Some (pngTileReader localTileFile.FileName)
+    | true -> 
+        let loadResult = pngTileReader localTileFile.FileName
+        match loadResult with
+        | Ok heightsArray -> Ok (Some heightsArray)
+        | Error message -> Error message
     | false -> 
         let zippedSrtmTileFile = toZippedSrtmTileFile srtmDir tile
 
         match fileExists zippedSrtmTileFile.FileName with
-        | false -> None
+        | false -> Ok None
         | true -> 
-            Some (pngTileConverter 
+            Ok (Some (pngTileConverter 
                 zippedSrtmTileFile 
-                localTileFile.FileName)
+                localTileFile.FileName))
 
 
 let fetchSrtmHeights 
     (tilesToUse: SrtmTileCoords seq)
     (readSrtmTile: SrtmTileReader)
-    : HeightsArray option = 
+    : HeightsArrayResult = 
 
-    let tilesHeightsArrays = 
-        tilesToUse 
-        |> Seq.map (fun tileCoords -> readSrtmTile tileCoords)
-        |> Seq.filter Option.isSome
-        |> Seq.map Option.get
-        |> Seq.toList
+    let mutable errorMessage = None
+    let mutable i = 0;
 
-    Demeton.Dem.merge tilesHeightsArrays
+    let tilesArray = tilesToUse |> Seq.toArray
+    let mutable heightsArraysToMerge = []
+    while i < tilesArray.Length && Option.isNone errorMessage do
+        let tileCoords = tilesArray.[i]
+        let tileLoadResult = readSrtmTile tileCoords
+
+        match tileLoadResult with
+        | Ok (Some heightsArray) ->
+            heightsArraysToMerge <- heightsArray :: heightsArraysToMerge
+            ignore()
+        | Error message ->
+            errorMessage <- Some message
+            ignore()
+        | _ -> ()
+
+        i <- i + 1
+
+    match errorMessage with
+    | Some error -> Error error
+    | _ -> Ok (Demeton.Dem.merge heightsArraysToMerge)
