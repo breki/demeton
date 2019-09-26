@@ -1,4 +1,6 @@
 ﻿## Thu 26.9.
+- `decodeSrtmTileFromPngFile` now returns Result instead of throwing exceptions.
+- Implemented `ResultSeq`.
 - `SrtmTileReader` now returns a Result to improve error handling.
 
 ## Wed 25.9.

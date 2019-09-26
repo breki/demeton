@@ -7,7 +7,6 @@ open Png.File
 open Demeton.Srtm.Types
 open System.IO
 
-
 let missingHeightAsUint16 = 0us
 let zeroHeight = 1s <<< 15
 
@@ -85,14 +84,24 @@ let decodeSrtmTileFromPngFile
     openFile
     pngFileName
     : Result<HeightsArray, string> =
-    // todo write tests for it
     use stream = openFile pngFileName
 
     // todo: ensure the PNG is encoded as 3600*3600 16-bit grayscale
     let (ihdr, imageData) = stream |> loadPngFromStream
 
-    match (ihdr.Width, ihdr.Height) with
-    | (3600, 3600) -> 
+    let validateImageSize ihdr =
+        match (ihdr.Width, ihdr.Height) with
+        | (3600, 3600) -> Ok ihdr
+        | (_, _) -> 
+            Error "The image size of this PNG does not correspond to the SRTM tile."
+
+    let validateColorType (ihdr: IhdrData) =
+        match ihdr.ColorType with
+        | PngColorType.Grayscale -> Ok ihdr
+        | _ -> 
+            Error "The color type of this PNG does not correspond to the SRTM tile."
+
+    let generateHeightsArray() = 
         let tileId = pngFileName |> Pth.fileNameWithoutExtension
         let tileCoords = Tile.parseTileId tileId
         let (minX, minY) = Tile.tileCellMinCoords 3600 tileCoords
@@ -106,8 +115,14 @@ let decodeSrtmTileFromPngFile
             uint16ValueToDemHeight pixelValue
 
         Ok (HeightsArray(minX, minY, 3600, 3600, srtmTileInitialize))
-    | (_, _) -> 
-        Error "This image size of this PNG does not correspond to the SRTM tile."
+
+    let validationResult =
+        ResultSeq.fold [ validateColorType; validateImageSize ] ihdr
+
+    match validationResult with
+    | Ok _ -> generateHeightsArray()
+    | Error errors -> Error (errors |> String.concat " ")
+
 
 let convertZippedHgtTileToPng
     (readZipFileEntry: FileSys.ZipFileEntryReader)

@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <Compile Include="TestHelp.fs" />
+    <Compile Include="ResultSeq tests.fs" />
     <Compile Include="FileSystem tests\Zip files tests.fs" />
     <Compile Include="Benchmarks\PngFilterBenchmarks.fs" />
     <Compile Include="Benchmarks\CrcBenchmarks.fs" />

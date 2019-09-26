@@ -82,6 +82,6 @@ let ``Throws an exception if PNG image size is not of a SRTM tile``() =
 
     test <@ 
             isError 
-                "This image size of this PNG does not correspond to the SRTM tile."
+                "The image size of this PNG does not correspond to the SRTM tile."
                 (decodeSrtmTileFromPngFile FileSys.openFileToRead pngFileName)
     @>
