@@ -27,6 +27,12 @@ let ``Can decode a valid PNG-encoded SRTM tile``() =
             assembly.GetManifestResourceStream(
                 sprintf "Demeton.Tests.samples.%s" pngFilename)
 
+        match File.Exists(pngFilename) with
+        | true -> 
+            printfn "Deleting file %s..." pngFilename
+        | false -> ()
+
+        printfn "Preparing new instance of %s..." pngFilename
         use pngTempFileStream = File.OpenWrite(pngFilename)
         resourceStream.CopyTo(pngTempFileStream)
         pngTempFileStream.Close()

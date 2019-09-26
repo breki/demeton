@@ -1,1 +1,2 @@
-dotnet test --configuration Release --filter Category!=slow --verbosity minimal
+dotnet build --configuration Release --verbosity minimal
+dotnet test --configuration Release --verbosity minimal
