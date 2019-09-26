@@ -1,4 +1,5 @@
 ﻿## Thu 26.9.
+- Migrated to .NET Core 3.0.
 - `decodeSrtmTileFromPngFile` now returns Result instead of throwing exceptions.
 - Implemented `ResultSeq`.
 - `SrtmTileReader` now returns a Result to improve error handling.

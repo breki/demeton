@@ -1,8 +1,6 @@
 ﻿- fix todos if possible
     - implement a more performant way to initialize the heights array
 
-- migrate to .NET Core 3.0?
-
 - remove code that's no longer used (look into local cache functions)
 
 - DEM performance improvements
