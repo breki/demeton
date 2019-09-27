@@ -20,12 +20,12 @@ let merge (heightArrays: HeightsArray list): HeightsArray option =
     /// </summary>
     let findHeightOfCell 
         (cellCoords: GlobalCellCoords) (arrayMaybe: HeightsArray option)
-        : DemHeight option =
+        : DemHeight =
         match arrayMaybe with
         | Some array -> 
             let height = array.heightAt cellCoords
             height
-        | None -> None
+        | None -> DemHeightNone
 
     match heightArrays with
     | [] -> None
@@ -38,8 +38,10 @@ let merge (heightArrays: HeightsArray list): HeightsArray option =
         let width = maxX - minX + 1
         let height = maxY - minY + 1
 
-        let heightOfCellInArrays coords = 
-            heightArrays |> findArrayOfCell coords |> findHeightOfCell coords
+        let heightOfCellInArrays = 
+            HeightsArrayInitializer2D(fun coords -> 
+                heightArrays 
+                |> findArrayOfCell coords 
+                |> findHeightOfCell coords)
 
-        Some (
-            HeightsArray(minX, minY, width, height, heightOfCellInArrays))
+        Some (HeightsArray(minX, minY, width, height, heightOfCellInArrays))

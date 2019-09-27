@@ -9,7 +9,7 @@ open Swensen.Unquote
 open TestHelp
 
 let returnSomeHeightArray _ =
-    HeightsArray(0, 0, 0, 0, (fun _ -> None))
+    HeightsArray(0, 0, 0, 0, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
 
 [<Fact>]
 let ``Returns None if there are no tiles to fetch``() =

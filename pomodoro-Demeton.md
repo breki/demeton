@@ -1,4 +1,9 @@
-﻿## Thu 26.9.
+﻿## Fri 27.9.
+- Introduced `HeightsArrayInitializer` and `Grayscale16BitImageDataInitializer` so we can provide multiple ways to initialize these arrays.
+- Switched to using 1D array instead of 2D for HeightsArray (for performance reasons).
+- Stopped using an optional height in the HeightsArray (for performance reasons).
+
+## Thu 26.9.
 - Migrated to .NET Core 3.0.
 - `decodeSrtmTileFromPngFile` now returns Result instead of throwing exceptions.
 - Implemented `ResultSeq`.

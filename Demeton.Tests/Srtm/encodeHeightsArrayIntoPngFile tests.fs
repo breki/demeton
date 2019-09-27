@@ -8,7 +8,9 @@ open System.IO
 
 [<Fact>]
 let ``Creates the necessary directories for the local cache``() =
-    let heightsArray = HeightsArray(10, 20, 5, 5, (fun _ -> None))
+    let heightsArray = 
+        HeightsArray(
+            10, 20, 5, 5, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
     let localCacheDir = @"dir1\dir2"
     let pngFileName = localCacheDir |> Pth.combine "file.png"
 
@@ -22,7 +24,9 @@ let ``Creates the necessary directories for the local cache``() =
 
 [<Fact>]
 let ``Writes the encoded PNG image to the specified file``() =
-    let heightsArray = HeightsArray(10, 20, 5, 5, (fun _ -> None))
+    let heightsArray = 
+        HeightsArray(
+            10, 20, 5, 5, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
     let localCacheDir = @"dir1\dir2"
 
     FileSys.deleteDirectoryIfExists localCacheDir |> ignore

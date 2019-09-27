@@ -1,5 +1,6 @@
 ﻿module Demeton.Tests.``Reading SRTM HGT files``
 
+open Demeton.DemTypes
 open Demeton.Srtm
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
@@ -17,21 +18,21 @@ let ``Can read SRTM heights``() =
     use stream = new MemoryStream([| 10uy; 0uy; 0uy; 0uy; 1uy; 1uy |])
     let heights = readSrtmHeightsFromStream stream |> Array.ofSeq
 
-    heights |> should equal [| Some 2560s; Some 0s; Some 257s |]
+    heights |> should equal [| 2560s; 0s; 257s |]
 
 [<Fact>]
 let ``Can read null SRTM heights``() =
     use stream = new MemoryStream([| 0x80uy; 0uy; 10uy; 0uy |])
     let heights = readSrtmHeightsFromStream stream |> Array.ofSeq
 
-    heights |> should equal [| None; Some 2560s |]
+    heights |> should equal [| DemHeightNone; 2560s |]
 
 [<Fact>]
 let ``Can handle negative SRTM heights``() =
     use stream = new MemoryStream([| 255uy; 0b10011100uy; 10uy; 0uy |])
     let heights = readSrtmHeightsFromStream stream |> Array.ofSeq
 
-    heights |> should equal [| Some -100s; Some 2560s |]
+    heights |> should equal [| -100s; 2560s |]
 
 [<Fact>]
 let ``Can create heights array from SRTM heights sequence``() =
@@ -82,11 +83,11 @@ let ``Can create heights array from SRTM heights sequence``() =
     test <@ tile.Height = tileSize @>
     test <@ tile.MinX = (16 + 179) * tileSize @>
     test <@ tile.MinY = (45 + 90) * tileSize @>
-    test <@ tile.Cells.[0,0] = sampleHeight1 @>
-    test <@ tile.Cells.[0,1] = sampleHeight2 @>
+    test <@ tile.Cells.[0] = sampleHeight1 @>
+    test <@ tile.Cells.[tileSize] = sampleHeight2 @>
 
 [<Fact>]
-[<Trait("Category", "integration")>]
+[<Trait("Category", "slow")>]
 let ``Can read HGT file``() =
     let hgtFileNameOnly = "N00E031.hgt"
     let tileCoords = Tile.parseTileId hgtFileNameOnly.[0..6]

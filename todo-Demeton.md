@@ -1,11 +1,4 @@
-﻿- fix todos if possible
-    - implement a more performant way to initialize the heights array
-
-- remove code that's no longer used (look into local cache functions)
-
-- DEM performance improvements
-    - switch to using 1D array instead of 2D for heights (for performance reasons)
-    - stop using an optional height in the HeightsArray (for performance reasons)
+﻿- remove code that's no longer used (look into local cache functions)
 
 - https://fsprojects.github.io/FSharp.Formatting/metadata.html
 

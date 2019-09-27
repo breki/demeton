@@ -2,24 +2,23 @@
 
 open Demeton.DemTypes
 open Png.Types
-open Png.PixelFormats
 open Png.File
+open Png.PixelFormats
 open Demeton.Srtm.Types
 open System.IO
 
 let missingHeightAsUint16 = 0us
 let zeroHeight = 1s <<< 15
 
-let inline demHeightToUInt16Value (demHeight: DemHeight option): uint16 =
+let inline demHeightToUInt16Value (demHeight: DemHeight): uint16 =
     match demHeight with
-    | Some height -> (uint16)((int16)height + zeroHeight)
-    | _ -> missingHeightAsUint16
+    | DemHeightNone -> missingHeightAsUint16
+    | height -> (uint16)((int16)height + zeroHeight)
 
 
-let inline uint16ValueToDemHeight (value: uint16): DemHeight option =
-    if value = missingHeightAsUint16 then None
-    else Some (DemHeight ((int16)value - zeroHeight))
-
+let inline uint16ValueToDemHeight (value: uint16): DemHeight =
+    if value = missingHeightAsUint16 then DemHeightNone
+    else DemHeight ((int16)value - zeroHeight)
 
 /// <summary>
 /// Converts the <see cref="HeightsArray" /> into 16-bit grayscale image data.
@@ -29,14 +28,18 @@ let inline uint16ValueToDemHeight (value: uint16): DemHeight option =
 /// </param>
 /// <returns>Image data.</returns>
 let heightsArrayToImageData 
-    (heightMappingFunc: DemHeight option -> uint16)
+    (heightMappingFunc: DemHeight -> uint16)
     (heightsArray: HeightsArray)
     : RawImageData =
+
+    let initializer = 
+        Grayscale16BitImageDataInitializer1D(
+            fun index -> heightsArray.Cells.[index] |> heightMappingFunc)
 
     grayscale16BitImageData
         heightsArray.Width
         heightsArray.Height
-        (fun x y -> heightsArray.Cells.[x, y] |> heightMappingFunc)
+        initializer
 
 
 /// <summary>
@@ -86,7 +89,6 @@ let decodeSrtmTileFromPngFile
     : Result<HeightsArray, string> =
     use stream = openFile pngFileName
 
-    // todo: ensure the PNG is encoded as 3600*3600 16-bit grayscale
     let (ihdr, imageData) = stream |> loadPngFromStream
 
     let validateImageSize ihdr =
@@ -106,13 +108,13 @@ let decodeSrtmTileFromPngFile
         let tileCoords = Tile.parseTileId tileId
         let (minX, minY) = Tile.tileCellMinCoords 3600 tileCoords
 
-        // todo implement a more performant way to initialize the heights array
-        let srtmTileInitialize (gx, gy) =
-            let lx = gx - minX
-            let ly = gy - minY
-            let pixelValue = 
-                grayscale16BitPixel imageData ihdr.Width ihdr.Height lx ly
-            uint16ValueToDemHeight pixelValue
+        let srtmTileInitialize = 
+            HeightsArrayInitializer1D (fun index -> 
+                let pixelIndex = index <<< 1
+                let highByte = uint16 imageData.[pixelIndex]
+                let lowByte = uint16 imageData.[pixelIndex + 1]
+                let pixelValue = highByte <<< 8 ||| lowByte
+                uint16ValueToDemHeight pixelValue)
 
         Ok (HeightsArray(minX, minY, 3600, 3600, srtmTileInitialize))
 

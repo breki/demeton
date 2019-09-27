@@ -19,7 +19,9 @@ let init() =
     pngFilesInLocalCacheDir <- []
 
 let withPngTilePresentInLocalCache tileId =
-    let fileContents = HeightsArray(10, 20, 5, 5, (fun _ -> None))
+    let fileContents = 
+        HeightsArray(
+            10, 20, 5, 5, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
     let fileInCache = (
         (localCacheDir |> Pth.combine tileId |> Pth.extension ".png"),
         fileContents)
@@ -27,7 +29,9 @@ let withPngTilePresentInLocalCache tileId =
     fileContents
 
 let withZippedTilePresentInSrtmStorage tileId =
-    let fileContents = HeightsArray(10, 20, 5, 5, (fun _ -> None))
+    let fileContents = 
+        HeightsArray(
+            10, 20, 5, 5, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
     let fileInCache = (
         (srtmDir |> Pth.combine (sprintf "%s.SRTMGL1.hgt.zip" tileId)),
         fileContents)

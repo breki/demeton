@@ -29,11 +29,11 @@ let boundsToTiles (bounds: Bounds): SrtmTileCoords list =
 let inline heightFromBytes firstByte secondByte =
     let height: int16 = (int16)firstByte <<< 8 ||| (int16)secondByte
     match height with
-    | 0x8000s -> None
-    | _ -> Some (height)
+    | 0x8000s -> DemHeightNone
+    | _ -> height
 
 
-let readSrtmHeightsFromStream (stream: Stream): DemHeight option seq =
+let readSrtmHeightsFromStream (stream: Stream): DemHeight seq =
 
     let inline readNextHeightFromStream (streamReader: FunctionalStreamReader) =
        let firstByte = streamReader.currentByte()
@@ -53,16 +53,26 @@ let readSrtmHeightsFromStream (stream: Stream): DemHeight option seq =
 
     
 let createSrtmTileFromStream tileSize tileCoords stream =
-    let heights1DArray = readSrtmHeightsFromStream stream |> Array.ofSeq
+    let srtmHeights = readSrtmHeightsFromStream stream |> Array.ofSeq
 
     let (tileMinX, tileMinY) = Tile.tileCellMinCoords tileSize tileCoords
         
-    let inline heightFrom1DArray ((cx, cy): GlobalCellCoords) =
-        let arrayIndex = cx - tileMinX
-                        + (cy - tileMinY) * (tileSize + 1)
-        heights1DArray.[arrayIndex]
+    let heightsArrayFromSrtmTileInitializer index =
+        // Note that the srtmHeights array has one pixel/width more of width 
+        // and height than the heights array we're returning (since SRTM tiles of
+        // tileSize 3600 have 3601 width & height), so we need to take this into
+        // account when initializing the heights array.
+        // The row value tells us how much to offset the index to the 
+        // srtmHeights array when reading values.
+        let row = index / tileSize
+        srtmHeights.[index + row]
 
-    HeightsArray(tileMinX, tileMinY, tileSize, tileSize, heightFrom1DArray)
+    HeightsArray(
+        tileMinX, 
+        tileMinY, 
+        tileSize, 
+        tileSize, 
+        HeightsArrayInitializer1D (heightsArrayFromSrtmTileInitializer))
 
 
 let toZippedSrtmTileFile

@@ -7,15 +7,15 @@ open FsUnit
 open Xunit
 open Swensen.Unquote
 
-let someCells _ = None
+let someCells = HeightsArrayInitializer1D (fun _ -> DemHeightNone)
 
-let heightCellsInitializer 
-    (cellsToFill: HeightCell list) (cellCoords: GlobalCellCoords) =
-    cellsToFill |> List.tryFind (
-        fun cellToFill -> cellToFill.Coords = cellCoords)
-    |> function
-    | Some cell -> cell.Height
-    | _ -> None
+let heightCellsInitializer (cellsToFill: HeightCell list) =
+    fun cellCoords -> 
+        cellsToFill |> List.tryFind (
+            fun cellToFill -> cellToFill.Coords = cellCoords)
+        |> function
+        | Some cell -> cell.Height
+        | _ -> DemHeightNone
 
 [<Fact>]
 let ``Merging empty DEM data array results in None``() =
@@ -29,14 +29,20 @@ let ``Merging single DEM data array results in the same array``() =
 [<Fact>]
 let ``Merging several DEM data arrays results in a merged array``() =
     let cells1 = [
-        { Coords = (11, 22); Height = Some 12s }
+        { Coords = (11, 22); Height = 12s }
     ]
     let cells2 = [
-        { Coords = (25, 20); Height = Some 20s }
+        { Coords = (25, 20); Height = 20s }
     ]
 
-    let array1 = HeightsArray(10, 20, 15, 25, heightCellsInitializer cells1)
-    let array2 = HeightsArray(25, 20, 15, 25, heightCellsInitializer cells2)
+    let array1 = 
+        HeightsArray(
+            10, 20, 15, 25, HeightsArrayInitializer2D (
+                fun x -> heightCellsInitializer cells1 x))
+    let array2 = 
+        HeightsArray(
+            25, 20, 15, 25, HeightsArrayInitializer2D (
+                fun x -> heightCellsInitializer cells2 x))
     let array3 = HeightsArray(100, 0, 15, 25, someCells)
     let mergedMaybe = Dem.merge([ array1; array2; array3 ])
 
@@ -48,5 +54,5 @@ let ``Merging several DEM data arrays results in a merged array``() =
     test <@ merged.MinY = 0 @>
     test <@ merged.Width = 105 @>
     test <@ merged.Height = 45 @>
-    test <@ merged.heightAt (11, 22) = Some 12s @>
-    test <@ merged.heightAt (25, 20) = Some 20s @>
+    test <@ merged.heightAt (11, 22) = 12s @>
+    test <@ merged.heightAt (25, 20) = 20s @>

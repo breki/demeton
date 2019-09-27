@@ -71,7 +71,9 @@ let ``Reads the zipped HGT tile as heights array``() =
 
     let entryStream = withZipFileEntry()
 
-    let heightsArray = HeightsArray(10, 20, 30, 40, (fun _ -> None))
+    let heightsArray = 
+        HeightsArray(
+            10, 20, 30, 40, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
 
     convertZippedHgtTileToPng
         (readZipFileEntry entryStream)
@@ -89,7 +91,9 @@ let ``Encodes the read SRTM heights array into PNG file``() =
 
     let entryStream = withZipFileEntry()
 
-    let heightsArray = HeightsArray(10, 20, 30, 40, (fun _ -> None))
+    let heightsArray = 
+        HeightsArray(
+            10, 20, 30, 40, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
 
     convertZippedHgtTileToPng
         (readZipFileEntry entryStream)
@@ -107,7 +111,9 @@ let ``Returns the read heights array``() =
 
     let entryStream = withZipFileEntry()
 
-    let heightsArray = HeightsArray(10, 20, 30, 40, (fun _ -> None))
+    let heightsArray = 
+        HeightsArray(
+            10, 20, 30, 40, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
 
     let returnedHeightsArray = 
         convertZippedHgtTileToPng

@@ -69,11 +69,15 @@ let ``Throws an exception if PNG image size is not of a SRTM tile``() =
             }
 
         let rnd = Random(123)
+
+        let initializer = 
+            Grayscale16BitImageDataInitializer2D (
+                fun _ _ -> (uint16)(rnd.Next(2<<<16-1)))
         let imageData = 
             grayscale16BitImageData 
                 imageWidth 
                 imageHeight
-                (fun _ _ -> (uint16)(rnd.Next(2<<<16-1)))
+                initializer
 
         use stream = File.OpenWrite(imageFileName)
 

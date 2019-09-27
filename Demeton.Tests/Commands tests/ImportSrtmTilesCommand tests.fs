@@ -164,7 +164,10 @@ let ``Imports all tiles within the specified boundaries``() =
 
     let readTile (tilesCoords: SrtmTileCoords): HeightsArrayResult =
         lock threadsLock (fun () -> tilesRead <- tilesCoords :: tilesRead)
-        let heightsArray = HeightsArray (0, 0, 10, 10, fun x -> None)
+        let heightsArray = 
+            HeightsArray (
+                0, 0, 10, 10, HeightsArrayInitializer1D (
+                    fun _ -> DemHeightNone))
         lock threadsLock (
             fun () -> 
                 heightsArraysProduced <- heightsArray :: heightsArraysProduced)

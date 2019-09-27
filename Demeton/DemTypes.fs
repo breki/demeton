@@ -1,11 +1,19 @@
 ﻿module Demeton.DemTypes 
 
 type DemHeight = int16
+
+[<Literal>]
+let DemHeightNone = System.Int16.MinValue
+
 let inline DemHeight x = int16 x
 
 type GlobalCellCoords = (int * int)
 
-type HeightCell = { Coords: GlobalCellCoords; Height : DemHeight option }
+type HeightCell = { Coords: GlobalCellCoords; Height : DemHeight }
+
+type HeightsArrayInitializer =
+    HeightsArrayInitializer1D of (int -> DemHeight)
+    | HeightsArrayInitializer2D of (GlobalCellCoords -> DemHeight)
 
 type HeightsArray
     (
@@ -13,10 +21,21 @@ type HeightsArray
         minY: int,
         width: int, 
         height: int,
-        initializer: (GlobalCellCoords -> DemHeight option)) =
-    let cells = 
-        Array2D.init<DemHeight option> width height 
-            (fun x y -> initializer (minX +  x, minY + y))
+        initializer: HeightsArrayInitializer) =
+    let cells =
+        let arraySize = width*height
+
+        let initializerFuncToUse = 
+            match initializer with
+            | HeightsArrayInitializer2D initializer2D ->
+                    fun index -> 
+                        let x = index % width
+                        let y = index / width
+                        initializer2D (minX + x, minY + y)
+            | HeightsArrayInitializer1D initializer1D -> initializer1D
+
+        Array.init<DemHeight> arraySize initializerFuncToUse
+
     member this.MinX = minX
     member this.MinY = minY
     member this.Width = width
@@ -26,8 +45,8 @@ type HeightsArray
     member this.Cells = cells
     
     member this.heightAt ((x, y): GlobalCellCoords) = 
-        let height = this.Cells.[
-            x - this.MinX, y - this.MinY]
+        let index = (y - this.MinY) * width + x - this.MinX
+        let height = this.Cells.[index]
         height
         
 /// <summary>

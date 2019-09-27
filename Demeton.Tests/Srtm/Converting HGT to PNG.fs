@@ -17,21 +17,21 @@ open System.Reflection
 
 [<Fact>]
 let ``DEM height of 0 is represented as unsigned int16 value of 32768``() =
-    demHeightToUInt16Value (Some 0s) = 32768us
+    demHeightToUInt16Value (0s) = 32768us
 
 
 [<Fact>]
 let ``DEM height of 1000 is represented as unsigned int16 value of 33768``() =
-    demHeightToUInt16Value (Some 1000s) = 33768us
+    demHeightToUInt16Value (1000s) = 33768us
 
 
 [<Fact>]
 let ``Missing DEM height is represented as unsigned int16 value of 0``() =
-    demHeightToUInt16Value (None) = 0us
+    demHeightToUInt16Value (DemHeightNone) = 0us
 
 
 [<Property>]
-let ``DEM height is correctly converted to uint16``(height: DemHeight option)=
+let ``DEM height is correctly converted to uint16``(height: DemHeight)=
     let converted = demHeightToUInt16Value height
     let heightReconverted = uint16ValueToDemHeight converted
     heightReconverted = height
@@ -43,7 +43,8 @@ let ``Can convert HeightsArray to 16-bit grayscale``() =
 
     let heightsArray = 
         new HeightsArray(
-            10, 15, 100, 150, (fun _ ->  Some ((int16)(rnd.Next(-100, 3000)))))
+            10, 15, 100, 150, HeightsArrayInitializer1D (
+                fun _ ->  (int16)(rnd.Next(-100, 3000))))
 
     let imageData = 
         heightsArray |> heightsArrayToImageData demHeightToUInt16Value

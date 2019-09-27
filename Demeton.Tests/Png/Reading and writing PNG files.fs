@@ -182,11 +182,15 @@ let ``Can generate and read a valid 16-bit grayscale PNG``() =
         }
 
     let rnd = Random(123)
+    
+    let initializer = 
+        Grayscale16BitImageDataInitializer2D (
+            fun _ _ -> (uint16)(rnd.Next(2<<<16-1)))
     let imageData = 
         grayscale16BitImageData 
             imageWidth 
             imageHeight
-            (fun _ _ -> (uint16)(rnd.Next(2<<<16-1)))
+            initializer
 
     let imageFileName = Path.GetFullPath("test-grayscale-16.png")
     printfn "Saving test image to %s" imageFileName
