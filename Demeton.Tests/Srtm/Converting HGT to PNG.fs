@@ -41,15 +41,30 @@ let ``DEM height is correctly converted to uint16``(height: DemHeight)=
 let ``Can convert HeightsArray to 16-bit grayscale``() =
     let rnd = System.Random(123)
 
+    let arrayWidth = 100
+    let arrayHeight = 150
     let heightsArray = 
         new HeightsArray(
-            10, 15, 100, 150, HeightsArrayInitializer1D (
+            10, 15, arrayWidth, arrayHeight, HeightsArrayInitializer1D (
                 fun _ ->  (int16)(rnd.Next(-100, 3000))))
+
+    let sampleCellX = 50
+    let sampleCellY = 75
+    let sampleCell = GlobalCellCoords(10 + sampleCellX, 15 + sampleCellY)
+    let originalHeightAtSampleCell = heightsArray.heightAt sampleCell
 
     let imageData = 
         heightsArray |> heightsArrayToImageData demHeightToUInt16Value
-    test <@ Array.length imageData = 100 * 150 * 2 @>
+    test <@ Array.length imageData = arrayWidth * arrayHeight * 2 @>
 
+    let pixel = 
+        Png.PixelFormats.grayscale16BitPixel 
+            imageData arrayWidth sampleCellX sampleCellY 
+
+    let encodedHeightAtSampleCell = 
+        Demeton.Srtm.Png.uint16ValueToDemHeight pixel
+
+    test <@ encodedHeightAtSampleCell = originalHeightAtSampleCell @>
 
 [<Fact>]
 [<Trait("Category", "slow")>]

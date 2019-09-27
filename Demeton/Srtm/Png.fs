@@ -7,18 +7,20 @@ open Png.PixelFormats
 open Demeton.Srtm.Types
 open System.IO
 
-let missingHeightAsUint16 = 0us
-let zeroHeight = 1s <<< 15
+[<Literal>]
+let MissingHeightAsUint16 = 0us
+[<Literal>]
+let ZeroHeight = -32768s
 
 let inline demHeightToUInt16Value (demHeight: DemHeight): uint16 =
     match demHeight with
-    | DemHeightNone -> missingHeightAsUint16
-    | height -> (uint16)((int16)height + zeroHeight)
+    | DemHeightNone -> MissingHeightAsUint16
+    | height -> (uint16)((int16)height + ZeroHeight)
 
 
 let inline uint16ValueToDemHeight (value: uint16): DemHeight =
-    if value = missingHeightAsUint16 then DemHeightNone
-    else DemHeight ((int16)value - zeroHeight)
+    if value = MissingHeightAsUint16 then DemHeightNone
+    else DemHeight ((int16)value - ZeroHeight)
 
 /// <summary>
 /// Converts the <see cref="HeightsArray" /> into 16-bit grayscale image data.
@@ -32,14 +34,13 @@ let heightsArrayToImageData
     (heightsArray: HeightsArray)
     : RawImageData =
 
-    let initializer = 
-        Grayscale16BitImageDataInitializer1D(
-            fun index -> heightsArray.Cells.[index] |> heightMappingFunc)
+    let inline initializer index = 
+        heightsArray.Cells.[index] |> heightMappingFunc
 
     grayscale16BitImageData
         heightsArray.Width
         heightsArray.Height
-        initializer
+        (Grayscale16BitImageDataInitializer1D initializer)
 
 
 /// <summary>
@@ -57,7 +58,8 @@ let encodeSrtmHeightsArrayToPng
     (heightsArray: HeightsArray)
     (outputStream: Stream): Stream =
 
-    let imageData = heightsArrayToImageData demHeightToUInt16Value heightsArray 
+    let imageData = 
+        heightsArrayToImageData demHeightToUInt16Value heightsArray 
 
     let ihdr = { 
         Width = heightsArray.Width

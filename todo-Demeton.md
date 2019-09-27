@@ -1,6 +1,7 @@
-﻿- something is wrong with the updated SRTM importing code
-    - write tests that sample exact heights for a given cell
-    - the function that reads SRTM heights should skip the +1 height so we can implement a simpler initialization of HeightsArray
+﻿- the function that reads SRTM heights should skip the +1 height so we can implement a simpler initialization of HeightsArray
+- can we improve performance of HeightsArray <-> ImageData conversion by directly working on arrays?
+
+- reorganize test files in a chronological order
 
 - https://fsprojects.github.io/FSharp.Formatting/metadata.html
 

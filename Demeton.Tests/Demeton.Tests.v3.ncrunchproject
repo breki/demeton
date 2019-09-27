@@ -5,9 +5,6 @@
     </HiddenComponentWarnings>
     <IgnoredTests>
       <NamedTestSelector>
-        <TestName>Demeton.Tests.Converting HGT to PNG.Can convert a HGT file into PNG image</TestName>
-      </NamedTestSelector>
-      <NamedTestSelector>
         <TestName>Demeton.Tests.IDAT compression.Determining the compression rate</TestName>
       </NamedTestSelector>
       <NamedTestSelector>
@@ -18,6 +15,9 @@
       </NamedTestSelector>
       <NamedTestSelector>
         <TestName>Demeton.Tests.Reading SRTM HGT files.Can read HGT file</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Demeton.Tests.Converting HGT to PNG.Can convert a HGT file into PNG image</TestName>
       </NamedTestSelector>
     </IgnoredTests>
   </Settings>

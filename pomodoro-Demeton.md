@@ -1,4 +1,6 @@
 ﻿## Fri 27.9.
+- Fixed a couple of bugs in the code that went unnoticed.
+- Added a license file.
 - Removed `ensureTilesAreInCache` function since it's not really being used in the production code.
 - Introduced `HeightsArrayInitializer` and `Grayscale16BitImageDataInitializer` so we can provide multiple ways to initialize these arrays.
 - Switched to using 1D array instead of 2D for HeightsArray (for performance reasons).
