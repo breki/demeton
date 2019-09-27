@@ -1,4 +1,5 @@
 ﻿- can we improve performance of HeightsArray <-> ImageData conversion by directly working on arrays?
+    - `createSrtmTileFromStream` - directly import heights array data
 
 - reorganize test files in a chronological order
 

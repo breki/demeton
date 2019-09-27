@@ -1,4 +1,5 @@
 ﻿## Fri 27.9.
+- `HeightsArray` now supports `HeightsArrayDirectImport` way of constructing it, which is now used in `createSrtmTileFromStream` function.
 - Added logging to `convertZippedHgtTileToPng` function.
 - `readSrtmHeightsFromStream` now returns array directly.
 - `readSrtmHeightsFromStream` now skips the STRM tile's additional row and column of heights (since we don't need it and makes working with the resulting array much easier).

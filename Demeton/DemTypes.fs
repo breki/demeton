@@ -12,7 +12,8 @@ type GlobalCellCoords = (int * int)
 type HeightCell = { Coords: GlobalCellCoords; Height : DemHeight }
 
 type HeightsArrayInitializer =
-    HeightsArrayInitializer1D of (int -> DemHeight)
+    HeightsArrayDirectImport of (DemHeight[])
+    | HeightsArrayInitializer1D of (int -> DemHeight)
     | HeightsArrayInitializer2D of (GlobalCellCoords -> DemHeight)
 
 type HeightsArray
@@ -25,16 +26,22 @@ type HeightsArray
     let cells =
         let arraySize = width*height
 
-        let initializerFuncToUse = 
-            match initializer with
-            | HeightsArrayInitializer2D initializer2D ->
-                    fun index -> 
-                        let x = index % width
-                        let y = index / width
-                        initializer2D (minX + x, minY + y)
-            | HeightsArrayInitializer1D initializer1D -> initializer1D
+        match initializer with
+        | HeightsArrayDirectImport arrayToImport ->
+            if arrayToImport.Length <> arraySize then
+                invalidOp "The imported heights array is of incompatible size."
 
-        Array.init<DemHeight> arraySize initializerFuncToUse
+            arrayToImport
+        | HeightsArrayInitializer2D initializer2D ->
+            let initializerFuncToUse =
+                fun index -> 
+                    let x = index % width
+                    let y = index / width
+                    initializer2D (minX + x, minY + y)
+            Array.init<DemHeight> arraySize initializerFuncToUse
+        | HeightsArrayInitializer1D initializer1D -> 
+            Array.init<DemHeight> arraySize initializer1D
+
 
     member this.MinX = minX
     member this.MinY = minY

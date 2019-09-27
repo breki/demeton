@@ -86,14 +86,12 @@ let createSrtmTileFromStream tileSize tileCoords stream =
 
     let (tileMinX, tileMinY) = Tile.tileCellMinCoords tileSize tileCoords
         
-    let heightsArrayFromSrtmTileInitializer index = srtmHeights.[index]
-
     HeightsArray(
         tileMinX, 
         tileMinY, 
         tileSize, 
         tileSize, 
-        HeightsArrayInitializer1D (heightsArrayFromSrtmTileInitializer))
+        HeightsArrayDirectImport srtmHeights)
 
 
 let toZippedSrtmTileFile
