@@ -1,4 +1,5 @@
-﻿- the function that reads SRTM heights should skip the +1 height so we can implement a simpler initialization of HeightsArray
+﻿- can readSrtmHeightsFromStream return array directly?
+
 - can we improve performance of HeightsArray <-> ImageData conversion by directly working on arrays?
 
 - reorganize test files in a chronological order

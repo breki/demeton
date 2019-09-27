@@ -15,24 +15,36 @@ open Swensen.Unquote
 
 [<Fact>]
 let ``Can read SRTM heights``() =
-    use stream = new MemoryStream([| 10uy; 0uy; 0uy; 0uy; 1uy; 1uy |])
-    let heights = readSrtmHeightsFromStream stream |> Array.ofSeq
+    use stream = new MemoryStream([| 
+        10uy; 0uy; 0uy; 0uy; 1uy; 1uy 
+        10uy; 1uy; 0uy; 1uy; 1uy; 1uy 
+        10uy; 2uy; 0uy; 2uy; 1uy; 1uy 
+        |])
+    let heights = readSrtmHeightsFromStream 2 stream |> Array.ofSeq
 
-    heights |> should equal [| 2560s; 0s; 257s |]
+    heights |> should equal [| 
+        2560s; 0s
+        2561s; 1s |]
 
 [<Fact>]
 let ``Can read null SRTM heights``() =
-    use stream = new MemoryStream([| 0x80uy; 0uy; 10uy; 0uy |])
-    let heights = readSrtmHeightsFromStream stream |> Array.ofSeq
+    use stream = new MemoryStream([| 
+        0x80uy; 0uy; 10uy; 0uy 
+        10uy; 0uy; 0uy; 0uy
+        |])
+    let heights = readSrtmHeightsFromStream 1 stream |> Array.ofSeq
 
-    heights |> should equal [| DemHeightNone; 2560s |]
+    heights |> should equal [| DemHeightNone |]
 
 [<Fact>]
 let ``Can handle negative SRTM heights``() =
-    use stream = new MemoryStream([| 255uy; 0b10011100uy; 10uy; 0uy |])
-    let heights = readSrtmHeightsFromStream stream |> Array.ofSeq
+    use stream = new MemoryStream([| 
+        255uy; 0b10011100uy; 10uy; 0uy 
+        10uy; 0uy; 0uy; 0uy
+        |])
+    let heights = readSrtmHeightsFromStream 1 stream |> Array.ofSeq
 
-    heights |> should equal [| -100s; 2560s |]
+    heights |> should equal [| -100s |]
 
 [<Fact>]
 let ``Can create heights array from SRTM heights sequence``() =

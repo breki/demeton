@@ -27,45 +27,61 @@ let boundsToTiles (bounds: Bounds): SrtmTileCoords list =
 
 
 let inline heightFromBytes firstByte secondByte =
-    let height: int16 = (int16)firstByte <<< 8 ||| (int16)secondByte
+    let height: int16 = (int16 firstByte) <<< 8 ||| int16 secondByte
     match height with
     | 0x8000s -> DemHeightNone
     | _ -> height
 
 
-let readSrtmHeightsFromStream (stream: Stream): DemHeight seq =
+let readSrtmHeightsFromStream tileSize (stream: Stream): DemHeight seq =
 
     let inline readNextHeightFromStream (streamReader: FunctionalStreamReader) =
        let firstByte = streamReader.currentByte()
 
        match streamReader.moveForward() with
-       | false -> raise (InvalidOperationException ("Unexpected end of SRTM heights stream reached."))
+       | false -> 
+        raise (InvalidOperationException 
+                ("Unexpected end of SRTM heights stream reached."))
        | true -> 
             let secondByte = streamReader.currentByte()
             heightFromBytes firstByte secondByte 
 
     let streamReader = FunctionalStreamReader(stream)
 
+    // Note that the SRTM tile has one pixel/width more of width 
+    // and height than we need (example: SRTM tiles of tile size 3600 are 
+    // 3601 of width & height).
+    // When reading heights, we skip that additional row and column, so this
+    // function returns tileSize*tileSize number of heights.
+
+    let tileSizePlus1 = tileSize + 1
+
+    // Total number of heights we need to read from the stream.
+    // Note that this is _not_ the total number of heights in the SRTM tile,
+    // since we skip the final column of heights.
+    let heightsNeeded = tileSize * tileSizePlus1 - 1
+
     seq {
-        while streamReader.moveForward()
-            do yield readNextHeightFromStream streamReader
+        let mutable heightsReadCount = 0
+        while heightsReadCount < heightsNeeded && streamReader.moveForward() do
+            let heightRead = readNextHeightFromStream streamReader
+
+            // here we check whether the read height belongs to the final column
+            // that we should skip
+            match heightsReadCount % tileSizePlus1 = tileSize with
+            | true -> () // not emitting the final column's height
+            | false -> yield heightRead
+
+            heightsReadCount <- heightsReadCount + 1
     }
 
     
 let createSrtmTileFromStream tileSize tileCoords stream =
-    let srtmHeights = readSrtmHeightsFromStream stream |> Array.ofSeq
+    let srtmHeights = readSrtmHeightsFromStream tileSize stream |> Array.ofSeq
 
     let (tileMinX, tileMinY) = Tile.tileCellMinCoords tileSize tileCoords
         
-    let heightsArrayFromSrtmTileInitializer index =
-        // Note that the srtmHeights array has one pixel/width more of width 
-        // and height than the heights array we're returning (since SRTM tiles of
-        // tileSize 3600 have 3601 width & height), so we need to take this into
-        // account when initializing the heights array.
-        // The row value tells us how much to offset the index to the 
-        // srtmHeights array when reading values.
-        let row = index / tileSize
-        srtmHeights.[index + row]
+    let heightsArrayFromSrtmTileInitializer index = srtmHeights.[index]
 
     HeightsArray(
         tileMinX, 

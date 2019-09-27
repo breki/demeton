@@ -1,4 +1,5 @@
 ﻿## Fri 27.9.
+- `readSrtmHeightsFromStream` now skips the STRM tile's additional row and column of heights (since we don't need it and makes working with the resulting array much easier).
 - Fixed a couple of bugs in the code that went unnoticed.
 - Added a license file.
 - Removed `ensureTilesAreInCache` function since it's not really being used in the production code.
