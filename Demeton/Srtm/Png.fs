@@ -135,14 +135,19 @@ let convertZippedHgtTileToPng
     (zippedHgtFile: SrtmTileFile)
     pngFileName =
     
-    let zippedEntryName = Tile.tileId zippedHgtFile.TileCoords + ".hgt"
+    let tileId = Tile.tileId zippedHgtFile.TileCoords
+    let zippedEntryName = tileId + ".hgt"
 
     let zipEntryStream = 
         readZipFileEntry zippedHgtFile.FileName zippedEntryName
 
+    Log.debug "Reading tile %s..." zippedEntryName
+
     let heightsArray =
         createSrtmTileFromStream 
             3600 zippedHgtFile.TileCoords zipEntryStream
+
+    Log.debug "Encoding tile %s into PNG..." tileId
 
     encodeTileIntoPngFile heightsArray pngFileName
 

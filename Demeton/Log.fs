@@ -33,3 +33,4 @@ let log level format =
 
 let error format = log Level.Error format
 let info format = log Level.Info format
+let debug format = log Level.Debug format

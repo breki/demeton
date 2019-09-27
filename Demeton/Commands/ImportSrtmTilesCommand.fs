@@ -168,7 +168,7 @@ let import
         match cachingStatus with
         | Tile.CachingStatus.NotCached ->
             let tileId = (Tile.tileId tileCoords)
-            Log.info "Looking for SRTM tile %s... " tileId
+            Log.info "Importing SRTM tile %s... " tileId
             let heightsArrayOption = readTile tileCoords
             match heightsArrayOption with
             | Ok None -> 
