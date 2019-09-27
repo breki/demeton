@@ -1,4 +1,4 @@
-﻿- can readSrtmHeightsFromStream return array directly?
+﻿- better logging of importing
 
 - can we improve performance of HeightsArray <-> ImageData conversion by directly working on arrays?
 

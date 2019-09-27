@@ -20,7 +20,7 @@ let ``Can read SRTM heights``() =
         10uy; 1uy; 0uy; 1uy; 1uy; 1uy 
         10uy; 2uy; 0uy; 2uy; 1uy; 1uy 
         |])
-    let heights = readSrtmHeightsFromStream 2 stream |> Array.ofSeq
+    let heights = readSrtmHeightsFromStream 2 stream
 
     heights |> should equal [| 
         2560s; 0s
@@ -32,7 +32,7 @@ let ``Can read null SRTM heights``() =
         0x80uy; 0uy; 10uy; 0uy 
         10uy; 0uy; 0uy; 0uy
         |])
-    let heights = readSrtmHeightsFromStream 1 stream |> Array.ofSeq
+    let heights = readSrtmHeightsFromStream 1 stream
 
     heights |> should equal [| DemHeightNone |]
 
@@ -42,7 +42,7 @@ let ``Can handle negative SRTM heights``() =
         255uy; 0b10011100uy; 10uy; 0uy 
         10uy; 0uy; 0uy; 0uy
         |])
-    let heights = readSrtmHeightsFromStream 1 stream |> Array.ofSeq
+    let heights = readSrtmHeightsFromStream 1 stream
 
     heights |> should equal [| -100s |]
 

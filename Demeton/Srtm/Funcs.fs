@@ -33,7 +33,7 @@ let inline heightFromBytes firstByte secondByte =
     | _ -> height
 
 
-let readSrtmHeightsFromStream tileSize (stream: Stream): DemHeight seq =
+let readSrtmHeightsFromStream tileSize (stream: Stream): DemHeight[] =
 
     let inline readNextHeightFromStream (streamReader: FunctionalStreamReader) =
        let firstByte = streamReader.currentByte()
@@ -60,24 +60,29 @@ let readSrtmHeightsFromStream tileSize (stream: Stream): DemHeight seq =
     // Note that this is _not_ the total number of heights in the SRTM tile,
     // since we skip the final column of heights.
     let heightsNeeded = tileSize * tileSizePlus1 - 1
+    
+    let arraySize = tileSize * tileSize
+    let heightsArray: DemHeight[] = Array.zeroCreate arraySize
 
-    seq {
-        let mutable heightsReadCount = 0
-        while heightsReadCount < heightsNeeded && streamReader.moveForward() do
-            let heightRead = readNextHeightFromStream streamReader
+    let mutable heightsReadCount = 0
+    let mutable heightsWrittenCount = 0
+    while heightsReadCount < heightsNeeded && streamReader.moveForward() do
+        let heightRead = readNextHeightFromStream streamReader
 
-            // here we check whether the read height belongs to the final column
-            // that we should skip
-            match heightsReadCount % tileSizePlus1 = tileSize with
-            | true -> () // not emitting the final column's height
-            | false -> yield heightRead
+        // here we check whether the read height belongs to the final column
+        // that we should skip
+        match heightsReadCount % tileSizePlus1 = tileSize with
+        | true -> () // not emitting the final column's height
+        | false -> 
+            heightsArray.[heightsWrittenCount] <- heightRead
+            heightsWrittenCount <- heightsWrittenCount + 1
 
-            heightsReadCount <- heightsReadCount + 1
-    }
+        heightsReadCount <- heightsReadCount + 1
 
+    heightsArray
     
 let createSrtmTileFromStream tileSize tileCoords stream =
-    let srtmHeights = readSrtmHeightsFromStream tileSize stream |> Array.ofSeq
+    let srtmHeights = readSrtmHeightsFromStream tileSize stream
 
     let (tileMinX, tileMinY) = Tile.tileCellMinCoords tileSize tileCoords
         
