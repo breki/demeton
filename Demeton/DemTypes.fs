@@ -15,6 +15,7 @@ type HeightsArrayInitializer =
     HeightsArrayDirectImport of (DemHeight[])
     | HeightsArrayInitializer1D of (int -> DemHeight)
     | HeightsArrayInitializer2D of (GlobalCellCoords -> DemHeight)
+    | HeightsArrayCustomInitializer of (DemHeight[] -> unit)
 
 type HeightsArray
     (
@@ -41,6 +42,10 @@ type HeightsArray
             Array.init<DemHeight> arraySize initializerFuncToUse
         | HeightsArrayInitializer1D initializer1D -> 
             Array.init<DemHeight> arraySize initializer1D
+        | HeightsArrayCustomInitializer customInitializer ->
+            let cellsToInitialize = Array.zeroCreate<DemHeight> arraySize
+            customInitializer cellsToInitialize
+            cellsToInitialize
 
 
     member this.MinX = minX

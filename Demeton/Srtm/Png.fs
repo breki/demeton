@@ -110,15 +110,19 @@ let decodeSrtmTileFromPngFile
         let tileCoords = Tile.parseTileId tileId
         let (minX, minY) = Tile.tileCellMinCoords 3600 tileCoords
 
-        let srtmTileInitialize = 
-            HeightsArrayInitializer1D (fun index -> 
-                let pixelIndex = index <<< 1
-                let highByte = uint16 imageData.[pixelIndex]
-                let lowByte = uint16 imageData.[pixelIndex + 1]
-                let pixelValue = highByte <<< 8 ||| lowByte
-                uint16ValueToDemHeight pixelValue)
+        let srtmTileInitialize (cells: DemHeight[]) = 
+            let mutable byteIndex = 0
+            let imageSize = ihdr.Width * ihdr.Height
 
-        Ok (HeightsArray(minX, minY, 3600, 3600, srtmTileInitialize))
+            for index in 0 .. imageSize - 1 do
+                let highByte = uint16 imageData.[byteIndex]
+                let lowByte = uint16 imageData.[byteIndex + 1]
+                let pixelValue = highByte <<< 8 ||| lowByte
+                cells.[index] <- uint16ValueToDemHeight pixelValue
+                byteIndex <- byteIndex + 2
+
+        Ok (HeightsArray(minX, minY, 3600, 3600, 
+                HeightsArrayCustomInitializer srtmTileInitialize))
 
     let validationResult =
         ResultSeq.fold [ validateColorType; validateImageSize ] ihdr
