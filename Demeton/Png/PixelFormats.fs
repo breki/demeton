@@ -40,7 +40,6 @@ let grayscale16BitImageData
 let grayscale16BitPixel 
     (imageData: byte[])
     imageWidth
-    imageHeight
     x
     y
     : uint16 =

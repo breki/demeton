@@ -89,9 +89,8 @@ let aspectSlope
             
     invalidOp "todo"
 
+// todo: implement hillshade
 let hillshade (bounds: Bounds): Stream option =
     let neededTiles = boundsToTiles bounds
-
-    let neededTilesFiles = ensureTilesAreInCache neededTiles
 
     None

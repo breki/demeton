@@ -98,14 +98,6 @@ let toLocalCacheTileFile
     }
 
 
-let ensureTilesAreInCache 
-    (tiles: SrtmTileCoords list) 
-    (localCacheDir: string)
-    : SrtmTileFile list =
-    tiles 
-    |> List.map (fun x -> toLocalCacheTileFile localCacheDir x)
-
-
 type SrtmPngTileReader = string -> Result<HeightsArray, string>
 type SrtmHgtToPngTileConverter = SrtmTileFile -> string -> HeightsArray
 
