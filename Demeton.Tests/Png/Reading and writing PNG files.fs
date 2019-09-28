@@ -234,7 +234,7 @@ let ``Can decode 16-bit grayscale image generated from a SRTM tile``() =
     printfn "%d DONE." clock.ElapsedMilliseconds
 
 
-[<Fact(Skip="todo once we reorganize the grayscale code")>]
+[<Fact>]
 let ``Can generate and read a valid 8-bit RGBA PNG``() =
     let imageWidth = 500
     let imageHeight = 500
@@ -248,17 +248,38 @@ let ``Can generate and read a valid 8-bit RGBA PNG``() =
         }
 
     let rnd = Random(123)
-    
+
+    let samplePixelIndex = 3252    
+    let mutable sampleColor: Rgba8Bit.RgbaColor = 0u
+
     let initializer = 
-        Grayscale16Bit.ImageDataInitializer2D (
-            fun _ _ -> (uint16)(rnd.Next(2<<<16-1)))
+        Rgba8Bit.ImageDataInitializer1D 
+            (fun i -> 
+                let color =
+                    Rgba8Bit.rgbaColor 
+                        (byte (rnd.Next(256)))
+                        (byte (rnd.Next(256)))
+                        (byte (rnd.Next(256)))
+                        (byte (rnd.Next(256)))
+                if i = samplePixelIndex then
+                    sampleColor <- color
+
+                color
+            )
     let imageData = 
-        Grayscale16Bit.createImageData
+        Rgba8Bit.createImageData
             imageWidth 
             imageHeight
             initializer
 
-    let imageFileName = Path.GetFullPath("test-grayscale-16.png")
+    let samplePixelX = samplePixelIndex % imageWidth
+    let samplePixelY = samplePixelIndex / imageWidth
+    let samplePixelColorRgba = 
+        Rgba8Bit.pixelAt imageData imageWidth samplePixelX samplePixelY
+
+    test <@ Rgba8Bit.toHex samplePixelColorRgba = Rgba8Bit.toHex sampleColor @>
+
+    let imageFileName = Path.GetFullPath("test-rgba-8.png")
     printfn "Saving test image to %s" imageFileName
 
     use stream = File.OpenWrite(imageFileName)
@@ -274,6 +295,20 @@ let ``Can generate and read a valid 8-bit RGBA PNG``() =
     let (ihdrRead, imageDataRead) = 
         readStream |> loadPngFromStream 
 
-    use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
+    test <@ ihdrRead = ihdr @>
+    test <@ imageDataRead = imageData @>
+
+    use bitmap = 
+        downcast System.Drawing.Bitmap.FromFile(imageFileName) : System.Drawing.Bitmap
     test <@ bitmap.Width = imageWidth @>
     test <@ bitmap.Height = imageHeight @>
+
+    test <@ 
+            let samplePixelColorHex = Rgba8Bit.toHex samplePixelColorRgba
+            let actualPixel = bitmap.GetPixel(samplePixelX, samplePixelY)
+            let actualPixelColorRgba = 
+                Rgba8Bit.rgbaColor
+                    actualPixel.R actualPixel.G actualPixel.B actualPixel.A
+            let actualPixelColorHex = Rgba8Bit.toHex(actualPixelColorRgba)
+            actualPixelColorHex = samplePixelColorHex
+        @>

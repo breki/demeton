@@ -21,6 +21,7 @@
     <Compile Include="Png\FileStructure.fs" />
     <Compile Include="Png\Chunks.fs" />
     <Compile Include="Png\Grayscale16Bit.fs" />
+    <Compile Include="Png\Rgba8Bit.fs" />
     <Compile Include="Png\File.fs" />
     <Compile Include="IOTypes.fs" />
     <Compile Include="GeometryTypes.fs" />
