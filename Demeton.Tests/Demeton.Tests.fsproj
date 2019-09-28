@@ -27,7 +27,7 @@
     <Compile Include="Png\IDAT compression.fs" />
     <Compile Include="Png\Reading and writing PNG files.fs" />
     <Compile Include="Dem\Merging DEM data.fs" />
-    <Compile Include="Srtm\SRTM tile ID tests.fs" />
+    <Compile Include="Srtm\SRTM tile tests.fs" />
     <Compile Include="Srtm\Bounds to DEM tiles.fs" />
     <Compile Include="Srtm\Reading SRTM HGT files.fs" />
     <Compile Include="Srtm\encodeHeightsArrayIntoPngFile tests.fs" />

@@ -8,6 +8,7 @@ let DemHeightNone = System.Int16.MinValue
 let inline DemHeight x = int16 x
 
 type GlobalCellCoords = (int * int)
+type GlobalCellCoordsFractional = (float * float)
 
 type HeightCell = { Coords: GlobalCellCoords; Height : DemHeight }
 

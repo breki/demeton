@@ -1,4 +1,4 @@
-﻿module Demeton.Tests.``SRTM tile ID tests``
+﻿module Srtm.``SRTM tile tests``
 
 open Demeton.Srtm
 open Demeton.Srtm.Types
@@ -53,3 +53,14 @@ let ``Calculates global coordinates for a given tile ID``() =
             Tile.parseTileId "S22E080"
             |> Tile.tileCellMinCoords 3600 = (932400, 244800)
     @>
+
+[<Fact>]
+let ``Calculates fractional global coordinates for given longitude and latitude``() =
+    let latitude = 46.557611
+    let longitude = 15.6455
+    let tileSize = 3600
+    
+    test <@ Tile.longitudeToGlobalX longitude tileSize 
+        = (179. + longitude) * float tileSize @>
+    test <@ Tile.latitudeToGlobalY latitude tileSize 
+        = (90. + latitude) * float tileSize @>

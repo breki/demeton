@@ -1,4 +1,4 @@
-﻿module ``Zip_files_tests``
+﻿module ``FileSystem tests``.``Zip files tests``
 
 open System.IO
 open System.Reflection

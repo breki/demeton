@@ -86,4 +86,10 @@ let tileCellMinCoords tileSize (tileCoords: SrtmTileCoords)
         (tileCoords.Lat.Value + 90) * tileSize
     )
 
+let longitudeToGlobalX (longitude: float) (tileSize: int): float =
+    (longitude + 179.) * float tileSize
+
+let latitudeToGlobalY (latitude: float) (tileSize: int): float =
+    (latitude + 90.) * float tileSize
+
 
