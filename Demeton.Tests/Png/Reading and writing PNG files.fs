@@ -1,9 +1,9 @@
 ﻿module Demeton.Tests.``Reading and writing PNG files``
 
+open Png
 open Png.Types
 open Png.FileStructure
 open Png.Chunks
-open Png.PixelFormats
 open Png.File
 
 open FsCheck
@@ -184,10 +184,10 @@ let ``Can generate and read a valid 16-bit grayscale PNG``() =
     let rnd = Random(123)
     
     let initializer = 
-        Grayscale16BitImageDataInitializer2D (
+        Grayscale16Bit.ImageDataInitializer2D (
             fun _ _ -> (uint16)(rnd.Next(2<<<16-1)))
     let imageData = 
-        grayscale16BitImageData 
+        Grayscale16Bit.createImageData 
             imageWidth 
             imageHeight
             initializer
@@ -232,3 +232,48 @@ let ``Can decode 16-bit grayscale image generated from a SRTM tile``() =
     test <@ imageDataRead.Length = (3600*3600*2) @>
 
     printfn "%d DONE." clock.ElapsedMilliseconds
+
+
+[<Fact(Skip="todo once we reorganize the grayscale code")>]
+let ``Can generate and read a valid 8-bit RGBA PNG``() =
+    let imageWidth = 500
+    let imageHeight = 500
+
+    let ihdr = { 
+        Width = imageWidth
+        Height = imageHeight 
+        BitDepth = PngBitDepth.BitDepth8
+        ColorType = PngColorType.RgbAlpha
+        InterlaceMethod = PngInterlaceMethod.NoInterlace
+        }
+
+    let rnd = Random(123)
+    
+    let initializer = 
+        Grayscale16Bit.ImageDataInitializer2D (
+            fun _ _ -> (uint16)(rnd.Next(2<<<16-1)))
+    let imageData = 
+        Grayscale16Bit.createImageData
+            imageWidth 
+            imageHeight
+            initializer
+
+    let imageFileName = Path.GetFullPath("test-grayscale-16.png")
+    printfn "Saving test image to %s" imageFileName
+
+    use stream = File.OpenWrite(imageFileName)
+
+    stream 
+    |> savePngToStream ihdr imageData
+    |> ignore
+
+    stream.Close() |> ignore
+
+    use readStream = File.OpenRead(imageFileName)
+
+    let (ihdrRead, imageDataRead) = 
+        readStream |> loadPngFromStream 
+
+    use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
+    test <@ bitmap.Width = imageWidth @>
+    test <@ bitmap.Height = imageHeight @>

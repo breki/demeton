@@ -58,7 +58,7 @@ let ``Can convert HeightsArray to 16-bit grayscale``() =
     test <@ Array.length imageData = arrayWidth * arrayHeight * 2 @>
 
     let pixel = 
-        Png.PixelFormats.grayscale16BitPixel 
+        Png.Grayscale16Bit.pixelAt 
             imageData arrayWidth sampleCellX sampleCellY 
 
     let encodedHeightAtSampleCell = 

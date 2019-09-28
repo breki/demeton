@@ -20,7 +20,7 @@
     <Compile Include="Png\Unfilters.fs" />
     <Compile Include="Png\FileStructure.fs" />
     <Compile Include="Png\Chunks.fs" />
-    <Compile Include="Png\PixelFormats.fs" />
+    <Compile Include="Png\Grayscale16Bit.fs" />
     <Compile Include="Png\File.fs" />
     <Compile Include="IOTypes.fs" />
     <Compile Include="GeometryTypes.fs" />

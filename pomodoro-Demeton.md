@@ -1,4 +1,5 @@
 ﻿## Sat 28.9.
+- Renamed `Png.PixelFormats` module into `Png.Grayscale16Bit` since we will also have a separate module for RGBA images.
 - Reordered and reorganized test files.
 
 ## Fri 27.9.

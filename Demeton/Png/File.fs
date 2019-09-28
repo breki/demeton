@@ -17,13 +17,6 @@ let savePngToStream
     (imageData: RawImageData) 
     (stream: Stream): Stream =
 
-    let bpp = 
-        match (ihdr.ColorType, ihdr.BitDepth) with
-        | (PngColorType.Grayscale, PngBitDepth.BitDepth8) -> 8
-        | (PngColorType.Grayscale, PngBitDepth.BitDepth16) -> 16
-        | (_, _) -> 
-            invalidOp "This PNG type is currently not supported."
-
     stream 
     |> writeSignature 
     |> writeIhdrChunk ihdr

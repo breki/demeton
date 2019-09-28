@@ -2,8 +2,8 @@
 
 open Demeton.Srtm
 open Demeton.Srtm.Png
+open Png
 open Png.Types
-open Png.PixelFormats
 open Png.File
 
 open Xunit
@@ -71,10 +71,10 @@ let ``Throws an exception if PNG image size is not of a SRTM tile``() =
         let rnd = Random(123)
 
         let initializer = 
-            Grayscale16BitImageDataInitializer2D (
+            Grayscale16Bit.ImageDataInitializer2D (
                 fun _ _ -> (uint16)(rnd.Next(2<<<16-1)))
         let imageData = 
-            grayscale16BitImageData 
+            Grayscale16Bit.createImageData
                 imageWidth 
                 imageHeight
                 initializer

@@ -1,9 +1,9 @@
 ﻿module Demeton.Srtm.Png
 
 open Demeton.DemTypes
+open Png
 open Png.Types
 open Png.File
-open Png.PixelFormats
 open Demeton.Srtm.Types
 open System.IO
 
@@ -37,10 +37,10 @@ let heightsArrayToImageData
     let inline initializer index = 
         heightsArray.Cells.[index] |> heightMappingFunc
 
-    grayscale16BitImageData
+    Grayscale16Bit.createImageData
         heightsArray.Width
         heightsArray.Height
-        (Grayscale16BitImageDataInitializer1D initializer)
+        (Grayscale16Bit.ImageDataInitializer1D initializer)
 
 
 /// <summary>

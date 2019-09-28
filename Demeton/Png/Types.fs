@@ -114,6 +114,7 @@ type IhdrData = {
         match (this.ColorType, this.BitDepth) with
         | (PngColorType.Grayscale, PngBitDepth.BitDepth8) -> 8
         | (PngColorType.Grayscale, PngBitDepth.BitDepth16) -> 16
+        | (PngColorType.RgbAlpha, PngBitDepth.BitDepth8) -> 8 * 4
         | (_, _) -> 
             invalidOp "This PNG type is currently not supported."
 
