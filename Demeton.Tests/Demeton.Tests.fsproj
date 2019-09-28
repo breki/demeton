@@ -21,11 +21,14 @@
     <Compile Include="TestHelp.fs" />
     <Compile Include="ResultSeq tests.fs" />
     <Compile Include="FileSystem tests\Zip files tests.fs" />
-    <Compile Include="Benchmarks\PngFilterBenchmarks.fs" />
-    <Compile Include="Benchmarks\CrcBenchmarks.fs" />
-    <Compile Include="Benchmarks\Array1Dvs2D.fs" />
-    <Compile Include="Benchmarks\ArrayAccess.fs" />
+    <Compile Include="Reading binary streams.fs" />
+    <Compile Include="Generic command line parsing.fs" />
+    <Compile Include="Png\PNG filtering.fs" />
+    <Compile Include="Png\IDAT compression.fs" />
+    <Compile Include="Png\Reading and writing PNG files.fs" />
+    <Compile Include="Dem\Merging DEM data.fs" />
     <Compile Include="Srtm\SRTM tile ID tests.fs" />
+    <Compile Include="Srtm\Bounds to DEM tiles.fs" />
     <Compile Include="Srtm\Reading SRTM HGT files.fs" />
     <Compile Include="Srtm\encodeHeightsArrayIntoPngFile tests.fs" />
     <Compile Include="Srtm\Converting HGT to PNG.fs" />
@@ -33,17 +36,13 @@
     <Compile Include="Srtm\decodeSrtmTileFromPngFile tests.fs" />
     <Compile Include="Srtm\fetchSrtmTile tests.fs" />
     <Compile Include="Srtm\fetchSrtmHeights tests.fs" />
-    <Compile Include="Reading binary streams.fs" />
-    <Compile Include="Png\Reading and writing PNG files.fs" />
-    <Compile Include="Png\IDAT compression.fs" />
-    <Compile Include="Png\PNG filtering.fs" />
-    <Compile Include="Hillshading.fs" />
-    <Compile Include="Merging DEM data.fs" />
-    <Compile Include="Hillshading integration.fs" />
-    <Compile Include="DEM file storage tests.fs" />
-    <Compile Include="Bounds to DEM tiles.fs" />
-    <Compile Include="Generic command line parsing.fs" />
+    <Compile Include="Hillshading\Hillshading.fs" />
+    <Compile Include="Hillshading\Hillshading integration.fs" />
     <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs" />
+    <Compile Include="Benchmarks\PngFilterBenchmarks.fs" />
+    <Compile Include="Benchmarks\CrcBenchmarks.fs" />
+    <Compile Include="Benchmarks\Array1Dvs2D.fs" />
+    <Compile Include="Benchmarks\ArrayAccess.fs" />
     <Compile Include="Program.fs" />
     <EmbeddedResource Include="..\samples\test-grayscale-16.png" Link="samples\test-grayscale-16.png" />
     <EmbeddedResource Include="..\samples\N46E015.png" Link="samples\N46E015.png" />

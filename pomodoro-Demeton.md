@@ -1,4 +1,7 @@
-﻿## Fri 27.9.
+﻿## Sat 28.9.
+- Reordered and reorganized test files.
+
+## Fri 27.9.
 - `HeightsArray` now supports `HeightsArrayCustomInitializer`, which is used by `decodeSrtmTileFromPngFile`.`generateHeightsArray` function to speed things up.
 - `HeightsArray` now supports `HeightsArrayDirectImport` way of constructing it, which is now used in `createSrtmTileFromStream` function.
 - Added logging to `convertZippedHgtTileToPng` function.
