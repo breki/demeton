@@ -1,4 +1,4 @@
-﻿module Demeton.Tests.``Merging DEM data``
+﻿module Dem.``Merging DEM data``
 
 open Demeton
 open Demeton.DemTypes

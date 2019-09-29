@@ -1,4 +1,7 @@
-﻿## Sat 28.9.
+﻿## Sun 29.9.
+- Corrected `longitudeToGlobalX` and `longitudeToGlobalY` functions to take into account that the rounded (non-fractional) coordinates represent each cell's center point, not it bottom left one.
+
+## Sat 28.9.
 - Implemented `Demeton.Srtm.Tile.longitudeToGlobalX` and `Demeton.Srtm.Tile.latitudeToGlobalY` functions.
 - Implemented support for 8-bit RGBA PNG images.
 - Renamed `Png.PixelFormats` module into `Png.Grayscale16Bit` since we will also have a separate module for RGBA images.

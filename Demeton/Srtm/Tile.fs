@@ -86,10 +86,28 @@ let tileCellMinCoords tileSize (tileCoords: SrtmTileCoords)
         (tileCoords.Lat.Value + 90) * tileSize
     )
 
+/// <summary>
+/// Calculates the global fractional cell X coordinate for the specified
+/// longitude.
+/// </summary>
+/// <remarks>
+/// Note that the function uses the cell's center as the rounded 
+/// (non-fractional) coordinate, so each cell stretches from -0.5 to 0.5 value 
+/// of Y.
+/// </remarks>
 let longitudeToGlobalX (longitude: float) (tileSize: int): float =
-    (longitude + 179.) * float tileSize
+    (longitude + 179.) * float tileSize - 0.5
 
+/// <summary>
+/// Calculates the global fractional cell Y coordinate for the specified
+/// latitude.
+/// </summary>
+/// <remarks>
+/// Note that the function uses the cell's center as the rounded 
+/// (non-fractional) coordinate, so each cell stretches from -0.5 to 0.5 value 
+/// of Y.
+/// </remarks>
 let latitudeToGlobalY (latitude: float) (tileSize: int): float =
-    (latitude + 90.) * float tileSize
+    (latitude + 90.) * float tileSize - 0.5
 
 

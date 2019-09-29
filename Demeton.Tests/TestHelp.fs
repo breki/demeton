@@ -20,3 +20,6 @@ let isError (errorData: 'TError) (result: Result<'T, 'TError>) =
     match result with
     | Ok _ -> false
     | Error actualErrorData -> actualErrorData = errorData
+
+let isApproxEqualTo (val2: float) (decimals: int) (val1: float) =
+    System.Math.Round(val2, decimals) = System.Math.Round(val1, decimals)

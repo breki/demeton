@@ -44,7 +44,7 @@ let ``Filtering large images``() =
     |> ignore
 
 
-type ScanlinesPair = (int * byte[] * byte[] option)
+type ScanlinesPair = int * byte[] * byte[] option
 type ScanlinesGenerator =
     static member ScanlinesPair() =
         // a generator for bits-per-pixel value

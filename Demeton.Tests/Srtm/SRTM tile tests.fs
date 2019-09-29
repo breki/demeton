@@ -54,13 +54,13 @@ let ``Calculates global coordinates for a given tile ID``() =
             |> Tile.tileCellMinCoords 3600 = (932400, 244800)
     @>
 
-[<Fact>]
-let ``Calculates fractional global coordinates for given longitude and latitude``() =
-    let latitude = 46.557611
-    let longitude = 15.6455
-    let tileSize = 3600
-    
-    test <@ Tile.longitudeToGlobalX longitude tileSize 
-        = (179. + longitude) * float tileSize @>
-    test <@ Tile.latitudeToGlobalY latitude tileSize 
-        = (90. + latitude) * float tileSize @>
+[<Theory>]
+[<InlineData(0., 0., 1, 178.5, 89.5)>]
+[<InlineData(1., 1., 1, 179.5, 90.5)>]
+[<InlineData(0.5, 0.5, 1, 179., 90.)>]
+[<InlineData(0., 0., 3600, 644399.5, 323999.5)>]
+[<InlineData(46.557611, 15.6455, 3600, 812006.8996, 380323.3)>]
+let ``Calculates fractional global coordinates for given longitude and latitude``
+    longitude latitude tileSize expectedGlobalX expectedGlobalY =
+    test <@ Tile.longitudeToGlobalX longitude tileSize = expectedGlobalX @>
+    test <@ Tile.latitudeToGlobalY latitude tileSize = expectedGlobalY @>
