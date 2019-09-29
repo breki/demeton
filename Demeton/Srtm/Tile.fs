@@ -93,7 +93,7 @@ let tileCellMinCoords tileSize (tileCoords: SrtmTileCoords)
 /// <remarks>
 /// Note that the function uses the cell's center as the rounded 
 /// (non-fractional) coordinate, so each cell stretches from -0.5 to 0.5 value 
-/// of Y.
+/// of X.
 /// </remarks>
 let longitudeToGlobalX (longitude: float) (tileSize: int): float =
     (longitude + 179.) * float tileSize - 0.5
