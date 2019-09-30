@@ -1,5 +1,8 @@
 ﻿module TestHelp
 
+open System
+open Swensen.Unquote
+
 let isOk result =
     match result with
     | Ok _ -> true
@@ -21,5 +24,9 @@ let isError (errorData: 'TError) (result: Result<'T, 'TError>) =
     | Ok _ -> false
     | Error actualErrorData -> actualErrorData = errorData
 
+let inline (=~=) (x: float) (y: float) = abs (x-y) <  1.E-10
+    
 let isApproxEqualTo (val2: float) (decimals: int) (val1: float) =
-    System.Math.Round(val2, decimals) = System.Math.Round(val1, decimals)
+    test <@ 
+            Math.Round(val2, decimals) = Math.Round(val1, decimals)
+            @>

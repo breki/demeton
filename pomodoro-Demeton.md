@@ -1,4 +1,7 @@
-﻿## Sun 29.9.
+﻿## Mon 30.9.
+- Implemented basic projection and inverse functions for Web Mercator projection.
+
+## Sun 29.9.
 - Corrected `longitudeToGlobalX` and `longitudeToGlobalY` functions to take into account that the rounded (non-fractional) coordinates represent each cell's center point, not it bottom left one.
 
 ## Sat 28.9.

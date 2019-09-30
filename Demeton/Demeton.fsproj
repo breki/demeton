@@ -31,6 +31,7 @@
     <Compile Include="Srtm\Tile.fs" />
     <Compile Include="Srtm\Funcs.fs" />
     <Compile Include="Srtm\Png.fs" />
+    <Compile Include="Projections\WebMercator.fs" />
     <Compile Include="Hillshading.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
   </ItemGroup>
