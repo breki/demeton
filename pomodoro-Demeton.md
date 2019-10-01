@@ -1,4 +1,5 @@
 ﻿## Tue 1.10.
+- Renamed things in the commands code.
 - Added support for all the `shade` command parameters (at least for now).
 - Implemented some basic tests for Geometry functions.
 - Renamed `Demeton.GeometryTypes` to `Demeton.Geometry`.

@@ -1,20 +1,20 @@
 ﻿module ``Commands tests``.``ShadeCommand tests``
 
-open Demeton.Commands.ShadeCommand
+open Demeton.Commands
 
 open Xunit
 open Swensen.Unquote
 open TestHelp
 
 
-let parsedOptions result: ShadeOptions =
+let parsedOptions result: ShadeCommand.Options =
     match result with
     | Ok (_, options) -> options
     | _ -> invalidOp "Expected the parsed options."
 
 [<Fact>]
 let ``Sane defaults are used for options``() =
-    let result = parseShadeArgs [ "--coverage"; "10,20,30,40" ]
+    let result = ShadeCommand.parseArgs [ "--coverage"; "10,20,30,40" ]
     let options = parsedOptions result
 
     test <@ options.Dpi = 300. @>
@@ -24,7 +24,7 @@ let ``Sane defaults are used for options``() =
 
 [<Fact>]
 let ``Reports error when coverage points parameter was not specified at all``() =
-    let result = parseShadeArgs []
+    let result = ShadeCommand.parseArgs []
     test <@ 
             result 
             |> isErrorData "'coverage' parameter's value is invalid, it has to have at least two points specified." 
@@ -32,7 +32,7 @@ let ``Reports error when coverage points parameter was not specified at all``() 
 
 [<Fact>]
 let ``Reports error when coverage points parameter does not have any points``() =
-    let result = parseShadeArgs [ "--coverage" ]
+    let result = ShadeCommand.parseArgs [ "--coverage" ]
     test <@ 
             result 
             |> isErrorData "'coverage' parameter's value is missing." 
@@ -40,7 +40,7 @@ let ``Reports error when coverage points parameter does not have any points``() 
 
 [<Fact>]
 let ``Reports error when coverage points parameter has an invalid value``() =
-    let result = parseShadeArgs [ "--coverage"; "10,a,30,40" ]
+    let result = ShadeCommand.parseArgs [ "--coverage"; "10,a,30,40" ]
     test <@ 
             result 
             |> isErrorData "'coverage' parameter's value is invalid, it has to consist of a list of coordinates." 
@@ -48,7 +48,7 @@ let ``Reports error when coverage points parameter has an invalid value``() =
 
 [<Fact>]
 let ``Reports error when coverage points parameter has a missing coordinate``() =
-    let result = parseShadeArgs [ "--coverage"; "10,20,30" ]
+    let result = ShadeCommand.parseArgs [ "--coverage"; "10,20,30" ]
     test <@ 
             result 
             |> isErrorData "'coverage' parameter's value is invalid, it has an odd number of coordinates." 
@@ -56,7 +56,7 @@ let ``Reports error when coverage points parameter has a missing coordinate``() 
 
 [<Fact>]
 let ``Reports error when there are less than 2 coverage points``() =
-    let result = parseShadeArgs [ "--coverage"; "10,20" ]
+    let result = ShadeCommand.parseArgs [ "--coverage"; "10,20" ]
     test <@ 
             result 
             |> isErrorData "'coverage' parameter's value is invalid, it has to have at least two points specified." 
@@ -64,7 +64,7 @@ let ``Reports error when there are less than 2 coverage points``() =
 
 [<Fact>]
 let ``Accepts two coverage points and places them into the options``() =
-    let result = parseShadeArgs [ "--coverage"; "10,20,30,40" ]
+    let result = ShadeCommand.parseArgs [ "--coverage"; "10,20,30,40" ]
     test <@ result |> isOk @>
     test <@ 
             (parsedOptions result).CoveragePoints 
@@ -74,7 +74,7 @@ let ``Accepts two coverage points and places them into the options``() =
 [<Fact>]
 let ``Map scale has to be a numeric value`` () =
     let result = 
-        parseShadeArgs [ 
+        ShadeCommand.parseArgs [ 
             "--coverage"; "10,20,30,40"; "--map-scale"; "xyz" ]
     test <@ 
             result 
@@ -87,7 +87,7 @@ let ``Map scale has to be a numeric value`` () =
 [<InlineData("0.1")>]
 let ``Map scale has to be a positive value larger than 1`` mapScaleString =
     let result = 
-        parseShadeArgs [ 
+        ShadeCommand.parseArgs [ 
             "--coverage"; "10,20,30,40"; "--map-scale"; mapScaleString ]
     test <@ 
             result 
@@ -97,7 +97,7 @@ let ``Map scale has to be a positive value larger than 1`` mapScaleString =
 [<Fact>]
 let ``Accepts a valid map scale value and puts it into the options`` () =
     let result = 
-        parseShadeArgs [ 
+        ShadeCommand.parseArgs [ 
             "--coverage"; "10,20,30,40"; "--map-scale"; "100000" ]
     test <@ result |> isOk @>
     test <@ 
@@ -107,7 +107,7 @@ let ``Accepts a valid map scale value and puts it into the options`` () =
 [<Fact>]
 let ``DPI has to be a numeric value`` () =
     let result = 
-        parseShadeArgs [ 
+        ShadeCommand.parseArgs [ 
             "--coverage"; "10,20,30,40"; "--dpi"; "xyz" ]
     test <@ 
             result 
@@ -119,7 +119,7 @@ let ``DPI has to be a numeric value`` () =
 [<InlineData("0")>]
 let ``DPI has to be a positive value`` mapScaleString =
     let result = 
-        parseShadeArgs [ 
+        ShadeCommand.parseArgs [ 
             "--coverage"; "10,20,30,40"; "--dpi"; mapScaleString ]
     test <@ 
             result 
@@ -129,7 +129,7 @@ let ``DPI has to be a positive value`` mapScaleString =
 [<Fact>]
 let ``Accepts a valid DPI value and puts it into the options`` () =
     let result = 
-        parseShadeArgs [ 
+        ShadeCommand.parseArgs [ 
             "--coverage"; "10,20,30,40"; "--dpi"; "72" ]
     test <@ result |> isOk @>
     test <@ 
@@ -139,7 +139,7 @@ let ``Accepts a valid DPI value and puts it into the options`` () =
 [<Fact>]
 let ``FileName has to be a valid file name`` () =
     let result = 
-        parseShadeArgs [ 
+        ShadeCommand.parseArgs [ 
             "--coverage"; "10,20,30,40"; "--file-name"; @"test\some" ]
     test <@ 
             result 
@@ -149,7 +149,7 @@ let ``FileName has to be a valid file name`` () =
 [<Fact>]
 let ``Accepts a valid FileName value and puts it into the options`` () =
     let result = 
-        parseShadeArgs [ 
+        ShadeCommand.parseArgs [ 
             "--coverage"; "10,20,30,40"; "--file-name"; "hillshading" ]
     test <@ result |> isOk @>
     test <@ 
@@ -159,7 +159,7 @@ let ``Accepts a valid FileName value and puts it into the options`` () =
 [<Fact>]
 let ``Accepts a valid OutputDir value and puts it into the options`` () =
     let result = 
-        parseShadeArgs [ 
+        ShadeCommand.parseArgs [ 
             "--coverage"; "10,20,30,40"; "--output-dir"; "some/hillshading" ]
     test <@ result |> isOk @>
     test <@ 

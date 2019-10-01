@@ -1,4 +1,5 @@
-﻿module Demeton.Commands.ImportSrtmTilesCommand
+﻿[<RequireQualifiedAccess>]
+module Demeton.Commands.ImportSrtmTilesCommand
 
 open Demeton.Geometry
 open Demeton.Srtm.Types
@@ -8,7 +9,7 @@ open System.IO
 open Demeton.Srtm
 
 
-type ImportOptions = {
+type Options = {
     Bounds: Bounds option
     SrtmDir: string
     LocalCacheDir: string
@@ -22,7 +23,7 @@ let SrtmDirParameter = "srtm-dir"
 let LocalCacheDirParameter = "local-cache-dir"
 
 
-let parseBounds (value: string) (context: ParsingContext<ImportOptions>) =
+let parseBounds (value: string) (context: ParsingContext<Options>) =
 
     let isLongitudeInRange value = value >= -179. && value <= 180.
     let isLatitudeInRange value = value >= -90. && value <= 90.
@@ -97,11 +98,11 @@ let parseLocalCacheDir value context =
     |> Result.Ok
 
 
-let parseImportArgs (args: string list): ParsingResult<ImportOptions> =
+let parseArgs (args: string list): ParsingResult<Options> =
     let defaultOptions = { 
         Bounds = None; SrtmDir = "srtm"; LocalCacheDir = "cache" }
 
-    let mutable parsingResult: ParsingResult<ImportOptions> = 
+    let mutable parsingResult: ParsingResult<Options> = 
         Ok (args, defaultOptions)
 
     while hasMoreArgs parsingResult do
@@ -149,7 +150,7 @@ type SrtmToPngEncoder = HeightsArray -> Stream -> unit
 /// A function that encodes the <see cref="HeightsArray" /> as a PNG image and
 /// writes it into the provides stream.
 /// </param>
-let import 
+let run 
     (tiles: SrtmTileCoords[])
     (checkCaching: Tile.CachingStatusChecker)
     (readTile: SrtmTileReader)

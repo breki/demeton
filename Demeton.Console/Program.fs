@@ -1,7 +1,6 @@
 ﻿open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
-open Demeton.Commands.ImportSrtmTilesCommand
-open Demeton.Commands.ShadeCommand
+open Demeton.Commands
 
 let displayHelp exitCode = 
     // todo: add code to display all the available commands
@@ -13,7 +12,7 @@ let handleUnknownCommand commandName =
     1
 
 
-let importTiles options =
+let importTiles (options: ImportSrtmTilesCommand.Options) =
     let tilesCords = boundsToTiles (Option.get options.Bounds) |> Seq.toArray
 
     let cachingStatusChecker =
@@ -34,7 +33,7 @@ let importTiles options =
                 FileSys.ensureDirectoryExists
                 FileSys.openFileToWrite)
 
-    import 
+    ImportSrtmTilesCommand.run 
         tilesCords 
         cachingStatusChecker
         (fetchSrtmTile 
@@ -47,7 +46,8 @@ let importTiles options =
     0
 
 
-let shade options = invalidOp "todo"
+let shade options = 
+    invalidOp "todo"
 
 
 let parseArgsAndRun (args: string[]) =
@@ -57,7 +57,8 @@ let parseArgsAndRun (args: string[]) =
         match args.[0] with
         | "import" -> 
             let parseResult = 
-                args |> Array.toList |> List.tail |> parseImportArgs 
+                args |> Array.toList |> List.tail 
+                |> ImportSrtmTilesCommand.parseArgs 
 
             match parseResult with
             | Ok (_, options) -> importTiles options
@@ -66,7 +67,7 @@ let parseArgsAndRun (args: string[]) =
                 1
         | "shade" ->
             let parseResult = 
-                args |> Array.toList |> List.tail |> parseShadeArgs 
+                args |> Array.toList |> List.tail |> ShadeCommand.parseArgs 
 
             match parseResult with
             | Ok (_, options) -> shade options

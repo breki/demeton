@@ -1,4 +1,5 @@
-﻿module Demeton.Commands.ShadeCommand
+﻿[<RequireQualifiedAccess>]
+module Demeton.Commands.ShadeCommand
 
 open Demeton.Geometry
 open Demeton.CommandLineParsing
@@ -6,7 +7,7 @@ open Demeton.Commands.ParametersParsing
 
 open System.IO
 
-type ShadeOptions = {
+type Options = {
     CoveragePoints: LonLat list
     Dpi: float
     FileName: string
@@ -26,7 +27,7 @@ let OutputDirParameter = "output-dir"
 let FileNameParameter = "file-name"
 
 
-let parseCoverage (value: string) (context: ParsingContext<ShadeOptions>) =
+let parseCoverage (value: string) (context: ParsingContext<Options>) =
     let floatsListResult = parseFloatsList value
 
     match floatsListResult with
@@ -52,7 +53,7 @@ let parseCoverage (value: string) (context: ParsingContext<ShadeOptions>) =
             |> Result.Ok
 
 
-let parseMapScale (value: string) (context: ParsingContext<ShadeOptions>) =
+let parseMapScale (value: string) (context: ParsingContext<Options>) =
     let floatResult = parseFloat value
 
     match floatResult with
@@ -71,7 +72,7 @@ let parseMapScale (value: string) (context: ParsingContext<ShadeOptions>) =
             |> withOptions ({ oldOptions with MapScale = value })
             |> Result.Ok
 
-let parseDpi (value: string) (context: ParsingContext<ShadeOptions>) =
+let parseDpi (value: string) (context: ParsingContext<Options>) =
     let floatResult = parseFloat value
 
     match floatResult with
@@ -90,7 +91,7 @@ let parseDpi (value: string) (context: ParsingContext<ShadeOptions>) =
             |> withOptions ({ oldOptions with Dpi = value })
             |> Result.Ok
 
-let parseFileName (value: string) (context: ParsingContext<ShadeOptions>) =
+let parseFileName (value: string) (context: ParsingContext<Options>) =
     let checkedValue = Path.GetFileName(value)
 
     match checkedValue = value with
@@ -104,14 +105,14 @@ let parseFileName (value: string) (context: ParsingContext<ShadeOptions>) =
         |> withOptions ({ oldOptions with FileName = value })
         |> Result.Ok
 
-let parseOutputDir (value: string) (context: ParsingContext<ShadeOptions>) =
+let parseOutputDir (value: string) (context: ParsingContext<Options>) =
     let (_, oldOptions) = context
     context 
     |> consumeArg
     |> withOptions ({ oldOptions with OutputDir = value })
     |> Result.Ok
 
-let parseShadeArgs (args: string list): ParsingResult<ShadeOptions> =
+let parseArgs (args: string list): ParsingResult<Options> =
     let defaultOptions = 
         { 
             CoveragePoints = []
@@ -121,7 +122,7 @@ let parseShadeArgs (args: string list): ParsingResult<ShadeOptions> =
             OutputDir = "output"
         }
 
-    let mutable parsingResult: ParsingResult<ShadeOptions> = 
+    let mutable parsingResult: ParsingResult<Options> = 
         Ok (args, defaultOptions)
 
     while hasMoreArgs parsingResult do
@@ -156,3 +157,6 @@ let parseShadeArgs (args: string list): ParsingResult<ShadeOptions> =
                     "it has to have at least two points specified" 
         | _ -> parsingResult
     | _ -> parsingResult
+
+let run() =
+    invalidOp "todo"
