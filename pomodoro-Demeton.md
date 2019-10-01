@@ -1,4 +1,6 @@
 ﻿## Mon 30.9.
+- Introduce FParsec for parsing the command line.
+- Started working on the shade command.
 - Implemented basic projection and inverse functions for Web Mercator projection.
 
 ## Sun 29.9.
