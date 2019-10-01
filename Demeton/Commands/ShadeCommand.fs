@@ -5,7 +5,7 @@ open Demeton.CommandLineParsing
 open Demeton.Commands.ParametersParsing
 
 type ShadeOptions = {
-   CoveragePoints: LonLat seq
+   CoveragePoints: LonLat list
    MapScale: float
    Dpi: float
 }
@@ -22,7 +22,9 @@ let parseCoverage (value: string) (context: ParsingContext<ShadeOptions>) =
     let floatsListResult = parseFloatsList value
 
     match floatsListResult with
-    | Error _ -> invalidOp "todo"
+    | Error _ -> 
+        context |> invalidParameter 
+            CoveragePointsParameter "it has to consist of a list of coordinates"
     | Ok floatsList ->
         match floatsList.Length with
         | l when l % 2 <> 0 -> 
@@ -42,6 +44,19 @@ let parseCoverage (value: string) (context: ParsingContext<ShadeOptions>) =
             |> Result.Ok
 
 
+let parseMapScale (value: string) (context: ParsingContext<ShadeOptions>) =
+    let floatResult = parseFloat value
+
+    match floatResult with
+    | Error _ -> invalidOp "todo"
+    | Ok value ->
+        match value with
+        | x when x < 1. -> 
+            context |> invalidParameter 
+                MapScaleParameter  "it has to be a value larger than 1"
+        | _ -> invalidOp "todo"
+
+
 let parseShadeArgs (args: string list): ParsingResult<ShadeOptions> =
     let defaultOptions = { 
         CoveragePoints = []; MapScale = 50000.; Dpi = 300. }
@@ -55,7 +70,10 @@ let parseShadeArgs (args: string list): ParsingResult<ShadeOptions> =
         parsingResult <-
             match arg with
             | Some "--coverage" ->
-                parseParameterValue CoveragePointsParameter parseCoverage context
+                parseParameterValue 
+                    CoveragePointsParameter parseCoverage context
+            | Some "--map-scale" ->
+                parseParameterValue MapScaleParameter parseMapScale context
             | Some unknownArg ->
                 Error (sprintf "Unrecognized parameter '%s'." unknownArg)
             | None -> invalidOp "BUG: this should never happen"
