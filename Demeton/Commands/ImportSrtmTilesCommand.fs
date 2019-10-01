@@ -62,7 +62,8 @@ let parseBounds (value: string) (context: ParsingContext<ImportOptions>) =
         match hasAnyInvalidParts with
         | true -> 
             context 
-            |> invalidParameter BoundsParameter "it should consist of numbers only"
+            |> invalidParameter 
+                BoundsParameter "it should consist of 4 comma-separated numbers"
         | false ->
             let bounds = boundsFromParsedParts parsedSplits
             match bounds with
