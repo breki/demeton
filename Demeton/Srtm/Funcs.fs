@@ -1,6 +1,6 @@
 ﻿module Demeton.Srtm.Funcs
 
-open Demeton.GeometryTypes
+open Demeton.Geometry
 open Demeton.IOTypes
 open Demeton.DemTypes
 open Demeton.Srtm.Types

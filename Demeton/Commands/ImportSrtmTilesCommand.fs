@@ -1,12 +1,11 @@
 ﻿module Demeton.Commands.ImportSrtmTilesCommand
 
-open Demeton.GeometryTypes    
+open Demeton.Geometry
 open Demeton.Srtm.Types
 open Demeton.DemTypes
 open Demeton.CommandLineParsing
 open System.IO
 open Demeton.Srtm
-open Demeton.Commands.ParametersParsing
 
 
 type ImportOptions = {
@@ -28,8 +27,12 @@ let parseBounds (value: string) (context: ParsingContext<ImportOptions>) =
     let isLongitudeInRange value = value >= -179. && value <= 180.
     let isLatitudeInRange value = value >= -90. && value <= 90.
 
-    let boundsFromParsedParts minLon minLat maxLon maxLat
+    let boundsFromParsedParts (parts: float option array)
         : Result<Bounds, string> =
+        let minLon = Option.get parts.[0]
+        let minLat = Option.get parts.[1]
+        let maxLon = Option.get parts.[2]
+        let maxLat = Option.get parts.[3]
         match (minLon, minLat, maxLon, maxLat) with
         | (x, _, _, _) when not (isLongitudeInRange x) 
             -> Error "longitude value is out of range"
@@ -50,21 +53,18 @@ let parseBounds (value: string) (context: ParsingContext<ImportOptions>) =
                     MaxLat = maxLat
                 }
 
-    let floatsListResult = parseFloatsList value
-    match floatsListResult with
-    | Error _ -> 
-        context 
-        |> invalidParameter 
-            BoundsParameter "it should consist of 4 comma-separated numbers"
-    | Ok floatsList ->
-        match floatsList.Length with
-        | 4 -> 
-            let bounds = 
-                boundsFromParsedParts
-                    floatsList.[0]
-                    floatsList.[1]
-                    floatsList.[2]
-                    floatsList.[3]
+    let splits = value.Split (',') 
+
+    match splits.Length with
+    | 4 -> 
+        let parsedSplits = splits |> Array.map tryParseFloat
+        let hasAnyInvalidParts = parsedSplits |> Array.exists Option.isNone
+        match hasAnyInvalidParts with
+        | true -> 
+            context 
+            |> invalidParameter BoundsParameter "it should consist of numbers only"
+        | false ->
+            let bounds = boundsFromParsedParts parsedSplits
             match bounds with
             | Error reason -> 
                 context |> invalidParameter BoundsParameter reason
@@ -75,9 +75,9 @@ let parseBounds (value: string) (context: ParsingContext<ImportOptions>) =
                 |> withOptions ({ oldOptions with Bounds = Some boundsVal })
                 |> Result.Ok
 
-        | _ -> 
-            context 
-            |> invalidParameter BoundsParameter "it should consist of 4 numbers"
+    | _ -> 
+        context 
+        |> invalidParameter BoundsParameter "it should consist of 4 numbers"
 
 
 let parseSrtmDir value context =

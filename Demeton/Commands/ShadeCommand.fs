@@ -1,6 +1,6 @@
 ﻿module Demeton.Commands.ShadeCommand
 
-open Demeton.GeometryTypes
+open Demeton.Geometry
 open Demeton.CommandLineParsing
 open Demeton.Commands.ParametersParsing
 
@@ -32,7 +32,14 @@ let parseCoverage (value: string) (context: ParsingContext<ShadeOptions>) =
             context |> invalidParameter 
                 CoveragePointsParameter 
                     "it has to have at least two points specified"
-        | _ -> Ok context
+        | _ -> 
+            let (_, oldOptions) = context
+            context 
+            |> consumeArg
+            |> withOptions 
+                ({ oldOptions 
+                    with CoveragePoints = floatsListToPoints floatsList })
+            |> Result.Ok
 
 
 let parseShadeArgs (args: string list): ParsingResult<ShadeOptions> =

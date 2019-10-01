@@ -36,3 +36,8 @@ let ``Reports error when coverage points parameter has a missing coordinate``() 
             result 
             |> isError "'coverage' parameter's value is invalid, it has an odd number of coordinates." 
             @>
+
+[<Fact>]
+let ``Accepts two coverage points``() =
+    let result = parseShadeArgs [ "--coverage"; "10,20,30,40" ]
+    test <@ result |> isOk @>

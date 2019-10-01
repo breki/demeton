@@ -1,7 +1,7 @@
 ﻿module Demeton.Tests.``Bounds to DEM tiles``
 
 open Demeton
-open Demeton.GeometryTypes
+open Demeton.Geometry
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 

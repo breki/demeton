@@ -8,6 +8,7 @@
     <WarningsAsErrors />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Geometry\Geometry.fs" />
     <Compile Include="ResultSeq.fs" />
     <Compile Include="Log.fs" />
     <Compile Include="Pth.fs" />
@@ -24,7 +25,6 @@
     <Compile Include="Png\Rgba8Bit.fs" />
     <Compile Include="Png\File.fs" />
     <Compile Include="IOTypes.fs" />
-    <Compile Include="GeometryTypes.fs" />
     <Compile Include="DemTypes.fs" />
     <Compile Include="Dem.fs" />
     <Compile Include="Srtm\Types.fs" />
