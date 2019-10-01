@@ -1,4 +1,7 @@
-﻿## Mon 30.9.
+﻿## Tue 1.10.
+- ImportSrtmTilesCommand: replaced the existing float list parsing code with the new FParsec one.
+
+## Mon 30.9.
 - Implemented basic projection and inverse functions for Web Mercator projection.
 
 ## Sun 29.9.
