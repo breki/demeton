@@ -10,12 +10,15 @@ type Bounds = {
     MaxLat: float
     }
 
-let splitCoords (coords: float list)
+let splitCoords (coords: 'T list)
     = List.foldBack (fun x (l, r) -> x::r, l) coords ([], [])
 
 let floatsListToPoints (floatsList: float list): Point list =
     let (xList, yList) = floatsList |> splitCoords
     List.zip xList yList
 
-let validatePointsInsideBox minX minY maxX maxY (points: Point list) =
-    invalidOp "todo"
+let areAllPointsInsideBox minX minY maxX maxY (points: Point list) =
+    points 
+    |> List.exists (fun (x, y) -> 
+        x < minX || x >= maxX || y < minY || y >= maxY)
+    |> not

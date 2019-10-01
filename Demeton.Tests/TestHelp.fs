@@ -19,7 +19,12 @@ let resultValue result =
     | Error msg -> 
         invalidOp (sprintf "The result indicates an error: '%s'." msg)
 
-let isError (errorData: 'TError) (result: Result<'T, 'TError>) =
+let isError (result: Result<'T, 'TError>) =
+    match result with
+    | Ok _ -> false
+    | Error _ -> true
+
+let isErrorData (errorData: 'TError) (result: Result<'T, 'TError>) =
     match result with
     | Ok _ -> false
     | Error actualErrorData -> actualErrorData = errorData

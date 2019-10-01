@@ -36,4 +36,4 @@ let ``Returns a list of all collected errors from functions``() =
             [ func1; func2; func3; func4 ] 
             "some input"
 
-    test <@ result |> isError [ "msg2"; "msg1" ] @>
+    test <@ result |> isErrorData [ "msg2"; "msg1" ] @>

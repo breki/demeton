@@ -18,7 +18,7 @@ let ``Reports error when coverage points parameter was not specified at all``() 
     let result = parseShadeArgs []
     test <@ 
             result 
-            |> isError "'coverage' parameter's value is invalid, it has to have at least two points specified." 
+            |> isErrorData "'coverage' parameter's value is invalid, it has to have at least two points specified." 
             @>
 
 [<Fact>]
@@ -26,7 +26,7 @@ let ``Reports error when coverage points parameter does not have any points``() 
     let result = parseShadeArgs [ "--coverage" ]
     test <@ 
             result 
-            |> isError "'coverage' parameter's value is missing." 
+            |> isErrorData "'coverage' parameter's value is missing." 
             @>
 
 [<Fact>]
@@ -34,7 +34,7 @@ let ``Reports error when coverage points parameter has a missing coordinate``() 
     let result = parseShadeArgs [ "--coverage"; "10,20,30" ]
     test <@ 
             result 
-            |> isError "'coverage' parameter's value is invalid, it has an odd number of coordinates." 
+            |> isErrorData "'coverage' parameter's value is invalid, it has an odd number of coordinates." 
             @>
 
 [<Fact>]

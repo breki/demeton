@@ -1,4 +1,5 @@
 ﻿## Tue 1.10.
+- Implemented some basic tests for Geometry functions.
 - Renamed `Demeton.GeometryTypes` to `Demeton.Geometry`.
 - Continued working on `ShadeCommand` parsing.
 - ImportSrtmTilesCommand: replaced the existing float list parsing code with the new FParsec one.

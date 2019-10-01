@@ -235,6 +235,7 @@ let ``Can decode 16-bit grayscale image generated from a SRTM tile``() =
 
 
 [<Fact>]
+[<Trait("Category", "slow")>]
 let ``Can generate and read a valid 8-bit RGBA PNG``() =
     let imageWidth = 500
     let imageHeight = 500

@@ -55,6 +55,7 @@ let ``Can decode a valid PNG-encoded SRTM tile``() =
     test <@ heightsArray.MinY = miny @>
 
 [<Fact>]
+[<Trait("Category", "slow")>]
 let ``Throws an exception if PNG image size is not of a SRTM tile``() =
     let writeSampleGrayscale16BitImage imageFileName =
         let imageWidth = 500
@@ -91,7 +92,7 @@ let ``Throws an exception if PNG image size is not of a SRTM tile``() =
     writeSampleGrayscale16BitImage pngFileName
 
     test <@ 
-            isError 
+            isErrorData 
                 "The image size of this PNG does not correspond to the SRTM tile."
                 (decodeSrtmTileFromPngFile FileSys.openFileToRead pngFileName)
     @>

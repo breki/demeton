@@ -20,7 +20,7 @@ let parsedOptions result: ImportOptions =
 [<Fact>]
 let ``Reports error when bounds parameter is missing``() =
     let result = parseImportArgs []
-    test <@ result |> isError "'bounds' parameter is missing." @>
+    test <@ result |> isErrorData "'bounds' parameter is missing." @>
 
 
 [<Theory>]
@@ -31,7 +31,7 @@ let ``Reports error when bounds value is not made of 4 parts`` parameterValue =
     let result = parseImportArgs [ "--bounds"; parameterValue ]
     test <@ 
             result 
-            |> isError ("'bounds' parameter's value is invalid,"
+            |> isErrorData ("'bounds' parameter's value is invalid,"
                         + " it should consist of 4 numbers.")
     @>
 
@@ -41,7 +41,7 @@ let ``Reports error when at least one of bounds parts is not a number``() =
     let result = parseImportArgs [ "--bounds"; "10,20,a,30" ]
     test <@ 
             result 
-            |> isError ("'bounds' parameter's value is invalid, "
+            |> isErrorData ("'bounds' parameter's value is invalid, "
                         + "it should consist of 4 comma-separated numbers.") 
     @>
 
@@ -53,7 +53,7 @@ let ``Reports error when longitude value is out of bounds`` parameterValue =
     let result = parseImportArgs [ "--bounds"; parameterValue ]
     test <@ 
             result 
-            |> isError ("'bounds' parameter's value is invalid, "
+            |> isErrorData ("'bounds' parameter's value is invalid, "
                         + "longitude value is out of range.") 
         @>
 
@@ -65,7 +65,7 @@ let ``Reports error when latitude value is out of bounds`` parameterValue =
     let result = parseImportArgs [ "--bounds"; parameterValue ]
     test <@ 
             result 
-            |> isError ("'bounds' parameter's value is invalid, "
+            |> isErrorData ("'bounds' parameter's value is invalid, "
                         + "latitude value is out of range.") 
         @>
 
@@ -75,7 +75,7 @@ let ``Reports error when min and max longitude values are switched``() =
     let result = parseImportArgs [ "--bounds"; "80,10,70,30" ]
     test <@ 
             result 
-            |> isError ("'bounds' parameter's value is invalid, "
+            |> isErrorData ("'bounds' parameter's value is invalid, "
                 + "max longitude value is smaller than min longitude value.") 
         @>
 
@@ -85,7 +85,7 @@ let ``Reports error when min and max latitude values are switched``() =
     let result = parseImportArgs [ "--bounds"; "10,20,25,-10" ]
     test <@ 
             result 
-            |> isError ("'bounds' parameter's value is invalid, "
+            |> isErrorData ("'bounds' parameter's value is invalid, "
                 + "max latitude value is smaller than min latitude value.") 
         @>
 

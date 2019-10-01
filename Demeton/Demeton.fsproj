@@ -8,7 +8,6 @@
     <WarningsAsErrors />
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Geometry\Geometry.fs" />
     <Compile Include="ResultSeq.fs" />
     <Compile Include="Log.fs" />
     <Compile Include="Pth.fs" />
@@ -16,6 +15,7 @@
     <Compile Include="CommandLineParsing.fs" />
     <Compile Include="Bnry.fs" />
     <Compile Include="CRC.fs" />
+    <Compile Include="Geometry\Geometry.fs" />
     <Compile Include="Png\Types.fs" />
     <Compile Include="Png\Filters.fs" />
     <Compile Include="Png\Unfilters.fs" />

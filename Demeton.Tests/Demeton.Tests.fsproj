@@ -26,6 +26,7 @@
     <Compile Include="Png\PNG filtering.fs" />
     <Compile Include="Png\IDAT compression.fs" />
     <Compile Include="Png\Reading and writing PNG files.fs" />
+    <Compile Include="Geometry\General tests.fs" />
     <Compile Include="Dem\Working with HeightsArrays.fs" />
     <Compile Include="Dem\Merging DEM data.fs" />
     <Compile Include="Srtm\SRTM tile tests.fs" />
