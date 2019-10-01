@@ -16,21 +16,15 @@ type ImportOptions = {
     LocalCacheDir: string
 }
 
-
-let boundsParameter = "bounds"
-let srtmDirParameter = "srtm-dir"
-let localCacheDirParameter = "local-cache-dir"
+[<Literal>]
+let BoundsParameter = "bounds"
+[<Literal>]
+let SrtmDirParameter = "srtm-dir"
+[<Literal>]
+let LocalCacheDirParameter = "local-cache-dir"
 
 
 let parseBounds (value: string) (context: ParsingContext<ImportOptions>) =
-    let tryParseFloat (value: string) =
-        match Double.TryParse
-            (
-            value,
-            NumberStyles.Float,
-            CultureInfo.InvariantCulture) with
-        | (true, parsed) -> Some parsed
-        | _ -> None
 
     let isLongitudeInRange value = value >= -179. && value <= 180.
     let isLatitudeInRange value = value >= -90. && value <= 90.
@@ -70,12 +64,12 @@ let parseBounds (value: string) (context: ParsingContext<ImportOptions>) =
         match hasAnyInvalidParts with
         | true -> 
             context 
-            |> invalidParameter boundsParameter "it should consist of numbers only"
+            |> invalidParameter BoundsParameter "it should consist of numbers only"
         | false ->
             let bounds = boundsFromParsedParts parsedSplits
             match bounds with
             | Error reason -> 
-                context |> invalidParameter boundsParameter reason
+                context |> invalidParameter BoundsParameter reason
             | Ok boundsVal -> 
                 let (_, oldOptions) = context
                 context 
@@ -85,7 +79,7 @@ let parseBounds (value: string) (context: ParsingContext<ImportOptions>) =
 
     | _ -> 
         context 
-        |> invalidParameter boundsParameter "it should consist of 4 numbers"
+        |> invalidParameter BoundsParameter "it should consist of 4 numbers"
 
 
 let parseSrtmDir value context =
@@ -117,12 +111,12 @@ let parseImportArgs (args: string list): ParsingResult<ImportOptions> =
         parsingResult <-
             match arg with
             | Some "--bounds" ->
-                parseParameterValue boundsParameter parseBounds context
+                parseParameterValue BoundsParameter parseBounds context
             | Some "--srtm-dir" -> 
-                parseParameterValue srtmDirParameter parseSrtmDir context
+                parseParameterValue SrtmDirParameter parseSrtmDir context
             | Some "--local-cache-dir" -> 
                 parseParameterValue 
-                    localCacheDirParameter parseLocalCacheDir context
+                    LocalCacheDirParameter parseLocalCacheDir context
             | Some unknownArg ->
                 Error (sprintf "Unrecognized parameter '%s'." unknownArg)
             | None -> invalidOp "BUG: this should never happen"

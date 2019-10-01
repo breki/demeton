@@ -1,4 +1,8 @@
-﻿- projection from lon,lat to WebMercator and inverse
+﻿- introduce FParsec for parsing the command line
+
+- prepare a new command to generate hillshading
+
+- projection from lon,lat to WebMercator and inverse
     - take into account the Earth radius
     
     - map scale

@@ -1,8 +1,10 @@
 ﻿module Demeton.GeometryTypes
 
+type LonLat = float * float
+
 type Bounds = { 
-    MinLon: double
-    MinLat: double 
-    MaxLon: double 
-    MaxLat: double
+    MinLon: float
+    MinLat: float
+    MaxLon: float
+    MaxLat: float
     }

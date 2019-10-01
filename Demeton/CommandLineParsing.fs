@@ -3,6 +3,9 @@
 /// </summary>
 module Demeton.CommandLineParsing
 
+open System
+open System.Globalization
+
 /// <summary>
 /// A tuple holding the current context of the parser. The first item is a list
 /// of command line arguments that have not been consumed yet by the parser.
@@ -104,3 +107,16 @@ let parseParameterValue
     | (Some x) when x.StartsWith("--") ->
         context |> parameterValueIsMissing parameterName
     | Some parameterValue -> parseValue parameterValue context
+
+/// <summary>
+/// Tries to parse a float value from the string. Returns <c>None</c> if 
+/// parsing was not successful.
+/// </summary>
+let tryParseFloat (value: string) =
+    match Double.TryParse
+        (
+        value,
+        NumberStyles.Float,
+        CultureInfo.InvariantCulture) with
+    | (true, parsed) -> Some parsed
+    | _ -> None

@@ -33,9 +33,12 @@
     <Compile Include="Srtm\Png.fs" />
     <Compile Include="Projections\WebMercator.fs" />
     <Compile Include="Hillshading.fs" />
+    <Compile Include="Commands\ParametersParsing.fs" />
+    <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FParsec" Version="1.0.3" />
     <PackageReference Include="SharpZipLib.NETStandard" Version="1.0.7" />
   </ItemGroup>
   <ItemGroup>

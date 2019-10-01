@@ -1,6 +1,7 @@
 ﻿open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 open Demeton.Commands.ImportSrtmTilesCommand
+open Demeton.Commands.ShadeCommand
 
 let displayHelp exitCode = 
     // todo: add code to display all the available commands
@@ -46,6 +47,9 @@ let importTiles options =
     0
 
 
+let shade options = invalidOp "todo"
+
+
 let parseArgsAndRun (args: string[]) =
     match args.Length with
     | 0 -> displayHelp(0)
@@ -60,6 +64,16 @@ let parseArgsAndRun (args: string[]) =
             | Error errMessage -> 
                 printfn "Parsing error: %s" errMessage
                 1
+        | "shade" ->
+            let parseResult = 
+                args |> Array.toList |> List.tail |> parseShadeArgs 
+
+            match parseResult with
+            | Ok (_, options) -> shade options
+            | Error errMessage -> 
+                printfn "Parsing error: %s" errMessage
+                1
+            
         | x -> handleUnknownCommand x
 
 

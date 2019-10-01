@@ -1,4 +1,4 @@
-﻿module Demeton.Tests.``Commands tests``.``ImportSrtmTilesCommand tests``
+﻿module ``Commands tests``.``ImportSrtmTilesCommand tests``
 
 open Demeton.Commands.ImportSrtmTilesCommand
 open Demeton.GeometryTypes
