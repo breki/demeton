@@ -2,6 +2,7 @@
 
 open Demeton.GeometryTypes
 open Demeton.CommandLineParsing
+open Demeton.Commands.ParametersParsing
 
 type ShadeOptions = {
    CoveragePoints: LonLat seq
@@ -16,13 +17,23 @@ let MapScaleParameter = "map-scale"
 [<Literal>]
 let DpiParameter = "dpi"
 
-let parseCoverage (value: string) (context: ParsingContext<ShadeOptions>) =
-    let splits = value.Split (',') 
 
-    match splits.Length with
-    | l when l % 2 <> 0 -> Error "has an odd number of coordinates"
-    | l when l < 4 -> Error "has to have at least two points specified"
-    | _ -> Ok context
+let parseCoverage (value: string) (context: ParsingContext<ShadeOptions>) =
+    let floatsListResult = parseFloatsList value
+
+    match floatsListResult with
+    | Error _ -> invalidOp "todo"
+    | Ok floatsList ->
+        match floatsList.Length with
+        | l when l % 2 <> 0 -> 
+            context |> invalidParameter 
+                CoveragePointsParameter "it has an odd number of coordinates"
+        | l when l < 4 -> 
+            context |> invalidParameter 
+                CoveragePointsParameter 
+                    "it has to have at least two points specified"
+        | _ -> Ok context
+
 
 let parseShadeArgs (args: string list): ParsingResult<ShadeOptions> =
     let defaultOptions = { 
@@ -43,12 +54,14 @@ let parseShadeArgs (args: string list): ParsingResult<ShadeOptions> =
             | None -> invalidOp "BUG: this should never happen"
 
     match parsingResult with
-    | Ok (_, finalOptions) ->
+    | Ok context ->
+        let (_, finalOptions) = context
+
         match finalOptions.CoveragePoints |> Seq.length with
-        | len when len < 2 -> 
-            Error 
-                (sprintf 
-                    "'%s' parameter has to have at least two points specified." 
-                    CoveragePointsParameter)
+        | len when len < 2 ->
+            context
+            |> invalidParameter 
+                    CoveragePointsParameter
+                    "it has to have at least two points specified" 
         | _ -> parsingResult
     | _ -> parsingResult

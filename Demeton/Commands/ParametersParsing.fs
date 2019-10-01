@@ -1,4 +1,4 @@
-﻿module Commands.ParametersParsing
+﻿module Demeton.Commands.ParametersParsing
 
 open FParsec
 

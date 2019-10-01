@@ -6,7 +6,7 @@ open Demeton.DemTypes
 open Demeton.CommandLineParsing
 open System.IO
 open Demeton.Srtm
-open Commands.ParametersParsing
+open Demeton.Commands.ParametersParsing
 
 
 type ImportOptions = {

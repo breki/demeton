@@ -1,4 +1,5 @@
 ﻿## Tue 1.10.
+- Continued working on `ShadeCommand` parsing.
 - ImportSrtmTilesCommand: replaced the existing float list parsing code with the new FParsec one.
 
 ## Mon 30.9.
