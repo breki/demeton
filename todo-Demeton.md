@@ -1,6 +1,4 @@
-﻿- introduce FParsec for parsing the command line
-
-- prepare a new command to generate hillshading
+﻿- prepare a new shade command
 
 - projection from lon,lat to WebMercator and inverse
     - take into account the Earth radius

@@ -1,6 +1,13 @@
-﻿## Mon 30.9.
+﻿## Tue 1.10.
+- Continued working on `ShadeCommand` parsing.
+- ImportSrtmTilesCommand: replaced the existing float list parsing code with the new FParsec one.
+
+## Mon 30.9.
 - Introduce FParsec for parsing the command line.
 - Started working on the shade command.
+
+## Mon 30.9.
+>>>>>>> 708f68ebd112c0939cbe4e1c7f3a8673c74e6edb
 - Implemented basic projection and inverse functions for Web Mercator projection.
 
 ## Sun 29.9.

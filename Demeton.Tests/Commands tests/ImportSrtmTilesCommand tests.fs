@@ -42,7 +42,7 @@ let ``Reports error when at least one of bounds parts is not a number``() =
     test <@ 
             result 
             |> isError ("'bounds' parameter's value is invalid, "
-                        + "it should consist of numbers only.") 
+                        + "it should consist of 4 comma-separated numbers.") 
     @>
 
 

@@ -69,6 +69,7 @@ let hasMoreArgs (context: ParsingResult<'TOptions>) =
 let withError errorMessage (_: ParsingContext<'TOptions>) =
     Error errorMessage
 
+
 /// <summary>
 /// Creates a new parsing context with the updated options.
 /// </summary>
