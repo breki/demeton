@@ -1,4 +1,5 @@
-﻿- " To be more exact, these
+﻿
+- " To be more exact, these
 coordinates refer to the geometric center of the lower left pixel, which in the case of SRTM3 data will be about 90 meters in extent."
 
 - finish preparing a new shade command

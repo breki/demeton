@@ -4,10 +4,14 @@ open Demeton.Geometry
 open Demeton.CommandLineParsing
 open Demeton.Commands.ParametersParsing
 
+open System.IO
+
 type ShadeOptions = {
-   CoveragePoints: LonLat list
-   MapScale: float
-   Dpi: float
+    CoveragePoints: LonLat list
+    Dpi: float
+    FileName: string
+    MapScale: float
+    OutputDir: string
 }
 
 [<Literal>]
@@ -16,6 +20,10 @@ let CoveragePointsParameter = "coverage"
 let MapScaleParameter = "map-scale"
 [<Literal>]
 let DpiParameter = "dpi"
+[<Literal>]
+let OutputDirParameter = "output-dir"
+[<Literal>]
+let FileNameParameter = "file-name"
 
 
 let parseCoverage (value: string) (context: ParsingContext<ShadeOptions>) =
@@ -48,18 +56,70 @@ let parseMapScale (value: string) (context: ParsingContext<ShadeOptions>) =
     let floatResult = parseFloat value
 
     match floatResult with
-    | Error _ -> invalidOp "todo"
+    | Error _ -> 
+        context |> invalidParameter 
+            MapScaleParameter  "it has to be a numeric value larger than 1"
     | Ok value ->
         match value with
         | x when x < 1. -> 
             context |> invalidParameter 
                 MapScaleParameter  "it has to be a value larger than 1"
-        | _ -> invalidOp "todo"
+        | _ -> 
+            let (_, oldOptions) = context
+            context 
+            |> consumeArg
+            |> withOptions ({ oldOptions with MapScale = value })
+            |> Result.Ok
 
+let parseDpi (value: string) (context: ParsingContext<ShadeOptions>) =
+    let floatResult = parseFloat value
+
+    match floatResult with
+    | Error _ -> 
+        context |> invalidParameter 
+            DpiParameter  "it has to be a positive numeric value"
+    | Ok value ->
+        match value with
+        | x when x <= 0. -> 
+            context |> invalidParameter 
+                DpiParameter "it has to be a positive numeric value"
+        | _ -> 
+            let (_, oldOptions) = context
+            context 
+            |> consumeArg
+            |> withOptions ({ oldOptions with Dpi = value })
+            |> Result.Ok
+
+let parseFileName (value: string) (context: ParsingContext<ShadeOptions>) =
+    let checkedValue = Path.GetFileName(value)
+
+    match checkedValue = value with
+    | false -> 
+        context |> invalidParameter 
+            FileNameParameter "it has to consist of valid path characters"
+    | true ->
+        let (_, oldOptions) = context
+        context 
+        |> consumeArg
+        |> withOptions ({ oldOptions with FileName = value })
+        |> Result.Ok
+
+let parseOutputDir (value: string) (context: ParsingContext<ShadeOptions>) =
+    let (_, oldOptions) = context
+    context 
+    |> consumeArg
+    |> withOptions ({ oldOptions with OutputDir = value })
+    |> Result.Ok
 
 let parseShadeArgs (args: string list): ParsingResult<ShadeOptions> =
-    let defaultOptions = { 
-        CoveragePoints = []; MapScale = 50000.; Dpi = 300. }
+    let defaultOptions = 
+        { 
+            CoveragePoints = []
+            Dpi = 300. 
+            FileName = "shading"
+            MapScale = 50000. 
+            OutputDir = "output"
+        }
 
     let mutable parsingResult: ParsingResult<ShadeOptions> = 
         Ok (args, defaultOptions)
@@ -72,8 +132,14 @@ let parseShadeArgs (args: string list): ParsingResult<ShadeOptions> =
             | Some "--coverage" ->
                 parseParameterValue 
                     CoveragePointsParameter parseCoverage context
+            | Some "--dpi" ->
+                parseParameterValue DpiParameter parseDpi context
+            | Some "--file-name" ->
+                parseParameterValue FileNameParameter parseFileName context
             | Some "--map-scale" ->
                 parseParameterValue MapScaleParameter parseMapScale context
+            | Some "--output-dir" ->
+                parseParameterValue OutputDirParameter parseOutputDir context
             | Some unknownArg ->
                 Error (sprintf "Unrecognized parameter '%s'." unknownArg)
             | None -> invalidOp "BUG: this should never happen"
