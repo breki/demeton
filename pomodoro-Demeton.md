@@ -1,4 +1,5 @@
 ﻿## Wed 2.10.
+- Implemented partitioning of the hillshaded raster into tiles.
 - Started implementing a common geometry code needed for the shade command.
 
 ## Tue 1.10.

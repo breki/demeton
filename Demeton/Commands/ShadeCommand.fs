@@ -162,7 +162,8 @@ let parseArgs (args: string list): ParsingResult<Options> =
         | _ -> parsingResult
     | _ -> parsingResult
 
-type RasterTileGenerator = Raster.Rect -> Options -> unit
+type RasterTileGenerator = 
+    Raster.Rect -> Options -> float -> unit
 
 let splitIntoIntervals minValue maxValue intervalSize =
     let spaceLength = maxValue - minValue
@@ -194,11 +195,10 @@ let run (options: Options) (rasterTileGenerator: RasterTileGenerator) =
     let projectionMbr = Bounds.mbrOf projectedPoints
 
     // calculate MBR in terms of pixels
-    let multiplyFactor =
+    let scaleFactor =
         EarthRadiusInMeters / options.MapScale * InchesPerMeter * options.Dpi
 
-    let rasterMbr = 
-        projectionMbr |> Bounds.multiply multiplyFactor
+    let rasterMbr = projectionMbr |> Bounds.multiply scaleFactor
 
     // round off the raster so we work with integer coordinates
     let rasterMbrRounded = 
@@ -210,5 +210,12 @@ let run (options: Options) (rasterTileGenerator: RasterTileGenerator) =
 
 
     // then split it up into 1000x1000 tiles
+    let tileSize = 1000
 
-    invalidOp "todo"
+    for (tileMinY, tileMaxY) in splitIntoIntervals 
+        rasterMbrRounded.MinY rasterMbrRounded.MaxY tileSize do
+        for (tileMinX, tileMaxX) in splitIntoIntervals 
+            rasterMbrRounded.MinX rasterMbrRounded.MaxX tileSize do
+            let tileBounds = 
+                Raster.Rect.asMinMax tileMinX tileMinY tileMaxX tileMaxY
+            rasterTileGenerator tileBounds options scaleFactor
