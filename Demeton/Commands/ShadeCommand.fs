@@ -4,10 +4,14 @@ module Demeton.Commands.ShadeCommand
 open Demeton
 open Demeton.CommandLineParsing
 open Demeton.Commands.ParametersParsing
+open Demeton.DemTypes
 open Demeton.Geometry
 open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
+open Demeton.Srtm.Funcs
+open Png
+open Png.Types
 
 open System.IO
 
@@ -162,9 +166,6 @@ let parseArgs (args: string list): ParsingResult<Options> =
         | _ -> parsingResult
     | _ -> parsingResult
 
-type RasterTileGenerator = 
-    Raster.Rect -> Options -> float -> unit
-
 let splitIntoIntervals minValue maxValue intervalSize =
     let spaceLength = maxValue - minValue
     let intervalsRemainder = 
@@ -183,7 +184,58 @@ let splitIntoIntervals minValue maxValue intervalSize =
             (intervalMinValue, intervalMaxValue)
         )
 
-let run (options: Options) (rasterTileGenerator: RasterTileGenerator) =
+let projectionScaleFactor options =
+    EarthRadiusInMeters / options.MapScale * InchesPerMeter * options.Dpi
+
+type RasterShader = 
+    HeightsArray -> int -> int -> RawImageData -> Options -> unit
+
+type ShadedRasterTileGenerator = Raster.Rect -> Options -> unit
+
+let generateShadedRasterTile 
+    (tileRect: Raster.Rect)
+    options 
+    (fetchHeightsArray: SrtmHeightsArrayFetcher)
+    (shadeRaster: RasterShader) =
+
+    let scaleFactor = options |> projectionScaleFactor
+
+    let x1 = float tileRect.MinX / scaleFactor
+    let y1 = float tileRect.MinY / scaleFactor
+    let (lon1, lat1) = WebMercator.inverse x1 y1 |> Option.get
+
+    let x2 = float tileRect.MaxX / scaleFactor
+    let y2 = float tileRect.MaxY / scaleFactor
+    let (lon2, lat2) = WebMercator.inverse x2 y2 |> Option.get
+
+    let lonLatBounds: LonLatBounds = 
+        { 
+            MinLon = min lon1 lon2
+            MinLat = min lat1 lat2
+            MaxLon = max lon1 lon2
+            MaxLat = max lat1 lat2
+    }
+
+    let srtmTilesNeeded = boundsToTiles lonLatBounds
+
+    let heightsArrayResult = fetchHeightsArray srtmTilesNeeded
+
+    match heightsArrayResult with
+    | Error _ -> invalidOp "todo"
+    | Ok heightArrayOption ->
+        match heightArrayOption with
+        | Some heightsArray ->
+            let imageData =
+                Rgba8Bit.createImageData 
+                    tileRect.Width tileRect.Height Rgba8Bit.ImageDataZero
+
+            shadeRaster 
+                heightsArray tileRect.Width tileRect.Height imageData options 
+        | None -> invalidOp "todo"
+    
+    ignore()
+
+let run (options: Options) (tileGenerator: ShadedRasterTileGenerator) =
     // project each coverage point
     let projectedPoints = 
         options.CoveragePoints 
@@ -195,8 +247,7 @@ let run (options: Options) (rasterTileGenerator: RasterTileGenerator) =
     let projectionMbr = Bounds.mbrOf projectedPoints
 
     // calculate MBR in terms of pixels
-    let scaleFactor =
-        EarthRadiusInMeters / options.MapScale * InchesPerMeter * options.Dpi
+    let scaleFactor = options |> projectionScaleFactor
 
     let rasterMbr = projectionMbr |> Bounds.multiply scaleFactor
 
@@ -218,4 +269,4 @@ let run (options: Options) (rasterTileGenerator: RasterTileGenerator) =
             rasterMbrRounded.MinX rasterMbrRounded.MaxX tileSize do
             let tileBounds = 
                 Raster.Rect.asMinMax tileMinX tileMinY tileMaxX tileMaxY
-            rasterTileGenerator tileBounds options scaleFactor
+            tileGenerator tileBounds options

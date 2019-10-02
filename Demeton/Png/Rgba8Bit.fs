@@ -25,7 +25,8 @@ let inline toHex(color: RgbaColor): string =
     sprintf "%02X%02X%02X%02X" (a color) (r color) (g color) (b color)
 
 type ImageDataInitializer =
-    ImageDataInitializer1D of (int -> RgbaColor)
+    ImageDataZero
+    | ImageDataInitializer1D of (int -> RgbaColor)
     | ImageDataInitializer2D of (int -> int -> RgbaColor)
 
 let createImageData 
@@ -38,6 +39,7 @@ let createImageData
     let mutable byteIndex = 0
 
     match initializer with
+    | ImageDataZero -> ()
     | ImageDataInitializer2D initializer2D ->
         for y in 0 .. imageHeight - 1 do
             for x in 0 .. imageWidth - 1 do

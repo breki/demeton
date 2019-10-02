@@ -2,6 +2,8 @@
 
 open Demeton
 open Demeton.Commands
+open Demeton.DemTypes
+open Demeton.Srtm.Types
 
 open Xunit
 open Swensen.Unquote
@@ -24,25 +26,25 @@ let ``Correctly splits into a single interval``() =
                 = [ (10, 90) ]
         @>
 
+let coveragePoints = [(4.262676, 42.90816); (16.962471, 48.502048)]
+
+let options: ShadeCommand.Options = {
+        CoveragePoints = coveragePoints
+        Dpi = 300.
+        FileName = "shading"
+        MapScale = 5000000.
+        OutputDir = "output"
+    }
+
 [<Fact>]
 let ``Correctly splits the raster into multiple tiles``() =
-    let coveragePoints = [(4.262676, 42.90816); (16.962471, 48.502048)]
-
-    let options: ShadeCommand.Options = {
-            CoveragePoints = coveragePoints
-            Dpi = 300.
-            FileName = "shading"
-            MapScale = 5000000.
-            OutputDir = "output"
-        }
-
     let mutable generatedTiles = []
 
-    let rasterTileGenerator 
-        (rasterTileCoords: Raster.Rect) _ _ =
+    let tileGenerator 
+        (rasterTileCoords: Raster.Rect) _ =
         generatedTiles <- rasterTileCoords :: generatedTiles
 
-    ShadeCommand.run options rasterTileGenerator
+    ShadeCommand.run options tileGenerator
 
     generatedTiles <- generatedTiles |> List.rev
 
@@ -54,3 +56,57 @@ let ``Correctly splits the raster into multiple tiles``() =
     test <@ generatedTiles.[11] 
         = { MinX = 4119; MinY = 14500; Width = 337; Height = 108 } @>
 
+[<Fact>]
+let ``Tile generator correctly calculates which SRTM tiles it needs``() =
+
+    let tileRect: Raster.Rect = 
+        { MinX = 1119; MinY = 12500; Width = 1000; Height = 1000 }
+
+    let heightsArrayFetcher (tiles: SrtmTileCoords seq) =
+        let tilesArray = tiles |> Seq.toArray
+
+        test <@ tilesArray.Length = 20 @>
+        test <@ tilesArray.[0] = { 
+            Lon = { Value = 4 }; Lat = { Value = 42 } } @>
+        test <@ tilesArray.[19] = { 
+            Lon = { Value = 8 }; Lat = { Value = 45 } } @>
+
+        Ok 
+            (Some 
+                (HeightsArray(0, 0, 10, 10, 
+                    HeightsArrayInitializer1D (fun _ -> DemHeightNone))))
+
+    ShadeCommand.generateShadedRasterTile 
+        tileRect 
+        options 
+        heightsArrayFetcher
+        (fun _ _ _ _ _ -> ())
+
+    test <@ true @>
+
+[<Fact>]
+let ``Tile generator prepares the tile image data``() =
+    let tileWidth = 500
+    let tileHeight = 750
+
+    let tileRect: Raster.Rect = 
+        { MinX = 1119; MinY = 12500; Width = tileWidth; Height = tileHeight }
+
+    let heightsArrayFetcher _ =
+        Ok 
+            (Some 
+                (HeightsArray(0, 0, 10, 10, 
+                    HeightsArrayInitializer1D (fun _ -> DemHeightNone))))
+
+    let shadeRaster _ imageWidth imageHeight _ _ = 
+        test <@ imageWidth = tileWidth @>
+        test <@ imageHeight = tileHeight @>
+
+    ShadeCommand.generateShadedRasterTile 
+        tileRect 
+        options 
+        heightsArrayFetcher
+        shadeRaster
+
+    test <@ true @>
+    

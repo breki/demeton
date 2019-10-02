@@ -164,6 +164,8 @@ let fetchSrtmTile
                 localTileFile.FileName))
 
 
+type SrtmHeightsArrayFetcher = SrtmTileCoords seq -> HeightsArrayResult
+
 let fetchSrtmHeights 
     (tilesToUse: SrtmTileCoords seq)
     (readSrtmTile: SrtmTileReader)

@@ -1,4 +1,16 @@
-﻿
+﻿- test case for dealing with None heights array
+- test case for checking that the image data is saved as a file
+
+- implement the actual hillshading algorithm
+    - input: height array, tile rectangle, options
+    - output: raw image data
+    - for each pixel in tile:
+        - fetch elevations of it and its neighbours
+        - execute the shading algorithm
+        - color the pixel
+
+- we need one additional row of SRTM cells on each side to be able to calculate things for hillshading
+
 - " To be more exact, these
 coordinates refer to the geometric center of the lower left pixel, which in the case of SRTM3 data will be about 90 meters in extent."
 
