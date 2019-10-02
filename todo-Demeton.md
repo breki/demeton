@@ -15,3 +15,11 @@ coordinates refer to the geometric center of the lower left pixel, which in the 
 
 - hillshading algorithm
     - takes the `HeightsArray` and executes the Igor's shading algorithm
+
+- proj4 links
+    - https://en.wikibooks.org/wiki/PROJ.4
+    - https://github.com/albertov/proj4hs
+    - https://github.com/naqsha/naqsha
+- hillshading links
+    - http://www.saga-gis.org/saga_tool_doc/2.2.0/ta_lighting_0.html
+    - https://www.rayshader.com/
