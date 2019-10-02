@@ -4,8 +4,10 @@ module Demeton.Commands.ShadeCommand
 open Demeton
 open Demeton.CommandLineParsing
 open Demeton.Commands.ParametersParsing
+open Demeton.Geometry
 open Demeton.Geometry.Common
 open Demeton.Projections
+open Demeton.Projections.Common
 
 open System.IO
 
@@ -162,15 +164,50 @@ let parseArgs (args: string list): ParsingResult<Options> =
 
 type RasterTileGenerator = Raster.Rect -> Options -> unit
 
+let splitIntoIntervals minValue maxValue intervalSize =
+    let spaceLength = maxValue - minValue
+    let intervalsRemainder = 
+        match spaceLength % intervalSize with
+        | 0 -> 0
+        | _ -> 1
+
+    let intervalsCount = spaceLength / intervalSize + intervalsRemainder
+
+    Seq.init 
+        intervalsCount 
+        (fun i -> 
+            let intervalMinValue = minValue + i * intervalSize
+            let intervalMaxValue = 
+                min (intervalMinValue + intervalSize) maxValue
+            (intervalMinValue, intervalMaxValue)
+        )
+
 let run (options: Options) (rasterTileGenerator: RasterTileGenerator) =
     // project each coverage point
     let projectedPoints = 
         options.CoveragePoints 
         |> List.map (fun (lon, lat) -> WebMercator.proj lon lat)
+        |> List.filter (fun p -> Option.isSome p)
+        |> List.map (fun p -> Option.get p)
 
     // calculate the minimum bounding rectangle of all the projected points
+    let projectionMbr = Bounds.mbrOf projectedPoints
 
-    // first calculate the total size of the raster
+    // calculate MBR in terms of pixels
+    let multiplyFactor =
+        EarthRadiusInMeters / options.MapScale * InchesPerMeter * options.Dpi
+
+    let rasterMbr = 
+        projectionMbr |> Bounds.multiply multiplyFactor
+
+    // round off the raster so we work with integer coordinates
+    let rasterMbrRounded = 
+        Raster.Rect.asMinMax
+            (int (floor rasterMbr.MinX))
+            (int (floor rasterMbr.MinY))
+            (int (ceil rasterMbr.MaxX))
+            (int (ceil rasterMbr.MaxY))
+
 
     // then split it up into 1000x1000 tiles
 

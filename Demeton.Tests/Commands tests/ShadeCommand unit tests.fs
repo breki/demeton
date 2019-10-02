@@ -6,7 +6,25 @@ open Demeton.Commands
 open Xunit
 open Swensen.Unquote
 
-[<Fact(Skip="todo once we implement the basic geometry code")>]
+[<Fact>]
+let ``Correctly splits into intervals when all intervals will have the same size``() =
+    test <@ ShadeCommand.splitIntoIntervals 10 100 30 |> Seq.toList
+                = [ (10, 40); (40, 70); (70, 100) ]
+        @>
+
+[<Fact>]
+let ``Correctly splits into intervals when the last interval will be smaller``() =
+    test <@ ShadeCommand.splitIntoIntervals 10 90 30 |> Seq.toList
+                = [ (10, 40); (40, 70); (70, 90) ]
+        @>
+
+[<Fact>]
+let ``Correctly splits into a single interval``() =
+    test <@ ShadeCommand.splitIntoIntervals 10 90 100 |> Seq.toList
+                = [ (10, 90) ]
+        @>
+
+[<Fact(Skip="todo")>]
 let ``Correctly splits the raster into multiple tiles``() =
     let coveragePoints = [(4.262676, 42.90816); (16.962471, 48.502048)]
 

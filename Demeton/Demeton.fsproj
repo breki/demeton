@@ -7,6 +7,10 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="ResultSeq.fs" />
     <Compile Include="Log.fs" />
@@ -33,6 +37,7 @@
     <Compile Include="Srtm\Tile.fs" />
     <Compile Include="Srtm\Funcs.fs" />
     <Compile Include="Srtm\Png.fs" />
+    <Compile Include="Projections\Common.fs" />
     <Compile Include="Projections\WebMercator.fs" />
     <Compile Include="Hillshading.fs" />
     <Compile Include="Commands\ParametersParsing.fs" />

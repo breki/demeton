@@ -3,6 +3,14 @@ module Demeton.Geometry.Bounds
 
 open Demeton.Geometry.Common
 
+let multiply factor bounds =
+    { 
+        MinX = bounds.MinX * factor
+        MinY = bounds.MinY * factor
+        MaxX = bounds.MaxX * factor
+        MaxY = bounds.MaxY * factor
+    }
+
 let isInsideInclusive x y bounds =
     x >= bounds.MinX && x <= bounds.MaxX && y >= bounds.MinY && y <= bounds.MaxY
 
