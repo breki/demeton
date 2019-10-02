@@ -1,4 +1,7 @@
-﻿## Tue 1.10.
+﻿## Wed 2.10.
+- Started implementing a common geometry code needed for the shade command.
+
+## Tue 1.10.
 - Renamed things in the commands code.
 - Added support for all the `shade` command parameters (at least for now).
 - Implemented some basic tests for Geometry functions.

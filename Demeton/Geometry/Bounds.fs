@@ -4,7 +4,7 @@ module Demeton.Geometry.Bounds
 open Demeton.Geometry.Common
 
 let isInsideInclusive x y bounds =
-    x >= bounds.MinX && x <= bounds.MinY && y >= bounds.MinY && y <= bounds.MaxY
+    x >= bounds.MinX && x <= bounds.MaxX && y >= bounds.MinY && y <= bounds.MaxY
 
 let extendWith x y bounds =
     if isInsideInclusive x y bounds then bounds
@@ -17,4 +17,4 @@ let extendWith x y bounds =
 
 let mbrOf points =
     points 
-    |> List.fold (fun mbr (x, y) -> mbr |> extendWith x y) Bounds.Empty
+    |> Seq.fold (fun mbr (x, y) -> mbr |> extendWith x y) Bounds.Empty
