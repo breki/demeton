@@ -69,10 +69,6 @@ let ``Interpolating heights from neighboring cells``
         | Some heightCalc -> 
             let minHeight = (min h1 h2) |> min h3 |> min h4 |> float
             let maxHeight = (max h1 h2) |> max h3 |> max h4 |> float
-
-            printfn 
-                "heightCalc = %f, min = %f, max = %f" 
-                heightCalc minHeight maxHeight
             heightCalc >= minHeight && heightCalc <= maxHeight
 
 

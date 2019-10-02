@@ -1,9 +1,11 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Commands.ShadeCommand
 
-open Demeton.Geometry
+open Demeton
 open Demeton.CommandLineParsing
 open Demeton.Commands.ParametersParsing
+open Demeton.Geometry.Common
+open Demeton.Projections
 
 open System.IO
 
@@ -158,5 +160,18 @@ let parseArgs (args: string list): ParsingResult<Options> =
         | _ -> parsingResult
     | _ -> parsingResult
 
-let run() =
+type RasterTileGenerator = Raster.Rect -> Options -> unit
+
+let run (options: Options) (rasterTileGenerator: RasterTileGenerator) =
+    // project each coverage point
+    let projectedPoints = 
+        options.CoveragePoints 
+        |> List.map (fun (lon, lat) -> WebMercator.proj lon lat)
+
+    // calculate the minimum bounding rectangle of all the projected points
+
+    // first calculate the total size of the raster
+
+    // then split it up into 1000x1000 tiles
+
     invalidOp "todo"

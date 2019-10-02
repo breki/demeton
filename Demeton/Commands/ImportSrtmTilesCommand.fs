@@ -1,7 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Commands.ImportSrtmTilesCommand
 
-open Demeton.Geometry
+open Demeton.Geometry.Common
 open Demeton.Srtm.Types
 open Demeton.DemTypes
 open Demeton.CommandLineParsing
@@ -10,7 +10,7 @@ open Demeton.Srtm
 
 
 type Options = {
-    Bounds: Bounds option
+    Bounds: LonLatBounds option
     SrtmDir: string
     LocalCacheDir: string
 }
@@ -29,7 +29,7 @@ let parseBounds (value: string) (context: ParsingContext<Options>) =
     let isLatitudeInRange value = value >= -90. && value <= 90.
 
     let boundsFromParsedParts (parts: float option array)
-        : Result<Bounds, string> =
+        : Result<LonLatBounds, string> =
         let minLon = Option.get parts.[0]
         let minLat = Option.get parts.[1]
         let maxLon = Option.get parts.[2]

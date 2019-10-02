@@ -1,4 +1,4 @@
-﻿module ``Commands tests``.``ShadeCommand tests``
+﻿module ``Commands tests``.``ShadeCommand command line parsing tests``
 
 open Demeton.Commands
 
@@ -140,7 +140,7 @@ let ``Accepts a valid DPI value and puts it into the options`` () =
 let ``FileName has to be a valid file name`` () =
     let result = 
         ShadeCommand.parseArgs [ 
-            "--coverage"; "10,20,30,40"; "--file-name"; @"test\some" ]
+            "--coverage"; "10,20,30,40"; "--file-name"; Pth.combine "test" "some" ]
     test <@ 
             result 
             |> isErrorData "'file-name' parameter's value is invalid, it has to consist of valid path characters." 

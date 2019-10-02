@@ -1,6 +1,6 @@
 ﻿module Demeton.Hillshading
 
-open Demeton.Geometry
+open Demeton.Geometry.Common
 open Demeton.Srtm.Funcs
 open System;
 open System.IO
@@ -90,7 +90,7 @@ let aspectSlope
     invalidOp "todo"
 
 // todo: implement hillshade
-let hillshade (bounds: Bounds): Stream option =
+let hillshade (bounds: LonLatBounds): Stream option =
     let neededTiles = boundsToTiles bounds
 
     None

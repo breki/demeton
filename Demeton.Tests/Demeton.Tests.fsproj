@@ -26,7 +26,8 @@
     <Compile Include="Png\PNG filtering.fs" />
     <Compile Include="Png\IDAT compression.fs" />
     <Compile Include="Png\Reading and writing PNG files.fs" />
-    <Compile Include="Geometry\General tests.fs" />
+    <Compile Include="Geometry\Common tests.fs" />
+    <Compile Include="Geometry\Bounds tests.fs" />
     <Compile Include="Dem\Working with HeightsArrays.fs" />
     <Compile Include="Dem\Merging DEM data.fs" />
     <Compile Include="Srtm\SRTM tile tests.fs" />
@@ -43,8 +44,9 @@
     <Compile Include="Hillshading\Hillshading.fs" />
     <Compile Include="Hillshading\Hillshading integration.fs" />
     <Compile Include="Commands tests\Command line parameters parsing.fs" />
-    <Compile Include="Commands tests\ShadeCommand tests.fs" />
     <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs" />
+    <Compile Include="Commands tests\ShadeCommand command line parsing tests.fs" />
+    <Compile Include="Commands tests\ShadeCommand unit tests.fs" />
     <Compile Include="Benchmarks\PngFilterBenchmarks.fs" />
     <Compile Include="Benchmarks\CrcBenchmarks.fs" />
     <Compile Include="Benchmarks\Array1Dvs2D.fs" />

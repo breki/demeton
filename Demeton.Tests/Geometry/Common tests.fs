@@ -1,10 +1,9 @@
-﻿module Geometry.``General tests``
+﻿module Geometry.``Common tests``
 
-open Demeton.Geometry
+open Demeton.Geometry.Common
 
 open Xunit
 open Swensen.Unquote
-open TestHelp
 
 [<Fact>]
 let ``Splits coords into two lists``() =

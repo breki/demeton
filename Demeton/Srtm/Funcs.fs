@@ -1,6 +1,6 @@
 ﻿module Demeton.Srtm.Funcs
 
-open Demeton.Geometry
+open Demeton.Geometry.Common
 open Demeton.IOTypes
 open Demeton.DemTypes
 open Demeton.Srtm.Types
@@ -9,7 +9,7 @@ open System
 open System.IO
 
 
-let boundsToTiles (bounds: Bounds): SrtmTileCoords list =
+let boundsToTiles (bounds: LonLatBounds): SrtmTileCoords list =
     let allLons = 
         [ floor bounds.MinLon |> int 
             .. (ceil bounds.MaxLon |> int) - 1]
