@@ -1,5 +1,5 @@
-﻿- test case for dealing with None heights array
-- test case for checking that the image data is saved as a file
+﻿- test case for checking that the image data is saved as a file
+- tests for shadeRaster function 
 
 - implement the actual hillshading algorithm
     - input: height array, tile rectangle, options

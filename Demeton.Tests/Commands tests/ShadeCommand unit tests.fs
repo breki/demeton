@@ -96,9 +96,7 @@ let ``When heights array fetcher returns None, tile generator does nothing and r
     let heightsArrayFetcher _ =
         Ok None
 
-    let shadeRaster _ imageWidth imageHeight _ _ = 
-        test <@ imageWidth = tileWidth @>
-        test <@ imageHeight = tileHeight @>
+    let shadeRaster _ _ _ _ _ = ()
 
     let shadeTileResult = 
         ShadeCommand.generateShadedRasterTile 
@@ -121,9 +119,7 @@ let ``When heights array fetcher returns an error, tile generator returns an err
     let heightsArrayFetcher _ =
         Error "something is wrong"
 
-    let shadeRaster _ imageWidth imageHeight _ _ = 
-        test <@ imageWidth = tileWidth @>
-        test <@ imageHeight = tileHeight @>
+    let shadeRaster _ _ _ _ _ = ()
 
     let shadeTileResult = 
         ShadeCommand.generateShadedRasterTile 
