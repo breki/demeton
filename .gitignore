@@ -42,3 +42,4 @@ _NCrunch_*
 .fake
 build
 *.fsx.lock
+.ionide

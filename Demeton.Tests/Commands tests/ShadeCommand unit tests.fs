@@ -7,6 +7,7 @@ open Demeton.Srtm.Types
 
 open Xunit
 open Swensen.Unquote
+open TestHelp
 
 [<Fact>]
 let ``Correctly splits into intervals when all intervals will have the same size``() =
@@ -80,9 +81,58 @@ let ``Tile generator correctly calculates which SRTM tiles it needs``() =
         tileRect 
         options 
         heightsArrayFetcher
-        (fun _ _ _ _ _ -> ())
+        (fun _ _ _ _ _ -> ()) |> ignore
 
     test <@ true @>
+
+[<Fact>]
+let ``When heights array fetcher returns None, tile generator does nothing and returns None``() =
+    let tileWidth = 500
+    let tileHeight = 750
+
+    let tileRect: Raster.Rect = 
+        { MinX = 1119; MinY = 12500; Width = tileWidth; Height = tileHeight }
+
+    let heightsArrayFetcher _ =
+        Ok None
+
+    let shadeRaster _ imageWidth imageHeight _ _ = 
+        test <@ imageWidth = tileWidth @>
+        test <@ imageHeight = tileHeight @>
+
+    let shadeTileResult = 
+        ShadeCommand.generateShadedRasterTile 
+            tileRect 
+            options 
+            heightsArrayFetcher
+            shadeRaster
+
+    test <@ isOk shadeTileResult @>
+    test <@ shadeTileResult |> isOkValue None @>
+
+[<Fact>]
+let ``When heights array fetcher returns an error, tile generator returns an error, too``() =
+    let tileWidth = 500
+    let tileHeight = 750
+
+    let tileRect: Raster.Rect = 
+        { MinX = 1119; MinY = 12500; Width = tileWidth; Height = tileHeight }
+
+    let heightsArrayFetcher _ =
+        Error "something is wrong"
+
+    let shadeRaster _ imageWidth imageHeight _ _ = 
+        test <@ imageWidth = tileWidth @>
+        test <@ imageHeight = tileHeight @>
+
+    let shadeTileResult = 
+        ShadeCommand.generateShadedRasterTile 
+            tileRect 
+            options 
+            heightsArrayFetcher
+            shadeRaster
+
+    test <@ isError shadeTileResult @>
 
 [<Fact>]
 let ``Tile generator prepares the tile image data``() =
@@ -107,6 +157,7 @@ let ``Tile generator prepares the tile image data``() =
         options 
         heightsArrayFetcher
         shadeRaster
+    |> ignore
 
     test <@ true @>
     

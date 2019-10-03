@@ -1,4 +1,7 @@
-﻿## Wed 2.10.
+﻿## Thu 3.10.
+- More test cases for `generateShadedRasterTile` function.
+
+## Wed 2.10.
 - Implemented partitioning of the hillshaded raster into tiles.
 - Started implementing a common geometry code needed for the shade command.
 

@@ -196,7 +196,8 @@ let generateShadedRasterTile
     (tileRect: Raster.Rect)
     options 
     (fetchHeightsArray: SrtmHeightsArrayFetcher)
-    (shadeRaster: RasterShader) =
+    (shadeRaster: RasterShader)
+    : Result<unit option, string> =
 
     let scaleFactor = options |> projectionScaleFactor
 
@@ -221,7 +222,7 @@ let generateShadedRasterTile
     let heightsArrayResult = fetchHeightsArray srtmTilesNeeded
 
     match heightsArrayResult with
-    | Error _ -> invalidOp "todo"
+    | Error errorMessage -> Error errorMessage
     | Ok heightArrayOption ->
         match heightArrayOption with
         | Some heightsArray ->
@@ -230,11 +231,10 @@ let generateShadedRasterTile
                     tileRect.Width tileRect.Height Rgba8Bit.ImageDataZero
 
             shadeRaster 
-                heightsArray tileRect.Width tileRect.Height imageData options 
-        | None -> invalidOp "todo"
+                heightsArray tileRect.Width tileRect.Height imageData options
+            Ok None
+        | None -> Ok None
     
-    ignore()
-
 let run (options: Options) (tileGenerator: ShadedRasterTileGenerator) =
     // project each coverage point
     let projectedPoints = 
