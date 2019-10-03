@@ -1,4 +1,5 @@
 ﻿## Thu 3.10.
+- Implemented a prototype `shadeRaster` function.
 - More test cases for `generateShadedRasterTile` function.
 
 ## Wed 2.10.

@@ -5,6 +5,16 @@ type DemHeight = int16
 [<Literal>]
 let DemHeightNone = System.Int16.MinValue
 
+let interpolateHeight h1 h2 h3 h4 (dx: float) (dy: float) =
+    if h1 = DemHeightNone || h2 = DemHeightNone
+        || h3 = DemHeightNone || h4 = DemHeightNone then
+        None
+    else
+        let hh1 = float (h2 - h1) * dx + float h1
+        let hh2 = float (h4 - h3) * dx + float h3
+        let height = float (hh2 - hh1) * dy + hh1
+        Some height
+
 let inline DemHeight x = int16 x
 
 type GlobalCellCoords = (int * int)
@@ -61,6 +71,18 @@ type HeightsArray
         let index = (y - this.MinY) * width + x - this.MinX
         let heightAtCell = this.Cells.[index]
         heightAtCell
+
+    member this.interpolateHeightAt ((x, y): float * float) =
+        let x1 = int (floor x)
+        let x2 = int (ceil x)
+        let y1 = int (floor y)
+        let y2 = int (ceil y)
+
+        let h1 = this.heightAt (x1, y1)
+        let h2 = this.heightAt (x2, y1)
+        let h3 = this.heightAt (x1, y2)
+        let h4 = this.heightAt (x2, y2)
+        interpolateHeight h1 h2 h3 h4 x y
         
 /// <summary>
 /// A result of an operation that can return an optional 

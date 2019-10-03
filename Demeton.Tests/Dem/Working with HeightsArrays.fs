@@ -27,16 +27,6 @@ type NeighboringHeightsPropertyAttribute() =
         (Arbitrary = [| typeof<NeighboringHeightsGenerator> |],
         QuietOnSuccess = true)
 
-let interpolateHeight h1 h2 h3 h4 (dx: float) (dy: float) =
-    if h1 = DemHeightNone || h2 = DemHeightNone
-        || h3 = DemHeightNone || h4 = DemHeightNone then
-        None
-    else
-        let hh1 = float (h2 - h1) * dx + float h1
-        let hh2 = float (h4 - h3) * dx + float h3
-        let height = float (hh2 - hh1) * dy + hh1
-        Some height
-
 [<NeighboringHeightsProperty>]
 let ``Interpolating heights from neighboring cells`` 
     (heights: NeighboringHeights) =

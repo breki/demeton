@@ -1,5 +1,6 @@
 ﻿- test case for checking that the image data is saved as a file
 - tests for shadeRaster function 
+- implement shaders
 
 - implement the actual hillshading algorithm
     - input: height array, tile rectangle, options

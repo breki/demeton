@@ -9,11 +9,13 @@ open Demeton.Geometry
 open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
+open Demeton.Srtm
 open Demeton.Srtm.Funcs
 open Png
 open Png.Types
 
 open System.IO
+open Demeton.Srtm
 
 type Options = {
     CoveragePoints: LonLat list
@@ -188,7 +190,46 @@ let projectionScaleFactor options =
     EarthRadiusInMeters / options.MapScale * InchesPerMeter * options.Dpi
 
 type RasterShader = 
-    HeightsArray -> int -> int -> RawImageData -> Options -> unit
+    HeightsArray -> Raster.Rect -> RawImageData -> Options -> unit
+
+let shadeRaster: RasterShader = 
+    fun heightsArray tileRect imageData options ->
+
+    let tileWidth = tileRect.Width
+    let scaleFactor = options |> projectionScaleFactor
+
+    let heightForTilePixel x y =
+        let xUnscaled = float x / scaleFactor
+        let yUnscaled = float y / scaleFactor
+        let lonLatOption = WebMercator.inverse xUnscaled yUnscaled
+
+        match lonLatOption with
+        | None -> None
+        | Some (lon, lat) ->
+            let globalSrtmX = Tile.longitudeToGlobalX lon 3600
+            let globalSrtmY = Tile.latitudeToGlobalY lat 3600
+            heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
+
+    for y in tileRect.MinY .. (tileRect.MaxY-1) do
+        for x in tileRect.MinX .. (tileRect.MaxX-1) do
+            let height = heightForTilePixel x y
+
+            let pixelValue = 
+                match height with
+                | None -> Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
+                | Some heightValue ->
+                    let heightToByte = byte(min (heightValue / 10.0) 255.0)
+
+                    Rgba8Bit.rgbaColor 
+                        heightToByte heightToByte heightToByte 255uy
+
+            Rgba8Bit.setPixelAt 
+                imageData
+                tileWidth
+                (x - tileRect.MinX) 
+                (y - tileRect.MinY)
+                pixelValue
+
 
 type ShadedRasterTileGenerator = Raster.Rect -> Options -> unit
 
@@ -230,8 +271,7 @@ let generateShadedRasterTile
                 Rgba8Bit.createImageData 
                     tileRect.Width tileRect.Height Rgba8Bit.ImageDataZero
 
-            shadeRaster 
-                heightsArray tileRect.Width tileRect.Height imageData options
+            shadeRaster heightsArray tileRect imageData options
             Ok None
         | None -> Ok None
     

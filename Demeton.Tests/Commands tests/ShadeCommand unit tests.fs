@@ -8,6 +8,7 @@ open Demeton.Srtm.Types
 open Xunit
 open Swensen.Unquote
 open TestHelp
+open Png
 
 [<Fact>]
 let ``Correctly splits into intervals when all intervals will have the same size``() =
@@ -81,7 +82,7 @@ let ``Tile generator correctly calculates which SRTM tiles it needs``() =
         tileRect 
         options 
         heightsArrayFetcher
-        (fun _ _ _ _ _ -> ()) |> ignore
+        (fun _ _ _ _ -> ()) |> ignore
 
     test <@ true @>
 
@@ -96,7 +97,7 @@ let ``When heights array fetcher returns None, tile generator does nothing and r
     let heightsArrayFetcher _ =
         Ok None
 
-    let shadeRaster _ _ _ _ _ = ()
+    let shadeRaster _ _ _ _ = ()
 
     let shadeTileResult = 
         ShadeCommand.generateShadedRasterTile 
@@ -119,7 +120,7 @@ let ``When heights array fetcher returns an error, tile generator returns an err
     let heightsArrayFetcher _ =
         Error "something is wrong"
 
-    let shadeRaster _ _ _ _ _ = ()
+    let shadeRaster _ _ _ _ = ()
 
     let shadeTileResult = 
         ShadeCommand.generateShadedRasterTile 
@@ -144,9 +145,8 @@ let ``Tile generator prepares the tile image data``() =
                 (HeightsArray(0, 0, 10, 10, 
                     HeightsArrayInitializer1D (fun _ -> DemHeightNone))))
 
-    let shadeRaster _ imageWidth imageHeight _ _ = 
-        test <@ imageWidth = tileWidth @>
-        test <@ imageHeight = tileHeight @>
+    let shadeRaster _ tileRectReceived _ _ = 
+        test <@ tileRectReceived = tileRect @>
 
     ShadeCommand.generateShadedRasterTile 
         tileRect 
@@ -157,3 +157,30 @@ let ``Tile generator prepares the tile image data``() =
 
     test <@ true @>
     
+[<Fact>]
+let ``Raster shader colors all of the image``() =
+    let imageWidth = 10
+    let imageHeight = 10
+
+    let tileRect: Raster.Rect = 
+        { MinX = 1119; MinY = 12500; Width = imageWidth; Height = imageHeight }
+
+    let imageData =
+        Rgba8Bit.createImageData imageWidth imageHeight Rgba8Bit.ImageDataZero
+
+    let heightsArray = 
+        HeightsArray(
+            659736, 478459, 1000, 1000, HeightsArrayInitializer1D (
+                fun _ -> DemHeight 1000))
+
+    ShadeCommand.shadeRaster heightsArray tileRect imageData options
+
+    let mutable anyNonColoredPixel = false
+    for y in 0 .. (imageHeight-1) do
+        for x in 0 .. (imageWidth-1) do
+            let pixel = Rgba8Bit.pixelAt imageData imageWidth x y
+            match Rgba8Bit.r pixel with
+            | 0uy -> anyNonColoredPixel <- true
+            | _ -> ()
+
+    test <@ not anyNonColoredPixel @>

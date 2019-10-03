@@ -66,15 +66,23 @@ let createImageData
     imageData
 
 
-let pixelAt 
-    (imageData: byte[])
-    imageWidth
-    x
-    y
-    : RgbaColor =
+let pixelAt (imageData: byte[]) imageWidth x y: RgbaColor =
     let pixelIndex = x * BytesPerPixel + y * imageWidth * BytesPerPixel
     let r = imageData.[pixelIndex]
     let g = imageData.[pixelIndex+1]
     let b = imageData.[pixelIndex+2]
     let a = imageData.[pixelIndex+3]
     rgbaColor r g b a
+
+let setPixelAt
+    (imageData: byte[])
+    imageWidth
+    x
+    y
+    (pixelValue: RgbaColor)
+    : unit =
+    let byteIndex = x * BytesPerPixel + y * imageWidth * BytesPerPixel
+    imageData.[byteIndex] <- r pixelValue
+    imageData.[byteIndex+1] <- g pixelValue
+    imageData.[byteIndex+2] <- b pixelValue
+    imageData.[byteIndex+3] <- a pixelValue
