@@ -15,27 +15,32 @@ open Png
 open Png.Types
 
 open System.IO
-open Demeton.Srtm
 open System
 
 type Options = {
     CoveragePoints: LonLat list
     Dpi: float
     FileName: string
+    LocalCacheDir: string
     MapScale: float
     OutputDir: string
+    SrtmDir: string
 }
 
 [<Literal>]
 let CoveragePointsParameter = "coverage"
 [<Literal>]
-let MapScaleParameter = "map-scale"
-[<Literal>]
 let DpiParameter = "dpi"
+[<Literal>]
+let FileNameParameter = "file-name"
+[<Literal>]
+let LocalCacheDirParameter = "local-cache-dir"
+[<Literal>]
+let MapScaleParameter = "map-scale"
 [<Literal>]
 let OutputDirParameter = "output-dir"
 [<Literal>]
-let FileNameParameter = "file-name"
+let SrtmDirParameter = "srtm-dir"
 
 
 let parseCoverage (value: string) (context: ParsingContext<Options>) =
@@ -62,6 +67,22 @@ let parseCoverage (value: string) (context: ParsingContext<Options>) =
                 ({ oldOptions 
                     with CoveragePoints = floatsListToPoints floatsList })
             |> Result.Ok
+
+
+let parseSrtmDir value context =
+    let (_, oldOptions) = context
+    context 
+    |> consumeArg
+    |> withOptions ({ oldOptions with SrtmDir = value })
+    |> Result.Ok
+
+
+let parseLocalCacheDir value context =
+    let (_, oldOptions) = context
+    context 
+    |> consumeArg
+    |> withOptions ({ oldOptions with LocalCacheDir = value })
+    |> Result.Ok
 
 
 let parseMapScale (value: string) (context: ParsingContext<Options>) =
@@ -129,8 +150,10 @@ let parseArgs (args: string list): ParsingResult<Options> =
             CoveragePoints = []
             Dpi = 300. 
             FileName = "shading"
-            MapScale = 50000. 
+            LocalCacheDir = "cache"
+            MapScale = 50000.             
             OutputDir = "output"
+            SrtmDir = "srtm"
         }
 
     let mutable parsingResult: ParsingResult<Options> = 
@@ -148,10 +171,15 @@ let parseArgs (args: string list): ParsingResult<Options> =
                 parseParameterValue DpiParameter parseDpi context
             | Some "--file-name" ->
                 parseParameterValue FileNameParameter parseFileName context
+            | Some "--local-cache-dir" -> 
+                parseParameterValue 
+                    LocalCacheDirParameter parseLocalCacheDir context
             | Some "--map-scale" ->
                 parseParameterValue MapScaleParameter parseMapScale context
             | Some "--output-dir" ->
                 parseParameterValue OutputDirParameter parseOutputDir context
+            | Some "--srtm-dir" -> 
+                parseParameterValue SrtmDirParameter parseSrtmDir context
             | Some unknownArg ->
                 Error (sprintf "Unrecognized parameter '%s'." unknownArg)
             | None -> invalidOp "BUG: this should never happen"
@@ -236,10 +264,10 @@ type ShadedRasterTileGenerator =
     Raster.Rect -> Options -> Result<RawImageData option, string>
 
 let generateShadedRasterTile 
-    (tileRect: Raster.Rect)
-    options 
     (fetchHeightsArray: SrtmHeightsArrayFetcher)
     (shadeRaster: RasterShader)
+    (tileRect: Raster.Rect)
+    options 
     : Result<unit option, string> =
 
     let scaleFactor = options |> projectionScaleFactor

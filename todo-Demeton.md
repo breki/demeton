@@ -1,4 +1,8 @@
 ﻿- prepare and try out the new command
+    - we need to add some additional parameters to options/command line
+    - add logging
+- make a more generic way of parsing command line parameters
+    - preferably with the ability to auto-generate help
 - tests for shadeRaster function 
      - support for elevation coloring and hillshading
 - implement shaders

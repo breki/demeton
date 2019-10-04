@@ -13,7 +13,7 @@ let returnSomeHeightArray _ =
 
 [<Fact>]
 let ``Returns None if there are no tiles to fetch``() =
-    let srtmHeights = fetchSrtmHeights [] (fun _ -> Ok None) 
+    let srtmHeights = fetchSrtmHeights (fun _ -> Ok None) [] 
     test <@ srtmHeights = Ok None @>
 
 [<Fact>]
@@ -22,8 +22,9 @@ let ``Returns HeightArray when at least one tile was found``() =
         { Lon = SrtmLongitude.fromInt 1; Lat = SrtmLatitude.fromInt 1 } ]
     let srtmHeights = 
         fetchSrtmHeights 
-            tilesToUse
             (fun x -> Ok (Some (returnSomeHeightArray x)))
+            tilesToUse
+            
     test <@ isOk srtmHeights @>
     test <@ Option.isSome (resultValue srtmHeights) @>
    

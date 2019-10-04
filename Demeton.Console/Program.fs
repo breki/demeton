@@ -48,6 +48,22 @@ let importTiles (options: ImportSrtmTilesCommand.Options) =
 
 let shade options = 
     invalidOp "todo"
+    //let readSrtmTile = 
+    //    fetchSrtmTile
+            
+
+    //let generateTile =
+    //    ShadeCommand.generateShadedRasterTile
+    //        fetchSrtmHeights
+    //        ShadeCommand.shadeRaster
+
+
+    //ShadeCommand.run 
+    //    options
+    //    generateTile
+    //    saveTile
+    
+    //0
 
 
 let parseArgsAndRun (args: string[]) =

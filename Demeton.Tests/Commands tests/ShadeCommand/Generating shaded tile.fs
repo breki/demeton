@@ -16,8 +16,10 @@ let options: ShadeCommand.Options = {
         CoveragePoints = coveragePoints
         Dpi = 300.
         FileName = "shading"
+        LocalCacheDir = "cache"
         MapScale = 5000000.
         OutputDir = "output"
+        SrtmDir = "srtm"
     }
 
 let tileWidth = 500
@@ -49,10 +51,10 @@ let ``Tile generator correctly calculates which SRTM tiles it needs``() =
         someHeightsArray
 
     ShadeCommand.generateShadedRasterTile 
-        tileRect 
-        options 
         correctSrtmTilesWereRequested
         shadeRaster
+        tileRect 
+        options 
     |> ignore
 
     test <@ true @>
@@ -64,10 +66,10 @@ let ``When heights array fetcher returns None, tile generator does nothing and r
 
     let shadeTileResult = 
         ShadeCommand.generateShadedRasterTile 
-            tileRect 
-            options 
             returnNoneForHeightsArray
             shadeRaster
+            tileRect 
+            options 
 
     test <@ isOk shadeTileResult @>
     test <@ shadeTileResult |> isOkValue None @>
@@ -79,10 +81,10 @@ let ``When heights array fetcher returns an error, tile generator returns an err
 
     let shadeTileResult = 
         ShadeCommand.generateShadedRasterTile 
-            tileRect 
-            options 
             returnErrorInsteadOfHeightsArray
             shadeRaster
+            tileRect 
+            options 
 
     test <@ isError shadeTileResult @>
 
@@ -98,10 +100,10 @@ let ``Tile generator prepares the tile image data``() =
         test <@ tileRectReceived = tileRect @>
 
     ShadeCommand.generateShadedRasterTile 
-        tileRect 
-        options 
         fetchSomeHeights
         shadeRasterReceivesTileRectAndImageData
+        tileRect 
+        options 
     |> ignore
 
     test <@ true @>   

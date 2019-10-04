@@ -167,8 +167,8 @@ let fetchSrtmTile
 type SrtmHeightsArrayFetcher = SrtmTileCoords seq -> HeightsArrayResult
 
 let fetchSrtmHeights 
-    (tilesToUse: SrtmTileCoords seq)
     (readSrtmTile: SrtmTileReader)
+    (tilesToUse: SrtmTileCoords seq)
     : HeightsArrayResult = 
 
     let mutable errorMessage = None

@@ -16,8 +16,10 @@ let options: ShadeCommand.Options = {
         CoveragePoints = coveragePoints
         Dpi = 300.
         FileName = "shading"
+        LocalCacheDir = "cache"
         MapScale = 5000000.
         OutputDir = "output"
+        SrtmDir = "srtm"
     }
 
 let tileIndexX = 3
