@@ -75,7 +75,7 @@ let encodeSrtmHeightsArrayToPng
 
 let encodeHeightsArrayIntoPngFile
     (ensureDirectoryExists: string -> string)
-    openFile
+    (openFile: FileSys.FileOpener)
     heightsArray 
     pngFileName =
 
@@ -86,7 +86,7 @@ let encodeHeightsArrayIntoPngFile
 
 
 let decodeSrtmTileFromPngFile
-    openFile
+    (openFile: FileSys.FileOpener)
     pngFileName
     : Result<HeightsArray, string> =
     use stream = openFile pngFileName

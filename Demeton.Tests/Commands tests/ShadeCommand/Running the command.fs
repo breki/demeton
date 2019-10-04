@@ -27,16 +27,20 @@ let tileGenerator
     generatedTiles <- rasterTileCoords :: generatedTiles
     Ok (Some (Rgba8Bit.createImageData 10 10 Rgba8Bit.ImageDataZero))
 
-let tileSaver _ tileX tileY _ _ =
+let tileSaver _ _ (tileX, tileY) _ _ =
     let imageFileName = sprintf "%d-%d" tileX tileY
     savedTiles <- imageFileName :: savedTiles
     imageFileName
 
+let initialize() =
+    generatedTiles <- []
+    savedTiles <- []
+
 [<Fact>]
 let ``Correctly splits the raster into multiple tiles``() =
-    let tileSaver _ _ _ _ _ = ""
+    initialize()
 
-    ShadeCommand.run options tileGenerator tileSaver
+    ShadeCommand.run options tileGenerator tileSaver |> ignore
 
     generatedTiles <- generatedTiles |> List.rev
 
@@ -50,8 +54,9 @@ let ``Correctly splits the raster into multiple tiles``() =
 
 [<Fact>]
 let ``Saves the generated tile images to files``() =
+    initialize()
 
-    ShadeCommand.run options tileGenerator tileSaver
+    ShadeCommand.run options tileGenerator tileSaver |> ignore
 
     savedTiles <- savedTiles |> List.rev
 
@@ -59,3 +64,34 @@ let ``Saves the generated tile images to files``() =
     test <@ savedTiles.[0] = "0-0" @>
     test <@ savedTiles.[1] = "1-0" @>
     test <@ savedTiles.[11] = "3-2" @>
+
+[<Fact>]
+let ``If generation of a tile fails it records it in the result``() =
+    initialize()
+    
+    let tileGenerator _ _ =
+        Error "some error"
+
+    let results = ShadeCommand.run options tileGenerator tileSaver
+    test <@ results.Length = 12 @>
+    test <@ 
+            results 
+            |> List.exists (fun x -> x <> Error "some error") 
+            |> not
+            @>
+
+[<Fact>]
+let ``If tile generator returns None, we skip that in the results``() =
+    initialize()
+    
+    let mutable counter = 0
+    let tileGeneratorWithNones rasterTile options =
+        counter <- counter + 1
+        if counter % 2 = 0 then
+            Ok None
+        else
+            tileGenerator rasterTile options
+
+    let results = 
+        ShadeCommand.run options tileGeneratorWithNones tileSaver
+    test <@ results.Length = 6 @>

@@ -32,13 +32,16 @@ let shade (options: ShadeCommand.Options) =
             (Wiring.fetchSrtmHeights options.SrtmDir options.LocalCacheDir)
             ShadeCommand.shadeRaster
 
-    invalidOp "todo"
-    //ShadeCommand.run 
-    //    options
-    //    generateTile
-    //    saveTile
+    let saveTile =
+        ShadeCommand.saveShadedRasterTile
+            FileSys.ensureDirectoryExists
+            FileSys.openFileToWrite
+            Png.File.savePngToStream
+
+    let results =
+        ShadeCommand.run options generateTile saveTile
     
-    //0
+    0
 
 
 let parseArgsAndRun (args: string[]) =

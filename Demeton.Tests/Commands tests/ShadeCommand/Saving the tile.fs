@@ -30,7 +30,9 @@ let tileRect: Raster.Rect
 let imageData = Rgba8Bit.createImageData 10 20 Rgba8Bit.ImageDataZero
 
 let mutable createdDirectoryName = None
-let createDirectory dirName = createdDirectoryName <- Some dirName
+let createDirectory dirName = 
+    createdDirectoryName <- Some dirName
+    dirName
 
 let mutable ihdrUsed = None
 let mutable imageDataUsed = None
@@ -53,8 +55,7 @@ let ``The output directory needs to be created``() =
         writePngToStream 
         options 
         maxTileIndex
-        tileIndexX 
-        tileIndexY 
+        (tileIndexX, tileIndexY)
         tileRect 
         imageData
     |> ignore
@@ -70,8 +71,7 @@ let ``The name of tile PNG file has to be in the required format and is returned
             writePngToStream 
             options 
             maxTileIndex
-            tileIndexX 
-            tileIndexY 
+            (tileIndexX, tileIndexY)
             tileRect 
             imageData
 
@@ -98,8 +98,7 @@ let ``Zero-pads the tile index numbers in the PNG file name when required``
         writePngToStream 
         options 
         maxTileIndexToUse
-        tileIndexX 
-        tileIndexY 
+        (tileIndexX, tileIndexY)
         tileRect 
         imageData
     |> ignore
@@ -118,8 +117,7 @@ let ``PNG IHDR chunk is correctly filled and the correct image data is provided 
         writePngToStream 
         options 
         maxTileIndex
-        tileIndexX 
-        tileIndexY 
+        (tileIndexX, tileIndexY)
         tileRect 
         imageData
     |> ignore

@@ -268,7 +268,7 @@ let generateShadedRasterTile
     (shadeRaster: RasterShader)
     (tileRect: Raster.Rect)
     options 
-    : Result<unit option, string> =
+    : Result<RawImageData option, string> =
 
     let scaleFactor = options |> projectionScaleFactor
 
@@ -302,24 +302,23 @@ let generateShadedRasterTile
                     tileRect.Width tileRect.Height Rgba8Bit.ImageDataZero
 
             shadeRaster heightsArray tileRect imageData options
-            Ok None
+            Ok (Some imageData)
         | None -> Ok None
     
 type ShadedRasterTileSaver = 
-    Options -> int -> int -> Raster.Rect -> RawImageData -> string
+    Options -> int -> (int * int) -> Raster.Rect -> RawImageData -> string
 
 let saveShadedRasterTile 
-    ensureDirectoryExists
-    (openFileToWrite: string -> Stream)
+    (ensureDirectoryExists: FileSys.DirectoryExistsEnsurer)
+    (openFileToWrite: FileSys.FileOpener)
     (writePngToStream: Png.File.PngStreamWriter)
     (options: Options) 
     (maxTileIndex: int)
-    tileIndexX 
-    tileIndexY 
+    (tileIndexX, tileIndexY)
     (tileRect: Raster.Rect)
     imageData =
 
-    ensureDirectoryExists options.OutputDir
+    ensureDirectoryExists options.OutputDir |> ignore
 
     let tileIndexStringWidth = 
         int (ceil (Math.Log10(float (maxTileIndex + 1))))
@@ -344,13 +343,16 @@ let saveShadedRasterTile
     }
 
     stream |> writePngToStream ihdr imageData |> ignore
+    
+    Log.info "Saved a shade tile %s" tilePngFileName
 
     tilePngFileName
 
 let run 
     (options: Options) 
     (generateTile: ShadedRasterTileGenerator) 
-    (saveTile: ShadedRasterTileSaver) =
+    (saveTile: ShadedRasterTileSaver)
+    : Result<string, string> list =
     // project each coverage point
     let projectedPoints = 
         options.CoveragePoints 
@@ -377,22 +379,40 @@ let run
     // then split it up into 1000x1000 tiles
     let tileSize = 1000
 
-    for (yIndex, tileMinY, tileMaxY) in splitIntoIntervals 
-        rasterMbrRounded.MinY rasterMbrRounded.MaxY tileSize do
-        for (xIndex, tileMinX, tileMaxX) in splitIntoIntervals 
-            rasterMbrRounded.MinX rasterMbrRounded.MaxX tileSize do
-            let tileBounds = 
-                Raster.Rect.asMinMax tileMinX tileMinY tileMaxX tileMaxY
-            
-            let tileGenerationResult = generateTile tileBounds options
+    let tilesToGenerate = 
+        [
+                for (yIndex, tileMinY, tileMaxY) in splitIntoIntervals 
+                    rasterMbrRounded.MinY rasterMbrRounded.MaxY tileSize do
+                    for (xIndex, tileMinX, tileMaxX) in splitIntoIntervals 
+                        rasterMbrRounded.MinX rasterMbrRounded.MaxX tileSize do
+                        let tileBounds = 
+                            Raster.Rect.asMinMax 
+                                tileMinX tileMinY tileMaxX tileMaxY
 
-            match tileGenerationResult with
-            | Error _ -> invalidOp "todo"
-            | Ok maybeGeneratedTile ->
-                match maybeGeneratedTile with
-                | Some imageData -> 
-                    saveTile options xIndex yIndex tileBounds imageData
-                    |> ignore
-                | None  -> invalidOp "todo"
+                        yield (xIndex, yIndex, tileBounds)
+        ]
 
-            ignore()
+    let maxTileIndex = 
+        tilesToGenerate 
+        |> List.map (fun (xIndex, yIndex, _) -> max xIndex yIndex)
+        |> List.max
+
+    tilesToGenerate 
+    |> List.choose (fun (xIndex, yIndex, tileBounds) ->
+        let tileGenerationResult = generateTile tileBounds options
+
+        match tileGenerationResult with
+        | Error errorMessage -> Some (Error errorMessage)
+        | Ok maybeGeneratedTile ->
+            match maybeGeneratedTile with
+            | Some imageData -> 
+                let tileImageFileName = 
+                    saveTile 
+                        options 
+                        maxTileIndex 
+                        (xIndex, yIndex) 
+                        tileBounds 
+                        imageData
+                Some (Ok tileImageFileName)
+            | None  -> None
+        )

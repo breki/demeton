@@ -73,6 +73,8 @@ type HeightsArray
         heightAtCell
 
     member this.interpolateHeightAt ((x, y): float * float) =
+        let fractionOf value = value - floor value
+
         let x1 = int (floor x)
         let x2 = int (ceil x)
         let y1 = int (floor y)
@@ -82,7 +84,12 @@ type HeightsArray
         let h2 = this.heightAt (x2, y1)
         let h3 = this.heightAt (x1, y2)
         let h4 = this.heightAt (x2, y2)
-        interpolateHeight h1 h2 h3 h4 x y
+        interpolateHeight h1 h2 h3 h4 (fractionOf x) (fractionOf y)
+
+    member this.setHeightAt ((x, y): GlobalCellCoords) (height:  DemHeight) =
+        let index = (y - this.MinY) * width + x - this.MinX
+        this.Cells.[index] <- height
+        
         
 /// <summary>
 /// A result of an operation that can return an optional 

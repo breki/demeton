@@ -1,4 +1,6 @@
 ﻿## Fri 4.10.
+- Prepared the `shade` command so it runs now.
+- Fixed the wrong return type in `generateShadedRasterTile` function.
 - Extracted the console wiring code into its own `Wiring` module.
 - Finished implementing the `saveShadedRasterTile` function.
 - Split `ShadeCommand` tests into multiple files.

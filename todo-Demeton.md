@@ -1,12 +1,8 @@
-﻿- we are missing test cases in `ShadeCommand.run`
-- prepare and try out the new command
-    - move wiring stuff to an extra module
-    - we need to add some additional parameters to options/command line
-    - add logging
-- make a more generic way of parsing command line parameters
-    - preferably with the ability to auto-generate help
+﻿- clean `Saving the tile.fs`
 - tests for shadeRaster function 
      - support for elevation coloring and hillshading
+- make a more generic way of parsing command line parameters
+    - preferably with the ability to auto-generate help
 - implement shaders
 
 - in what format to save the shaded tile PNG metadata?  

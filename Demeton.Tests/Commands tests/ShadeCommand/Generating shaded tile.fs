@@ -89,21 +89,22 @@ let ``When heights array fetcher returns an error, tile generator returns an err
     test <@ isError shadeTileResult @>
 
 [<Fact>]
-let ``Tile generator prepares the tile image data``() =
-
+let ``Tile generator prepares the tile image data and returns it``() =
     let fetchSomeHeights _ = someHeightsArray
 
+    let mutable imageDataReceived = None
     let shadeRasterReceivesTileRectAndImageData 
         _ tileRectReceived (imageData: RawImageData) _ = 
+        imageDataReceived <- Some imageData
         test <@ imageData.Length = 
             tileRect.Width * tileRect.Height * Png.Rgba8Bit.BytesPerPixel @>
         test <@ tileRectReceived = tileRect @>
 
-    ShadeCommand.generateShadedRasterTile 
-        fetchSomeHeights
-        shadeRasterReceivesTileRectAndImageData
-        tileRect 
-        options 
-    |> ignore
+    let result =
+        ShadeCommand.generateShadedRasterTile 
+            fetchSomeHeights
+            shadeRasterReceivesTileRectAndImageData
+            tileRect 
+            options 
 
-    test <@ true @>   
+    test <@ result = Ok imageDataReceived @>

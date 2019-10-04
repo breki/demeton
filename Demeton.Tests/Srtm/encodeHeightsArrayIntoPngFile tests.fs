@@ -18,7 +18,7 @@ let ``Creates the necessary directories for the local cache``() =
         (fun dir -> 
             test <@ dir = localCacheDir @>
             localCacheDir)
-        (fun _ -> new MemoryStream())
+        (fun _ -> new MemoryStream() :> Stream)
         heightsArray 
         pngFileName
 

@@ -15,7 +15,7 @@ type PngStreamWriter = IhdrData -> RawImageData -> Stream -> Stream
 /// <param name="stream">The stream the image should be written to.</param>
 /// <returns>The same stream.</returns>
 let savePngToStream: PngStreamWriter = 
-    fun ihdr imageData stream->
+    fun ihdr imageData stream ->
 
     stream 
     |> writeSignature 

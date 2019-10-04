@@ -9,20 +9,20 @@ open System.IO
 open System.IO.Compression
 
 /// <summary>
-/// A function providing the ability to check whether a file exists or not.
-/// </summary>
-type FileExistsChecker = string -> bool
-
-/// <summary>
 /// A function providing the ability open a reading stream to a file entry 
 /// inside a ZIP package.
 /// </summary>
 type ZipFileEntryReader = string -> string -> Stream
 
 /// <summary>
+/// A function providing the ability to check whether a file exists or not.
+/// </summary>
+type FileExistsChecker = string -> bool
+
+/// <summary>
 /// Determines whether the specified file exists.
 /// </summary>
-let fileExists fileName = File.Exists(fileName)
+let fileExists: FileExistsChecker = fun fileName -> File.Exists(fileName)
 
 /// <summary>
 /// Deletes a directory if it exists. If it does not exist, does nothing.
@@ -34,22 +34,29 @@ let deleteDirectoryIfExists (directory: string): string =
 
     directory
 
+type DirectoryExistsEnsurer = string -> string
+
 /// <summary>
 /// Creates the specified directory path if it does not exist already.
 /// </summary>
-let ensureDirectoryExists (directory: string): string =
+let ensureDirectoryExists: DirectoryExistsEnsurer = 
+    fun (directory: string) ->
     Directory.CreateDirectory(directory) |> ignore
     directory
+
+type FileOpener = string -> Stream
 
 /// <summary>
 /// Opens a read stream to the specified file.
 /// </summary>
-let openFileToRead fileName = File.OpenRead(fileName)
+let openFileToRead: FileOpener = 
+    fun fileName -> File.OpenRead(fileName) :> Stream
 
 /// <summary>
 /// Opens a write stream to the specified file.
 /// </summary>
-let openFileToWrite fileName = File.OpenWrite(fileName)
+let openFileToWrite: FileOpener = 
+    fun fileName -> File.OpenWrite(fileName) :> Stream
 
 /// <summary>
 /// Open a reading stream to a file entry inside a ZIP package.

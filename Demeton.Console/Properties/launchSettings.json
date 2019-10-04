@@ -2,7 +2,7 @@
   "profiles": {
     "Demeton.Console": {
       "commandName": "Project",
-      "commandLineArgs": "import --bounds 4.262676,42.90816,16.962471,48.502048 --srtm-dir \\\\hobbit\\SRTM"
+      "commandLineArgs": "shade --coverage 14.999123,46.329862,15.677491,46.608884 --srtm-dir \\\\hobbit\\SRTM --map-scale 250000"
     }
   }
 }

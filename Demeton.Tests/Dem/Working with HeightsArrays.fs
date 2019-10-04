@@ -68,3 +68,28 @@ let ``Interpolates height correctly``() =
         interpolateHeight 11s -4s -5s 4s (88. / 1000.) (786. / 1000.)
     test <@ Option.isSome heightCalcOption @>
     Option.get heightCalcOption |> isApproxEqualTo -1.235968 6
+
+[<Fact>]
+let ``Interpolates height in the heights array correctly``() =
+    let globalCellX = 100
+    let globalCellY = 200
+
+    let heightsArray = 
+        HeightsArray(
+            globalCellX, 
+            globalCellY, 
+            10, 
+            10, 
+            HeightsArrayInitializer1D(fun _ -> DemHeightNone))
+
+    heightsArray.setHeightAt (globalCellX + 5, globalCellY + 5) 11s
+    heightsArray.setHeightAt (globalCellX + 6, globalCellY + 5) -4s
+    heightsArray.setHeightAt (globalCellX + 5, globalCellY + 6) -5s
+    heightsArray.setHeightAt (globalCellX + 6, globalCellY + 6) 4s
+    let heightMaybe = 
+        heightsArray.interpolateHeightAt(
+            float globalCellX + 5.088, float globalCellY + 5.786)
+
+    test <@ Option.isSome heightMaybe @>
+    Option.get heightMaybe |> isApproxEqualTo -1.235968 6
+
