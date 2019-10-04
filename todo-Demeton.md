@@ -1,9 +1,10 @@
-﻿- clean `Saving the tile.fs`
-- tests for shadeRaster function 
-     - support for elevation coloring and hillshading
+﻿- implement shaders
+    - ElevationColoring
+        - fetch the color ramps from Maperitive
+    - RasterShader
+    - support for elevation coloring and hillshading
 - make a more generic way of parsing command line parameters
     - preferably with the ability to auto-generate help
-- implement shaders
 
 - in what format to save the shaded tile PNG metadata?  
     - extra sidecar file?

@@ -42,8 +42,8 @@
     <Compile Include="Srtm\fetchSrtmHeights tests.fs" />
     <Compile Include="Projections\ProjectionsTestHelpers.fs" />
     <Compile Include="Projections\WebMercator tests.fs" />
+    <Compile Include="Shaders\Elevation coloring.fs" />
     <Compile Include="Hillshading\Hillshading.fs" />
-    <Compile Include="Hillshading\Hillshading integration.fs" />
     <Compile Include="Commands tests\ShadeCommand\Command line parsing.fs" />
     <Compile Include="Commands tests\ShadeCommand\Running the command.fs" />
     <Compile Include="Commands tests\ShadeCommand\Splitting into intervals.fs" />

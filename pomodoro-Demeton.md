@@ -1,4 +1,5 @@
 ﻿## Fri 4.10.
+- Cleaned up `Saving the tile.fs`
 - Prepared the `shade` command so it runs now.
 - Fixed the wrong return type in `generateShadedRasterTile` function.
 - Extracted the console wiring code into its own `Wiring` module.

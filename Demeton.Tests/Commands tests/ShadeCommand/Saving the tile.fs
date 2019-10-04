@@ -47,8 +47,7 @@ let openPngFile fileName =
     pngFileNameUsed <- Some fileName
     new MemoryStream() :> Stream
 
-[<Fact>]
-let ``The output directory needs to be created``() =
+let saveTile maxTileIndex =
     ShadeCommand.saveShadedRasterTile 
         createDirectory 
         openPngFile
@@ -58,22 +57,16 @@ let ``The output directory needs to be created``() =
         (tileIndexX, tileIndexY)
         tileRect 
         imageData
-    |> ignore
+
+[<Fact>]
+let ``The output directory needs to be created``() =
+    saveTile maxTileIndex |> ignore
 
     test <@ createdDirectoryName = Some "output" @>
 
 [<Fact>]
 let ``The name of tile PNG file has to be in the required format and is returned by the function``() =
-    let returnedFileName =
-        ShadeCommand.saveShadedRasterTile 
-            createDirectory 
-            openPngFile
-            writePngToStream 
-            options 
-            maxTileIndex
-            (tileIndexX, tileIndexY)
-            tileRect 
-            imageData
+    let returnedFileName = saveTile maxTileIndex
 
     let expectedFileName = 
         options.OutputDir 
@@ -92,16 +85,7 @@ let ``The name of tile PNG file has to be in the required format and is returned
 let ``Zero-pads the tile index numbers in the PNG file name when required``
     (maxTileIndexToUse, expectedTileIndexesString) =
 
-    ShadeCommand.saveShadedRasterTile 
-        createDirectory 
-        openPngFile
-        writePngToStream 
-        options 
-        maxTileIndexToUse
-        (tileIndexX, tileIndexY)
-        tileRect 
-        imageData
-    |> ignore
+    saveTile maxTileIndexToUse |> ignore
 
     let expectedFileName = 
         options.OutputDir 
@@ -111,16 +95,7 @@ let ``Zero-pads the tile index numbers in the PNG file name when required``
     
 [<Fact>]
 let ``PNG IHDR chunk is correctly filled and the correct image data is provided when saving PNG``() =
-    ShadeCommand.saveShadedRasterTile 
-        createDirectory 
-        openPngFile
-        writePngToStream 
-        options 
-        maxTileIndex
-        (tileIndexX, tileIndexY)
-        tileRect 
-        imageData
-    |> ignore
+    saveTile maxTileIndex |> ignore
 
     test <@ ihdrUsed |> Option.isSome @>
     let ihdr = Option.get ihdrUsed
