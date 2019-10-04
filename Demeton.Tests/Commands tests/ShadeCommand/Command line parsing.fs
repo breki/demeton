@@ -1,4 +1,4 @@
-﻿module ``Commands tests``.``ShadeCommand command line parsing tests``
+﻿module ``Commands tests``.``ShadeCommand``.``Command line parsing``
 
 open Demeton.Commands
 

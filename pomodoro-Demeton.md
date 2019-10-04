@@ -1,4 +1,7 @@
-﻿## Thu 3.10.
+﻿## Fri 4.10.
+- Split `ShadeCommand` tests into multiple files.
+
+## Thu 3.10.
 - Implemented a prototype `shadeRaster` function.
 - More test cases for `generateShadedRasterTile` function.
 

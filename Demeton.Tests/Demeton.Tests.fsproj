@@ -44,10 +44,13 @@
     <Compile Include="Projections\WebMercator tests.fs" />
     <Compile Include="Hillshading\Hillshading.fs" />
     <Compile Include="Hillshading\Hillshading integration.fs" />
+    <Compile Include="Commands tests\ShadeCommand\Command line parsing.fs" />
+    <Compile Include="Commands tests\ShadeCommand\Running the command.fs" />
+    <Compile Include="Commands tests\ShadeCommand\Splitting into intervals.fs" />
+    <Compile Include="Commands tests\ShadeCommand\Generating shaded tile.fs" />
+    <Compile Include="Commands tests\ShadeCommand\Shading the raster.fs" />
     <Compile Include="Commands tests\Command line parameters parsing.fs" />
     <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs" />
-    <Compile Include="Commands tests\ShadeCommand command line parsing tests.fs" />
-    <Compile Include="Commands tests\ShadeCommand unit tests.fs" />
     <Compile Include="Benchmarks\PngFilterBenchmarks.fs" />
     <Compile Include="Benchmarks\CrcBenchmarks.fs" />
     <Compile Include="Benchmarks\Array1Dvs2D.fs" />
