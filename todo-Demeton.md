@@ -1,5 +1,10 @@
 ﻿- test case for checking that the image data is saved as a file
+    - in what format to save the metadata?
+- clean up the test code 
+    - split into several files
+    - remove duplication
 - tests for shadeRaster function 
+     - support for elevation coloring and hillshading
 - implement shaders
 
 - implement the actual hillshading algorithm

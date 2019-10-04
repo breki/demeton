@@ -179,11 +179,11 @@ let splitIntoIntervals minValue maxValue intervalSize =
 
     Seq.init 
         intervalsCount 
-        (fun i -> 
-            let intervalMinValue = minValue + i * intervalSize
+        (fun intervalIndex -> 
+            let intervalMinValue = minValue + intervalIndex * intervalSize
             let intervalMaxValue = 
                 min (intervalMinValue + intervalSize) maxValue
-            (intervalMinValue, intervalMaxValue)
+            (intervalIndex, intervalMinValue, intervalMaxValue)
         )
 
 let projectionScaleFactor options =
@@ -231,7 +231,8 @@ let shadeRaster: RasterShader =
                 pixelValue
 
 
-type ShadedRasterTileGenerator = Raster.Rect -> Options -> unit
+type ShadedRasterTileGenerator = 
+    Raster.Rect -> Options -> Result<RawImageData option, string>
 
 let generateShadedRasterTile 
     (tileRect: Raster.Rect)
@@ -275,7 +276,13 @@ let generateShadedRasterTile
             Ok None
         | None -> Ok None
     
-let run (options: Options) (tileGenerator: ShadedRasterTileGenerator) =
+type ShadedRasterTileSaver = 
+    int -> int -> Options -> Raster.Rect -> RawImageData -> string
+
+let run 
+    (options: Options) 
+    (generateTile: ShadedRasterTileGenerator) 
+    (saveTile: ShadedRasterTileSaver) =
     // project each coverage point
     let projectedPoints = 
         options.CoveragePoints 
@@ -299,14 +306,25 @@ let run (options: Options) (tileGenerator: ShadedRasterTileGenerator) =
             (int (ceil rasterMbr.MaxX))
             (int (ceil rasterMbr.MaxY))
 
-
     // then split it up into 1000x1000 tiles
     let tileSize = 1000
 
-    for (tileMinY, tileMaxY) in splitIntoIntervals 
+    for (yIndex, tileMinY, tileMaxY) in splitIntoIntervals 
         rasterMbrRounded.MinY rasterMbrRounded.MaxY tileSize do
-        for (tileMinX, tileMaxX) in splitIntoIntervals 
+        for (xIndex, tileMinX, tileMaxX) in splitIntoIntervals 
             rasterMbrRounded.MinX rasterMbrRounded.MaxX tileSize do
             let tileBounds = 
                 Raster.Rect.asMinMax tileMinX tileMinY tileMaxX tileMaxY
-            tileGenerator tileBounds options
+            
+            let tileGenerationResult = generateTile tileBounds options
+
+            match tileGenerationResult with
+            | Error _ -> invalidOp "todo"
+            | Ok maybeGeneratedTile ->
+                match maybeGeneratedTile with
+                | Some imageData -> 
+                    saveTile xIndex yIndex options tileBounds imageData
+                    |> ignore
+                | None  -> invalidOp "todo"
+
+            ignore()

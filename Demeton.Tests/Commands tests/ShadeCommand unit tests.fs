@@ -13,19 +13,19 @@ open Png
 [<Fact>]
 let ``Correctly splits into intervals when all intervals will have the same size``() =
     test <@ ShadeCommand.splitIntoIntervals 10 100 30 |> Seq.toList
-                = [ (10, 40); (40, 70); (70, 100) ]
+                = [ (0, 10, 40); (1, 40, 70); (2, 70, 100) ]
         @>
 
 [<Fact>]
 let ``Correctly splits into intervals when the last interval will be smaller``() =
     test <@ ShadeCommand.splitIntoIntervals 10 90 30 |> Seq.toList
-                = [ (10, 40); (40, 70); (70, 90) ]
+                = [ (0, 10, 40); (1, 40, 70); (2, 70, 90) ]
         @>
 
 [<Fact>]
 let ``Correctly splits into a single interval``() =
     test <@ ShadeCommand.splitIntoIntervals 10 90 100 |> Seq.toList
-                = [ (10, 90) ]
+                = [ (0, 10, 90) ]
         @>
 
 let coveragePoints = [(4.262676, 42.90816); (16.962471, 48.502048)]
@@ -45,8 +45,11 @@ let ``Correctly splits the raster into multiple tiles``() =
     let tileGenerator 
         (rasterTileCoords: Raster.Rect) _ =
         generatedTiles <- rasterTileCoords :: generatedTiles
+        Ok (Some (Rgba8Bit.createImageData 10 10 Rgba8Bit.ImageDataZero))
 
-    ShadeCommand.run options tileGenerator
+    let tileSaver _ _ _ _ _ = ""
+
+    ShadeCommand.run options tileGenerator tileSaver
 
     generatedTiles <- generatedTiles |> List.rev
 
@@ -155,8 +158,8 @@ let ``Tile generator prepares the tile image data``() =
         shadeRaster
     |> ignore
 
-    test <@ true @>
-    
+    test <@ true @>   
+
 [<Fact>]
 let ``Raster shader colors all of the image``() =
     let imageWidth = 10
@@ -184,3 +187,24 @@ let ``Raster shader colors all of the image``() =
             | _ -> ()
 
     test <@ not anyNonColoredPixel @>
+
+[<Fact>]
+let ``Saves the generated tile images to files``() =
+    let mutable savedTiles = []
+
+    let tileGenerator _ _ =
+        Ok (Some (Rgba8Bit.createImageData 10 10 Rgba8Bit.ImageDataZero))
+
+    let tileSaver tileX tileY _ _ _ =
+        let imageFileName = sprintf "%d-%d" tileX tileY
+        savedTiles <- imageFileName :: savedTiles
+        imageFileName
+
+    ShadeCommand.run options tileGenerator tileSaver
+
+    savedTiles <- savedTiles |> List.rev
+
+    test <@ savedTiles.Length = 12 @>
+    test <@ savedTiles.[0] = "0-0" @>
+    test <@ savedTiles.[1] = "1-0" @>
+    test <@ savedTiles.[11] = "3-2" @>
