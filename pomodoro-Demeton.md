@@ -1,4 +1,5 @@
 ﻿## Fri 4.10.
+- Finished implementing the `saveShadedRasterTile` function.
 - Split `ShadeCommand` tests into multiple files.
 
 ## Thu 3.10.

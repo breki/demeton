@@ -16,6 +16,7 @@ open Png.Types
 
 open System.IO
 open Demeton.Srtm
+open System
 
 type Options = {
     CoveragePoints: LonLat list
@@ -277,7 +278,46 @@ let generateShadedRasterTile
         | None -> Ok None
     
 type ShadedRasterTileSaver = 
-    int -> int -> Options -> Raster.Rect -> RawImageData -> string
+    Options -> int -> int -> Raster.Rect -> RawImageData -> string
+
+let saveShadedRasterTile 
+    ensureDirectoryExists
+    (openFileToWrite: string -> Stream)
+    (writePngToStream: Png.File.PngStreamWriter)
+    (options: Options) 
+    (maxTileIndex: int)
+    tileIndexX 
+    tileIndexY 
+    (tileRect: Raster.Rect)
+    imageData =
+
+    ensureDirectoryExists options.OutputDir
+
+    let tileIndexStringWidth = 
+        int (ceil (Math.Log10(float (maxTileIndex + 1))))
+
+    let tilePngFileName =
+        options.OutputDir 
+        |> Pth.combine (
+            sprintf "%s-%0*d-%0*d.png" 
+                options.FileName 
+                tileIndexStringWidth 
+                tileIndexX 
+                tileIndexStringWidth 
+                tileIndexY)
+    use stream = openFileToWrite tilePngFileName
+
+    let ihdr = {
+        Width = tileRect.Width
+        Height = tileRect.Height
+        BitDepth = PngBitDepth.BitDepth8
+        ColorType = PngColorType.RgbAlpha
+        InterlaceMethod = PngInterlaceMethod.NoInterlace
+    }
+
+    stream |> writePngToStream ihdr imageData |> ignore
+
+    tilePngFileName
 
 let run 
     (options: Options) 
@@ -323,7 +363,7 @@ let run
             | Ok maybeGeneratedTile ->
                 match maybeGeneratedTile with
                 | Some imageData -> 
-                    saveTile xIndex yIndex options tileBounds imageData
+                    saveTile options xIndex yIndex tileBounds imageData
                     |> ignore
                 | None  -> invalidOp "todo"
 

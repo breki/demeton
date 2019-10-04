@@ -1,4 +1,4 @@
-﻿module ``convertZippedHgtTileToPng tests``
+﻿module ``Srtm``.``convertZippedHgtTileToPng tests``
 
 open Demeton.Srtm.Png
 

@@ -25,7 +25,7 @@ let tileGenerator
     generatedTiles <- rasterTileCoords :: generatedTiles
     Ok (Some (Rgba8Bit.createImageData 10 10 Rgba8Bit.ImageDataZero))
 
-let tileSaver tileX tileY _ _ _ =
+let tileSaver _ tileX tileY _ _ =
     let imageFileName = sprintf "%d-%d" tileX tileY
     savedTiles <- imageFileName :: savedTiles
     imageFileName

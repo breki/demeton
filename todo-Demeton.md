@@ -1,11 +1,11 @@
-﻿- test case for checking that the image data is saved as a file
-    - in what format to save the metadata?
-- clean up the test code 
-    - split into several files
-    - remove duplication
+﻿- prepare and try out the new command
 - tests for shadeRaster function 
      - support for elevation coloring and hillshading
 - implement shaders
+
+- in what format to save the shaded tile PNG metadata?  
+    - extra sidecar file?
+    - extra PNG chunk?
 
 - implement the actual hillshading algorithm
     - input: height array, tile rectangle, options

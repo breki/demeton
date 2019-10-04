@@ -6,16 +6,16 @@ open Png.Chunks
 
 open System.IO
 
+type PngStreamWriter = IhdrData -> RawImageData -> Stream -> Stream
+
 /// <summary>
 /// Saves the specified 8-bit grayscale image to a stream.
 /// </summary>
 /// <param name="imageData">The data of the image to be saved.</param>
 /// <param name="stream">The stream the image should be written to.</param>
 /// <returns>The same stream.</returns>
-let savePngToStream 
-    (ihdr: IhdrData)
-    (imageData: RawImageData) 
-    (stream: Stream): Stream =
+let savePngToStream: PngStreamWriter = 
+    fun ihdr imageData stream->
 
     stream 
     |> writeSignature 
