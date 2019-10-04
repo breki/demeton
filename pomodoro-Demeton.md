@@ -1,4 +1,5 @@
 ﻿## Fri 4.10.
+- Extracted the console wiring code into its own `Wiring` module.
 - Finished implementing the `saveShadedRasterTile` function.
 - Split `ShadeCommand` tests into multiple files.
 

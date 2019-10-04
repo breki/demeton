@@ -1,4 +1,6 @@
-﻿- prepare and try out the new command
+﻿- we are missing test cases in `ShadeCommand.run`
+- prepare and try out the new command
+    - move wiring stuff to an extra module
     - we need to add some additional parameters to options/command line
     - add logging
 - make a more generic way of parsing command line parameters

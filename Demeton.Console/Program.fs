@@ -1,6 +1,7 @@
 ﻿open Demeton.Srtm.Funcs
-open Demeton.Srtm.Png
 open Demeton.Commands
+open Demeton.Console
+
 
 let displayHelp exitCode = 
     // todo: add code to display all the available commands
@@ -15,49 +16,23 @@ let handleUnknownCommand commandName =
 let importTiles (options: ImportSrtmTilesCommand.Options) =
     let tilesCords = boundsToTiles (Option.get options.Bounds) |> Seq.toArray
 
-    let cachingStatusChecker =
-        checkSrtmTileCachingStatus
-            options.SrtmDir
-            options.LocalCacheDir
-            FileSys.fileExists
-
-    let pngTileReader =
-        decodeSrtmTileFromPngFile
-            FileSys.openFileToRead
-
-    let pngTileConverter = 
-        convertZippedHgtTileToPng 
-            FileSys.openZipFileEntry
-            createSrtmTileFromStream
-            (encodeHeightsArrayIntoPngFile
-                FileSys.ensureDirectoryExists
-                FileSys.openFileToWrite)
-
     ImportSrtmTilesCommand.run 
         tilesCords 
-        cachingStatusChecker
-        (fetchSrtmTile 
+        (Wiring.checkCachingStatus
             options.SrtmDir
-            options.LocalCacheDir
-            FileSys.fileExists
-            pngTileReader
-            pngTileConverter)
+            options.LocalCacheDir)
+        (Wiring.fetchSrtmTile options.SrtmDir options.LocalCacheDir)
 
     0
 
 
-let shade options = 
+let shade (options: ShadeCommand.Options) = 
+    let generateTile =
+        ShadeCommand.generateShadedRasterTile
+            (Wiring.fetchSrtmHeights options.SrtmDir options.LocalCacheDir)
+            ShadeCommand.shadeRaster
+
     invalidOp "todo"
-    //let readSrtmTile = 
-    //    fetchSrtmTile
-            
-
-    //let generateTile =
-    //    ShadeCommand.generateShadedRasterTile
-    //        fetchSrtmHeights
-    //        ShadeCommand.shadeRaster
-
-
     //ShadeCommand.run 
     //    options
     //    generateTile
