@@ -1,4 +1,8 @@
-﻿- implement shaders
+﻿- ElevationColorScale
+    - support for float height
+    - implement `Rgba8Bit.RgbaColor` color mixing
+
+- implement shaders
     - ElevationColoring
         - fetch the color ramps from Maperitive
     - RasterShader
