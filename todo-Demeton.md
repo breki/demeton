@@ -1,6 +1,5 @@
 ﻿- ElevationColorScale
-    - support for float height
-    - implement `Rgba8Bit.RgbaColor` color mixing
+    - add support for None color for marks, too
 
 - implement shaders
     - ElevationColoring

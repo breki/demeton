@@ -24,6 +24,22 @@ let inline toArgb(color: RgbaColor): ArgbColor =
 let inline toHex(color: RgbaColor): string =
     sprintf "%02X%02X%02X%02X" (a color) (r color) (g color) (b color)
 
+let inline mixColors colorA colorB mixRatio = 
+    let mixByteValues (v1:byte) (v2: byte): byte =
+        let v1Float = float v1
+        let mixedFloat = (float v2 - v1Float) * mixRatio + v1Float
+        byte mixedFloat
+
+    match mixRatio with
+    | 0. -> colorA
+    | 1. -> colorB
+    | _ -> 
+        rgbaColor 
+            (mixByteValues (r colorB) (r colorA))
+            (mixByteValues (g colorB) (g colorA))
+            (mixByteValues (b colorB) (b colorA))
+            (mixByteValues (a colorB) (a colorA))
+
 type ImageDataInitializer =
     ImageDataZero
     | ImageDataInitializer1D of (int -> RgbaColor)

@@ -17,16 +17,16 @@ let scale = {
 
 [<Fact>]
 let ``If height falls exactly on one of the marks, use its color directly``() =
-    test <@ scale |> colorOfHeight 700s = Some color700 @>
-    test <@ scale |> colorOfHeight 1000s = Some color1000 @>
+    test <@ scale |> colorOfHeight (Some 700.) = Some color700 @>
+    test <@ scale |> colorOfHeight (Some 1000.) = Some color1000 @>
 
 [<Fact>]
 let ``If height is below the minimal scale mark, use the color of the that minimal scale mark``() =
-    test <@ scale |> colorOfHeight 500s = Some color700 @>
+    test <@ scale |> colorOfHeight (Some 500.) = Some color700 @>
 
 [<Fact>]
 let ``If height is above the maximal scale mark, use the color of the that maximal scale mark``() =
-    test <@ scale |> colorOfHeight 1200s = Some color1000 @>
+    test <@ scale |> colorOfHeight (Some 1200.) = Some color1000 @>
     
 [<Fact>]
 let ``If height is None and scale has a color configured for it, return it``() =
@@ -37,7 +37,7 @@ let ``If height is None and scale has a color configured for it, return it``() =
         NoneColor = Some colorNone 
         }
     
-    test <@ scale |> colorOfHeight DemHeightNone = Some colorNone @>
+    test <@ scale |> colorOfHeight None = Some colorNone @>
     
 [<Fact>]
 let ``If height is None and scale has does not have a color configured for it, return None``() =
@@ -46,4 +46,9 @@ let ``If height is None and scale has does not have a color configured for it, r
         NoneColor = None
         }
     
-    test <@ scale |> colorOfHeight DemHeightNone = None @>
+    test <@ scale |> colorOfHeight None = None @>
+
+[<Fact>]
+let ``If height is inbetween two scale marks, interpolate between their colors``() =
+    test <@ scale |> colorOfHeight (Some 850.) = 
+        Some (Rgba8Bit.rgbaColor 150uy 150uy 150uy 150uy) @>

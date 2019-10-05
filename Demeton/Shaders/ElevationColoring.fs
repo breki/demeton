@@ -12,19 +12,37 @@ type ElevationColorScale = {
 
 type ElevationColorer = DemHeight -> Rgba8Bit.RgbaColor option
 
-let colorOfHeight (height: DemHeight) (scale: ElevationColorScale) = 
-    match height with
-    | DemHeightNone -> scale.NoneColor
-    | _ -> 
-        let markMaybe =
-            scale.Marks 
-            |> Array.tryFind (fun (markHeight, _) ->  height <= markHeight)
-        match markMaybe with
-        | Some (_, color) -> Some color
-        | None -> 
-            let (_, color) = scale.Marks.[scale.Marks.Length - 1]
-            Some color
+let colorOfHeight (heightMaybe: float option) (scale: ElevationColorScale) = 
+    let findColor (height: float): Rgba8Bit.RgbaColor option =
+        let mutable color = None
+        let mutable markIndex = 0;
+        while Option.isNone color && markIndex < scale.Marks.Length do
+            let (markHeight, markColor) = scale.Marks.[markIndex]
 
+            if height <= float markHeight then
+                if markIndex = 0 then
+                    color <- Some markColor
+                else
+                    let (prevMarkHeight, prevMarkColor) = 
+                        scale.Marks.[markIndex - 1]
+
+                    color <- 
+                        let mixRatio = 
+                            (height - float prevMarkHeight)
+                            / float (markHeight - prevMarkHeight)
+                        Some (Rgba8Bit.mixColors 
+                            prevMarkColor markColor mixRatio)
+            else
+                if markIndex = scale.Marks.Length - 1 then
+                    color <- Some markColor
+
+                markIndex <- markIndex + 1
+
+        color
+
+    match heightMaybe with
+    | None -> scale.NoneColor
+    | Some height -> findColor height
 
 //-32768, GisColor.FromRgb(224, 240, 254)));
 //-1, GisColor.FromRgb (142, 212, 142)));

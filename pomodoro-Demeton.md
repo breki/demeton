@@ -1,4 +1,5 @@
 ﻿## Sat 5.10.
+- Implemented 8-bit RGBA color mixing.
 - Started implementing `ElevationColorScale` functions.
 
 ## Fri 4.10.
