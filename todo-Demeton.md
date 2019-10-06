@@ -1,5 +1,4 @@
 ﻿- ElevationColorScale
-    - add support for None color for marks, too
 
 - implement shaders
     - ElevationColoring

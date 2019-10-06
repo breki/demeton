@@ -7,13 +7,11 @@ type ElevationColorScaleMark = (DemHeight * Rgba8Bit.RgbaColor)
 
 type ElevationColorScale = {
     Marks: ElevationColorScaleMark[]
-    NoneColor: Rgba8Bit.RgbaColor option
+    NoneColor: Rgba8Bit.RgbaColor
     }
 
-type ElevationColorer = DemHeight -> Rgba8Bit.RgbaColor option
-
 let colorOfHeight (heightMaybe: float option) (scale: ElevationColorScale) = 
-    let findColor (height: float): Rgba8Bit.RgbaColor option =
+    let findColor (height: float): Rgba8Bit.RgbaColor =
         let mutable color = None
         let mutable markIndex = 0;
         while Option.isNone color && markIndex < scale.Marks.Length do
@@ -38,7 +36,7 @@ let colorOfHeight (heightMaybe: float option) (scale: ElevationColorScale) =
 
                 markIndex <- markIndex + 1
 
-        color
+        Option.get color
 
     match heightMaybe with
     | None -> scale.NoneColor

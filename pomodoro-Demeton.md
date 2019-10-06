@@ -1,4 +1,7 @@
-﻿## Sat 5.10.
+﻿## Sun 6.10.
+- Removed support for optional color for `DemHeightNone` in `ElevationColorScale`.
+
+## Sat 5.10.
 - Implemented 8-bit RGBA color mixing.
 - Started implementing `ElevationColorScale` functions.
 
