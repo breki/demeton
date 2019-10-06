@@ -42,6 +42,15 @@ let colorOfHeight (heightMaybe: float option) (scale: ElevationColorScale) =
     | None -> scale.NoneColor
     | Some height -> findColor height
 
+let elevationColorScaleMaperitive =
+    {
+        Marks = [| 
+            (-1s, Rgba8Bit.rgbColor 142uy 212uy 142uy)
+        |]
+
+        NoneColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
+    }
+
 //-32768, GisColor.FromRgb(224, 240, 254)));
 //-1, GisColor.FromRgb (142, 212, 142)));
 //0, GisColor.FromArgb (0, 142, 212, 142)));

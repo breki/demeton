@@ -1,10 +1,22 @@
-﻿module Demeton.Geometry.Common
+﻿/// <summary>
+/// Contains common geometry types and functions.
+/// </summary>
+module Demeton.Geometry.Common
 
 open System
 
+/// <summary>
+/// Represents a point in 2D space.
+/// </summary>
 type Point = float * float
 
+/// <summary>
+/// Represents a bounding box in 2D space.
+/// </summary>
 type Bounds = { MinX: float; MinY: float; MaxX: float; MaxY: float } with
+    /// <summary>
+    /// Represents an empty bounding box.
+    /// </summary>
     static member Empty = { 
         MinX = Double.MaxValue
         MinY = Double.MaxValue

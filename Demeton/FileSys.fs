@@ -34,6 +34,9 @@ let deleteDirectoryIfExists (directory: string): string =
 
     directory
 
+/// <summary>
+/// A function providing the ability to ensure the directory exists on the disk.
+/// </summary>
 type DirectoryExistsEnsurer = string -> string
 
 /// <summary>
@@ -44,6 +47,9 @@ let ensureDirectoryExists: DirectoryExistsEnsurer =
     Directory.CreateDirectory(directory) |> ignore
     directory
 
+/// <summary>
+/// A function providing the ability to open a file stream.
+/// </summary>
 type FileOpener = string -> Stream
 
 /// <summary>

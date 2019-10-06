@@ -28,6 +28,12 @@ type Level =
     /// </summary>
     | Debug = 3
 
+/// <summary>
+/// Returns the appropriate <see cref="TextWriter" /> to write the log entry to
+/// based on the specified severity level of the log entry. For error level,
+/// the function uses <see cref="System.Console.Error" /> writer, while for all
+/// the others it uses <see cref="System.Console.Out" />.
+/// </summary>
 let routeToWriter level: TextWriter option =
     match level with
     | Level.Error -> Some System.Console.Error
@@ -58,6 +64,17 @@ let writeMessage level (message: string) =
 let log level format = 
     Printf.kprintf (fun msg -> writeMessage level msg) format
 
+/// <summary>
+/// Writes a log entry with the <see cref="Level.Error" /> severity level.
+/// </summary>
 let error format = log Level.Error format
+
+/// <summary>
+/// Writes a log entry with the <see cref="Level.Info" /> severity level.
+/// </summary>
 let info format = log Level.Info format
+
+/// <summary>
+/// Writes a log entry with the <see cref="Level.Debug" /> severity level.
+/// </summary>
 let debug format = log Level.Debug format

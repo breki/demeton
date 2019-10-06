@@ -14,8 +14,19 @@ let inline g(color: RgbaColor) = byte (color >>> 16)
 let inline b(color: RgbaColor) = byte (color >>> 8)
 let inline a(color: RgbaColor) = byte color
 
+/// <summary>
+/// Constructs the <see cref="RgbaColor" /> from R, G, B and alpha
+/// components.
+/// </summary>
 let inline rgbaColor (r: byte) (g: byte) (b: byte) (a: byte): RgbaColor =
     (uint32 r <<< 24) ||| (uint32 g <<< 16) ||| (uint32 b <<< 8) ||| (uint32 a)
+
+/// <summary>
+/// Constructs a fully opaque <see cref="RgbaColor" /> from R, G and B
+/// components.
+/// </summary>
+let inline rgbColor (r: byte) (g: byte) (b: byte): RgbaColor =
+    (uint32 r <<< 24) ||| (uint32 g <<< 16) ||| (uint32 b <<< 8) ||| 255u
 
 let inline toArgb(color: RgbaColor): ArgbColor =
     (uint32 (a color) <<< 24) ||| (uint32 (r color) <<< 16)
