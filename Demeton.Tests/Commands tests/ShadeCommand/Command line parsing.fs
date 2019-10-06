@@ -137,6 +137,38 @@ let ``Accepts a valid DPI value and puts it into the options`` () =
         @>
 
 [<Fact>]
+let ``Tile size has to be a numeric value`` () =
+    let result = 
+        ShadeCommand.parseArgs [ 
+            "--coverage"; "10,20,30,40"; "--tile-size"; "xyz" ]
+    test <@ 
+            result 
+            |> isErrorData "'tile-size' parameter's value is invalid, it has to be an integer value larger than 0." 
+            @>
+
+[<Theory>]
+[<InlineData("-10")>]
+[<InlineData("0")>]
+let ``Tile size has to be a positive value`` tileSizeString =
+    let result = 
+        ShadeCommand.parseArgs [ 
+            "--coverage"; "10,20,30,40"; "--tile-size"; tileSizeString ]
+    test <@ 
+            result 
+            |> isErrorData "'tile-size' parameter's value is invalid, it has to be an integer value larger than 0." 
+            @>
+
+[<Fact>]
+let ``Accepts a valid tile size value and puts it into the options`` () =
+    let result = 
+        ShadeCommand.parseArgs [ 
+            "--coverage"; "10,20,30,40"; "--tile-size"; "3000" ]
+    test <@ result |> isOk @>
+    test <@ 
+            (parsedOptions result).TileSize = 3000
+        @>
+
+[<Fact>]
 let ``FileName has to be a valid file name`` () =
     let result = 
         ShadeCommand.parseArgs [ 

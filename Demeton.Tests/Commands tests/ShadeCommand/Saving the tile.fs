@@ -20,6 +20,7 @@ let options: ShadeCommand.Options = {
         MapScale = 5000000.
         OutputDir = "output"
         SrtmDir = "srtm"
+        TileSize = 1000
     }
 
 let tileIndexX = 3

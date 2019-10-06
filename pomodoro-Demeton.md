@@ -1,4 +1,6 @@
 ﻿## Sun 6.10.
+- Added elevation color scale from Maperitive, but it renders it oddly.
+- shade command now has the `--tile-size` command line parameter.
 - Removed support for optional color for `DemHeightNone` in `ElevationColorScale`.
 
 ## Sat 5.10.

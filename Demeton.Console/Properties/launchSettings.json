@@ -2,7 +2,7 @@
   "profiles": {
     "Demeton.Console": {
       "commandName": "Project",
-      "commandLineArgs": "shade --coverage 14.999123,46.329862,15.677491,46.608884 --srtm-dir \\\\hobbit\\SRTM --map-scale 250000"
+      "commandLineArgs": "shade --coverage 14.999123,46.329862,15.677491,46.608884 --srtm-dir \\\\hobbit\\SRTM --map-scale 250000 --tile-size 5000"
     }
   }
 }

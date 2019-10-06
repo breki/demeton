@@ -1,8 +1,6 @@
-﻿- ElevationColorScale
-    - define color ramps from Maperitive
-
-- try using `ElevationColorScale` in the command
-    - make the tile size command-line configurable
+﻿- try using `ElevationColorScale` in the command
+    - something is wrong with the coloring
+        - render a test image with whole gradient?
 
 - implement shaders
     - RasterShader

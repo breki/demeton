@@ -9,6 +9,7 @@ open Demeton.Geometry
 open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
+open Demeton.Shaders.ElevationColoring
 open Demeton.Srtm
 open Demeton.Srtm.Funcs
 open Png
@@ -25,6 +26,7 @@ type Options = {
     MapScale: float
     OutputDir: string
     SrtmDir: string
+    TileSize: int
 }
 
 [<Literal>]
@@ -41,6 +43,8 @@ let MapScaleParameter = "map-scale"
 let OutputDirParameter = "output-dir"
 [<Literal>]
 let SrtmDirParameter = "srtm-dir"
+[<Literal>]
+let TileSizeParameter = "tile-size"
 
 
 let parseCoverage (value: string) (context: ParsingContext<Options>) =
@@ -104,6 +108,26 @@ let parseMapScale (value: string) (context: ParsingContext<Options>) =
             |> withOptions ({ oldOptions with MapScale = value })
             |> Result.Ok
 
+
+let parseTileSize (value: string) (context: ParsingContext<Options>) =
+    let intResult = parseInt value
+
+    match intResult with
+    | Error _ -> 
+        context |> invalidParameter 
+            TileSizeParameter  "it has to be an integer value larger than 0"
+    | Ok value ->
+        match value with
+        | x when x < 1 -> 
+            context |> invalidParameter 
+                TileSizeParameter "it has to be an integer value larger than 0"
+        | _ -> 
+            let (_, oldOptions) = context
+            context 
+            |> consumeArg
+            |> withOptions ({ oldOptions with TileSize = value })
+            |> Result.Ok
+
 let parseDpi (value: string) (context: ParsingContext<Options>) =
     let floatResult = parseFloat value
 
@@ -154,6 +178,7 @@ let parseArgs (args: string list): ParsingResult<Options> =
             MapScale = 50000.             
             OutputDir = "output"
             SrtmDir = "srtm"
+            TileSize = 1000
         }
 
     let mutable parsingResult: ParsingResult<Options> = 
@@ -180,6 +205,8 @@ let parseArgs (args: string list): ParsingResult<Options> =
                 parseParameterValue OutputDirParameter parseOutputDir context
             | Some "--srtm-dir" -> 
                 parseParameterValue SrtmDirParameter parseSrtmDir context
+            | Some "--tile-size" -> 
+                parseParameterValue TileSizeParameter parseTileSize context
             | Some unknownArg ->
                 Error (sprintf "Unrecognized parameter '%s'." unknownArg)
             | None -> invalidOp "BUG: this should never happen"
@@ -244,13 +271,7 @@ let shadeRaster: RasterShader =
             let height = heightForTilePixel x y
 
             let pixelValue = 
-                match height with
-                | None -> Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
-                | Some heightValue ->
-                    let heightToByte = byte(min (heightValue / 10.0) 255.0)
-
-                    Rgba8Bit.rgbaColor 
-                        heightToByte heightToByte heightToByte 255uy
+                elevationColorScaleMaperitive |> colorOfHeight height
 
             Rgba8Bit.setPixelAt 
                 imageData
@@ -376,8 +397,8 @@ let run
             (int (ceil rasterMbr.MaxX))
             (int (ceil rasterMbr.MaxY))
 
-    // then split it up into 1000x1000 tiles
-    let tileSize = 1000
+    // then split it up into tiles
+    let tileSize = options.TileSize
 
     let tilesToGenerate = 
         [
