@@ -5,11 +5,21 @@ module PropertiesHelp
 
 open FsCheck
 
-let floatFrom0To1Inclusive =
-    let maxIntToUse = 10000
+let floatInRangeInclusive (minValue: int) (maxValue: int) =
+    let scaleFactor = 100
 
-    Gen.choose(0, maxIntToUse + 1) 
-    |> Gen.map (fun i -> float i / float maxIntToUse)
+    Gen.choose(minValue * scaleFactor, (maxValue + 1) * scaleFactor) 
+    |> Gen.map (fun i -> float i / float scaleFactor)
+    
+
+let floatFrom0To1Inclusive granularity =
+    Gen.choose(0, granularity + 1) 
+    |> Gen.map (fun i -> float i / float granularity)
+
+let optionOfWithFrequency (frequency: int) g = 
+    Gen.frequency [
+        (frequency, gen { return None }); 
+        (100-frequency, Gen.map Some g)]
 
 /// <summary>
 /// Property that asserts fromValue <= value <= toValue.
@@ -31,3 +41,5 @@ let replayPropertyCheck replaySeed property =
     Check.One(
         { Config.Quick with Replay = Some <| Random.StdGen replaySeed },
         property)
+
+let (.=.) left right = left = right |@ sprintf "%A = %A" left right

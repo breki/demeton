@@ -1,4 +1,5 @@
 ﻿## Mon 7.10.
+- Added property tests for elevation coloring.
 - Added a property test for mixing 8-bit RGBA colors.
 - Added a helper `PropertiesHelper` module for testing with FsCheck.
 - Learning more about FsCheck.

@@ -40,12 +40,21 @@ let isBetweenTwoOriginalColors (color1, color2, mixRatio) =
         "alpha component" 
         (Rgba8Bit.a color1) (Rgba8Bit.a color2) (Rgba8Bit.a mixedColor)
 
+let swappingColorsProducesTheSameResult (color1, color2, mixRatio) =
+    let x = Rgba8Bit.mixColors color1 color2 mixRatio
+    let y = Rgba8Bit.mixColors color2 color1 (1. - mixRatio)
+    x .=. y
+
 [<Property(Verbose=false)>]
 let ``Mixed color is between two original colors``() =
     let genColor1 = Arb.generate<Rgba8Bit.RgbaColor>
     let genColor2 = Arb.generate<Rgba8Bit.RgbaColor>
-    let genMixRatio = floatFrom0To1Inclusive
+    let genMixRatio = floatFrom0To1Inclusive 10000
+
+    let properties (color1, color2, mixRatio)
+        = isBetweenTwoOriginalColors (color1, color2, mixRatio)
+            .&. swappingColorsProducesTheSameResult (color1, color2, mixRatio)
 
     Gen.map3 (fun x y z -> x, y, z) genColor1 genColor2 genMixRatio
     |> Arb.fromGen
-    |> Prop.forAll <| isBetweenTwoOriginalColors
+    |> Prop.forAll <| properties
