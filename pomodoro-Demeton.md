@@ -1,4 +1,5 @@
 ﻿## Mon 7.10.
+- Fixed a bug in color mixing, so elevation coloring is working now.
 - Added property tests for elevation coloring.
 - Added a property test for mixing 8-bit RGBA colors.
 - Added a helper `PropertiesHelper` module for testing with FsCheck.

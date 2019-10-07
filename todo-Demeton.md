@@ -1,10 +1,4 @@
-﻿- try using `ElevationColorScale` in the command
-    - implement property tests for elevation coloring
-    - something is wrong with the coloring
-        - implement property tests for mixing colors
-        - render a test image with whole gradient?
-
-- implement shaders
+﻿- implement shaders
     - RasterShader
     - support for elevation coloring and hillshading
 - make a more generic way of parsing command line parameters

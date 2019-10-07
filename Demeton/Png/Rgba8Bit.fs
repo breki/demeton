@@ -3,6 +3,8 @@ module Png.Rgba8Bit
 
 open Png.Types
 
+open System
+
 [<Literal>]
 let BytesPerPixel = 4
 
@@ -46,10 +48,16 @@ let inline mixColors colorA colorB mixRatio =
     | 1. -> colorB
     | _ -> 
         rgbaColor 
-            (mixByteValues (r colorB) (r colorA))
-            (mixByteValues (g colorB) (g colorA))
-            (mixByteValues (b colorB) (b colorA))
-            (mixByteValues (a colorB) (a colorA))
+            (mixByteValues (r colorA) (r colorB))
+            (mixByteValues (g colorA) (g colorB))
+            (mixByteValues (b colorA) (b colorB))
+            (mixByteValues (a colorA) (a colorB))
+
+let colorDistance colorA colorB =
+    sqrt (Math.Pow (float (r colorA) - float (r colorB), 2.)
+    + Math.Pow (float (g colorA) - float (g colorB), 2.)
+    + Math.Pow (float (b colorA) - float (b colorB), 2.)
+    + Math.Pow (float (a colorA) - float (a colorB), 2.))
 
 type ImageDataInitializer =
     ImageDataZero
