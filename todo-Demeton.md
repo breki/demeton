@@ -1,5 +1,6 @@
 ﻿- try using `ElevationColorScale` in the command
     - something is wrong with the coloring
+        - implement property tests for mixing colors
         - render a test image with whole gradient?
 
 - implement shaders
