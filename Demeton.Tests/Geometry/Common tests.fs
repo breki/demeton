@@ -55,10 +55,16 @@ let ``Normalizes the angle``() =
             angle % normalizer 
                 .=. (normalizer |> normalizeAngle angle) % normalizer 
             |@ sprintf "is same remainder"
+    let distanceBetweenAngleAndItsNormalizedValueIsMultiplierOfNormalizer 
+        angle =
+            let distance = angle - (normalizer |> normalizeAngle angle)
+            distance % normalizer = 0. 
+            |@ sprintf "distance is multiplier of normalizer"
 
     let allProperties x = 
         (isPositive x) .&. (isBelowNormalizer x) 
         .&. (isSameRemainderWhenPositive x)
+        .&. (distanceBetweenAngleAndItsNormalizedValueIsMultiplierOfNormalizer x)
 
     let genAngle = floatInRangeExclusive -1000 1000
     genAngle |> Arb.fromGen |> Prop.forAll <| allProperties

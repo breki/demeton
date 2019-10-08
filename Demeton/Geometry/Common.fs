@@ -73,6 +73,10 @@ let normalizeAngle (angle: float) (normalizer: float) =
     | x when x < 0. -> angleRemainder + normalizer
     | _ -> angleRemainder
 
+/// <summary>
+/// Calculates the absolute difference between two angles using the specified 
+/// normalizer (typically, a value of 360 or 2*Pi).
+/// </summary>
 let differenceBetweenAngles 
     (angle1: float) (angle2: float) (normalizer: float) =
     let diff = normalizeAngle angle1 normalizer 
