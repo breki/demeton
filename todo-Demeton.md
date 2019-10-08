@@ -1,5 +1,4 @@
 ﻿- hillshading
-    - move common functions into a common module and write tests for it
     - tests for calculating the slope, shade etc
     - implement the actual hillshader for the raster
     - integrate it into the shade command

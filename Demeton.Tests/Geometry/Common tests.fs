@@ -61,10 +61,31 @@ let ``Normalizes the angle``() =
             distance % normalizer = 0. 
             |@ sprintf "distance is multiplier of normalizer"
 
-    let allProperties x = 
+    let props x = 
         (isPositive x) .&. (isBelowNormalizer x) 
         .&. (isSameRemainderWhenPositive x)
         .&. (distanceBetweenAngleAndItsNormalizedValueIsMultiplierOfNormalizer x)
 
     let genAngle = floatInRangeExclusive -1000 1000
-    genAngle |> Arb.fromGen |> Prop.forAll <| allProperties
+    genAngle |> Arb.fromGen |> Prop.forAll <| props
+
+[<Property>]
+let ``Difference between angles``() =
+    let normalizer = 360.
+
+    let isPositive (angle1, angle2) = 
+        normalizer |> differenceBetweenAngles angle1 angle2 >= 0.
+    let isNeverMoreThanHalfOfNormalizer (angle1, angle2) = 
+        normalizer |> differenceBetweenAngles angle1 angle2 <= (normalizer / 2.)
+    let isCommutative (angle1, angle2) =
+        normalizer |> differenceBetweenAngles angle1 angle2
+            = (normalizer |> differenceBetweenAngles angle2 angle1)
+
+    let props x = 
+        (isPositive x) .&. (isNeverMoreThanHalfOfNormalizer x)
+        .&. (isCommutative x)
+
+    let genAngle1 = floatInRangeExclusive -1000 1000
+    let genAngle2 = floatInRangeExclusive -1000 1000
+    Gen.map2 (fun x y -> x, y) genAngle1 genAngle2
+    |> Arb.fromGen |> Prop.forAll <| props

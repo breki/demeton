@@ -1,5 +1,5 @@
 ﻿## Tue 8.10.
-- Started writing tests for these common functions.
+- Written tests for these common functions.
 - Moved some common geometry functions from `Demeton.Hillshading` module to `Demeton.Geometry.Common`.
 
 ## Mon 7.10.
