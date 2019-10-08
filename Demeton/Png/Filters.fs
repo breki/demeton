@@ -97,7 +97,7 @@ let addFilterTypeByteMarks(filteredScanlinesBuffer: FilteredScanline[]) =
         filteredScanlinesBuffer.[filterIndex].[0] <- (byte)filterIndex
 
 
-let createFilteredScanlinesBuffer filteredScanlineLength =
+let private createFilteredScanlinesBuffer filteredScanlineLength =
     let filteredScanlinesBuffer: FilteredScanline[] = 
         Array.init 
             5 
@@ -107,7 +107,12 @@ let createFilteredScanlinesBuffer filteredScanlineLength =
 
     filteredScanlinesBuffer
 
-
+/// <summary>
+/// Among the five versions of the filtered scanline, finds the filtered 
+/// scanline with the minimum sum of absolute differences. This criteria is used
+/// as a heuristic to determine which filtered scanline would be most 
+/// compressible.
+/// </summary>
 let filteredScanlineWithMinSumOfAbsDiffs 
     (filteredScanlinesBuffer: FilteredScanline[]) 
     (sumsOfAbsDiffs: int[]) =
@@ -125,7 +130,7 @@ let filteredScanlineWithMinSumOfAbsDiffs
 
     filteredScanlinesBuffer.[minIndex]
 
-
+// todo doc
 let filterFirstScanline
     imageData
     (bytesPP: int) 

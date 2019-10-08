@@ -1,15 +1,14 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Projections.WebMercator
 
+open Demeton.Geometry.Common
+
 open System
 
 [<Literal>]
 let MaxLat = 85.051128779806589
 [<Literal>]
 let MinLat = -85.051128779806589
-
-let degToRad deg = deg * Math.PI / 180.
-let radToDeg rad = rad * 180. / Math.PI
 
 let proj longitude latitude =
     match latitude with

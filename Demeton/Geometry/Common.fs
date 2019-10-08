@@ -86,3 +86,7 @@ let differenceBetweenAngles
     if diffAbs > normalizer / 2. then normalizer - diffAbs
     else diffAbs
 
+// todo doc
+let inline degToRad deg = deg * Math.PI / 180.
+let inline radToDeg rad = rad * 180. / Math.PI
+

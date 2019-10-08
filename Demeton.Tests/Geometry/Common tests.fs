@@ -66,10 +66,10 @@ let ``Normalizes the angle``() =
         .&. (isSameRemainderWhenPositive x)
         .&. (distanceBetweenAngleAndItsNormalizedValueIsMultiplierOfNormalizer x)
 
-    let genAngle = floatInRangeExclusive -1000 1000
+    let genAngle = floatInRange -1000 1000
     genAngle |> Arb.fromGen |> Prop.forAll <| props
 
-[<Property>]
+[<Fact>]
 let ``Difference between angles``() =
     let normalizer = 360.
 
@@ -85,7 +85,17 @@ let ``Difference between angles``() =
         (isPositive x) .&. (isNeverMoreThanHalfOfNormalizer x)
         .&. (isCommutative x)
 
-    let genAngle1 = floatInRangeExclusive -1000 1000
-    let genAngle2 = floatInRangeExclusive -1000 1000
-    Gen.map2 (fun x y -> x, y) genAngle1 genAngle2
-    |> Arb.fromGen |> Prop.forAll <| props
+    let genAngle1 = floatInRange -1000 1000
+    let genAngle2 = floatInRange -1000 1000
+
+    let specs = 
+        Gen.map2 (fun x y -> x, y) genAngle1 genAngle2
+        |> Arb.fromGen |> Prop.forAll <| props
+    Check.QuickThrowOnFailure specs
+
+    let differenceWithItselfIsZero angle =
+        normalizer |> differenceBetweenAngles angle angle = 0.
+
+    floatInRange -1000 1000 |> Arb.fromGen 
+    |> Prop.forAll <| differenceWithItselfIsZero
+    |> Check.QuickThrowOnFailure

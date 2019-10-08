@@ -1,5 +1,5 @@
 ﻿- hillshading
-    - tests for calculating the slope, shade etc
+    - tests for calculating the slope, aspect, shade etc
     - implement the actual hillshader for the raster
     - integrate it into the shade command
 - update readme.md docs
@@ -10,7 +10,7 @@
 - in what format to save the shaded tile PNG metadata?  
     - extra sidecar file?
     - extra PNG chunk?
-
+'
 - we need one additional row of SRTM cells on each side to be able to calculate things for hillshading
 
 - " To be more exact, these

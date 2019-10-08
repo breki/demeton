@@ -38,7 +38,9 @@ let extendWith x y bounds =
             MaxY = max bounds.MaxY y
         }
 
-// todo doc
+/// <summary>
+/// Returns a minimum bounding rectangle for the specified list of points.
+/// </summary>
 let mbrOf points =
     points 
     |> Seq.fold (fun mbr (x, y) -> mbr |> extendWith x y) Bounds.Empty

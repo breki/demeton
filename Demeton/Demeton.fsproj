@@ -39,8 +39,9 @@
     <Compile Include="Srtm\Png.fs" />
     <Compile Include="Projections\Common.fs" />
     <Compile Include="Projections\WebMercator.fs" />
+    <Compile Include="Shaders\Terrain.fs" />
     <Compile Include="Shaders\ElevationColoring.fs" />
-    <Compile Include="Hillshading.fs" />
+    <Compile Include="Shaders\Hillshading.fs" />
     <Compile Include="Commands\ParametersParsing.fs" />
     <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
