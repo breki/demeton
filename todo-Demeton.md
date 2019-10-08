@@ -1,6 +1,10 @@
-﻿- implement shaders
-    - RasterShader
-    - support for elevation coloring and hillshading
+﻿- hillshading
+    - move common functions into a common module and write tests for it
+    - tests for calculating the slope, shade etc
+    - implement the actual hillshader for the raster
+    - integrate it into the shade command
+- update readme.md docs
+- how to generate code docs?
 - make a more generic way of parsing command line parameters
     - preferably with the ability to auto-generate help
 
@@ -12,15 +16,6 @@
 
 - " To be more exact, these
 coordinates refer to the geometric center of the lower left pixel, which in the case of SRTM3 data will be about 90 meters in extent."
-
-- finish preparing a new shade command
-
-- projection from lon,lat to WebMercator and inverse
-    - take into account the Earth radius
-    
-    - map scale
-    - DPI/PPI
-    - projection center
 
 - https://fsprojects.github.io/FSharp.Formatting/metadata.html
 

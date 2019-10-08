@@ -64,3 +64,21 @@ let areAllPointsInsideBox minX minY maxX maxY (points: Point list) =
         x < minX || x >= maxX || y < minY || y >= maxY)
     |> not
 
+/// <summary>
+/// Normalizes the value of angle between 0 and <see cref="normalizer" />.
+/// </summary>
+let normalizeAngle (angle: float) (normalizer: float) =
+    let angleRemainder = angle % normalizer
+    match angleRemainder with
+    | x when x < 0. -> angleRemainder + normalizer
+    | _ -> angleRemainder
+
+let differenceBetweenAngles 
+    (angle1: float) (angle2: float) (normalizer: float) =
+    let diff = normalizeAngle angle1 normalizer 
+                - normalizeAngle angle2 normalizer
+    let diffAbs = abs diff
+
+    if diffAbs > normalizer / 2. then normalizer - diffAbs
+    else diffAbs
+

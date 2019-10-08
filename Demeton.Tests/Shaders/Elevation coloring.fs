@@ -1,4 +1,4 @@
-﻿module Shaders.``Elevation coloring``
+﻿module Tests.Shaders.``Elevation coloring``
 
 open Demeton.DemTypes
 open Demeton.Shaders.ElevationColoring

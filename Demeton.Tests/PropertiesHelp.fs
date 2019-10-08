@@ -11,7 +11,12 @@ let floatInRangeInclusive (minValue: int) (maxValue: int) =
     Gen.choose(minValue * scaleFactor, (maxValue + 1) * scaleFactor) 
     |> Gen.map (fun i -> float i / float scaleFactor)
     
+let floatInRangeExclusive (minValue: int) (maxValue: int) =
+    let scaleFactor = 100
 
+    Gen.choose(minValue * scaleFactor, maxValue * scaleFactor) 
+    |> Gen.map (fun i -> float i / float scaleFactor)
+    
 let floatFrom0To1Inclusive granularity =
     Gen.choose(0, granularity + 1) 
     |> Gen.map (fun i -> float i / float granularity)

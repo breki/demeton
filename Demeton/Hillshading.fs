@@ -17,22 +17,6 @@ type ShaderParameters =
     }
 
 
-let normalizeAngle (angle: float) (normalizer: float) =
-    let angleRemainder = angle % normalizer
-    match angleRemainder with
-    | x when x < 0. -> angleRemainder + normalizer
-    | _ -> angleRemainder
-
-
-let differenceBetweenAngles (angle1: float) (angle2: float) (normalizer: float) =
-    let diff = normalizeAngle angle1 normalizer 
-                - normalizeAngle angle2 normalizer
-    let diffAbs = abs diff
-
-    if diffAbs > normalizer / 2. then normalizer - diffAbs
-    else diffAbs
-
-
 let colorComponentRatioToByte (value: float): byte =
     (byte)(max (min ((int)(value * 255.)) 255) 0)
 

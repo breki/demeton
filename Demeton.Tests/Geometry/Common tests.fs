@@ -4,6 +4,9 @@ open Demeton.Geometry.Common
 
 open Xunit
 open Swensen.Unquote
+open FsCheck
+open FsCheck.Xunit
+open PropertiesHelp
 
 [<Fact>]
 let ``Splits coords into two lists``() =
@@ -37,3 +40,25 @@ let ``Returns an error if some points are outside of the box``
         [(10., 20.); (11., 21.); (offendingX, offendingY); (12., 22.)]
 
     test <@ not (areAllPointsInsideBox 5. 7. 50. 60. points) @>
+
+[<Property>]
+let ``Normalizes the angle``() =
+    let normalizer = 360.
+
+    let isPositive angle = 
+        normalizer |> normalizeAngle angle >= 0. |@ sprintf "isPositive"
+    let isBelowNormalizer angle = 
+        normalizer |> normalizeAngle angle < normalizer 
+        |@ sprintf "is below normalizer"
+    let isSameRemainderWhenPositive angle = 
+        angle >= 0. ==> lazy
+            angle % normalizer 
+                .=. (normalizer |> normalizeAngle angle) % normalizer 
+            |@ sprintf "is same remainder"
+
+    let allProperties x = 
+        (isPositive x) .&. (isBelowNormalizer x) 
+        .&. (isSameRemainderWhenPositive x)
+
+    let genAngle = floatInRangeExclusive -1000 1000
+    genAngle |> Arb.fromGen |> Prop.forAll <| allProperties

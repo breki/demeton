@@ -1,4 +1,8 @@
-﻿## Mon 7.10.
+﻿## Tue 8.10.
+- Started writing tests for these common functions.
+- Moved some common geometry functions from `Demeton.Hillshading` module to `Demeton.Geometry.Common`.
+
+## Mon 7.10.
 - Fixed a bug in color mixing, so elevation coloring is working now.
 - Added property tests for elevation coloring.
 - Added a property test for mixing 8-bit RGBA colors.
