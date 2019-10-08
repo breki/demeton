@@ -1,4 +1,7 @@
-﻿[<RequireQualifiedAccess>]
+﻿/// <summary>
+/// Contains functions for working with <see cref="Bounds" />.
+/// </summary>
+[<RequireQualifiedAccess>]
 module Demeton.Geometry.Bounds
 
 open Demeton.Geometry.Common
