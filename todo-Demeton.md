@@ -1,4 +1,15 @@
-﻿- hillshading
+﻿- reimplement slope function
+    - use the vector normal function as a test oracle
+
+- implement slope and aspect formulas
+    - option 1: calculate normals of triangles
+        https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal
+        https://math.stackexchange.com/questions/305642/how-to-find-surface-normal-of-a-triangle
+        https://en.wikipedia.org/wiki/Normal_(geometry)
+        https://math.stackexchange.com/questions/608938/computing-a-normal-to-triangle
+    - option 2: reuse existing Maperitive code
+
+- hillshading
     - tests for calculating the slope, aspect, shade etc
     - implement the actual hillshader for the raster
     - integrate it into the shade command

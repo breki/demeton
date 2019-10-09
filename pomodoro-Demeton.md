@@ -1,4 +1,7 @@
-﻿## Tue 8.10.
+﻿## Wed 9.10.
+- Working on a better `slope` function.
+
+## Tue 8.10.
 - Implemented `slope` function.
 - Written tests for these common functions.
 - Moved some common geometry functions from `Demeton.Hillshading` module to `Demeton.Geometry.Common`.
