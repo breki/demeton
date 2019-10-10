@@ -1,4 +1,7 @@
-﻿## Wed 9.10.
+﻿## Thu 10.10.
+- Implemented a new and better `slope` function.
+
+## Wed 9.10.
 - Working on a better `slope` function.
 
 ## Tue 8.10.
