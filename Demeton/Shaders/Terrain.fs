@@ -34,25 +34,25 @@ let someHeightsAreMissing heightsWindow =
 /// in this model). 
 /// </remarks>
 let slope (heightsWindow: HeightsWindow) horizontalSize verticalSize = 
-    let triangleNormalWithCaxDiffSameAsBaxDiff
-        aHeight bHeight cHeight baXDiff caYDiff = 
-        let baHeightDiff = bHeight - aHeight
-        let caHeightDiff = cHeight - aHeight
+    let triangleNormalWithX20DiffSameAsX10Diff
+        height10Diff height20Diff x10Diff y20Diff = 
+        let baHeightDiff = height10Diff
+        let caHeightDiff = height20Diff
         
-        let vx = -baHeightDiff * caYDiff
-        let vy = baXDiff * (baHeightDiff - caHeightDiff)
-        let vz = baXDiff * caYDiff
+        let vx = -baHeightDiff * y20Diff
+        let vy = x10Diff * (baHeightDiff - caHeightDiff)
+        let vz = x10Diff * y20Diff
     
         (vx, vy, vz)
     
-    let triangleNormalWithCaxDiffZero
-        aHeight bHeight cHeight baXDiff caYDiff = 
-        let baHeightDiff = bHeight - aHeight
-        let caHeightDiff = cHeight - aHeight
+    let triangleNormalWithx20DiffZero
+        height10Diff height20Diff x10Diff y20Diff = 
+        let baHeightDiff = height10Diff
+        let caHeightDiff = height20Diff
         
-        let vx = -baHeightDiff * caYDiff
-        let vy = -baXDiff * caHeightDiff
-        let vz = baXDiff * caYDiff
+        let vx = -baHeightDiff * y20Diff
+        let vy = -x10Diff * caHeightDiff
+        let vz = x10Diff * y20Diff
     
         (vx, vy, vz)
     
@@ -74,21 +74,28 @@ let slope (heightsWindow: HeightsWindow) horizontalSize verticalSize =
         let height2 = Option.get heightsWindow.[2]
         let height3 = Option.get heightsWindow.[3]
 
+        let height02Diff = height0 - height2
+        let height10Diff = height1 - height0
+        let height12Diff = height1 - height2
+        let height20Diff = -height02Diff
+        let height30Diff = height3 - height0
+        let height32Diff = height3 - height2
+
         // Calculates normals of four triangles that can be constructed from the
         // four points. Note that the normals are not normalized to length 1,
         // since we don't really need this.
         let triangle1Normal = 
-            triangleNormalWithCaxDiffSameAsBaxDiff
-                height0 height1 height2 horizontalSize verticalSize
-        let triangle2Normal = 
-            triangleNormalWithCaxDiffSameAsBaxDiff
-                height2 height3 height0 -horizontalSize -verticalSize
+            triangleNormalWithX20DiffSameAsX10Diff
+                height10Diff height20Diff horizontalSize verticalSize
         let triangle3Normal = 
-            triangleNormalWithCaxDiffZero
-                height0 height1 height3 horizontalSize verticalSize
+            triangleNormalWithx20DiffZero
+                height10Diff height30Diff horizontalSize verticalSize
+        let triangle2Normal = 
+            triangleNormalWithX20DiffSameAsX10Diff
+                height32Diff height02Diff -horizontalSize -verticalSize
         let triangle4Normal = 
-            triangleNormalWithCaxDiffZero
-                height2 height3 height1 -horizontalSize -verticalSize
+            triangleNormalWithx20DiffZero
+                height32Diff height12Diff -horizontalSize -verticalSize
 
         // Calculates the slope and orientation from all of the 4 normals.
         let (slope1, orientation1) = 

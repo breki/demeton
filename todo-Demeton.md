@@ -1,5 +1,5 @@
-﻿- reimplement slope function
-    - use the vector normal function as a test oracle
+﻿- more optimization of the slope function
+- implement orientation calculation and merge tests into a single slope+orientation testing
 
 - implement slope and aspect formulas
     - option 1: calculate normals of triangles
