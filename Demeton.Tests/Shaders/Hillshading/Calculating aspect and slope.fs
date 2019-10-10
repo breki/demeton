@@ -30,9 +30,8 @@ let referenceSlopeAndOrientationCalculator: SlopeAndOrientationCalculator
         let normalXYLen = Math.Sqrt(normal.X * normal.X + normal.Y * normal.Y)
 
         let slope = Math.Atan2(normalXYLen, normal.Z)
-        let orientationUnadjusted = Math.Atan2(normal.X, normal.Z)
-
-        let orientation = orientationUnadjusted
+        let orientation = 
+            normalizeAngle (Math.Atan2(normal.X, -normal.Y)) (Math.PI * 2.)
 
         (slope, orientation)
 
@@ -68,23 +67,24 @@ let referenceSlopeAndOrientationCalculator: SlopeAndOrientationCalculator
         Some (slope, orientation)
 
 [<Theory>]
-[<InlineData(0., 0., 100., 100., 150., 100., 45.)>]
-[<InlineData(100., 0., 0., 100., 100., 150., 45.)>]
-[<InlineData(100., 100., 0., 0., 150., 100., 45.)>]
-[<InlineData(0., 100., 100., 0., 100., 150., 45.)>]
-[<InlineData(0., 0., 0., 0., 100., 150., 0.)>]
+[<InlineData(0., 0., 100., 100., 150., 100., 45., 0.)>]
+[<InlineData(100., 0., 0., 100., 100., 150., 45., 90.)>]
+[<InlineData(100., 100., 0., 0., 150., 100., 45., 180.)>]
+[<InlineData(0., 100., 100., 0., 100., 150., 45., 270.)>]
+[<InlineData(0., 0., 0., 0., 100., 150., 0., 180.)>]
 let ``Some control values for the reference implementation`` 
-    h1 h2 h3 h4 hDist vDist expectedSlope =
+    h1 h2 h3 h4 hDist vDist expectedSlope expectedOrientation =
     let heights = [| Some h1; Some h2; Some h3; Some h4; |]
 
-    let slopeMaybe = 
+    let values = 
         referenceSlopeAndOrientationCalculator heights hDist vDist
 
-    test <@ Option.isSome slopeMaybe @>
-    test <@ fst (Option.get slopeMaybe) = degToRad expectedSlope @>
+    test <@ Option.isSome values @>
+    test <@ fst (Option.get values) = degToRad expectedSlope @>
+    test <@ snd (Option.get values) = degToRad expectedOrientation @>
 
 
-let ``is value from 0 to 90 degrees or None if some heights are missing`` 
+let ``slope is value from 0 to 90 degrees and orientation from 0 to 360 degrees or None if some heights are missing`` 
     heightsWindow (slope: SlopeAndOrientationCalculator) = 
     let slopeValueMaybe = slope heightsWindow hDist vDist
     let heightsAreMissing = someHeightsAreMissing heightsWindow
@@ -93,14 +93,17 @@ let ``is value from 0 to 90 degrees or None if some heights are missing``
     | None -> 
         heightsAreMissing |> Prop.classify true "heights are missing"
         |@ sprintf "slope should be None"
-    | Some (slopeValue, _) -> 
-        let slopeInDegress = radToDeg slopeValue
+    | Some (slope, orientation) -> 
+        let slopeInDegress = radToDeg slope
+        let orientationInDegress = radToDeg orientation
         (not heightsAreMissing && slopeInDegress >= 0. 
-            && slopeInDegress <= 90.)
+            && slopeInDegress < 90.
+            && orientationInDegress >= 0.
+            && orientationInDegress < 360.)
         |> Prop.classify true "all heights are specified"
         |@ sprintf 
-            "slope should be between 0 and 90 degrees, actually is %A" 
-            slopeInDegress
+            "slope should be between 0 and 90 degrees, orientation should be between 0 and 360 degrees, actually is %A" 
+            (slopeInDegress, orientationInDegress)
 
 let ``is 90-degrees symmetric`` 
     (heightsWindow: HeightsWindow)
@@ -140,7 +143,7 @@ let ``calculates the same value as the reference implementation``
         |@ sprintf "is not the same as reference implementation"
 
 let specs (calculator: SlopeAndOrientationCalculator) x = 
-    (``is value from 0 to 90 degrees or None if some heights are missing`` x calculator)
+    (``slope is value from 0 to 90 degrees and orientation from 0 to 360 degrees or None if some heights are missing`` x calculator)
     .&. (``is 90-degrees symmetric`` x calculator)
     .&. (``calculates the same value as the reference implementation`` x calculator)
 
