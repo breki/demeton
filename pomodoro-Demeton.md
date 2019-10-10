@@ -1,4 +1,5 @@
 ﻿## Thu 10.10.
+- Implemented orientation calculation for the terrain.
 - Implemented a new and better `slope` function.
 
 ## Wed 9.10.

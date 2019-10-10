@@ -1,6 +1,7 @@
 ﻿module Demeton.Shaders.Terrain
 
 open System
+open Demeton.Geometry.Common
 
 /// <summary>
 /// The heights of four corners of the area we need to calculate slope and
@@ -73,8 +74,8 @@ let calculateSlopeAndOrientation: SlopeAndOrientationCalculator
 
         let slope = Math.Atan2(normalXYLen, nz)
 
-        // todo: orientation still needs to be implemented properly
-        let orientation = 0.
+        let orientation = 
+            normalizeAngle (Math.Atan2(nx, -ny)) (Math.PI * 2.)
 
         (slope, orientation)
 
