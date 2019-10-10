@@ -33,7 +33,8 @@ let someHeightsAreMissing heightsWindow =
 /// of 90 degrees (in radians) (although 90 degrees is impossible to achieve
 /// in this model). 
 /// </remarks>
-let slope (heightsWindow: HeightsWindow) horizontalSize verticalSize = 
+let calculateSlopeAndOrientation 
+    (heightsWindow: HeightsWindow) horizontalSize verticalSize = 
     let triangleNormalWithX20DiffSameAsX10Diff
         height10Diff height20Diff x10Diff y20Diff = 
         let baHeightDiff = height10Diff
@@ -67,7 +68,7 @@ let slope (heightsWindow: HeightsWindow) horizontalSize verticalSize =
         (slope, orientation)
 
     match someHeightsAreMissing heightsWindow with
-    | true -> (None, None)
+    | true -> None
     | false ->
         let height0 = Option.get heightsWindow.[0]
         let height1 = Option.get heightsWindow.[1]
@@ -113,4 +114,4 @@ let slope (heightsWindow: HeightsWindow) horizontalSize verticalSize =
         let orientation = 
             (orientation1 + orientation2 + orientation3 + orientation4) / 4.
 
-        (Some slope, Some orientation)
+        Some (slope, orientation)

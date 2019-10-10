@@ -12,18 +12,22 @@ open PropertiesHelp
 open Swensen.Unquote
 open TestHelp
 
+type SlopeAndOrientation = (float * float)
+
 /// <summary>
 /// Specified a function that calculates slope. This type abbreviation is used
 /// in properties so we can test multiple implementations of the slope calculator.
 /// </summary>
-type SlopeCalculator = HeightsWindow -> float -> float -> float option
+type SlopeAndOrientationCalculator = 
+    HeightsWindow -> float -> float -> SlopeAndOrientation option
 
 let hDist = 100.
 let vDist = 150.
 
-let isFloatOptionApproxEqual a b =
+let isSlopeApproxEqual 
+    (a: SlopeAndOrientation option) (b: SlopeAndOrientation option) =
     (Option.isNone a && Option.isNone a = Option.isNone b) 
-        || (Option.get a =~= Option.get b)
+        || (fst (Option.get a) =~= fst (Option.get b))
 
 /// <summary>
 /// Reference implementation of the calculator of slope and orientation that is
@@ -42,7 +46,7 @@ let referenceSlopeAndOrientationCalculator
         (slope, orientation)
 
     match someHeightsAreMissing heightsWindow with
-    | true -> (None, None)
+    | true -> None 
     | false ->
         let points = [|
             { X = 0.; Y = 0.; Z = Option.get heightsWindow.[0] }
@@ -70,7 +74,7 @@ let referenceSlopeAndOrientationCalculator
         let orientation = 
             (orientation1 + orientation2 + orientation3 + orientation4) / 4.
 
-        (Some slope, Some orientation)
+        Some (slope, orientation)
 
 [<Theory>]
 [<InlineData(0., 0., 100., 100., 150., 100., 45.)>]
@@ -81,12 +85,16 @@ let referenceSlopeAndOrientationCalculator
 let ``Some control values for the reference implementation`` 
     h1 h2 h3 h4 hDist vDist expectedSlope =
     let heights = [| Some h1; Some h2; Some h3; Some h4; |]
-    test <@ fst (referenceSlopeAndOrientationCalculator heights hDist vDist)
-        = Some (degToRad expectedSlope) @>
+
+    let slopeMaybe = 
+        referenceSlopeAndOrientationCalculator heights hDist vDist
+
+    test <@ Option.isSome slopeMaybe @>
+    test <@ fst (Option.get slopeMaybe) = degToRad expectedSlope @>
 
 
 let ``is value from 0 to 90 degrees or None if some heights are missing`` 
-    heightsWindow (slope: SlopeCalculator) = 
+    heightsWindow (slope: SlopeAndOrientationCalculator) = 
     let slopeValueMaybe = slope heightsWindow hDist vDist
     let heightsAreMissing = someHeightsAreMissing heightsWindow
 
@@ -94,7 +102,7 @@ let ``is value from 0 to 90 degrees or None if some heights are missing``
     | None -> 
         heightsAreMissing |> Prop.classify true "heights are missing"
         |@ sprintf "slope should be None"
-    | Some slopeValue -> 
+    | Some (slopeValue, _) -> 
         let slopeInDegress = radToDeg slopeValue
         (not heightsAreMissing && slopeInDegress >= 0. 
             && slopeInDegress <= 90.)
@@ -105,45 +113,45 @@ let ``is value from 0 to 90 degrees or None if some heights are missing``
 
 let ``is 90-degrees symmetric`` 
     (heightsWindow: HeightsWindow)
-    (slope: SlopeCalculator) =
+    (calculator: SlopeAndOrientationCalculator) =
 
     let rotate (heightsWindow: HeightsWindow)  =
         [| heightsWindow.[3]; heightsWindow.[0]; 
             heightsWindow.[1]; heightsWindow.[2] |]
 
-    let originalValue = slope heightsWindow hDist vDist
+    let originalValues = calculator heightsWindow hDist vDist
 
     let heights90 = rotate heightsWindow
     let heights180 = rotate heights90
     let heights270 = rotate heights180
 
-    let rotated90Value = slope heights90 vDist hDist 
-    let rotated180Value = slope heights180 hDist vDist
-    let rotated270Value = slope heights270 vDist hDist 
+    let rotated90Values = calculator heights90 vDist hDist 
+    let rotated180Values = calculator heights180 hDist vDist
+    let rotated270Values = calculator heights270 vDist hDist 
     
-    let is90Sym = isFloatOptionApproxEqual originalValue rotated90Value
-    let is180Sym = isFloatOptionApproxEqual originalValue rotated180Value
-    let is270Sym = isFloatOptionApproxEqual originalValue rotated270Value
+    let is90Sym = isSlopeApproxEqual originalValues rotated90Values
+    let is180Sym = isSlopeApproxEqual originalValues rotated180Values
+    let is270Sym = isSlopeApproxEqual originalValues rotated270Values
     (is90Sym && is180Sym && is270Sym)
         |@ sprintf 
             "is not symmetric: original:%A, 90:%A, 180:%A, 270:%A" 
-            originalValue
-            rotated90Value
-            rotated180Value
-            rotated270Value
+            originalValues
+            rotated90Values
+            rotated180Values
+            rotated270Values
 
 let ``calculates the same value as the reference implementation``
     (heightsWindow: HeightsWindow)
-    (slope: SlopeCalculator) =
-    isFloatOptionApproxEqual
-        (slope heightsWindow hDist vDist)
-        (fst (referenceSlopeAndOrientationCalculator heightsWindow hDist vDist))
+    (calculator: SlopeAndOrientationCalculator) =
+    isSlopeApproxEqual
+        (calculator heightsWindow hDist vDist)
+        (referenceSlopeAndOrientationCalculator heightsWindow hDist vDist)
         |@ sprintf "is not the same as reference implementation"
 
-let specs (slope: SlopeCalculator) x = 
-    (``is value from 0 to 90 degrees or None if some heights are missing`` x slope)
-    .&. (``is 90-degrees symmetric`` x slope)
-    .&. (``calculates the same value as the reference implementation`` x slope)
+let specs (calculator: SlopeAndOrientationCalculator) x = 
+    (``is value from 0 to 90 degrees or None if some heights are missing`` x calculator)
+    .&. (``is 90-degrees symmetric`` x calculator)
+    .&. (``calculates the same value as the reference implementation`` x calculator)
 
 [<Fact>]
 let ``The reference slope implementation adheres to all the properties``() =
@@ -153,8 +161,7 @@ let ``The reference slope implementation adheres to all the properties``() =
 
     genHeightsWindow |> Arb.fromGen 
     |> Prop.forAll 
-    <| specs (fun ha hd vd -> 
-        fst (referenceSlopeAndOrientationCalculator ha hd vd))
+    <| specs referenceSlopeAndOrientationCalculator
     |> Check.QuickThrowOnFailure
 
 [<Fact>]
@@ -165,6 +172,6 @@ let ``Production slope implementation adheres to all the properties``() =
 
     genHeightsWindow |> Arb.fromGen 
     |> Prop.forAll 
-    <| specs (fun ha hd vd -> fst (slope ha hd vd))
+    <| specs calculateSlopeAndOrientation
     |> Check.QuickThrowOnFailure
 
