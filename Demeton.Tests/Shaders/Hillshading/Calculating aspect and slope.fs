@@ -12,15 +12,6 @@ open PropertiesHelp
 open Swensen.Unquote
 open TestHelp
 
-type SlopeAndOrientation = (float * float)
-
-/// <summary>
-/// Specified a function that calculates slope. This type abbreviation is used
-/// in properties so we can test multiple implementations of the slope calculator.
-/// </summary>
-type SlopeAndOrientationCalculator = 
-    HeightsWindow -> float -> float -> SlopeAndOrientation option
-
 let hDist = 100.
 let vDist = 150.
 
@@ -33,8 +24,8 @@ let isSlopeApproxEqual
 /// Reference implementation of the calculator of slope and orientation that is
 /// used as a test oracle for the actual (faster) production implementation.
 /// </summary>
-let referenceSlopeAndOrientationCalculator 
-    (heightsWindow: HeightsWindow) horizontalSize verticalSize = 
+let referenceSlopeAndOrientationCalculator: SlopeAndOrientationCalculator 
+    = fun (heightsWindow: HeightsWindow) horizontalSize verticalSize ->
     let triangleNormalToSlopeAndOrientation normal =
         let normalXYLen = Math.Sqrt(normal.X * normal.X + normal.Y * normal.Y)
 
@@ -174,4 +165,3 @@ let ``Production slope implementation adheres to all the properties``() =
     |> Prop.forAll 
     <| specs calculateSlopeAndOrientation
     |> Check.QuickThrowOnFailure
-

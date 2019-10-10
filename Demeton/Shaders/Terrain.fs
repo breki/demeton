@@ -23,6 +23,17 @@ let someHeightsAreMissing heightsWindow =
     heightsWindow |> Array.exists Option.isNone
 
 /// <summary>
+/// A pair of terrain slope and orientation values (in radians).
+/// </summary>
+type SlopeAndOrientation = (float * float)
+
+/// <summary>
+/// Specifies a function that calculates slope and orientation.
+/// </summary>
+type SlopeAndOrientationCalculator = 
+    HeightsWindow -> float -> float -> SlopeAndOrientation option
+
+/// <summary>
 /// Calculates the slope (in radians) for the specified heights window and the
 /// horizontal and vertical sizes of the area (in meters).
 /// </summary>
@@ -33,8 +44,8 @@ let someHeightsAreMissing heightsWindow =
 /// of 90 degrees (in radians) (although 90 degrees is impossible to achieve
 /// in this model). 
 /// </remarks>
-let calculateSlopeAndOrientation 
-    (heightsWindow: HeightsWindow) horizontalSize verticalSize = 
+let calculateSlopeAndOrientation: SlopeAndOrientationCalculator
+    = fun (heightsWindow: HeightsWindow) horizontalSize verticalSize -> 
     let triangleNormalWithX20DiffSameAsX10Diff
         height10Diff height20Diff x10Diff y20Diff = 
         let baHeightDiff = height10Diff
