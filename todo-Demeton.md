@@ -1,4 +1,8 @@
-﻿- implement orientation calculation and merge tests into a single slope+orientation testing
+﻿- implement an orientation averaging function and properties for it
+    - move it to a common module and document it
+
+- the problem with orientation calculation
+    - looks like averaging of orientations cannot be done simply by just summing them up and diving by count
 
 - hillshading
     - tests for calculating the slope, aspect, shade etc

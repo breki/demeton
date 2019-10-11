@@ -101,14 +101,14 @@ let referenceSlopeAndOrientationCalculator: SlopeAndOrientationCalculator
         Some (slopeAverage, orientationAverage)
 
 [<Theory>]
-[<InlineData(0., 0., 100., 100., 150., 100., 45., 0.)>]
-[<InlineData(100., 0., 0., 100., 100., 150., 45., 90.)>]
-[<InlineData(100., 100., 0., 0., 150., 100., 45., 180.)>]
-[<InlineData(0., 100., 100., 0., 100., 150., 45., 270.)>]
-[<InlineData(0., 0., 0., 0., 100., 100., 0., Double.NaN)>]
-[<InlineData(0., 0., 0., 100., 100., 100., 36.183902577601, 45.)>]
-//[<InlineData(111.33, 197.02, 162.14, 128.89, 100., 150., 
-//    30.9898012775403, 264.256525996891)>]
+//[<InlineData(0., 0., 100., 100., 150., 100., 45., 0.)>]
+//[<InlineData(100., 0., 0., 100., 100., 150., 45., 90.)>]
+//[<InlineData(100., 100., 0., 0., 150., 100., 45., 180.)>]
+//[<InlineData(0., 100., 100., 0., 100., 150., 45., 270.)>]
+//[<InlineData(0., 0., 0., 0., 100., 100., 0., Double.NaN)>]
+//[<InlineData(0., 0., 0., 100., 100., 100., 36.183902577601, 45.)>]
+[<InlineData(111.33, 197.02, 162.14, 128.89, 100., 150., 
+    30.9898012775403, 264.256525996891)>]
 let ``Some control values for the reference implementation`` 
     h1 h2 h3 h4 hDist vDist expectedSlope expectedOrientation =
     let heights = [| Some h1; Some h2; Some h3; Some h4; |]
@@ -156,33 +156,31 @@ let ``is 90-degrees symmetric``
 
     let originalValues = calculator heightsWindow hDist vDist
 
+    let expected90 = rotateSlopeAndOrientation originalValues (degToRad 90.)
+    let expected180 = rotateSlopeAndOrientation originalValues (degToRad 180.)
+    let expected270 = rotateSlopeAndOrientation originalValues (degToRad 270.)
+
     let heights90 = rotateHeights heightsWindow
     let heights180 = rotateHeights heights90
     let heights270 = rotateHeights heights180
 
-    let rotated90Values = calculator heights90 vDist hDist 
-    let rotated180Values = calculator heights180 hDist vDist
-    let rotated270Values = calculator heights270 vDist hDist 
-    
-    let is90Sym = 
-        slopeAndOrientationsAreEqual
-            (rotateSlopeAndOrientation originalValues (degToRad 90.))
-            rotated90Values
-    let is180Sym = 
-        slopeAndOrientationsAreEqual
-            (rotateSlopeAndOrientation originalValues (degToRad 180.))
-            rotated180Values
-    let is270Sym = 
-        slopeAndOrientationsAreEqual
-            (rotateSlopeAndOrientation originalValues (degToRad 270.))
-            rotated270Values
+    let actual90 = calculator heights90 vDist hDist 
+    let actual180 = calculator heights180 hDist vDist
+    let actual270 = calculator heights270 vDist hDist 
+
+    let is90Sym = slopeAndOrientationsAreEqual actual90 expected90 
+    let is180Sym = slopeAndOrientationsAreEqual actual180 expected180 
+    let is270Sym = slopeAndOrientationsAreEqual actual270 expected270
     (is90Sym && is180Sym && is270Sym)
         |@ sprintf 
-            "is not symmetric: original:%A, 90:%A, 180:%A, 270:%A" 
+            "is not symmetric: original:%A, expected 90:%A, actual 90:%A, expected 180:%A, actual 180:%A, expected 270:%A, actual 270:%A" 
             originalValues
-            rotated90Values
-            rotated180Values
-            rotated270Values
+            expected90
+            actual90
+            expected180
+            actual180
+            expected270
+            actual270
 
 let ``calculates the same value as the reference implementation``
     (heightsWindow: HeightsWindow)
@@ -197,7 +195,7 @@ let specs (calculator: SlopeAndOrientationCalculator) x =
     .&. (``is 90-degrees symmetric`` x calculator)
     .&. (``calculates the same value as the reference implementation`` x calculator)
 
-[<Fact(Skip="todo")>]
+[<Fact>]
 let ``The reference slope implementation adheres to all the properties``() =
     let genHeight = floatInRange -100 500
     let genHeightMaybe = genHeight |> optionOfWithFrequency 1

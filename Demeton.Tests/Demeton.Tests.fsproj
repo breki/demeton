@@ -44,6 +44,7 @@
     <Compile Include="Srtm\fetchSrtmHeights tests.fs" />
     <Compile Include="Projections\ProjectionsTestHelpers.fs" />
     <Compile Include="Projections\WebMercator tests.fs" />
+    <Compile Include="Shaders\Hillshading\Averaging orientations.fs" />
     <Compile Include="Shaders\Hillshading\Calculating aspect and slope.fs" />
     <Compile Include="Shaders\Elevation coloring.fs" />
     <Compile Include="Commands tests\ShadeCommand\Command line parsing.fs" />

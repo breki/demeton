@@ -82,8 +82,6 @@ let distancesBetweenMixedColorAreProportionalToTheMixRatio
         let actualMixRatio = distanceTo1 / totalDistance
         let propertyHolds = abs (mixRatio - actualMixRatio) < 0.05 
 
-        if not propertyHolds then System.Diagnostics.Debugger.Break()
-
         propertyHolds |@ sprintf 
             "wrong mix ratio: expected %f, got %f" mixRatio actualMixRatio
 
