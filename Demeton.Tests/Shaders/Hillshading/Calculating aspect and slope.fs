@@ -19,22 +19,27 @@ let rotateHeights (heightsWindow: HeightsWindow)  =
     [| heightsWindow.[3]; heightsWindow.[0]; 
         heightsWindow.[1]; heightsWindow.[2] |]
 
-let isSlopeApproxEqual 
-    (a: SlopeAndOrientation option) (b: SlopeAndOrientation option) =
-    (Option.isNone a && Option.isNone a = Option.isNone b) 
-        || (fst (Option.get a) =~= fst (Option.get b))
+let rotateSlopeAndOrientation slopeAndOrientation rotationAngle =
+    match slopeAndOrientation with
+    | None -> None
+    | Some (slope, orientation) ->
+        Some (slope, 
+            normalizeAngle (orientation + rotationAngle) (Math.PI * 2.))
 
-let isOrientationApproxEqual 
+let slopeAndOrientationsAreEqual 
     (a: SlopeAndOrientation option) 
-    (b: SlopeAndOrientation option) 
-    rotationAngle =
+    (b: SlopeAndOrientation option) =
+
     match (a, b) with
     | (None, None) -> true
     | (_, None) -> false
     | (None, _) -> false
-    | (Some (_, orientation1), Some (_, orientation2)) ->
-        orientation1 =~= 
-            (normalizeAngle (orientation2 - rotationAngle) (Math.PI * 2.))
+    | (Some (slope1, orientation1), Some (slope2, orientation2)) ->
+        match (Double.IsNaN orientation1, Double.IsNaN orientation2) with
+        | (true, false) -> false
+        | (false, true) -> false
+        | (true, true) -> slope1 =~= slope2
+        | _ -> (slope1 =~= slope2) && (orientation1 =~= orientation2)
 
 /// <summary>
 /// Reference implementation of the calculator of slope and orientation that is
@@ -47,7 +52,11 @@ let referenceSlopeAndOrientationCalculator: SlopeAndOrientationCalculator
 
         let slope = Math.Atan2(normalXYLen, normal.Z)
         let orientation = 
-            normalizeAngle (Math.Atan2(normal.X, -normal.Y)) (Math.PI * 2.)
+            match slope with
+            | 0. -> Double.NaN
+            | _ -> 
+                normalizeAngle 
+                    (Math.Atan2(normal.X, -normal.Y)) (Math.PI * 2.)
 
         (slope, orientation)
 
@@ -67,44 +76,57 @@ let referenceSlopeAndOrientationCalculator: SlopeAndOrientationCalculator
         let triangle3Normal = triangleNormal points.[0] points.[1] points.[3]
         let triangle4Normal = triangleNormal points.[2] points.[3] points.[1]
 
-        let (slope1, orientation1) = 
+        let slopesAndOrientations = [|
             triangleNormalToSlopeAndOrientation triangle1Normal
-        let (slope2, orientation2) = 
             triangleNormalToSlopeAndOrientation triangle2Normal
-        let (slope3, orientation3) = 
             triangleNormalToSlopeAndOrientation triangle3Normal
-        let (slope4, orientation4) = 
             triangleNormalToSlopeAndOrientation triangle4Normal
+            |]
 
-        let slope = (slope1 + slope2 + slope3 + slope4) / 4.
-        let orientation = 
-            (orientation1 + orientation2 + orientation3 + orientation4) / 4.
+        let slopeAverage =
+            slopesAndOrientations |> Array.averageBy (fun(slope, _) -> slope)
 
-        Some (slope, orientation)
+        let orientationsNonNan =
+            slopesAndOrientations 
+            |> Array.filter (
+                fun(_, orientation) -> not (Double.IsNaN orientation))
 
-[<Theory(Skip="todo")>]
-//[<InlineData(0., 0., 100., 100., 150., 100., 45., 0.)>]
-//[<InlineData(100., 0., 0., 100., 100., 150., 45., 90.)>]
-//[<InlineData(100., 100., 0., 0., 150., 100., 45., 180.)>]
-//[<InlineData(0., 100., 100., 0., 100., 150., 45., 270.)>]
+        let orientationAverage = 
+            match orientationsNonNan with
+            | [||] -> Double.NaN
+            | _ -> 
+                orientationsNonNan 
+                |> Array.averageBy (fun(_, orientation) -> orientation)
+
+        Some (slopeAverage, orientationAverage)
+
+[<Theory>]
+[<InlineData(0., 0., 100., 100., 150., 100., 45., 0.)>]
+[<InlineData(100., 0., 0., 100., 100., 150., 45., 90.)>]
+[<InlineData(100., 100., 0., 0., 150., 100., 45., 180.)>]
+[<InlineData(0., 100., 100., 0., 100., 150., 45., 270.)>]
+[<InlineData(0., 0., 0., 0., 100., 100., 0., Double.NaN)>]
 [<InlineData(0., 0., 0., 100., 100., 100., 36.183902577601, 45.)>]
+//[<InlineData(111.33, 197.02, 162.14, 128.89, 100., 150., 
+//    30.9898012775403, 264.256525996891)>]
 let ``Some control values for the reference implementation`` 
     h1 h2 h3 h4 hDist vDist expectedSlope expectedOrientation =
     let heights = [| Some h1; Some h2; Some h3; Some h4; |]
 
-    let values = 
+    let expectedValues = 
+        Some (degToRad expectedSlope, degToRad expectedOrientation)
+    let expectedRotatedValues = 
+        rotateSlopeAndOrientation expectedValues (Math.PI / 2.)
+
+    let actualValues = 
         referenceSlopeAndOrientationCalculator heights hDist vDist
-
-    test <@ Option.isSome values @>
-    test <@ fst (Option.get values) =~= degToRad expectedSlope @>
-    test <@ snd (Option.get values) = degToRad expectedOrientation @>
-
-    let rotatedValues = 
+    let actualRotatedValues = 
         referenceSlopeAndOrientationCalculator 
-            (heights |> rotateHeights) hDist vDist
-
-    test <@ snd (Option.get rotatedValues) 
-        = degToRad (expectedOrientation + 90.) @>
+            (heights |> rotateHeights) vDist hDist
+    
+    test <@ slopeAndOrientationsAreEqual actualValues expectedValues @>
+    test <@ slopeAndOrientationsAreEqual 
+        actualRotatedValues expectedRotatedValues @>
 
 
 let ``slope is value from 0 to 90 degrees and orientation from 0 to 360 degrees or None if some heights are missing`` 
@@ -143,17 +165,17 @@ let ``is 90-degrees symmetric``
     let rotated270Values = calculator heights270 vDist hDist 
     
     let is90Sym = 
-        isSlopeApproxEqual originalValues rotated90Values
-        && (isOrientationApproxEqual 
-                originalValues rotated90Values (degToRad 90.))
+        slopeAndOrientationsAreEqual
+            (rotateSlopeAndOrientation originalValues (degToRad 90.))
+            rotated90Values
     let is180Sym = 
-        isSlopeApproxEqual originalValues rotated180Values
-        && (isOrientationApproxEqual 
-                originalValues rotated180Values (degToRad 180.))
+        slopeAndOrientationsAreEqual
+            (rotateSlopeAndOrientation originalValues (degToRad 180.))
+            rotated180Values
     let is270Sym = 
-        isSlopeApproxEqual originalValues rotated270Values
-        && (isOrientationApproxEqual
-                originalValues rotated270Values (degToRad 270.))
+        slopeAndOrientationsAreEqual
+            (rotateSlopeAndOrientation originalValues (degToRad 270.))
+            rotated270Values
     (is90Sym && is180Sym && is270Sym)
         |@ sprintf 
             "is not symmetric: original:%A, 90:%A, 180:%A, 270:%A" 
@@ -165,7 +187,7 @@ let ``is 90-degrees symmetric``
 let ``calculates the same value as the reference implementation``
     (heightsWindow: HeightsWindow)
     (calculator: SlopeAndOrientationCalculator) =
-    isSlopeApproxEqual
+    slopeAndOrientationsAreEqual
         (calculator heightsWindow hDist vDist)
         (referenceSlopeAndOrientationCalculator heightsWindow hDist vDist)
         |@ sprintf "is not the same as reference implementation"
