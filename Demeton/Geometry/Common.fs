@@ -86,6 +86,42 @@ let differenceBetweenAngles
     if diffAbs > normalizer / 2. then normalizer - diffAbs
     else diffAbs
 
+/// <summary>
+/// Calculates the mean of angles (in radians) using the formula from
+/// <a href="https://en.wikipedia.org/wiki/Mean_of_circular_quantities#Mean_of_angles">
+/// Wikipedia</a>
+/// </summary>
+/// <remarks>
+/// The ordinary arithmetic average does not work for circular quantities like
+/// angles.
+/// </remarks>
+/// <param name="tolerance">
+/// If both the mean vector's X and Y coordinates are less than the tolerance
+/// value, the function returns <see cref="Double.NaN" /> as the mean value.
+/// </param>
+/// <returns>The mean of angles or <see cref="Double.NaN" /> if mean is 
+/// undefined - for example if the angles array is empty or it consists of
+/// directly opposite angles.
+/// </returns>
+let meanOfAngles tolerance angles =
+    match angles with
+    | [||] -> Double.NaN
+    | _ -> 
+        let (totalX, totalY) =
+            angles
+            |> Array.fold (
+                fun (vx, vy) orient -> 
+                    let angleX = Math.Cos (orient)
+                    let angleY = Math.Sin (orient)
+                    (vx + angleX, vy + angleY))
+                (0., 0.)
+
+        if Math.Abs(totalX) < tolerance && Math.Abs(totalY) < tolerance then
+            Double.NaN
+        else
+            let meanAngle = Math.Atan2(totalY, totalX)
+            meanAngle
+
 // todo doc
 let inline degToRad deg = deg * Math.PI / 180.
 let inline radToDeg rad = rad * 180. / Math.PI

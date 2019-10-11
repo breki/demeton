@@ -101,12 +101,12 @@ let referenceSlopeAndOrientationCalculator: SlopeAndOrientationCalculator
         Some (slopeAverage, orientationAverage)
 
 [<Theory>]
-//[<InlineData(0., 0., 100., 100., 150., 100., 45., 0.)>]
-//[<InlineData(100., 0., 0., 100., 100., 150., 45., 90.)>]
-//[<InlineData(100., 100., 0., 0., 150., 100., 45., 180.)>]
-//[<InlineData(0., 100., 100., 0., 100., 150., 45., 270.)>]
-//[<InlineData(0., 0., 0., 0., 100., 100., 0., Double.NaN)>]
-//[<InlineData(0., 0., 0., 100., 100., 100., 36.183902577601, 45.)>]
+[<InlineData(0., 0., 100., 100., 150., 100., 45., 0.)>]
+[<InlineData(100., 0., 0., 100., 100., 150., 45., 90.)>]
+[<InlineData(100., 100., 0., 0., 150., 100., 45., 180.)>]
+[<InlineData(0., 100., 100., 0., 100., 150., 45., 270.)>]
+[<InlineData(0., 0., 0., 0., 100., 100., 0., Double.NaN)>]
+[<InlineData(0., 0., 0., 100., 100., 100., 36.183902577601, 45.)>]
 [<InlineData(111.33, 197.02, 162.14, 128.89, 100., 150., 
     30.9898012775403, 264.256525996891)>]
 let ``Some control values for the reference implementation`` 

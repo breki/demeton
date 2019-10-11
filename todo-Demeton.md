@@ -1,5 +1,5 @@
-﻿- implement an orientation averaging function and properties for it
-    - move it to a common module and document it
+﻿- Double.NaN or None?
+- "opposite angles result in NaN mean" property
 
 - the problem with orientation calculation
     - looks like averaging of orientations cannot be done simply by just summing them up and diving by count
@@ -9,7 +9,10 @@
     - implement the actual hillshader for the raster
     - integrate it into the shade command
 - update readme.md docs
+
 - how to generate code docs?
+    - https://fsprojects.github.io/FSharp.Formatting/
+
 - make a more generic way of parsing command line parameters
     - preferably with the ability to auto-generate help
 
