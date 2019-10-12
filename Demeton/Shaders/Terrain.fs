@@ -5,7 +5,7 @@ open Demeton.Geometry.Common
 
 /// <summary>
 /// The heights of four corners of the area we need to calculate slope and
-/// orientation for.
+/// aspect for.
 /// </summary>
 /// <remarks>
 /// The four corners are specified in the following order:
@@ -24,15 +24,15 @@ let someHeightsAreMissing heightsWindow =
     heightsWindow |> Array.exists Option.isNone
 
 /// <summary>
-/// A pair of terrain slope and orientation values (in radians).
+/// A pair of terrain slope and aspect values (in radians).
 /// </summary>
-type SlopeAndOrientation = (float * float)
+type SlopeAndAspect = (float * float)
 
 /// <summary>
-/// Specifies a function that calculates slope and orientation.
+/// Specifies a function that calculates slope and aspect.
 /// </summary>
-type SlopeAndOrientationCalculator = 
-    HeightsWindow -> float -> float -> SlopeAndOrientation option
+type SlopeAndAspectCalculator = 
+    HeightsWindow -> float -> float -> SlopeAndAspect option
 
 /// <summary>
 /// Calculates the slope (in radians) for the specified heights window and the
@@ -45,7 +45,7 @@ type SlopeAndOrientationCalculator =
 /// of 90 degrees (in radians) (although 90 degrees is impossible to achieve
 /// in this model). 
 /// </remarks>
-let calculateSlopeAndOrientation: SlopeAndOrientationCalculator
+let calculateSlopeAndAspect: SlopeAndAspectCalculator
     = fun (heightsWindow: HeightsWindow) horizontalSize verticalSize -> 
     let triangleNormalWithX20DiffSameAsX10Diff
         height10Diff height20Diff x10Diff y20Diff = 
@@ -81,10 +81,10 @@ let calculateSlopeAndOrientation: SlopeAndOrientationCalculator
         let x = n1x + n2x + n3x + n4x
         let y = n1y + n2y + n3y + n4y
 
-        let orientationNotNormalized = (Math.Atan2(x, -y))
-        let orientationNormalized = 
-            normalizeAngle orientationNotNormalized (Math.PI * 2.)
-        orientationNormalized
+        let aspectNotNormalized = (Math.Atan2(x, -y))
+        let aspectNormalized = 
+            normalizeAngle aspectNotNormalized (Math.PI * 2.)
+        aspectNormalized
         
 
     match someHeightsAreMissing heightsWindow with
@@ -118,7 +118,7 @@ let calculateSlopeAndOrientation: SlopeAndOrientationCalculator
             triangleNormalWithx20DiffZero
                 height32Diff height12Diff -horizontalSize -verticalSize
 
-        // Calculates the slope and orientation from all of the 4 normals.
+        // Calculates the slope and aspect from all of the 4 normals.
         let slope1 = triangleNormalToSlope triangle1Normal
         let slope2 = triangleNormalToSlope triangle2Normal
         let slope3 = triangleNormalToSlope triangle3Normal
@@ -127,11 +127,11 @@ let calculateSlopeAndOrientation: SlopeAndOrientationCalculator
         let slopeAverage =
             (slope1 + slope2 + slope3 + slope4) / 4.
 
-        let orientation = 
+        let aspect = 
             angleOfNormalsXYSummedUp
                 triangle1Normal
                 triangle2Normal
                 triangle3Normal
                 triangle4Normal
 
-        Some (slopeAverage, orientation)
+        Some (slopeAverage, aspect)

@@ -23,7 +23,7 @@ let colorComponentRatioToByte (value: float): byte =
 
 let igorHillshade 
         (parameters: ShaderParameters) 
-        (elevation: float) 
+        _
         (aspect: float) 
         (slope: float)
         : Color =

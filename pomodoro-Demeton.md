@@ -1,4 +1,5 @@
 ﻿## Sat 12.10.
+- Renamed "orientation" term to the more appropriate "aspect".
 - Reimplemented production calculation of the orientation.
 - Finally (hopefully) fixed all the issues with the reference orientation calculation.
 

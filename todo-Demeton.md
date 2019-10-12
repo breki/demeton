@@ -1,5 +1,5 @@
 ﻿- hillshading
-    - tests for calculating the shade
+    - implement Igor's shading method
     - implement the actual hillshader for the raster
     - integrate it into the shade command
 - update readme.md docs
