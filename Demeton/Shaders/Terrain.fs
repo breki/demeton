@@ -69,15 +69,23 @@ let calculateSlopeAndOrientation: SlopeAndOrientationCalculator
     
         (vx, vy, vz)
     
-    let triangleNormalToSlopeAndOrientation (nx, ny, nz) =
+    let triangleNormalToSlope (nx, ny, nz) =
         let normalXYLen = Math.Sqrt(nx * nx + ny * ny)
+        Math.Atan2(normalXYLen, nz)
 
-        let slope = Math.Atan2(normalXYLen, nz)
+    let angleOfNormalsXYSummedUp 
+        (n1x, n1y, _)
+        (n2x, n2y, _)
+        (n3x, n3y, _)
+        (n4x, n4y, _) =
+        let x = n1x + n2x + n3x + n4x
+        let y = n1y + n2y + n3y + n4y
 
-        let orientation = 
-            normalizeAngle (Math.Atan2(nx, -ny)) (Math.PI * 2.)
-
-        (slope, orientation)
+        let orientationNotNormalized = (Math.Atan2(x, -y))
+        let orientationNormalized = 
+            normalizeAngle orientationNotNormalized (Math.PI * 2.)
+        orientationNormalized
+        
 
     match someHeightsAreMissing heightsWindow with
     | true -> None
@@ -111,19 +119,19 @@ let calculateSlopeAndOrientation: SlopeAndOrientationCalculator
                 height32Diff height12Diff -horizontalSize -verticalSize
 
         // Calculates the slope and orientation from all of the 4 normals.
-        let (slope1, orientation1) = 
-            triangleNormalToSlopeAndOrientation triangle1Normal
-        let (slope2, orientation2) = 
-            triangleNormalToSlopeAndOrientation triangle2Normal
-        let (slope3, orientation3) = 
-            triangleNormalToSlopeAndOrientation triangle3Normal
-        let (slope4, orientation4) = 
-            triangleNormalToSlopeAndOrientation triangle4Normal
+        let slope1 = triangleNormalToSlope triangle1Normal
+        let slope2 = triangleNormalToSlope triangle2Normal
+        let slope3 = triangleNormalToSlope triangle3Normal
+        let slope4 = triangleNormalToSlope triangle4Normal
 
-        // The final slope and orientation is an average value from the 4
-        // pairs.
-        let slope = (slope1 + slope2 + slope3 + slope4) / 4.
+        let slopeAverage =
+            (slope1 + slope2 + slope3 + slope4) / 4.
+
         let orientation = 
-            (orientation1 + orientation2 + orientation3 + orientation4) / 4.
+            angleOfNormalsXYSummedUp
+                triangle1Normal
+                triangle2Normal
+                triangle3Normal
+                triangle4Normal
 
-        Some (slope, orientation)
+        Some (slopeAverage, orientation)

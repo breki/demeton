@@ -1,7 +1,4 @@
-﻿- orientation calculation
-    - implement production calculation
-
-- hillshading
+﻿- hillshading
     - tests for calculating the shade
     - implement the actual hillshader for the raster
     - integrate it into the shade command

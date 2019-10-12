@@ -1,4 +1,5 @@
-﻿## Sat 11.10.
+﻿## Sat 12.10.
+- Reimplemented production calculation of the orientation.
 - Finally (hopefully) fixed all the issues with the reference orientation calculation.
 
 ## Thu 10.10.
