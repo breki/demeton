@@ -98,6 +98,8 @@ let differenceBetweenAngles
 /// <param name="tolerance">
 /// If both the mean vector's X and Y coordinates are less than the tolerance
 /// value, the function returns <see cref="Double.NaN" /> as the mean value.
+/// The function also uses tolerance to round off very small angle values to 
+/// zero.
 /// </param>
 /// <returns>The mean of angles or <see cref="Double.NaN" /> if mean is 
 /// undefined - for example if the angles array is empty or it consists of
@@ -120,7 +122,8 @@ let meanOfAngles tolerance angles =
             Double.NaN
         else
             let meanAngle = Math.Atan2(totalY, totalX)
-            meanAngle
+            if Math.Abs(meanAngle) < tolerance then 0.
+            else meanAngle
 
 // todo doc
 let inline degToRad deg = deg * Math.PI / 180.

@@ -1,11 +1,8 @@
-﻿- Double.NaN or None?
-- "opposite angles result in NaN mean" property
-
-- the problem with orientation calculation
-    - looks like averaging of orientations cannot be done simply by just summing them up and diving by count
+﻿- orientation calculation
+    - implement production calculation
 
 - hillshading
-    - tests for calculating the slope, aspect, shade etc
+    - tests for calculating the shade
     - implement the actual hillshader for the raster
     - integrate it into the shade command
 - update readme.md docs

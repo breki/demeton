@@ -10,10 +10,15 @@ open Xunit
 open FsCheck
 open PropertiesHelp
 open Swensen.Unquote
-open TestHelp
+open PropertiesHelp
 
 let hDist = 100.
 let vDist = 150.
+
+[<Literal>]
+let equalityTolerance = 1E-8
+let areAnglesApproxEqual a b = 
+    differenceBetweenAngles a b (Math.PI*2.) <  equalityTolerance   
 
 let rotateHeights (heightsWindow: HeightsWindow)  =
     [| heightsWindow.[3]; heightsWindow.[0]; 
@@ -38,8 +43,10 @@ let slopeAndOrientationsAreEqual
         match (Double.IsNaN orientation1, Double.IsNaN orientation2) with
         | (true, false) -> false
         | (false, true) -> false
-        | (true, true) -> slope1 =~= slope2
-        | _ -> (slope1 =~= slope2) && (orientation1 =~= orientation2)
+        | (true, true) -> areAnglesApproxEqual slope1 slope2
+        | _ -> 
+            (areAnglesApproxEqual slope1 slope2) 
+            && (areAnglesApproxEqual orientation1 orientation2)
 
 /// <summary>
 /// Reference implementation of the calculator of slope and orientation that is
@@ -55,8 +62,10 @@ let referenceSlopeAndOrientationCalculator: SlopeAndOrientationCalculator
             match slope with
             | 0. -> Double.NaN
             | _ -> 
-                normalizeAngle 
-                    (Math.Atan2(normal.X, -normal.Y)) (Math.PI * 2.)
+                let orientationNotNormalized = (Math.Atan2(normal.X, -normal.Y))
+                let orientationNormalized = 
+                    normalizeAngle orientationNotNormalized (Math.PI * 2.)
+                orientationNormalized
 
         (slope, orientation)
 
@@ -90,13 +99,10 @@ let referenceSlopeAndOrientationCalculator: SlopeAndOrientationCalculator
             slopesAndOrientations 
             |> Array.filter (
                 fun(_, orientation) -> not (Double.IsNaN orientation))
+            |> Array.map(fun(_, orientation) -> orientation)
 
-        let orientationAverage = 
-            match orientationsNonNan with
-            | [||] -> Double.NaN
-            | _ -> 
-                orientationsNonNan 
-                |> Array.averageBy (fun(_, orientation) -> orientation)
+        let orientationAverage =
+            normalizeAngle (meanOfAngles 1E-10 orientationsNonNan) (Math.PI*2.)
 
         Some (slopeAverage, orientationAverage)
 
@@ -108,7 +114,9 @@ let referenceSlopeAndOrientationCalculator: SlopeAndOrientationCalculator
 [<InlineData(0., 0., 0., 0., 100., 100., 0., Double.NaN)>]
 [<InlineData(0., 0., 0., 100., 100., 100., 36.183902577601, 45.)>]
 [<InlineData(111.33, 197.02, 162.14, 128.89, 100., 150., 
-    30.9898012775403, 264.256525996891)>]
+    30.9898012775403, 264.355332538424)>]
+[<InlineData(172.49, 137.61, 224.93, 190.05, 100., 150., 
+    27.1808453194676, 0.)>]
 let ``Some control values for the reference implementation`` 
     h1 h2 h3 h4 hDist vDist expectedSlope expectedOrientation =
     let heights = [| Some h1; Some h2; Some h3; Some h4; |]
@@ -141,6 +149,7 @@ let ``slope is value from 0 to 90 degrees and orientation from 0 to 360 degrees 
     | Some (slope, orientation) -> 
         let slopeInDegress = radToDeg slope
         let orientationInDegress = radToDeg orientation
+
         (not heightsAreMissing && slopeInDegress >= 0. 
             && slopeInDegress < 90.
             && orientationInDegress >= 0.
@@ -171,6 +180,7 @@ let ``is 90-degrees symmetric``
     let is90Sym = slopeAndOrientationsAreEqual actual90 expected90 
     let is180Sym = slopeAndOrientationsAreEqual actual180 expected180 
     let is270Sym = slopeAndOrientationsAreEqual actual270 expected270
+
     (is90Sym && is180Sym && is270Sym)
         |@ sprintf 
             "is not symmetric: original:%A, expected 90:%A, actual 90:%A, expected 180:%A, actual 180:%A, expected 270:%A, actual 270:%A" 
@@ -204,7 +214,8 @@ let ``The reference slope implementation adheres to all the properties``() =
     genHeightsWindow |> Arb.fromGen 
     |> Prop.forAll 
     <| specs referenceSlopeAndOrientationCalculator
-    |> Check.QuickThrowOnFailure
+    //|> Check.QuickThrowOnFailure
+    |> replayPropertyCheck (1444256201,296656141)
 
 [<Fact(Skip="todo")>]
 let ``Production slope implementation adheres to all the properties``() =

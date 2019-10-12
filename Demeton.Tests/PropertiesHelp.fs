@@ -40,11 +40,14 @@ let valueIsBetweenInclusive
         |@ sprintf "%s %A <= %A <= %A" name min value max
 
 /// <summary>
-/// Replays the FsCheck property check using the specified replay seed.
+/// Replays the FsCheck property check using the specified replay seed. Note
+/// that it does not throw an exception on falsifiable properties.
 /// </summary>
 let replayPropertyCheck replaySeed property =
     Check.One(
-        { Config.Quick with Replay = Some <| Random.StdGen replaySeed },
+        { Config.Quick with 
+            Replay = Some <| Random.StdGen replaySeed; 
+            QuietOnSuccess = false },
         property)
 
 let (.=.) left right = left = right |@ sprintf "%A = %A" left right

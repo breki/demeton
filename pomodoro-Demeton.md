@@ -1,4 +1,7 @@
-﻿## Thu 10.10.
+﻿## Sat 11.10.
+- Finally (hopefully) fixed all the issues with the reference orientation calculation.
+
+## Thu 10.10.
 - Implemented orientation calculation for the terrain.
 - Implemented a new and better `slope` function.
 
