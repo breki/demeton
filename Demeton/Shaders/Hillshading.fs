@@ -24,54 +24,35 @@ let colorComponentRatioToByte (value: float): byte =
 let igorHillshade 
         (parameters: ShaderParameters) 
         _
-        (aspect: float) 
         (slope: float)
+        (aspect: float) 
         : Color =
-    let aspectDiff = differenceBetweenAngles
-                        aspect 
-                        (Math.PI * 3./2. - parameters.SunAzimuth)
-                        (Math.PI * 2.)
+
+    match Double.IsNaN(aspect) with
+    | true -> { A = 0uy; R = 0uy; G = 0uy; B = 0uy }
+    | false ->
+        let aspectDiff = differenceBetweenAngles
+                            aspect 
+                            (Math.PI * 3./2. - parameters.SunAzimuth)
+                            (Math.PI * 2.)
     
-    let slopeNormalized = max slope 0.
+        let slopeNormalized = max slope 0.
 
-    let slopeDegrees = min (slopeNormalized / Math.PI * 180.) 90.
+        let slopeDegrees = min (slopeNormalized / Math.PI * 180.) 90.
 
-    let slopeStrength = slopeDegrees / 90.
-    let aspectStrength = 1. - aspectDiff / Math.PI
-    let shadowness = slopeStrength * aspectStrength
+        let slopeStrength = slopeDegrees / 90.
+        let aspectStrength = 1. - aspectDiff / Math.PI
+        let shadowness = slopeStrength * aspectStrength
 
-    let alpha = colorComponentRatioToByte 
-                    (shadowness * parameters.ShadingIntensity)
+        let alpha = colorComponentRatioToByte 
+                        (shadowness * parameters.ShadingIntensity)
     
-    { 
-        A = alpha
-        R = parameters.ShadingColorR
-        G = parameters.ShadingColorG
-        B = parameters.ShadingColorB
-    }
-
-
-let windowMinMax (window: float []): (float * float) option =
-    let min (v: float option): float option =
-        //match v with
-        //| None -> None
-        //|
-
-        invalidOp "todo"
-        //window |> Array.minBy (fun x -> matchx )
-
-    invalidOp "todo"
-
-let aspectSlope 
-        (cellSizeInMeters: float)
-        (window: float option [,])
-        : (float * float) option =
-
-    match window.[1,1] with
-    | None -> None
-    | _ -> 
-            
-    invalidOp "todo"
+        { 
+            A = alpha
+            R = parameters.ShadingColorR
+            G = parameters.ShadingColorG
+            B = parameters.ShadingColorB
+        }
 
 // todo: implement hillshade
 let hillshade (bounds: LonLatBounds): Stream option =
