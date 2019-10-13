@@ -1,4 +1,9 @@
-﻿- extend command line to support specifying Igor's hillshading method (+ parameters)
+﻿- make a more generic way of parsing command line parameters
+    - preferably with the ability to auto-generate help
+
+- add an (optional) color ramps
+    - format: "height:#color;"
+- extend command line to support specifying Igor's hillshading method (+ parameters)
 - add support for both elevation coloring and hillshading in the `shade` command
     - how to specify shading parameters?
     - how to specify which shader to use?
@@ -18,9 +23,6 @@
 
 - how to generate code docs?
     - https://fsprojects.github.io/FSharp.Formatting/
-
-- make a more generic way of parsing command line parameters
-    - preferably with the ability to auto-generate help
 
 - in what format to save the shaded tile PNG metadata?  
     - extra sidecar file?

@@ -1,12 +1,14 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Commands.ImportSrtmTilesCommand
 
-open Demeton.Geometry.Common
-open Demeton.Srtm.Types
-open Demeton.DemTypes
 open Demeton.CommandLineParsing
-open System.IO
+open Demeton.DemTypes
+open Demeton.Geometry.Common
 open Demeton.Srtm
+open Demeton.Srtm.Types
+
+open System
+open System.IO
 
 
 type Options = {
@@ -102,6 +104,15 @@ let parseArgs (args: string list): ParsingResult<Options> =
     let defaultOptions = { 
         Bounds = None; SrtmDir = "srtm"; LocalCacheDir = "cache" }
 
+    let supportedParameters = [|
+        { Name = BoundsParameter; 
+            Parser = parseParameterValue parseBounds }
+        { Name = SrtmDirParameter; 
+            Parser = parseParameterValue parseSrtmDir }
+        { Name = LocalCacheDirParameter; 
+            Parser = parseParameterValue parseLocalCacheDir }
+    |]
+
     let mutable parsingResult: ParsingResult<Options> = 
         Ok (args, defaultOptions)
 
@@ -110,15 +121,21 @@ let parseArgs (args: string list): ParsingResult<Options> =
 
         parsingResult <-
             match arg with
-            | Some "--bounds" ->
-                parseParameterValue BoundsParameter parseBounds context
-            | Some "--srtm-dir" -> 
-                parseParameterValue SrtmDirParameter parseSrtmDir context
-            | Some "--local-cache-dir" -> 
-                parseParameterValue 
-                    LocalCacheDirParameter parseLocalCacheDir context
-            | Some unknownArg ->
-                Error (sprintf "Unrecognized parameter '%s'." unknownArg)
+            | Some argParameter when argParameter.StartsWith("--") ->
+                let parameterName = argParameter.Substring 2
+                let parameterMaybe =
+                    supportedParameters 
+                    |> Array.tryFind (fun p -> 
+                        String.Equals(
+                            parameterName, 
+                            p.Name, 
+                            StringComparison.OrdinalIgnoreCase))
+                match parameterMaybe with
+                | Some parInfo -> parInfo.Parser parameterName context
+                | None -> 
+                    Error (sprintf "Unrecognized parameter '%s'." parameterName)
+            | Some argParameter -> 
+                Error (sprintf "Unrecognized parameter '%s'." argParameter)
             | None -> invalidOp "BUG: this should never happen"
 
     match parsingResult with

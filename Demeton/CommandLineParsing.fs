@@ -20,6 +20,14 @@ type ParsingContext<'TOptions> = string list * 'TOptions
 /// </summary>
 type ParsingResult<'TOptions> = Result<ParsingContext<'TOptions>, string>
 
+type CommandLineParsingFunction<'TOptions> = 
+    string -> ParsingContext<'TOptions> -> ParsingResult<'TOptions>
+
+type CommandLineParameter<'TOptions> = {
+    Name: string
+    Parser: CommandLineParsingFunction<'TOptions>
+    }
+
 /// <summary>
 /// Fetches the next argument from the arguments list stored in the parsing 
 /// context. Returns <c>None</c> if there are no arguments left.
@@ -102,7 +110,7 @@ let invalidParameter parameter reason context =
 /// with an error parsing result.
 /// </summary>
 let parseParameterValue 
-    parameterName parseValue (context: ParsingContext<'TOptions>) =
+    parseValue parameterName (context: ParsingContext<'TOptions>) =
     match nextArg context with
     | None -> context |> parameterValueIsMissing parameterName
     | (Some x) when x.StartsWith("--") ->

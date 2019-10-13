@@ -1,7 +1,8 @@
-﻿- extend command line to support specifying the elevation colorer
-    - how do we specify (optional) color ramps?
+﻿- make the command line parameter reusable when parsing
+    - specify parameters in a dictionary: parameter name -> parserFunction
 
 ## Sun 13.10.
+- Extracted common `CommandLineParsingFunction` and `CommandLineParameter` types and implemented a more generic parsing code for the existing commands.
 - Added `--elev-color` switch to the `shade` command.
 - `generateShadedRasterTile` function now accepts `RasterShaderFactory` instead of `RasterShader` directly.
 - Introduced `Shader` into `ShadeCommand.Options`.

@@ -20,7 +20,7 @@ let ``Returns an error if parameter is the last argument and its value is missin
     let options = ""
     let context = (remainingArgs, options)
 
-    let result = parseParameterValue parameterName doNotCallMeParser context
+    let result = parseParameterValue doNotCallMeParser parameterName context
 
     test <@ result |> isError "'someparam' parameter's value is missing." @>
 
@@ -32,6 +32,6 @@ let ``Returns an error if subsequent argument after parameter name starts with '
     let options = ""
     let context = (remainingArgs, options)
 
-    let result = parseParameterValue parameterName doNotCallMeParser context
+    let result = parseParameterValue doNotCallMeParser parameterName context
 
     test <@ result |> isError "'someparam' parameter's value is missing." @>

@@ -18,8 +18,8 @@ open Demeton.Srtm.Funcs
 open Png
 open Png.Types
 
-open System.IO
 open System
+open System.IO
 
 type Options = {
     CoveragePoints: LonLat list
@@ -174,7 +174,7 @@ let parseOutputDir (value: string) (context: ParsingContext<Options>) =
     |> withOptions ({ oldOptions with OutputDir = value })
     |> Result.Ok
 
-let parseElevationColorShader (context: ParsingContext<Options>) =
+let parseElevationColorShader _ (context: ParsingContext<Options>) =
     let (_, oldOptions) = context
     context 
     |> withOptions (
@@ -196,6 +196,25 @@ let parseArgs (args: string list): ParsingResult<Options> =
             Shader = ElevationColoringShader elevationColorScaleMaperitive
         }
 
+    let supportedParameters = [|
+        { Name = CoveragePointsParameter; 
+            Parser = parseParameterValue parseCoverage }
+        { Name = DpiParameter; 
+            Parser = parseParameterValue parseDpi }
+        { Name = ElevationColorShaderParameter; 
+            Parser = parseElevationColorShader }
+        { Name = FileNameParameter; 
+            Parser = parseParameterValue parseFileName }
+        { Name = LocalCacheDirParameter; 
+            Parser = parseParameterValue parseLocalCacheDir }
+        { Name = MapScaleParameter; 
+            Parser = parseParameterValue parseMapScale }
+        { Name = OutputDirParameter; 
+            Parser = parseParameterValue parseOutputDir }
+        { Name = TileSizeParameter; 
+            Parser = parseParameterValue parseTileSize }
+    |]
+
     let mutable parsingResult: ParsingResult<Options> = 
         Ok (args, defaultOptions)
 
@@ -204,28 +223,21 @@ let parseArgs (args: string list): ParsingResult<Options> =
 
         parsingResult <-
             match arg with
-            | Some "--coverage" ->
-                parseParameterValue 
-                    CoveragePointsParameter parseCoverage context
-            | Some "--dpi" ->
-                parseParameterValue DpiParameter parseDpi context
-            | Some "--elev-color" ->
-                parseElevationColorShader context
-            | Some "--file-name" ->
-                parseParameterValue FileNameParameter parseFileName context
-            | Some "--local-cache-dir" -> 
-                parseParameterValue 
-                    LocalCacheDirParameter parseLocalCacheDir context
-            | Some "--map-scale" ->
-                parseParameterValue MapScaleParameter parseMapScale context
-            | Some "--output-dir" ->
-                parseParameterValue OutputDirParameter parseOutputDir context
-            | Some "--srtm-dir" -> 
-                parseParameterValue SrtmDirParameter parseSrtmDir context
-            | Some "--tile-size" -> 
-                parseParameterValue TileSizeParameter parseTileSize context
-            | Some unknownArg ->
-                Error (sprintf "Unrecognized parameter '%s'." unknownArg)
+            | Some argParameter when argParameter.StartsWith("--") ->
+                let parameterName = argParameter.Substring 2
+                let parameterMaybe =
+                    supportedParameters 
+                    |> Array.tryFind (fun p -> 
+                        String.Equals(
+                            parameterName, 
+                            p.Name, 
+                            StringComparison.OrdinalIgnoreCase))
+                match parameterMaybe with
+                | Some parInfo -> parInfo.Parser parameterName context
+                | None -> 
+                    Error (sprintf "Unrecognized parameter '%s'." parameterName)
+            | Some argParameter -> 
+                Error (sprintf "Unrecognized parameter '%s'." argParameter)
             | None -> invalidOp "BUG: this should never happen"
 
     match parsingResult with
