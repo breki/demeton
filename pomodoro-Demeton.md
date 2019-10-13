@@ -1,4 +1,5 @@
 ﻿## Sun 13.10.
+- Projection code now uses radians instead of degrees.
 - PixelHillshader now returns Rgba8Bit.RgbaColor.
 - Started working on extending the `shade` command to support pixel hillshaders.
 

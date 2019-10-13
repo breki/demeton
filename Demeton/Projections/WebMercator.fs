@@ -6,20 +6,19 @@ open Demeton.Geometry.Common
 open System
 
 [<Literal>]
-let MaxLat = 85.051128779806589
+let MaxLat = 1.48442222974533
 [<Literal>]
-let MinLat = -85.051128779806589
+let MinLat = -1.48442222974533
 
 let proj longitude latitude =
     match latitude with
     | _ when latitude < MinLat || latitude > MaxLat -> None
     | _ -> 
-        let x = degToRad longitude
-        let y = Math.Log (Math.Tan (Math.PI * (0.25 + latitude / 360.)))
+        let x = longitude
+        let y = Math.Log (Math.Tan (Math.PI / 4. + latitude / 2.))
         Some (x, y)
 
 let inverse x y = 
-    let longitude = radToDeg x
-    let latitude = 
-        (Math.Atan (Math.Exp y) / Math.PI - 0.25) * 360.;
+    let longitude = x
+    let latitude = 2. * Math.Atan (Math.Exp y) - Math.PI / 2.
     Some (longitude, latitude)

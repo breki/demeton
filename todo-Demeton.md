@@ -1,4 +1,5 @@
-﻿- use radians in projections
+﻿- problem with color mixing
+
 -  calculate pixel dimensions in meters
     - convert to lon/lat and then use a function to calculate distances on Earth's surface
 

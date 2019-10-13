@@ -264,9 +264,12 @@ let colorRasterBasedOnElevation: RasterShader =
 
         match lonLatOption with
         | None -> None
-        | Some (lon, lat) ->
-            let globalSrtmX = Tile.longitudeToGlobalX lon 3600
-            let globalSrtmY = Tile.latitudeToGlobalY lat 3600
+        | Some (lonRad, latRad) ->
+            let lonDeg = radToDeg lonRad
+            let latDeg = radToDeg latRad
+
+            let globalSrtmX = Tile.longitudeToGlobalX lonDeg 3600
+            let globalSrtmY = Tile.latitudeToGlobalY latDeg 3600
             heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
 
     for y in tileRect.MinY .. (tileRect.MaxY-1) do
@@ -296,9 +299,12 @@ let shadeRaster: RasterShader =
 
         match lonLatOption with
         | None -> None
-        | Some (lon, lat) ->
-            let globalSrtmX = Tile.longitudeToGlobalX lon 3600
-            let globalSrtmY = Tile.latitudeToGlobalY lat 3600
+        | Some (lonRad, latRad) ->
+            let lonDeg = radToDeg lonRad
+            let latDeg = radToDeg latRad
+
+            let globalSrtmX = Tile.longitudeToGlobalX lonDeg 3600
+            let globalSrtmY = Tile.latitudeToGlobalY latDeg 3600
             heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
 
     let shaderParameters: ShaderParameters = {
@@ -352,18 +358,18 @@ let generateShadedRasterTile
 
     let x1 = float tileRect.MinX / scaleFactor
     let y1 = float tileRect.MinY / scaleFactor
-    let (lon1, lat1) = WebMercator.inverse x1 y1 |> Option.get
+    let (lon1Rad, lat1Rad) = WebMercator.inverse x1 y1 |> Option.get
 
     let x2 = float tileRect.MaxX / scaleFactor
     let y2 = float tileRect.MaxY / scaleFactor
-    let (lon2, lat2) = WebMercator.inverse x2 y2 |> Option.get
+    let (lon2Rad, lat2Rad) = WebMercator.inverse x2 y2 |> Option.get
 
     let lonLatBounds: LonLatBounds = 
         { 
-            MinLon = min lon1 lon2
-            MinLat = min lat1 lat2
-            MaxLon = max lon1 lon2
-            MaxLat = max lat1 lat2
+            MinLon = radToDeg (min lon1Rad lon2Rad)
+            MinLat = radToDeg (min lat1Rad lat2Rad)
+            MaxLon = radToDeg (max lon1Rad lon2Rad)
+            MaxLat = radToDeg (max lat1Rad lat2Rad)
     }
 
     let srtmTilesNeeded = boundsToTiles lonLatBounds
@@ -434,7 +440,9 @@ let run
     // project each coverage point
     let projectedPoints = 
         options.CoveragePoints 
-        |> List.map (fun (lon, lat) -> WebMercator.proj lon lat)
+        |> List.map (
+            fun (lonDegrees, latDegrees) -> 
+                WebMercator.proj (degToRad lonDegrees) (degToRad latDegrees))
         |> List.filter (fun p -> Option.isSome p)
         |> List.map (fun p -> Option.get p)
 
