@@ -1,4 +1,5 @@
-﻿- add support for both elevation coloring and hillshading in the `shade` command
+﻿- extend command line to support specifying Igor's hillshading method (+ parameters)
+- add support for both elevation coloring and hillshading in the `shade` command
     - how to specify shading parameters?
     - how to specify which shader to use?
     - how to combine shaders in one image?

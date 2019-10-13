@@ -202,3 +202,15 @@ let ``Accepts a valid OutputDir value and puts it into the options`` () =
     test <@ 
             (parsedOptions result).OutputDir = "some/hillshading" 
         @>
+
+[<Fact>]
+let ``Accepts elevation colorer switch``() =
+    let result = 
+        ShadeCommand.parseArgs [ 
+            "--coverage"; "10,20,30,40"; "--elev-color" ]
+    test <@ result |> isOk @>
+    test <@ 
+            (parsedOptions result).Shader 
+                = ElevationColoringShader(elevationColorScaleMaperitive) 
+        @>
+  

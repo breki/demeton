@@ -38,6 +38,8 @@ let CoveragePointsParameter = "coverage"
 [<Literal>]
 let DpiParameter = "dpi"
 [<Literal>]
+let ElevationColorShaderParameter = "elev-color"
+[<Literal>]
 let FileNameParameter = "file-name"
 [<Literal>]
 let LocalCacheDirParameter = "local-cache-dir"
@@ -172,6 +174,14 @@ let parseOutputDir (value: string) (context: ParsingContext<Options>) =
     |> withOptions ({ oldOptions with OutputDir = value })
     |> Result.Ok
 
+let parseElevationColorShader (context: ParsingContext<Options>) =
+    let (_, oldOptions) = context
+    context 
+    |> withOptions (
+        { oldOptions with 
+            Shader = ElevationColoringShader (elevationColorScaleMaperitive) })
+    |> Result.Ok
+
 let parseArgs (args: string list): ParsingResult<Options> =
     let defaultOptions = 
         { 
@@ -199,6 +209,8 @@ let parseArgs (args: string list): ParsingResult<Options> =
                     CoveragePointsParameter parseCoverage context
             | Some "--dpi" ->
                 parseParameterValue DpiParameter parseDpi context
+            | Some "--elev-color" ->
+                parseElevationColorShader context
             | Some "--file-name" ->
                 parseParameterValue FileNameParameter parseFileName context
             | Some "--local-cache-dir" -> 

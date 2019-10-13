@@ -1,7 +1,8 @@
-﻿- extend command line to support specifying the elevation colorer (including (optional) color ramps)
-- extend command line to support specifying Igor's hillshading method (+ parameters)
+﻿- extend command line to support specifying the elevation colorer
+    - how do we specify (optional) color ramps?
 
 ## Sun 13.10.
+- Added `--elev-color` switch to the `shade` command.
 - `generateShadedRasterTile` function now accepts `RasterShaderFactory` instead of `RasterShader` directly.
 - Introduced `Shader` into `ShadeCommand.Options`.
 - Projection code now uses radians instead of degrees.
