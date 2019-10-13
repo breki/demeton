@@ -6,6 +6,7 @@ open System
 
 open Xunit
 open Projections.ProjectionsTestHelpers
+open Swensen.Unquote
 
 [<Theory>]
 [<InlineData(0., 0., 0., 0.)>]
@@ -15,8 +16,8 @@ open Projections.ProjectionsTestHelpers
 let ``Correctly projects`` 
     longitude latitude expectedX expectedY =
 
-    WebMercator.proj longitude latitude
-        |> expectXY expectedX expectedY
+    test <@ WebMercator.proj longitude latitude
+        |> expectXY expectedX expectedY @>
 
 [<Theory>]
 [<InlineData(0., 86)>]

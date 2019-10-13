@@ -67,7 +67,8 @@ let ``Interpolates height correctly``() =
     let heightCalcOption = 
         interpolateHeight 11s -4s -5s 4s (88. / 1000.) (786. / 1000.)
     test <@ Option.isSome heightCalcOption @>
-    Option.get heightCalcOption |> isApproxEqualTo -1.235968 6
+    test <@ Option.get heightCalcOption 
+            |> isApproxEqualTo -1.235968 (Decimals 6) @>
 
 [<Fact>]
 let ``Interpolates height in the heights array correctly``() =
@@ -91,5 +92,5 @@ let ``Interpolates height in the heights array correctly``() =
             float globalCellX + 5.088, float globalCellY + 5.786)
 
     test <@ Option.isSome heightMaybe @>
-    Option.get heightMaybe |> isApproxEqualTo -1.235968 6
+    test <@ Option.get heightMaybe |> isApproxEqualTo -1.235968 (Decimals 6) @>
 

@@ -9,8 +9,8 @@ let expectXY x y point =
     | None -> 
         raise (Xunit.Sdk.XunitException("Expected some point, but got None."))
     | Some (actualX, actualY) -> 
-        actualX |> isApproxEqualTo x 8
-        actualY |> isApproxEqualTo y 8
+        (actualX |> isApproxEqualTo x (Decimals 8))
+            && (actualY |> isApproxEqualTo y (Decimals 8))
 
 let expectNone point =
     match point with

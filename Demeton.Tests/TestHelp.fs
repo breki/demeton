@@ -1,7 +1,6 @@
 ﻿module TestHelp
 
 open System
-open Swensen.Unquote
 
 let isOk result =
     match result with
@@ -31,7 +30,16 @@ let isErrorData (errorData: 'TError) (result: Result<'T, 'TError>) =
 
 let inline (=~=) (x: float) (y: float) = abs (x-y) <  1.E-10
     
-let isApproxEqualTo (val2: float) (decimals: int) (val1: float) =
-    test <@ 
-            Math.Round(val2, decimals) = Math.Round(val1, decimals)
-            @>
+type ApproxMeasure =
+    Decimals of int
+    | Percentage of float
+
+let isApproxEqualTo 
+    (controlValue: float) (measure: ApproxMeasure) (actualValue: float) =
+    match measure with
+    | Decimals decimals -> 
+        Math.Round(controlValue, decimals) 
+            = Math.Round(actualValue, decimals)
+    | Percentage percentage ->
+        let percentageValue = controlValue * percentage / 100.
+        Math.Abs(actualValue - controlValue) < percentageValue

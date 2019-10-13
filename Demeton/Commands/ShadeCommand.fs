@@ -286,6 +286,7 @@ let colorRasterBasedOnElevation: RasterShader =
 let shadeRaster: RasterShader = 
     fun heightsArray tileRect imageData options ->
 
+    let tileWidth = tileRect.Width
     let scaleFactor = options |> projectionScaleFactor
 
     let heightOf x y =
@@ -308,11 +309,11 @@ let shadeRaster: RasterShader =
             ShadingColorB = 0uy
         }
 
-    let pixelWidthInMeters = invalidOp "todo"
-    let pixelHeightInMeters = invalidOp "todo"
-
     for y in tileRect.MinY .. (tileRect.MaxY-1) do
         for x in tileRect.MinX .. (tileRect.MaxX-1) do
+            let pixelWidthInMeters = invalidOp "todo"
+            let pixelHeightInMeters = invalidOp "todo"
+
             let cornerHeights = [|
                 heightOf ((float x) - 0.5) ((float y) - 0.5)
                 heightOf ((float x) + 0.5) ((float y) - 0.5)
@@ -327,7 +328,12 @@ let shadeRaster: RasterShader =
             match slopeAndAspectMaybe with
             | Some (slope, aspect) ->
                 let pixelValue = igorHillshade shaderParameters 0. slope aspect
-                invalidOp "todo"
+                Rgba8Bit.setPixelAt 
+                    imageData
+                    tileWidth
+                    (x - tileRect.MinX) 
+                    (y - tileRect.MinY)
+                    pixelValue
             | None -> ignore()
 
     invalidOp "todo"
