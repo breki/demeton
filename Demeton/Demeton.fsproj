@@ -43,6 +43,7 @@
     <Compile Include="Shaders\Terrain.fs" />
     <Compile Include="Shaders\ElevationColoring.fs" />
     <Compile Include="Shaders\Hillshading.fs" />
+    <Compile Include="Shaders\ShaderTypes.fs" />
     <Compile Include="Commands\ParametersParsing.fs" />
     <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />

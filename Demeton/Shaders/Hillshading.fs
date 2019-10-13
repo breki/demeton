@@ -16,14 +16,14 @@ type ShaderParameters =
         ShadingColorB: byte
     }
 
-type PixelHillshader = 
+type PixelHillshaderFunc = 
     ShaderParameters -> float -> float -> float -> Rgba8Bit.RgbaColor
 
 let colorComponentRatioToByte (value: float): byte =
     (byte)(max (min ((int)(value * 255.)) 255) 0)
 
 
-let igorHillshade: PixelHillshader = fun parameters  _  slope aspect ->
+let igorHillshade: PixelHillshaderFunc = fun parameters  _  slope aspect ->
     match Double.IsNaN(aspect) with
     | true -> Rgba8Bit.TransparentColor
     | false ->
@@ -52,3 +52,7 @@ let hillshade (bounds: LonLatBounds): Stream option =
     let neededTiles = boundsToTiles bounds
 
     None
+
+
+type PixelHillshader = 
+    IgorHillshader

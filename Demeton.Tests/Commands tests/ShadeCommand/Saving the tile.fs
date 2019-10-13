@@ -2,6 +2,8 @@
 
 open Demeton
 open Demeton.Commands
+open Demeton.Shaders.ElevationColoring
+open Demeton.Shaders.ShaderTypes
 open Png
 open Png.Types
 
@@ -21,6 +23,7 @@ let options: ShadeCommand.Options = {
         OutputDir = "output"
         SrtmDir = "srtm"
         TileSize = 1000
+        Shader = ElevationColoringShader elevationColorScaleMaperitive
     }
 
 let tileIndexX = 3

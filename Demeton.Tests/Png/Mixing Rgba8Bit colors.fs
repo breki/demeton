@@ -69,14 +69,14 @@ let distancesBetweenMixedColorAreProportionalToTheMixRatio
     let distanceTo2 = Rgba8Bit.colorDistance color2 mixedColor
     let totalDistance = distanceTo1 + distanceTo2
 
-    printfn 
-        "color1: %s, color2: %s, mixed: %s, d1=%f, d2=%f, dt=%f"
-        (Rgba8Bit.toHex color1)
-        (Rgba8Bit.toHex color2)
-        (Rgba8Bit.toHex mixedColor)
-        distanceTo1
-        distanceTo2
-        totalDistance
+    //printfn 
+    //    "color1: %s, color2: %s, mixed: %s, d1=%f, d2=%f, dt=%f"
+    //    (Rgba8Bit.toHex color1)
+    //    (Rgba8Bit.toHex color2)
+    //    (Rgba8Bit.toHex mixedColor)
+    //    distanceTo1
+    //    distanceTo2
+    //    totalDistance
 
     totalDistance >= 100. ==> lazy
         let actualMixRatio = distanceTo1 / totalDistance
@@ -85,7 +85,7 @@ let distancesBetweenMixedColorAreProportionalToTheMixRatio
         propertyHolds |@ sprintf 
             "wrong mix ratio: expected %f, got %f" mixRatio actualMixRatio
 
-[<Property(Verbose=false)>]
+[<Fact>]
 let ``Color mixing properties``() =
     let genColor1 = Arb.generate<Rgba8Bit.RgbaColor>
     let genColor2 = Arb.generate<Rgba8Bit.RgbaColor>
@@ -100,3 +100,5 @@ let ``Color mixing properties``() =
     Gen.map3 (fun x y z -> x, y, z) genColor1 genColor2 genMixRatio
     |> Arb.fromGen
     |> Prop.forAll <| properties
+    |> Check.QuickThrowOnFailure
+    //|> replayPropertyCheck(955457094,296656784)

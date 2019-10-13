@@ -1,12 +1,10 @@
-﻿- problem with color mixing
-
--  calculate pixel dimensions in meters
-    - convert to lon/lat and then use a function to calculate distances on Earth's surface
-
-- add support for both elevation coloring and hillshading in the `shade` command
+﻿- add support for both elevation coloring and hillshading in the `shade` command
     - how to specify shading parameters?
     - how to specify which shader to use?
     - how to combine shaders in one image?
+
+-  calculate pixel dimensions in meters
+    - convert to lon/lat and then use a function to calculate distances on Earth's surface
 
 - ShadeCommand.shadeRaster
     - write tests

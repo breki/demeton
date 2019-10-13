@@ -1,6 +1,8 @@
 ﻿module ``Commands tests``.``ShadeCommand``.``Command line parsing``
 
 open Demeton.Commands
+open Demeton.Shaders.ElevationColoring
+open Demeton.Shaders.ShaderTypes
 
 open Xunit
 open Swensen.Unquote
@@ -21,6 +23,9 @@ let ``Sane defaults are used for options``() =
     test <@ options.FileName = "shading" @>
     test <@ options.MapScale = 50000. @>
     test <@ options.OutputDir = "output" @>
+    test <@ 
+            options.Shader 
+                = ElevationColoringShader elevationColorScaleMaperitive @>
 
 [<Fact>]
 let ``Reports error when coverage points parameter was not specified at all``() =

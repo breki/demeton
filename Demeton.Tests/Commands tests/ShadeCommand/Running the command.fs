@@ -2,6 +2,8 @@
 
 open Demeton
 open Demeton.Commands
+open Demeton.Shaders.ElevationColoring
+open Demeton.Shaders.ShaderTypes
 
 open Xunit
 open Swensen.Unquote
@@ -18,6 +20,7 @@ let options: ShadeCommand.Options = {
         OutputDir = "output"
         SrtmDir = "srtm"
         TileSize = 1000
+        Shader = ElevationColoringShader elevationColorScaleMaperitive
     }
 
 let mutable generatedTiles = []

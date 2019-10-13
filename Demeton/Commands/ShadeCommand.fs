@@ -12,6 +12,7 @@ open Demeton.Projections.Common
 open Demeton.Shaders.ElevationColoring
 open Demeton.Shaders.Hillshading
 open Demeton.Shaders.Terrain
+open Demeton.Shaders.ShaderTypes
 open Demeton.Srtm
 open Demeton.Srtm.Funcs
 open Png
@@ -19,7 +20,6 @@ open Png.Types
 
 open System.IO
 open System
-open Demeton.Shaders
 
 type Options = {
     CoveragePoints: LonLat list
@@ -30,6 +30,7 @@ type Options = {
     OutputDir: string
     SrtmDir: string
     TileSize: int
+    Shader: Shader
 }
 
 [<Literal>]
@@ -182,6 +183,7 @@ let parseArgs (args: string list): ParsingResult<Options> =
             OutputDir = "output"
             SrtmDir = "srtm"
             TileSize = 1000
+            Shader = ElevationColoringShader elevationColorScaleMaperitive
         }
 
     let mutable parsingResult: ParsingResult<Options> = 
@@ -250,6 +252,12 @@ let projectionScaleFactor options =
 
 type RasterShader = 
     HeightsArray -> Raster.Rect -> RawImageData -> Options -> unit
+
+/// <summary>
+/// Fetches an appropriate <see cref="RasterShader" /> function based on the
+/// specified shade command options.
+/// </summary>
+type RasterShaderFactory = Options -> RasterShader
 
 let colorRasterBasedOnElevation: RasterShader = 
     fun heightsArray tileRect imageData options ->
@@ -344,12 +352,16 @@ let shadeRaster: RasterShader =
 
     invalidOp "todo"
 
+let rasterShaderFactory: RasterShaderFactory = fun options ->
+    // todo: extend the factory to support various shaders based on options
+    colorRasterBasedOnElevation
+
 type ShadedRasterTileGenerator = 
     Raster.Rect -> Options -> Result<RawImageData option, string>
 
 let generateShadedRasterTile 
     (fetchHeightsArray: SrtmHeightsArrayFetcher)
-    (shadeRaster: RasterShader)
+    (createRasterShader: RasterShaderFactory)
     (tileRect: Raster.Rect)
     options 
     : Result<RawImageData option, string> =
@@ -384,6 +396,8 @@ let generateShadedRasterTile
             let imageData =
                 Rgba8Bit.createImageData 
                     tileRect.Width tileRect.Height Rgba8Bit.ImageDataZero
+
+            let shadeRaster = createRasterShader options
 
             shadeRaster heightsArray tileRect imageData options
             Ok (Some imageData)

@@ -1,4 +1,9 @@
-﻿## Sun 13.10.
+﻿- extend command line to support specifying the elevation colorer (including (optional) color ramps)
+- extend command line to support specifying Igor's hillshading method (+ parameters)
+
+## Sun 13.10.
+- `generateShadedRasterTile` function now accepts `RasterShaderFactory` instead of `RasterShader` directly.
+- Introduced `Shader` into `ShadeCommand.Options`.
 - Projection code now uses radians instead of degrees.
 - PixelHillshader now returns Rgba8Bit.RgbaColor.
 - Started working on extending the `shade` command to support pixel hillshaders.
