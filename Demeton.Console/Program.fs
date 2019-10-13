@@ -30,7 +30,7 @@ let shade (options: ShadeCommand.Options) =
     let generateTile =
         ShadeCommand.generateShadedRasterTile
             (Wiring.fetchSrtmHeights options.SrtmDir options.LocalCacheDir)
-            ShadeCommand.shadeRaster
+            ShadeCommand.colorRasterBasedOnElevation
 
     let saveTile =
         ShadeCommand.saveShadedRasterTile

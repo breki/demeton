@@ -8,6 +8,9 @@ open System
 [<Literal>]
 let BytesPerPixel = 4
 
+[<Literal>]
+let TransparentColor = 0u
+
 type RgbaColor = uint32
 type ArgbColor = uint32
 

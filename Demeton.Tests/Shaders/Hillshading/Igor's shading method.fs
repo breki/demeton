@@ -2,6 +2,7 @@
 
 open Demeton.Geometry.Common
 open Demeton.Shaders.Hillshading
+open Png
 
 open System
 
@@ -20,7 +21,7 @@ let ``Uses transparency for totally flat area`` (parameters, slope, aspect) =
         |> Prop.classify true "Non-flat area"
         |> Prop.label "Area is not flat"
     | true -> 
-        color.A = 0uy 
+        Rgba8Bit.a color = 0uy 
             |> Prop.classify true "Flat area"
             |> Prop.label "Uses transparency for totally flat area"
 

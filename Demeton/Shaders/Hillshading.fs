@@ -2,10 +2,10 @@
 
 open Demeton.Geometry.Common
 open Demeton.Srtm.Funcs
+open Png
+
 open System;
 open System.IO
-
-type Color = { A: byte; R: byte; G: byte; B: byte }
 
 type ShaderParameters = 
     { 
@@ -16,43 +16,36 @@ type ShaderParameters =
         ShadingColorB: byte
     }
 
+type PixelHillshader = 
+    ShaderParameters -> float -> float -> float -> Rgba8Bit.RgbaColor
 
 let colorComponentRatioToByte (value: float): byte =
     (byte)(max (min ((int)(value * 255.)) 255) 0)
 
 
-let igorHillshade 
-        (parameters: ShaderParameters) 
-        _
-        (slope: float)
-        (aspect: float) 
-        : Color =
-
+let igorHillshade: PixelHillshader = fun parameters  _  slope aspect ->
     match Double.IsNaN(aspect) with
-    | true -> { A = 0uy; R = 0uy; G = 0uy; B = 0uy }
+    | true -> Rgba8Bit.TransparentColor
     | false ->
+        let sunDirection = Math.PI * 3./2.
+
         let aspectDiff = differenceBetweenAngles
                             aspect 
-                            (Math.PI * 3./2. - parameters.SunAzimuth)
+                            (sunDirection - parameters.SunAzimuth)
                             (Math.PI * 2.)
     
-        let slopeNormalized = max slope 0.
-
-        let slopeDegrees = min (slopeNormalized / Math.PI * 180.) 90.
-
-        let slopeStrength = slopeDegrees / 90.
+        let slopeStrength = slope / (Math.PI / 2.)
         let aspectStrength = 1. - aspectDiff / Math.PI
         let shadowness = slopeStrength * aspectStrength
 
         let alpha = colorComponentRatioToByte 
                         (shadowness * parameters.ShadingIntensity)
     
-        { 
-            A = alpha
-            R = parameters.ShadingColorR
-            G = parameters.ShadingColorG
-            B = parameters.ShadingColorB
-        }
+        Rgba8Bit.rgbaColor
+            parameters.ShadingColorR
+            parameters.ShadingColorG
+            parameters.ShadingColorB
+            alpha
 
 // todo: implement hillshade
 let hillshade (bounds: LonLatBounds): Stream option =

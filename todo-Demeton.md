@@ -1,6 +1,14 @@
-﻿- hillshading
-    - implement Igor's shading method
+﻿- add support for both elevation coloring and hillshading in the `shade` command
+    - how to specify shading parameters?
+    - how to specify which shader to use?
+    - how to combine shaders in one image?
+
+- ShadeCommand.shadeRaster
+    - write tests
+
+- hillshading
     - implement the actual hillshader for the raster
+    - implement Igor's shading method
     - integrate it into the shade command
 - update readme.md docs
 

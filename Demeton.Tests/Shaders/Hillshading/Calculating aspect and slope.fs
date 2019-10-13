@@ -146,8 +146,8 @@ let ``slope is value from 0 to 90 degrees and aspect from 0 to 360 degrees or No
         heightsAreMissing |> Prop.classify true "heights are missing"
         |@ sprintf "slope should be None"
     | Some (slope, aspect) -> 
-        let slopeInDegress = radToDeg slope
-        let aspectInDegress = radToDeg aspect
+        let slopeInDegress = normalizeAngle (radToDeg slope) 360.
+        let aspectInDegress = normalizeAngle (radToDeg aspect) 360.
 
         (not heightsAreMissing && slopeInDegress >= 0. 
             && slopeInDegress < 90.
@@ -234,3 +234,4 @@ let ``Production slope and aspect implementation adheres to all the properties``
     |> Prop.forAll 
     <| specs calculateSlopeAndAspect
     |> Check.QuickThrowOnFailure
+    //|> replayPropertyCheck (1760639392,296656752)

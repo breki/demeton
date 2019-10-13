@@ -1,4 +1,8 @@
-﻿## Sat 12.10.
+﻿## Sun 13.10.
+- PixelHillshader now returns Rgba8Bit.RgbaColor.
+- Started working on extending the `shade` command to support pixel hillshaders.
+
+## Sat 12.10.
 - Started writing tests for Igor's hillshading method.
 - Renamed "orientation" term to the more appropriate "aspect".
 - Reimplemented production calculation of the orientation.

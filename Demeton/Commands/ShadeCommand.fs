@@ -10,6 +10,8 @@ open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Shaders.ElevationColoring
+open Demeton.Shaders.Hillshading
+open Demeton.Shaders.Terrain
 open Demeton.Srtm
 open Demeton.Srtm.Funcs
 open Png
@@ -17,6 +19,7 @@ open Png.Types
 
 open System.IO
 open System
+open Demeton.Shaders
 
 type Options = {
     CoveragePoints: LonLat list
@@ -248,7 +251,7 @@ let projectionScaleFactor options =
 type RasterShader = 
     HeightsArray -> Raster.Rect -> RawImageData -> Options -> unit
 
-let shadeRaster: RasterShader = 
+let colorRasterBasedOnElevation: RasterShader = 
     fun heightsArray tileRect imageData options ->
 
     let tileWidth = tileRect.Width
@@ -280,6 +283,54 @@ let shadeRaster: RasterShader =
                 (y - tileRect.MinY)
                 pixelValue
 
+let shadeRaster: RasterShader = 
+    fun heightsArray tileRect imageData options ->
+
+    let scaleFactor = options |> projectionScaleFactor
+
+    let heightOf x y =
+        let xUnscaled = x / scaleFactor
+        let yUnscaled = y / scaleFactor
+        let lonLatOption = WebMercator.inverse xUnscaled yUnscaled
+
+        match lonLatOption with
+        | None -> None
+        | Some (lon, lat) ->
+            let globalSrtmX = Tile.longitudeToGlobalX lon 3600
+            let globalSrtmY = Tile.latitudeToGlobalY lat 3600
+            heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
+
+    let shaderParameters: ShaderParameters = {
+            SunAzimuth = degToRad 45.
+            ShadingIntensity = 1.
+            ShadingColorR = 0uy
+            ShadingColorG = 0uy
+            ShadingColorB = 0uy
+        }
+
+    let pixelWidthInMeters = invalidOp "todo"
+    let pixelHeightInMeters = invalidOp "todo"
+
+    for y in tileRect.MinY .. (tileRect.MaxY-1) do
+        for x in tileRect.MinX .. (tileRect.MaxX-1) do
+            let cornerHeights = [|
+                heightOf ((float x) - 0.5) ((float y) - 0.5)
+                heightOf ((float x) + 0.5) ((float y) - 0.5)
+                heightOf ((float x) - 0.5) ((float y) + 0.5)
+                heightOf ((float x) + 0.5) ((float y) + 0.5)
+                |]
+
+            let slopeAndAspectMaybe =
+                calculateSlopeAndAspect 
+                    cornerHeights pixelWidthInMeters pixelHeightInMeters
+
+            match slopeAndAspectMaybe with
+            | Some (slope, aspect) ->
+                let pixelValue = igorHillshade shaderParameters 0. slope aspect
+                invalidOp "todo"
+            | None -> ignore()
+
+    invalidOp "todo"
 
 type ShadedRasterTileGenerator = 
     Raster.Rect -> Options -> Result<RawImageData option, string>
