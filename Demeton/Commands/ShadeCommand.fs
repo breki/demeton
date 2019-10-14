@@ -215,21 +215,19 @@ let parseArgs (args: string list): ParsingResult<Options> =
             Parser = parseParameterValue parseTileSize }
     |]
 
-    let parsingResult = 
-        parseParameters args supportedParameters defaultOptions
-
-    match parsingResult with
-    | Ok context ->
-        let (_, finalOptions) = context
-
+    let optionsValidator finalOptions =
         match finalOptions.CoveragePoints |> Seq.length with
         | len when len < 2 ->
-            context
+            finalOptions
+            |> finalContext
             |> invalidParameter 
                     CoveragePointsParameter
                     "it has to have at least two points specified" 
-        | _ -> parsingResult
-    | _ -> parsingResult
+        | _ -> finalOkResult finalOptions
+
+    parseParameters
+        optionsValidator args supportedParameters defaultOptions
+
 
 let splitIntoIntervals minValue maxValue intervalSize =
     let spaceLength = maxValue - minValue

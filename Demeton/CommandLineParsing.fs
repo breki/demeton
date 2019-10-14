@@ -91,6 +91,10 @@ let withOptions
     let (args, _) = context
     (args, updatedOptions)
 
+let finalContext options = ([], options)
+
+let finalOkResult options = Ok (finalContext options)
+
 /// <summary>
 /// Constructs a parsing result indicating a missing parameter value error.
 /// </summary>
@@ -133,7 +137,10 @@ let tryParseFloat (value: string) =
     | (true, parsed) -> Some parsed
     | _ -> None
 
-let parseParameters 
+type OptionsValidator<'TOptions> = 'TOptions -> ParsingResult<'TOptions>
+
+let parseParameters
+    (validateFinalOptions: OptionsValidator<'TOptions>)
     (args: string list)
     supportedParameters
     defaultOptions
@@ -164,4 +171,6 @@ let parseParameters
                 Error (sprintf "Unrecognized parameter '%s'." argParameter)
             | None -> invalidOp "BUG: this should never happen"
 
-    parsingResult
+    match parsingResult with
+    | Ok (_, finalOptions) -> validateFinalOptions finalOptions
+    | _ -> parsingResult

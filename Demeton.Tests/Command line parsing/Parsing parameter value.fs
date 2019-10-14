@@ -1,4 +1,4 @@
-﻿module Tests.``Command line parsing``.``Parsing parameters``
+﻿module Tests.``Command line parsing``.``Parsing parameter value``
 
 open Demeton.CommandLineParsing
 open Xunit

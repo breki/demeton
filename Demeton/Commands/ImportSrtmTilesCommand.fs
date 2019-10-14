@@ -7,7 +7,6 @@ open Demeton.Geometry.Common
 open Demeton.Srtm
 open Demeton.Srtm.Types
 
-open System
 open System.IO
 
 
@@ -113,15 +112,14 @@ let parseArgs (args: string list): ParsingResult<Options> =
             Parser = parseParameterValue parseLocalCacheDir }
     |]
 
-    let parsingResult = 
-        parseParameters args supportedParameters defaultOptions
-
-    match parsingResult with
-    | Ok (_, finalOptions) ->
+    let optionsValidator finalOptions =
         match finalOptions.Bounds with
-        | None -> Error "'bounds' parameter is missing."
-        | _ -> parsingResult
-    | _ -> parsingResult
+        | None -> 
+            finalOptions |> finalContext 
+            |> withError "'bounds' parameter is missing."
+        | _ -> finalOptions |> finalOkResult
+
+    parseParameters optionsValidator args supportedParameters defaultOptions
 
 
 type SrtmToPngEncoder = HeightsArray -> Stream -> unit

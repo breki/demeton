@@ -23,7 +23,8 @@
     <Compile Include="ResultSeq tests.fs" />
     <Compile Include="FileSystem tests\Zip files tests.fs" />
     <Compile Include="Reading binary streams.fs" />
-    <Compile Include="Command line parsing\Parsing parameters.fs" />
+    <Compile Include="Command line parsing\Parsing parameter value.fs" />
+    <Compile Include="Command line parsing\Parsing a sequence of parameters.fs" />
     <Compile Include="Png\PNG filtering.fs" />
     <Compile Include="Png\IDAT compression.fs" />
     <Compile Include="Png\Reading and writing PNG files.fs" />

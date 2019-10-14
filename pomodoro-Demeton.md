@@ -1,7 +1,7 @@
-﻿- implement a more generic way to parse the whole command
+﻿- define command line commands in a parametric way so they can be registered commands in an array and run parsing based on that
 
 ## Mon 14.10.
-- Extracted a generic `parseParameters` function for command line parsing.
+- Implemented a `parseParameters` function for parsing commands in a more generic way.
 
 ## Sun 13.10.
 - Extracted common `CommandLineParsingFunction` and `CommandLineParameter` types and implemented a more generic parsing code for the existing commands.
