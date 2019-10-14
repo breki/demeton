@@ -1,5 +1,7 @@
-﻿- make the command line parameter reusable when parsing
-    - specify parameters in a dictionary: parameter name -> parserFunction
+﻿- implement a more generic way to parse the whole command
+
+## Mon 14.10.
+- Extracted a generic `parseParameters` function for command line parsing.
 
 ## Sun 13.10.
 - Extracted common `CommandLineParsingFunction` and `CommandLineParameter` types and implemented a more generic parsing code for the existing commands.

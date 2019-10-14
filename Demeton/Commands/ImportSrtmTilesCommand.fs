@@ -113,30 +113,8 @@ let parseArgs (args: string list): ParsingResult<Options> =
             Parser = parseParameterValue parseLocalCacheDir }
     |]
 
-    let mutable parsingResult: ParsingResult<Options> = 
-        Ok (args, defaultOptions)
-
-    while hasMoreArgs parsingResult do
-        let (arg, context) = nextArgResult parsingResult
-
-        parsingResult <-
-            match arg with
-            | Some argParameter when argParameter.StartsWith("--") ->
-                let parameterName = argParameter.Substring 2
-                let parameterMaybe =
-                    supportedParameters 
-                    |> Array.tryFind (fun p -> 
-                        String.Equals(
-                            parameterName, 
-                            p.Name, 
-                            StringComparison.OrdinalIgnoreCase))
-                match parameterMaybe with
-                | Some parInfo -> parInfo.Parser parameterName context
-                | None -> 
-                    Error (sprintf "Unrecognized parameter '%s'." parameterName)
-            | Some argParameter -> 
-                Error (sprintf "Unrecognized parameter '%s'." argParameter)
-            | None -> invalidOp "BUG: this should never happen"
+    let parsingResult = 
+        parseParameters args supportedParameters defaultOptions
 
     match parsingResult with
     | Ok (_, finalOptions) ->

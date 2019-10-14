@@ -129,3 +129,36 @@ let tryParseFloat (value: string) =
         CultureInfo.InvariantCulture) with
     | (true, parsed) -> Some parsed
     | _ -> None
+
+let parseParameters 
+    (args: string list)
+    supportedParameters
+    defaultOptions
+    : ParsingResult<'TOptions> =
+
+    let mutable parsingResult: ParsingResult<'TOptions> = 
+        Ok (args, defaultOptions)
+
+    while hasMoreArgs parsingResult do
+        let (arg, context) = nextArgResult parsingResult
+
+        parsingResult <-
+            match arg with
+            | Some argParameter when argParameter.StartsWith("--") ->
+                let parameterName = argParameter.Substring 2
+                let parameterMaybe =
+                    supportedParameters 
+                    |> Array.tryFind (fun p -> 
+                        String.Equals(
+                            parameterName, 
+                            p.Name, 
+                            StringComparison.OrdinalIgnoreCase))
+                match parameterMaybe with
+                | Some parInfo -> parInfo.Parser parameterName context
+                | None -> 
+                    Error (sprintf "Unrecognized parameter '%s'." parameterName)
+            | Some argParameter -> 
+                Error (sprintf "Unrecognized parameter '%s'." argParameter)
+            | None -> invalidOp "BUG: this should never happen"
+
+    parsingResult
