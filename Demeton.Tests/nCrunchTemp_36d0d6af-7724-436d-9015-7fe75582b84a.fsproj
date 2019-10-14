@@ -1,0 +1,155 @@
+﻿<Project DefaultTargets="Build;NCrunchOutputDataQuery" Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <!--<RuntimeFrameworkVersion>2.2.6</RuntimeFrameworkVersion>-->
+    <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="TestHelp.fs" />
+    <Compile Include="PropertiesHelp.fs" />
+    <Compile Include="ResultSeq tests.fs" />
+    <Compile Include="FileSystem tests\Zip files tests.fs" />
+    <Compile Include="Reading binary streams.fs" />
+    <Compile Include="Command line parsing\Parsing parameters.fs" />
+    <Compile Include="Png\PNG filtering.fs" />
+    <Compile Include="Png\IDAT compression.fs" />
+    <Compile Include="Png\Reading and writing PNG files.fs" />
+    <Compile Include="Png\Mixing Rgba8Bit colors.fs" />
+    <Compile Include="Geometry\GeometryTestHelp.fs" />
+    <Compile Include="Geometry\Common tests.fs" />
+    <Compile Include="Geometry\Bounds tests.fs" />
+    <Compile Include="Geometry\Mean of angles.fs" />
+    <Compile Include="Geometry\Distance on Earth.fs" />
+    <Compile Include="Dem\Working with HeightsArrays.fs" />
+    <Compile Include="Dem\Merging DEM data.fs" />
+    <Compile Include="Srtm\SRTM tile tests.fs" />
+    <Compile Include="Srtm\Bounds to DEM tiles.fs" />
+    <Compile Include="Srtm\Reading SRTM HGT files.fs" />
+    <Compile Include="Srtm\encodeHeightsArrayIntoPngFile tests.fs" />
+    <Compile Include="Srtm\Converting HGT to PNG.fs" />
+    <Compile Include="Srtm\convertZippedHgtTileToPng tests.fs" />
+    <Compile Include="Srtm\decodeSrtmTileFromPngFile tests.fs" />
+    <Compile Include="Srtm\fetchSrtmTile tests.fs" />
+    <Compile Include="Srtm\fetchSrtmHeights tests.fs" />
+    <Compile Include="Projections\ProjectionsTestHelpers.fs" />
+    <Compile Include="Projections\WebMercator tests.fs" />
+    <Compile Include="Shaders\Hillshading\Calculating aspect and slope.fs" />
+    <Compile Include="Shaders\Hillshading\Igor%27s shading method.fs" />
+    <Compile Include="Shaders\Elevation coloring.fs" />
+    <Compile Include="Commands tests\ShadeCommand\Command line parsing.fs" />
+    <Compile Include="Commands tests\ShadeCommand\Running the command.fs" />
+    <Compile Include="Commands tests\ShadeCommand\Splitting into intervals.fs" />
+    <Compile Include="Commands tests\ShadeCommand\Generating shaded tile.fs" />
+    <Compile Include="Commands tests\ShadeCommand\Shading the raster.fs" />
+    <Compile Include="Commands tests\ShadeCommand\Saving the tile.fs" />
+    <Compile Include="Commands tests\Command line parameters parsing.fs" />
+    <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs" />
+    <Compile Include="Benchmarks\PngFilterBenchmarks.fs" />
+    <Compile Include="Benchmarks\CrcBenchmarks.fs" />
+    <Compile Include="Benchmarks\Array1Dvs2D.fs" />
+    <Compile Include="Benchmarks\ArrayAccess.fs" />
+    <Compile Include="Program.fs" />
+    <EmbeddedResource Include="..\samples\test-grayscale-16.png" Link="samples\test-grayscale-16.png" />
+    <EmbeddedResource Include="..\samples\N46E015.png" Link="samples\N46E015.png" />
+    <EmbeddedResource Include="..\samples\N00E031.hgt" Link="samples\N00E031.hgt" />
+    <EmbeddedResource Include="..\samples\N00E031.SRTMGL1.hgt.zip" Link="samples\N00E031.SRTMGL1.hgt.zip" />
+    <EmbeddedResource Include="..\samples\N46E015.hgt" Link="samples\N46E015.hgt" />
+    <EmbeddedResource Include="..\samples\N46E015.SRTMGL1.hgt.zip" Link="samples\N46E015.SRTMGL1.hgt.zip" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.11.5" />
+    <PackageReference Include="FParsec" Version="1.0.3" />
+    <PackageReference Include="fscheck" Version="2.14.0" />
+    <PackageReference Include="fscheck.xunit" Version="2.14.0" />
+    <PackageReference Include="FsUnit.xUnit" Version="3.4.1" />
+    <PackageReference Include="SharpZipLib.NETStandard" Version="1.0.7" />
+    <PackageReference Include="System.Drawing.Common" Version="4.6.0" />
+    <PackageReference Include="Unquote" Version="5.0.0" />
+    <PackageReference Include="xunit.runner.console" Version="2.4.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Demeton\Demeton.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.7.0" />
+  </ItemGroup>
+  <Target Name="AssignProjectConfiguration" DependsOnTargets="">
+  </Target>
+  <Target Name="ResolveTestReferences" DependsOnTargets="">
+  </Target>
+  <Target Name="NCrunchOutputDataQuery" DependsOnTargets="_SplitProjectReferencesByFileExistence;ResolveKeySource;$(ResolveReferencesDependsOn)">
+    <Message Text="#c8fa3226f7ff4c358b3039e42a0877a9=$(Configuration)" />
+    <Message Text="#2cf9fc8dab5b4f009a904ca82a0844ba=$(TargetFrameworkVersion)" />
+    <Message Text="#14416d2932604b08b8c21708a9f21845=$(TargetFramework)" />
+    <Message Text="#30c3639e007642eaae820ea04e96c84f=$(AssemblyName)" />
+    <Message Text="#fd2ff336eb6240d6ac1f1bdb1337c0bd=$(DefaultItemExcludes)" />
+    <Message Text="#8589091222a14d50bc28ae502318baf5=$(DefaultItemExcludesInProjectFolder)" />
+    <Message Text="#6a47bc120a674a57b663e3b6c5152a8d=$(EnableDefaultItems)" />
+    <Message Text="#5e57c3ed9a1947cd9a30841142104e9b=$(OutputPath)" />
+    <Message Text="#7bff98bdb915445caf9e3e4925cf3f47=$(OutDir)" />
+    <Message Text="#43bece1be75f43369db8f3c7efbe83fc=$(KeyOriginatorFile)" />
+    <Message Text="#5bb0ca1d4c0045139e6131faff4003e2=$(SignAssembly)" />
+    <Message Text="#9e2d01663b3c4059a0d7a1b1e7b43f74=$(PlatformTarget)" />
+    <Message Text="#e6f5bec8d1d546d7ae8fd09d25b0022d=$(NuGetToolsPath)" />
+    <Message Text="#07a2f15c6fe1463c8a115fcb12756d6d=$(Language)" />
+    <Message Text="#7c935e28cd6c423b8c553d3e9a0fc26d=$(OtherFlags)" />
+    <Message Text="#675db01307d74d84aee5e2368c0d46c1=$(PreBuildEvent)" />
+    <Message Text="#d96f41eb5a0649ef965114cd5dd25026=$(PostBuildEvent)" />
+    <Message Text="#661b2962f68c4fabbb4f81bd72fc7a67=$(LinkedServerProject)" />
+    <Message Text="#2378cdfb60354cc39ac7b89b08c78af2=$(ResolveAssemblyReferencesStateFile)" />
+    <Message Text="#b0fbf6a29bb246a4bcee91653add68aa=$(SDKReferenceDirectoryRoot)" />
+    <Message Text="#4ad0d9417cc14a54b2deff99435a143e=$(__IntermediateAppConfig)" />
+    <Message Text="#72e18a5a24494adb960231b2e8c47074=$(PrepareForBuildDependsOn)" />
+    <Message Text="#26119df2c5ba424e9a663b55bcf0d95d=$(CustomAfterMicrosoftCommonTargets)" />
+    <Message Text="#0906181603184d79b1170bc8f0c3d895=$(ProjectAssetsFile)" />
+    <Message Text="#64fbe44d70054af18f5c02405beda986=$(DefineConstants)" />
+    <Message Text="#54817dcdee1b49ad8158a7fcc67507c6=$(NuGetPackageFolders)" />
+    <Message Text="#_ResolveComReferenceCache=;@(_ResolveComReferenceCache)" />
+    <Message Text="#AppxManifest=;@(AppxManifest)" />
+    <Message Text="#ReferencePath=;@(ReferencePath)" />
+    <Message Text="#ReferenceDependencyPaths=;@(ReferenceDependencyPaths)" />
+    <Message Text="#ComReferenceWrappers=;@(ComReferenceWrappers)" />
+    <Message Text="#ProjectReference=;@(ProjectReference)" />
+    <Message Text="#None=;@(None)" Condition="'%(None.Generator)'!=''" />
+    <Message Text="#Compile.ClCompile.SpecFlowFeatureFiles=;@(Compile);@(ClCompile);@(SpecFlowFeatureFiles)" />
+    <Message Text="#Content=;@(Content)" />
+    <Message Text="#None.EmbeddedResource.VSCTCompile.Page.ApplicationDefinition.Resource.ClInclude.ResourceCompile.Library.$ApplicationIcon.$Win32Resource.$ApplicationManifest.$KeyOriginatorFile.EntityDeploy.XamlAppdef.$ManifestKeyFile.SplashScreen.BaseApplicationManifest.Midl.ServiceDefinition.ServiceConfiguration.BlendEmbeddedFont.TypeScriptCompile.AndroidResource.InterfaceDefinition.BundleResource.ITunesArtwork.PRIResource.Image.FsYacc.FsLex.Analyzer.AdditionalFiles.Map.XLang.Pipeline.Schema.Antlr4=;@(None);@(EmbeddedResource);@(VSCTCompile);@(Page);@(ApplicationDefinition);@(Resource);@(ClInclude);@(ResourceCompile);@(Library);$(ApplicationIcon);$(Win32Resource);$(ApplicationManifest);$(KeyOriginatorFile);@(EntityDeploy);@(XamlAppdef);$(ManifestKeyFile);@(SplashScreen);@(BaseApplicationManifest);@(Midl);@(ServiceDefinition);@(ServiceConfiguration);@(BlendEmbeddedFont);@(TypeScriptCompile);@(AndroidResource);@(InterfaceDefinition);@(BundleResource);@(ITunesArtwork);@(PRIResource);@(Image);@(FsYacc);@(FsLex);@(Analyzer);@(AdditionalFiles);@(Map);@(XLang);@(Pipeline);@(Schema);@(Antlr4)" />
+    <Message Text="#LinkedFiles=;@(Compile->'%(Link)')" />
+    <Message Text="#DotNetCliToolReference=@(DotNetCliToolReference)|@(DotNetCliToolReference->'%(Version)')" Condition="'@(DotNetCliToolReference->'%(Version)')'!=''" />
+    <Message Text="#ReferencePathAliases=@(ReferencePath)|%(ReferencePath.Aliases)" Condition="'%(ReferencePath.Aliases)'!=''" />
+    <Message Text="#ReferencePathEmbedInteropTypes=@(ReferencePath)|%(ReferencePath.EmbedInteropTypes)" Condition="'%(ReferencePath.EmbedInteropTypes)'!=''" />
+    <Message Text="#ReferencePathPrivate=@(ReferencePath)|%(ReferencePath.Private)" Condition="'%(ReferencePath.Private)'!=''" />
+    <Message Text="#ReferencePathIsIgnoredNCrunchTestFrameworkReference=@(ReferencePath)|%(ReferencePath.IsIgnoredNCrunchTestFrameworkReference)" Condition="'%(ReferencePath.IsIgnoredNCrunchTestFrameworkReference)'!=''" />
+    <Message Text="#ProjectReferenceAliases=@(ProjectReference)|%(ProjectReference.Aliases)" Condition="'%(ProjectReference.Aliases)'!=''" />
+    <Message Text="#ProjectReferenceEmbedInteropTypes=@(ProjectReference)|%(ProjectReference.EmbedInteropTypes)" Condition="'%(ProjectReference.EmbedInteropTypes)'!=''" />
+    <Message Text="#ProjectReferencePrivate=@(ProjectReference)|%(ProjectReference.Private)" Condition="'%(ProjectReference.Private)'!=''" />
+    <Message Text="#ProjectReferenceIsIgnoredNCrunchTestFrameworkReference=@(ProjectReference)|%(ProjectReference.IsIgnoredNCrunchTestFrameworkReference)" Condition="'%(ProjectReference.IsIgnoredNCrunchTestFrameworkReference)'!=''" />
+    <Message Text="#_ConflictPackageFiles=;@(_ConflictPackageFiles)" />
+    <Message Text="#3a3a00ef0d1d4bb3ba02d03f99e49077=$(TargetFramework)" />
+    <Message Text="#e07edb0cab184a8b867db06c9b3ddc2f=$(TargetFramework)" />
+    <Message Text="#c30c77cd0d9c46269707811ae727cf87=$(ImplicitFrameworkDefine)" />
+    <Message Text="#56fdeec737f1401a88451d7457f30442=$(CodeAnalysisRuleSet)" />
+    <Message Text="#CodeAnalysisDictionary=;@(CodeAnalysisDictionary)" />
+    <Message Text="#cdfe4c967ee94d3485d5bcf78268f589=$(CodeContractsReferenceAssembly)" />
+    <Message Text="#Fakes=;@(Fakes)" />
+    <Message Text="#f0aba2e2621f4993b1b2cbbbfa4bd314=$(MvcBuildViews)" />
+    <Message Text="#783bcc10db6147e48cd15f8d0f9e055b=$(StyleCopEnabled)" />
+    <Message Text="#Shadow=;@(Shadow)" />
+  </Target>
+</Project>
