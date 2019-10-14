@@ -6,6 +6,9 @@ module Demeton.CommandLineParsing
 open System
 open System.Globalization
 
+[<Literal>]
+let ParameterPrefix = "--"
+
 /// <summary>
 /// A tuple holding the current context of the parser. The first item is a list
 /// of command line arguments that have not been consumed yet by the parser.
@@ -113,7 +116,7 @@ let parseParameterValue
     parseValue parameterName (context: ParsingContext<'TOptions>) =
     match nextArg context with
     | None -> context |> parameterValueIsMissing parameterName
-    | (Some x) when x.StartsWith("--") ->
+    | (Some x) when x.StartsWith(ParameterPrefix) ->
         context |> parameterValueIsMissing parameterName
     | Some parameterValue -> parseValue parameterValue context
 
@@ -144,7 +147,7 @@ let parseParameters
 
         parsingResult <-
             match arg with
-            | Some argParameter when argParameter.StartsWith("--") ->
+            | Some argParameter when argParameter.StartsWith(ParameterPrefix) ->
                 let parameterName = argParameter.Substring 2
                 let parameterMaybe =
                     supportedParameters 
