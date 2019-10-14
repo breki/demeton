@@ -3,12 +3,7 @@
 open Demeton.CommandLineParsing
 open Xunit
 open Swensen.Unquote    
-
-
-let isError errorMessage result =
-    match result with
-    | Ok _ -> false
-    | Error actualMessage -> actualMessage = errorMessage
+open TestHelp
 
 let doNotCallMeParser _ _ 
     = invalidOp "This function shouldn't have been called."
@@ -22,7 +17,7 @@ let ``Returns an error if parameter is the last argument and its value is missin
 
     let result = parseParameterValue doNotCallMeParser parameterName context
 
-    test <@ result |> isError "'someparam' parameter's value is missing." @>
+    test <@ result |> isErrorData "'someparam' parameter's value is missing." @>
 
 
 [<Fact>]
@@ -34,4 +29,4 @@ let ``Returns an error if subsequent argument after parameter name starts with '
 
     let result = parseParameterValue doNotCallMeParser parameterName context
 
-    test <@ result |> isError "'someparam' parameter's value is missing." @>
+    test <@ result |> isErrorData "'someparam' parameter's value is missing." @>
