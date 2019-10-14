@@ -1,4 +1,10 @@
-﻿- add some textual info to the commands and parameters so we can auto-generate help messages
+﻿- define command line commands in a parametric way so they can be registered commands in an array and run parsing based on that
+    - problem: how to tread options for different commands in a generic way?
+        - solution 1: common base for options
+        - solution 2: a generic implementation of options
+        - solution 3: provide just a function for each command that that parses and executes
+
+- add some textual info to the commands and parameters so we can auto-generate help messages
 
 - add an (optional) color ramps
     - format: "height:#color;"

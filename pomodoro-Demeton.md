@@ -1,4 +1,10 @@
-﻿- define command line commands in a parametric way so they can be registered commands in an array and run parsing based on that
+﻿- separate parameter parsing from filling options
+
+- define command line commands in a parametric way so they can be registered commands in an array and run parsing based on that
+    - problem: how to tread options for different commands in a generic way?
+        - solution 1: common base for options
+        - solution 2: a generic implementation of options
+        - solution 3: provide just a function for each command that that parses and executes
 
 ## Mon 14.10.
 - Implemented a `parseParameters` function for parsing commands in a more generic way.
