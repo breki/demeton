@@ -1,4 +1,5 @@
-﻿module CommandLine.TextParsers
+﻿[<RequireQualifiedAccess>]
+module CommandLine.TextParsers
 
 open FParsec
 

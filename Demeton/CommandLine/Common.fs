@@ -3,7 +3,7 @@
 /// </summary>
 module CommandLine.Common
 
-open CommandLine.TextParsers
+open CommandLine
 
 open System
 open System.Globalization
@@ -19,7 +19,7 @@ type OptionValueParser = string -> OptionValueParsingResult
 
 
 let parseIntOptionValue: OptionValueParser = fun text ->
-    let intResult = parseInt text
+    let intResult = TextParsers.parseInt text
 
     match intResult with
     | Error _ -> InvalidValue "it has to be an integer value"

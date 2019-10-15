@@ -1,6 +1,6 @@
 ﻿module ``Commands tests``.``Command line parameters parsing``
 
-open CommandLine.TextParsers
+open CommandLine
 
 open Xunit
 open Swensen.Unquote
@@ -10,7 +10,7 @@ open TestHelp
 let ``Parsing a list of floats``() =
 
     let input = "2.22,2.3"
-    let result = parseFloatsList input
+    let result = TextParsers.parseFloatsList input
     test <@ result |> isOk @>
     test <@ result |> isOkValue [ 2.22; 2.3 ] @>
 

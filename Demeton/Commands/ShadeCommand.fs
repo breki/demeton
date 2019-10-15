@@ -1,7 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Commands.ShadeCommand
 
-open CommandLine.TextParsers
+open CommandLine
 open CommandLine.Common
 open Demeton
 open Demeton.DemTypes
@@ -54,7 +54,7 @@ let TileSizeParameter = "tile-size"
 
 
 let parseCoverage value =
-    let floatsListResult = parseFloatsList value
+    let floatsListResult = TextParsers.parseFloatsList value
 
     match floatsListResult with
     | Error _ -> InvalidValue "it has to consist of a list of coordinates"
@@ -74,7 +74,7 @@ let parseSrtmDir value = OkValue value
 let parseLocalCacheDir value = OkValue value
 
 let parseMapScale value =
-    let floatResult = parseFloat value
+    let floatResult = TextParsers.parseFloat value
 
     match floatResult with
     | Error _ -> InvalidValue "it has to be a numeric value larger than 1"
@@ -85,7 +85,7 @@ let parseMapScale value =
 
 
 let parseTileSize value =
-    let intResult = parseInt value
+    let intResult = TextParsers.parseInt value
 
     match intResult with
     | Error _ -> InvalidValue "it has to be an integer value larger than 0"
@@ -97,7 +97,7 @@ let parseTileSize value =
 
 
 let parseDpi value =
-    let floatResult = parseFloat value
+    let floatResult = TextParsers.parseFloat value
 
     match floatResult with
     | Error _ -> InvalidValue "it has to be a positive numeric value"
