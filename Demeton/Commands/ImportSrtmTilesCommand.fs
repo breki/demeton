@@ -1,6 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Commands.ImportSrtmTilesCommand
 
+open CommandLine
 open CommandLine.Common
 open Demeton.DemTypes
 open Demeton.Geometry.Common
@@ -73,20 +74,14 @@ let parseBounds (value: string) =
     | _ -> InvalidValue "it should consist of 4 numbers"
 
 
-let parseSrtmDir value = OkValue value
-
-
-let parseLocalCacheDir value = OkValue value
-
-
 let parseArgs (args: string list) =
     let supportedParameters = [|
         Option { Name = BoundsParameter; 
             Parser = parseBounds }
         Option { Name = SrtmDirParameter; 
-            Parser = parseSrtmDir }
+            Parser = ValueParsers.parseDir }
         Option { Name = LocalCacheDirParameter; 
-            Parser = parseLocalCacheDir }
+            Parser = ValueParsers.parseDir }
     |]
     
     let defaultOptions = { 

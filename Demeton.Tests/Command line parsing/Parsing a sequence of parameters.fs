@@ -1,5 +1,6 @@
 ﻿module Tests.``Command line parsing``.``Parsing a sequence of parameters``
 
+open CommandLine
 open CommandLine.Common
 
 open Xunit
@@ -9,7 +10,7 @@ open TestHelp
 
 let supportedParameters: CommandParameter[] = [|
     Switch { Name = "switch1" }
-    Option { Name = "option1"; Parser = parseIntOptionValue }
+    Option { Name = "option1"; Parser = ValueParsers.parseInt }
 |]
 
 [<Fact>]

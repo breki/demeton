@@ -1,7 +1,4 @@
-﻿- add generic option value parsers for int, float, string
-    - move some option value parsers that can be made more generic from the commands code to this new module
-- introduce setting as an unnamed, mandatory and positional parameter
-
+﻿
 - add some textual info to the commands and parameters so we can auto-generate help messages
 
 - add an (optional) color ramps

@@ -7,6 +7,7 @@ open CommandLine
 
 open System
 open System.Globalization
+open System.IO
 
 [<Literal>]
 let ParameterPrefix = "--"
@@ -17,14 +18,6 @@ type OptionValueParsingResult =
 
 type OptionValueParser = string -> OptionValueParsingResult
 
-
-let parseIntOptionValue: OptionValueParser = fun text ->
-    let intResult = TextParsers.parseInt text
-
-    match intResult with
-    | Error _ -> InvalidValue "it has to be an integer value"
-    | Ok value -> OkValue value
-    
 
 type CommandSwitch = { Name: string }
 type CommandOption = { Name: string; Parser: OptionValueParser }

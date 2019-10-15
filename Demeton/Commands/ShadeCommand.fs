@@ -19,7 +19,6 @@ open Png
 open Png.Types
 
 open System
-open System.IO
 
 type Options = {
     CoveragePoints: LonLat list
@@ -69,56 +68,6 @@ let parseCoverage value =
             OkValue coveragePoints
 
 
-let parseSrtmDir value = OkValue value
-
-let parseLocalCacheDir value = OkValue value
-
-let parseMapScale value =
-    let floatResult = TextParsers.parseFloat value
-
-    match floatResult with
-    | Error _ -> InvalidValue "it has to be a numeric value larger than 1"
-    | Ok value ->
-        match value with
-        | x when x < 1. -> InvalidValue "it has to be a value larger than 1"
-        | _ -> OkValue value
-
-
-let parseTileSize value =
-    let intResult = TextParsers.parseInt value
-
-    match intResult with
-    | Error _ -> InvalidValue "it has to be an integer value larger than 0"
-    | Ok value ->
-        match value with
-        | x when x < 1 -> 
-            InvalidValue "it has to be an integer value larger than 0"
-        | _ -> OkValue value
-
-
-let parseDpi value =
-    let floatResult = TextParsers.parseFloat value
-
-    match floatResult with
-    | Error _ -> InvalidValue "it has to be a positive numeric value"
-    | Ok value ->
-        match value with
-        | x when x <= 0. -> 
-            InvalidValue "it has to be a positive numeric value"
-        | _ -> OkValue value
-
-
-let parseFileName (value: string) =
-    let checkedValue = Path.GetFileName(value)
-
-    match checkedValue = value with
-    | false -> InvalidValue "it has to consist of valid path characters"
-    | true -> OkValue value
-
-
-let parseOutputDir value = OkValue value
-
-
 let parseElevationColorShader value =
     OkValue (ElevationColoringShader (elevationColorScaleMaperitive))
 
@@ -141,18 +90,18 @@ let parseArgs (args: string list) =
         Option { Name = CoveragePointsParameter; 
             Parser = parseCoverage }
         Option { Name = DpiParameter; 
-            Parser = parseDpi }
+            Parser = ValueParsers.parsePositiveFloat }
         Switch { Name = ElevationColorShaderParameter }
         Option { Name = FileNameParameter; 
-            Parser = parseFileName }
+            Parser = ValueParsers.parseFileName }
         Option { Name = LocalCacheDirParameter; 
-            Parser = parseLocalCacheDir }
+            Parser = ValueParsers.parseDir }
         Option { Name = MapScaleParameter; 
-            Parser = parseMapScale }
+            Parser = ValueParsers.parseFloat 1.}
         Option { Name = OutputDirParameter; 
-            Parser = parseOutputDir }
+            Parser = ValueParsers.parseDir }
         Option { Name = TileSizeParameter; 
-            Parser = parseTileSize }
+            Parser = ValueParsers.parsePositiveInt }
     |]
 
     let processParameter options parameter =

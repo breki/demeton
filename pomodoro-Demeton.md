@@ -1,7 +1,7 @@
-﻿- clean the whole code, fix naming inconsistencies etc.
+﻿- introduce setting as an unnamed, mandatory and positional parameter
 
 ## Tue 15.10.
-- Made a complete redesign of the command line parsing code do we could get rid of generics in the parameters specifications.
+- Made a complete redesign of the command line parsing code so we could get rid of generics in the parameters specifications.
 
 ## Mon 14.10.
 - Implemented a `parseParameters` function for parsing commands in a more generic way.

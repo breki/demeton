@@ -83,7 +83,7 @@ let ``Map scale has to be a numeric value`` () =
             "--coverage"; "10,20,30,40"; "--map-scale"; "xyz" ]
     test <@ 
             result 
-            |> isErrorData "'map-scale' parameter's value is invalid, it has to be a numeric value larger than 1." 
+            |> isErrorData "'map-scale' parameter's value is invalid, it has to be a numeric value >= 1." 
             @>
 
 [<Theory>]
@@ -96,7 +96,7 @@ let ``Map scale has to be a positive value larger than 1`` mapScaleString =
             "--coverage"; "10,20,30,40"; "--map-scale"; mapScaleString ]
     test <@ 
             result 
-            |> isErrorData "'map-scale' parameter's value is invalid, it has to be a value larger than 1." 
+            |> isErrorData "'map-scale' parameter's value is invalid, it has to be a numeric value >= 1." 
             @>
 
 [<Fact>]
