@@ -1,4 +1,4 @@
-﻿module Demeton.Commands.ParametersParsing
+﻿module CommandLine.TextParsers
 
 open FParsec
 
@@ -28,3 +28,4 @@ let parseFloat (str: string): Result<float, unit> =
 let parseFloatsList (str: string): Result<float list, unit> =
     let parsingFunc = sepBy pfloat (pstring ",")
     parseParameter str parsingFunc
+

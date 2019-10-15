@@ -1,9 +1,9 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Commands.ShadeCommand
 
+open CommandLine.TextParsers
+open CommandLine.Common
 open Demeton
-open Demeton.CommandLineParsing
-open Demeton.Commands.ParametersParsing
 open Demeton.DemTypes
 open Demeton.Geometry
 open Demeton.Geometry.Common
@@ -53,136 +53,77 @@ let SrtmDirParameter = "srtm-dir"
 let TileSizeParameter = "tile-size"
 
 
-let parseCoverage (value: string) (context: ParsingContext<Options>) =
+let parseCoverage value =
     let floatsListResult = parseFloatsList value
 
     match floatsListResult with
-    | Error _ -> 
-        context |> invalidParameter 
-            CoveragePointsParameter "it has to consist of a list of coordinates"
+    | Error _ -> InvalidValue "it has to consist of a list of coordinates"
     | Ok floatsList ->
         match floatsList.Length with
         | l when l % 2 <> 0 -> 
-            context |> invalidParameter 
-                CoveragePointsParameter "it has an odd number of coordinates"
+            InvalidValue "it has an odd number of coordinates"
         | l when l < 4 -> 
-            context |> invalidParameter 
-                CoveragePointsParameter 
-                    "it has to have at least two points specified"
+            InvalidValue "it has to have at least two points specified"
         | _ -> 
-            let (_, oldOptions) = context
-            context 
-            |> consumeArg
-            |> withOptions 
-                ({ oldOptions 
-                    with CoveragePoints = floatsListToPoints floatsList })
-            |> Result.Ok
+            let coveragePoints = floatsListToPoints floatsList
+            OkValue coveragePoints
 
 
-let parseSrtmDir value context =
-    let (_, oldOptions) = context
-    context 
-    |> consumeArg
-    |> withOptions ({ oldOptions with SrtmDir = value })
-    |> Result.Ok
+let parseSrtmDir value = OkValue value
 
+let parseLocalCacheDir value = OkValue value
 
-let parseLocalCacheDir value context =
-    let (_, oldOptions) = context
-    context 
-    |> consumeArg
-    |> withOptions ({ oldOptions with LocalCacheDir = value })
-    |> Result.Ok
-
-
-let parseMapScale (value: string) (context: ParsingContext<Options>) =
+let parseMapScale value =
     let floatResult = parseFloat value
 
     match floatResult with
-    | Error _ -> 
-        context |> invalidParameter 
-            MapScaleParameter  "it has to be a numeric value larger than 1"
+    | Error _ -> InvalidValue "it has to be a numeric value larger than 1"
     | Ok value ->
         match value with
-        | x when x < 1. -> 
-            context |> invalidParameter 
-                MapScaleParameter  "it has to be a value larger than 1"
-        | _ -> 
-            let (_, oldOptions) = context
-            context 
-            |> consumeArg
-            |> withOptions ({ oldOptions with MapScale = value })
-            |> Result.Ok
+        | x when x < 1. -> InvalidValue "it has to be a value larger than 1"
+        | _ -> OkValue value
 
 
-let parseTileSize (value: string) (context: ParsingContext<Options>) =
+let parseTileSize value =
     let intResult = parseInt value
 
     match intResult with
-    | Error _ -> 
-        context |> invalidParameter 
-            TileSizeParameter  "it has to be an integer value larger than 0"
+    | Error _ -> InvalidValue "it has to be an integer value larger than 0"
     | Ok value ->
         match value with
         | x when x < 1 -> 
-            context |> invalidParameter 
-                TileSizeParameter "it has to be an integer value larger than 0"
-        | _ -> 
-            let (_, oldOptions) = context
-            context 
-            |> consumeArg
-            |> withOptions ({ oldOptions with TileSize = value })
-            |> Result.Ok
+            InvalidValue "it has to be an integer value larger than 0"
+        | _ -> OkValue value
 
-let parseDpi (value: string) (context: ParsingContext<Options>) =
+
+let parseDpi value =
     let floatResult = parseFloat value
 
     match floatResult with
-    | Error _ -> 
-        context |> invalidParameter 
-            DpiParameter  "it has to be a positive numeric value"
+    | Error _ -> InvalidValue "it has to be a positive numeric value"
     | Ok value ->
         match value with
         | x when x <= 0. -> 
-            context |> invalidParameter 
-                DpiParameter "it has to be a positive numeric value"
-        | _ -> 
-            let (_, oldOptions) = context
-            context 
-            |> consumeArg
-            |> withOptions ({ oldOptions with Dpi = value })
-            |> Result.Ok
+            InvalidValue "it has to be a positive numeric value"
+        | _ -> OkValue value
 
-let parseFileName (value: string) (context: ParsingContext<Options>) =
+
+let parseFileName (value: string) =
     let checkedValue = Path.GetFileName(value)
 
     match checkedValue = value with
-    | false -> 
-        context |> invalidParameter 
-            FileNameParameter "it has to consist of valid path characters"
-    | true ->
-        let (_, oldOptions) = context
-        context 
-        |> consumeArg
-        |> withOptions ({ oldOptions with FileName = value })
-        |> Result.Ok
+    | false -> InvalidValue "it has to consist of valid path characters"
+    | true -> OkValue value
 
-let parseOutputDir (value: string) (context: ParsingContext<Options>) =
-    let (_, oldOptions) = context
-    context 
-    |> consumeArg
-    |> withOptions ({ oldOptions with OutputDir = value })
-    |> Result.Ok
 
-let parseElevationColorShader _ (context: ParsingContext<Options>) =
-    let (_, oldOptions) = context
-    context 
-    |> withOptions (
-        { oldOptions with 
-            Shader = ElevationColoringShader (elevationColorScaleMaperitive) })
-    |> Result.Ok
+let parseOutputDir value = OkValue value
 
-let parseArgs (args: string list): ParsingResult<Options> =
+
+let parseElevationColorShader value =
+    OkValue (ElevationColoringShader (elevationColorScaleMaperitive))
+
+
+let parseArgs (args: string list) =
     let defaultOptions = 
         { 
             CoveragePoints = []
@@ -196,37 +137,63 @@ let parseArgs (args: string list): ParsingResult<Options> =
             Shader = ElevationColoringShader elevationColorScaleMaperitive
         }
 
-    let supportedParameters = [|
-        { Name = CoveragePointsParameter; 
-            Parser = parseParameterValue parseCoverage }
-        { Name = DpiParameter; 
-            Parser = parseParameterValue parseDpi }
-        { Name = ElevationColorShaderParameter; 
-            Parser = parseElevationColorShader }
-        { Name = FileNameParameter; 
-            Parser = parseParameterValue parseFileName }
-        { Name = LocalCacheDirParameter; 
-            Parser = parseParameterValue parseLocalCacheDir }
-        { Name = MapScaleParameter; 
-            Parser = parseParameterValue parseMapScale }
-        { Name = OutputDirParameter; 
-            Parser = parseParameterValue parseOutputDir }
-        { Name = TileSizeParameter; 
-            Parser = parseParameterValue parseTileSize }
+    let supportedParameters: CommandLineParameter[] = [|
+        Option { Name = CoveragePointsParameter; 
+            Parser = parseCoverage }
+        Option { Name = DpiParameter; 
+            Parser = parseDpi }
+        Switch { Name = ElevationColorShaderParameter }
+        Option { Name = FileNameParameter; 
+            Parser = parseFileName }
+        Option { Name = LocalCacheDirParameter; 
+            Parser = parseLocalCacheDir }
+        Option { Name = MapScaleParameter; 
+            Parser = parseMapScale }
+        Option { Name = OutputDirParameter; 
+            Parser = parseOutputDir }
+        Option { Name = TileSizeParameter; 
+            Parser = parseTileSize }
     |]
 
-    let optionsValidator finalOptions =
-        match finalOptions.CoveragePoints |> Seq.length with
-        | len when len < 2 ->
-            finalOptions
-            |> finalContext
-            |> invalidParameter 
-                    CoveragePointsParameter
-                    "it has to have at least two points specified" 
-        | _ -> finalOkResult finalOptions
+    let processParameter options parameter =
+        match parameter with
+        | ParsedOption { Name = CoveragePointsParameter; Value = value } -> 
+            { options with CoveragePoints = value :?> LonLat list }
+        | ParsedOption { Name = DpiParameter; Value = value } ->
+            { options with Dpi = value :?> float }
+        | ParsedSwitch { Name = ElevationColorShaderParameter } ->
+            { options with 
+                Shader = ElevationColoringShader elevationColorScaleMaperitive }
+        | ParsedOption { Name = FileNameParameter; Value = value } ->
+            { options with FileName = value :?> string }
+        | ParsedOption { Name = LocalCacheDirParameter; Value = value } ->
+            { options with LocalCacheDir = value :?> string }
+        | ParsedOption { Name = MapScaleParameter; Value = value } ->
+            { options with MapScale = value :?> float }
+        | ParsedOption { Name = OutputDirParameter; Value = value } ->
+            { options with OutputDir = value :?> string }
+        | ParsedOption { Name = TileSizeParameter; Value = value } ->
+            { options with TileSize = value :?> int }
+        | _ -> invalidOp "Unrecognized parameter."
 
-    parseParameters
-        optionsValidator args supportedParameters defaultOptions
+
+    let validateOptions options =
+        match options.CoveragePoints |> Seq.length with
+        | len when len < 2 ->
+            let reason = "it has to have at least two points specified"
+            let message = 
+                sprintf "'%s' parameter's value is invalid, %s." 
+                    CoveragePointsParameter reason
+            Error message
+        | _ -> Ok options
+
+    let parsingResult = parseParameters args supportedParameters
+    match parsingResult with
+    | Error reason -> Error reason
+    | Ok parameters -> 
+        parameters 
+        |> List.fold processParameter defaultOptions
+        |> validateOptions
 
 
 let splitIntoIntervals minValue maxValue intervalSize =

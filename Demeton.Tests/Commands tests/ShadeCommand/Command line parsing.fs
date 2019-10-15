@@ -9,15 +9,15 @@ open Swensen.Unquote
 open TestHelp
 
 
-let parsedOptions result: ShadeCommand.Options =
+let isOkWithOptions result: ShadeCommand.Options =
     match result with
-    | Ok (_, options) -> options
+    | Ok options -> options
     | _ -> invalidOp "Expected the parsed options."
 
 [<Fact>]
 let ``Sane defaults are used for options``() =
     let result = ShadeCommand.parseArgs [ "--coverage"; "10,20,30,40" ]
-    let options = parsedOptions result
+    let options = isOkWithOptions result
 
     test <@ options.Dpi = 300. @>
     test <@ options.FileName = "shading" @>
@@ -72,7 +72,7 @@ let ``Accepts two coverage points and places them into the options``() =
     let result = ShadeCommand.parseArgs [ "--coverage"; "10,20,30,40" ]
     test <@ result |> isOk @>
     test <@ 
-            (parsedOptions result).CoveragePoints 
+            (isOkWithOptions result).CoveragePoints 
                 = [ (10., 20.); (30., 40.) ] 
         @>
 
@@ -106,7 +106,7 @@ let ``Accepts a valid map scale value and puts it into the options`` () =
             "--coverage"; "10,20,30,40"; "--map-scale"; "100000" ]
     test <@ result |> isOk @>
     test <@ 
-            (parsedOptions result).MapScale = 100000. 
+            (isOkWithOptions result).MapScale = 100000. 
         @>
 
 [<Fact>]
@@ -138,7 +138,7 @@ let ``Accepts a valid DPI value and puts it into the options`` () =
             "--coverage"; "10,20,30,40"; "--dpi"; "72" ]
     test <@ result |> isOk @>
     test <@ 
-            (parsedOptions result).Dpi = 72. 
+            (isOkWithOptions result).Dpi = 72. 
         @>
 
 [<Fact>]
@@ -170,7 +170,7 @@ let ``Accepts a valid tile size value and puts it into the options`` () =
             "--coverage"; "10,20,30,40"; "--tile-size"; "3000" ]
     test <@ result |> isOk @>
     test <@ 
-            (parsedOptions result).TileSize = 3000
+            (isOkWithOptions result).TileSize = 3000
         @>
 
 [<Fact>]
@@ -190,7 +190,7 @@ let ``Accepts a valid FileName value and puts it into the options`` () =
             "--coverage"; "10,20,30,40"; "--file-name"; "hillshading" ]
     test <@ result |> isOk @>
     test <@ 
-            (parsedOptions result).FileName = "hillshading" 
+            (isOkWithOptions result).FileName = "hillshading" 
         @>
 
 [<Fact>]
@@ -200,7 +200,7 @@ let ``Accepts a valid OutputDir value and puts it into the options`` () =
             "--coverage"; "10,20,30,40"; "--output-dir"; "some/hillshading" ]
     test <@ result |> isOk @>
     test <@ 
-            (parsedOptions result).OutputDir = "some/hillshading" 
+            (isOkWithOptions result).OutputDir = "some/hillshading" 
         @>
 
 [<Fact>]
@@ -210,7 +210,7 @@ let ``Accepts elevation colorer switch``() =
             "--coverage"; "10,20,30,40"; "--elev-color" ]
     test <@ result |> isOk @>
     test <@ 
-            (parsedOptions result).Shader 
+            (isOkWithOptions result).Shader 
                 = ElevationColoringShader(elevationColorScaleMaperitive) 
         @>
   

@@ -1,32 +1,36 @@
 ﻿module Tests.``Command line parsing``.``Parsing parameter value``
 
-open Demeton.CommandLineParsing
+open CommandLine.Common
 open Xunit
 open Swensen.Unquote    
-open TestHelp
 
-let doNotCallMeParser _ _ 
+let doNotCallMeParser _ 
     = invalidOp "This function shouldn't have been called."
+
+let parsingFailed expectedReason state =
+    match state with
+    | ParsingFail reason -> reason = expectedReason
+    | _ -> false
 
 [<Fact>]
 let ``Returns an error if parameter is the last argument and its value is missing``() =
     let parameterName = "someparam"
     let remainingArgs = []
-    let options = ""
-    let context = (remainingArgs, options)
+    let state = ParsingInProgress (remainingArgs, [])
 
-    let result = parseParameterValue doNotCallMeParser parameterName context
+    let newState = parseOptionValue doNotCallMeParser parameterName state
 
-    test <@ result |> isErrorData "'someparam' parameter's value is missing." @>
+    test <@ newState 
+            |> parsingFailed "'someparam' parameter's value is missing." @>
 
 
 [<Fact>]
 let ``Returns an error if subsequent argument after parameter name starts with '--'``() =
     let parameterName = "someparam"
     let remainingArgs = [ "--some-other-param"; "sdfdfs" ]
-    let options = ""
-    let context = (remainingArgs, options)
+    let state = ParsingInProgress (remainingArgs, [])
 
-    let result = parseParameterValue doNotCallMeParser parameterName context
+    let newState = parseOptionValue doNotCallMeParser parameterName state
 
-    test <@ result |> isErrorData "'someparam' parameter's value is missing." @>
+    test <@ newState 
+            |> parsingFailed "'someparam' parameter's value is missing." @>

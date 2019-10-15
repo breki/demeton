@@ -55,7 +55,7 @@ let parseArgsAndRun (args: string[]) =
                 |> ImportSrtmTilesCommand.parseArgs 
 
             match parseResult with
-            | Ok (_, options) -> importTiles options
+            | Ok parsedParameters  -> invalidOp "todo"// importTiles options
             | Error errMessage -> 
                 printfn "Parsing error: %s" errMessage
                 1
@@ -64,7 +64,7 @@ let parseArgsAndRun (args: string[]) =
                 args |> Array.toList |> List.tail |> ShadeCommand.parseArgs 
 
             match parseResult with
-            | Ok (_, options) -> shade options
+            | Ok parsedParameters -> invalidOp "todo"//shade options
             | Error errMessage -> 
                 printfn "Parsing error: %s" errMessage
                 1

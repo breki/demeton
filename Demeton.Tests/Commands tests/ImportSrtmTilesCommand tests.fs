@@ -12,9 +12,9 @@ open TestHelp
 
 let parseArgs = ImportSrtmTilesCommand.parseArgs
 
-let parsedOptions result: ImportSrtmTilesCommand.Options =
+let isOkWithOptions result: ImportSrtmTilesCommand.Options =
     match result with
-    | Ok (_, options) -> options
+    | Ok options -> options
     | _ -> invalidOp "Expected the parsed options."
 
 
@@ -95,8 +95,7 @@ let ``Reports error when min and max latitude values are switched``() =
 let ``Parses valid bounds values``() =
     let result = parseArgs [ "--bounds"; "-10.1,20,25,70.4" ]
     test <@ 
-            (result 
-            |> parsedOptions).Bounds = 
+            (result |> isOkWithOptions).Bounds = 
                 Some { MinLon = -10.1;
                     MinLat = 20.;
                     MaxLon = 25.;
@@ -108,7 +107,7 @@ let ``Parses valid bounds values``() =
 let ``The default SRTM dir is 'srtm'``() =
     let result = parseArgs [ "--bounds"; "-10.1,20,25,70.4" ]
     test <@ 
-            (result |> parsedOptions).SrtmDir = "srtm"
+            (result |> isOkWithOptions).SrtmDir = "srtm"
         @>
 
 
@@ -122,7 +121,7 @@ let ``Parses the SRTM dir parameter``() =
         "--bounds"; "-10.1,20,25,70.4";
         ]
     test <@ 
-            (result |> parsedOptions).SrtmDir = srtmDirValue
+            (result |> isOkWithOptions).SrtmDir = srtmDirValue
         @>
 
 
@@ -130,7 +129,7 @@ let ``Parses the SRTM dir parameter``() =
 let ``The default local cache dir is 'cache'``() =
     let result = parseArgs [ "--bounds"; "-10.1,20,25,70.4" ]
     test <@ 
-            (result |> parsedOptions).LocalCacheDir = "cache"
+            (result |> isOkWithOptions).LocalCacheDir = "cache"
         @>
 
 
@@ -144,7 +143,7 @@ let ``Parses the local cache dir parameter``() =
         "--bounds"; "-10.1,20,25,70.4";
         ]
     test <@ 
-            (result |> parsedOptions).LocalCacheDir = localCacheDirValue
+            (result |> isOkWithOptions).LocalCacheDir = localCacheDirValue
         @>
 
 

@@ -12,11 +12,12 @@
     <WarningsAsErrors />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CommandLine\TextParsers.fs" />
+    <Compile Include="CommandLine\Common.fs" />
     <Compile Include="ResultSeq.fs" />
     <Compile Include="Log.fs" />
     <Compile Include="Pth.fs" />
     <Compile Include="FileSys.fs" />
-    <Compile Include="CommandLineParsing.fs" />
     <Compile Include="Bnry.fs" />
     <Compile Include="CRC.fs" />
     <Compile Include="Geometry\Common.fs" />
@@ -44,7 +45,6 @@
     <Compile Include="Shaders\ElevationColoring.fs" />
     <Compile Include="Shaders\Hillshading.fs" />
     <Compile Include="Shaders\ShaderTypes.fs" />
-    <Compile Include="Commands\ParametersParsing.fs" />
     <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
   </ItemGroup>

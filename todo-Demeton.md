@@ -1,8 +1,6 @@
-﻿- define command line commands in a parametric way so they can be registered commands in an array and run parsing based on that
-    - problem: how to tread options for different commands in a generic way?
-        - solution 1: common base for options
-        - solution 2: a generic implementation of options
-        - solution 3: provide just a function for each command that that parses and executes
+﻿- add generic option value parsers for int, float, string
+    - move some option value parsers that can be made more generic from the commands code to this new module
+- introduce setting as an unnamed, mandatory and positional parameter
 
 - add some textual info to the commands and parameters so we can auto-generate help messages
 

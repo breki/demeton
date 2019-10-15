@@ -1,6 +1,6 @@
 ﻿module ``Commands tests``.``Command line parameters parsing``
 
-open Demeton.Commands.ParametersParsing
+open CommandLine.TextParsers
 
 open Xunit
 open Swensen.Unquote

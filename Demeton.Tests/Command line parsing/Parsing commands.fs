@@ -1,6 +1,6 @@
 ﻿module Tests.``Command line parsing``.``Parsing commands``
 
-open Demeton.CommandLineParsing
+open CommandLine.Common
 
 open Xunit
 open Swensen.Unquote
@@ -21,17 +21,19 @@ let parseAndExecuteCommandLine args supportedCommands =
 type TestOptions1 = { Value: int }
 type TestOptions2 = { Value: string }
 
-let par1Parser name context: ParsingResult<TestOptions1> = 
-    let (_, oldOptions) = context
+let par1Parser name: OptionValueParsingResult = 
+    OkValue 1
+    //let (_, oldOptions) = context
 
-    Ok (context 
-        |> withOptions { oldOptions with Value = oldOptions.Value + 1 })
+    //Ok (context 
+    //    |> withOptions { oldOptions with Value = oldOptions.Value + 1 })
 
-let par2Parser name context: ParsingResult<TestOptions2> = 
-    let (_, oldOptions) = context
+let par2Parser name: OptionValueParsingResult = 
+    OkValue 2
+    //let (_, oldOptions) = context
 
-    Ok (context 
-        |> withOptions { oldOptions with Value = oldOptions.Value + "x" })
+    //Ok (context 
+    //    |> withOptions { oldOptions with Value = oldOptions.Value + "x" })
 
 let mutable command1Executed = false
 

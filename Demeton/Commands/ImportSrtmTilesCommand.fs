@@ -1,7 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Commands.ImportSrtmTilesCommand
 
-open Demeton.CommandLineParsing
+open CommandLine.Common
 open Demeton.DemTypes
 open Demeton.Geometry.Common
 open Demeton.Srtm
@@ -24,7 +24,7 @@ let SrtmDirParameter = "srtm-dir"
 let LocalCacheDirParameter = "local-cache-dir"
 
 
-let parseBounds (value: string) (context: ParsingContext<Options>) =
+let parseBounds (value: string) =
 
     let isLongitudeInRange value = value >= -179. && value <= 180.
     let isLatitudeInRange value = value >= -90. && value <= 90.
@@ -63,63 +63,57 @@ let parseBounds (value: string) (context: ParsingContext<Options>) =
         let hasAnyInvalidParts = parsedSplits |> Array.exists Option.isNone
         match hasAnyInvalidParts with
         | true -> 
-            context 
-            |> invalidParameter 
-                BoundsParameter "it should consist of 4 comma-separated numbers"
+            InvalidValue "it should consist of 4 comma-separated numbers"
         | false ->
             let bounds = boundsFromParsedParts parsedSplits
             match bounds with
-            | Error reason -> 
-                context |> invalidParameter BoundsParameter reason
-            | Ok boundsVal -> 
-                let (_, oldOptions) = context
-                context 
-                |> consumeArg
-                |> withOptions ({ oldOptions with Bounds = Some boundsVal })
-                |> Result.Ok
+            | Error reason -> InvalidValue reason
+            | Ok boundsVal -> OkValue boundsVal
 
-    | _ -> 
-        context 
-        |> invalidParameter BoundsParameter "it should consist of 4 numbers"
+    | _ -> InvalidValue "it should consist of 4 numbers"
 
 
-let parseSrtmDir value context =
-    let (_, oldOptions) = context
-    context 
-    |> consumeArg
-    |> withOptions ({ oldOptions with SrtmDir = value })
-    |> Result.Ok
+let parseSrtmDir value = OkValue value
 
 
-let parseLocalCacheDir value context =
-    let (_, oldOptions) = context
-    context 
-    |> consumeArg
-    |> withOptions ({ oldOptions with LocalCacheDir = value })
-    |> Result.Ok
+let parseLocalCacheDir value = OkValue value
 
 
-let parseArgs (args: string list): ParsingResult<Options> =
+let parseArgs (args: string list) =
+    let supportedParameters = [|
+        Option { Name = BoundsParameter; 
+            Parser = parseBounds }
+        Option { Name = SrtmDirParameter; 
+            Parser = parseSrtmDir }
+        Option { Name = LocalCacheDirParameter; 
+            Parser = parseLocalCacheDir }
+    |]
+    
     let defaultOptions = { 
         Bounds = None; SrtmDir = "srtm"; LocalCacheDir = "cache" }
 
-    let supportedParameters = [|
-        { Name = BoundsParameter; 
-            Parser = parseParameterValue parseBounds }
-        { Name = SrtmDirParameter; 
-            Parser = parseParameterValue parseSrtmDir }
-        { Name = LocalCacheDirParameter; 
-            Parser = parseParameterValue parseLocalCacheDir }
-    |]
+    let processParameter options parameter =
+        match parameter with
+        | ParsedOption { Name = BoundsParameter; Value = value } -> 
+            { options with Bounds = Some (value :?> LonLatBounds) }
+        | ParsedOption { Name = LocalCacheDirParameter; Value = value } ->
+            { options with LocalCacheDir = value :?> string }
+        | ParsedOption { Name = SrtmDirParameter; Value = value } ->
+            { options with SrtmDir = value :?> string }
+        | _ -> invalidOp "Unrecognized parameter."
 
-    let optionsValidator finalOptions =
-        match finalOptions.Bounds with
-        | None -> 
-            finalOptions |> finalContext 
-            |> withError "'bounds' parameter is missing."
-        | _ -> finalOptions |> finalOkResult
+    let validateOptions options =
+        match options.Bounds with
+        | None -> Error "'bounds' parameter is missing."
+        | _ -> Ok options
 
-    parseParameters optionsValidator args supportedParameters defaultOptions
+    let parsingResult = parseParameters args supportedParameters
+    match parsingResult with
+    | Error reason -> Error reason
+    | Ok parameters -> 
+        parameters 
+        |> List.fold processParameter defaultOptions
+        |> validateOptions
 
 
 type SrtmToPngEncoder = HeightsArray -> Stream -> unit
