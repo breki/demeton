@@ -26,12 +26,12 @@ let parseIntOptionValue: OptionValueParser = fun text ->
     | Ok value -> OkValue value
     
 
-type CommandLineSwitch = { Name: string }
-type CommandLineOption = { Name: string; Parser: OptionValueParser }
+type CommandSwitch = { Name: string }
+type CommandOption = { Name: string; Parser: OptionValueParser }
 
-type CommandLineParameter = 
-    | Switch of CommandLineSwitch
-    | Option of CommandLineOption
+type CommandParameter = 
+    | Switch of CommandSwitch
+    | Option of CommandOption
 
 type ParsedSwitch = { Name: string }
 type ParsedOption = { Name: string; Value: Object }
@@ -137,16 +137,16 @@ let tryParseFloat (value: string) =
 
 
 let findParameterByName 
-    parameterName (supportedParameters: CommandLineParameter[]) =
+    parameterName (supportedParameters: CommandParameter[]) =
 
-    let hasName (parameter: CommandLineParameter) =
+    let hasName (parameter: CommandParameter) =
         match parameter with
-        | CommandLineParameter.Switch switch -> 
+        | CommandParameter.Switch switch -> 
             String.Equals(
                 parameterName, 
                 switch.Name, 
                 StringComparison.OrdinalIgnoreCase)
-        | CommandLineParameter.Option option ->
+        | CommandParameter.Option option ->
             String.Equals(
                 parameterName, 
                 option.Name, 
@@ -156,7 +156,7 @@ let findParameterByName
 
 let parseParameters 
     (args: string list) 
-    (supportedParameters: CommandLineParameter[])
+    (supportedParameters: CommandParameter[])
     : ParsingResult =
 
     let parsingInProgress state =
@@ -178,9 +178,9 @@ let parseParameters
                 let parameterMaybe = 
                     supportedParameters |> findParameterByName parameterName
                 match parameterMaybe with
-                | Some (CommandLineParameter.Option option) -> 
+                | Some (CommandParameter.Option option) -> 
                     parseOptionValue option.Parser parameterName consumedState
-                | Some (CommandLineParameter.Switch switch) -> 
+                | Some (CommandParameter.Switch switch) -> 
                     consumedState 
                     |> appendParameter (ParsedSwitch { Name = parameterName })
                 | None -> 

@@ -137,7 +137,7 @@ let parseArgs (args: string list) =
             Shader = ElevationColoringShader elevationColorScaleMaperitive
         }
 
-    let supportedParameters: CommandLineParameter[] = [|
+    let supportedParameters: CommandParameter[] = [|
         Option { Name = CoveragePointsParameter; 
             Parser = parseCoverage }
         Option { Name = DpiParameter; 

@@ -7,7 +7,7 @@ open Swensen.Unquote
 open TestHelp
 
 
-let supportedParameters: CommandLineParameter[] = [|
+let supportedParameters: CommandParameter[] = [|
     Switch { Name = "switch1" }
     Option { Name = "option1"; Parser = parseIntOptionValue }
 |]
