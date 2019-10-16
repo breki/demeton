@@ -101,4 +101,3 @@ let ``Color mixing properties``() =
     |> Arb.fromGen
     |> Prop.forAll <| properties
     |> Check.QuickThrowOnFailure
-    //|> replayPropertyCheck(955457094,296656784)

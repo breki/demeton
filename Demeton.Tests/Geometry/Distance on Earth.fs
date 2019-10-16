@@ -43,7 +43,7 @@ let ``geodeticDistanceApproximate properties``() =
 
     genPair |> Arb.fromGen
     |> Prop.forAll <| spec
-    |> Check.VerboseThrowOnFailure
+    |> Check.QuickThrowOnFailure
 
 [<Theory>]
 [<InlineData(15.6455, 46.557611, 14.508333, 46.055556, 104.08)>]

@@ -65,7 +65,7 @@ let ``Reports an error if command argument's value is invalid``() =
     let args = [ "dsd" ]
     let result = parseParameters args supportedParameters
     test <@ result |> isErrorData 
-                "<arg2> argument's value is missing." 
+                "<arg1> argument's value is invalid, it has to be a numeric value >= 10." 
         @>
 
 [<Fact>]

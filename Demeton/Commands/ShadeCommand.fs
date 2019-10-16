@@ -87,7 +87,7 @@ let parseArgs (args: string list) =
         }
 
     let supportedParameters: CommandParameter[] = [|
-        Option { Name = CoveragePointsParameter; 
+        Arg { Name = CoveragePointsParameter; 
             Parser = parseCoverage }
         Option { Name = DpiParameter; 
             Parser = ValueParsers.parsePositiveFloat }
@@ -106,7 +106,7 @@ let parseArgs (args: string list) =
 
     let processParameter options parameter =
         match parameter with
-        | ParsedOption { Name = CoveragePointsParameter; Value = value } -> 
+        | ParsedArg { Name = CoveragePointsParameter; Value = value } -> 
             { options with CoveragePoints = value :?> LonLat list }
         | ParsedOption { Name = DpiParameter; Value = value } ->
             { options with Dpi = value :?> float }
@@ -125,24 +125,13 @@ let parseArgs (args: string list) =
             { options with TileSize = value :?> int }
         | _ -> invalidOp "Unrecognized parameter."
 
-
-    let validateOptions options =
-        match options.CoveragePoints |> Seq.length with
-        | len when len < 2 ->
-            let reason = "it has to have at least two points specified"
-            let message = 
-                sprintf "'%s' option's value is invalid, %s." 
-                    CoveragePointsParameter reason
-            Error message
-        | _ -> Ok options
-
     let parsingResult = parseParameters args supportedParameters
     match parsingResult with
     | Error reason -> Error reason
     | Ok parameters -> 
         parameters 
         |> List.fold processParameter defaultOptions
-        |> validateOptions
+        |> Ok
 
 
 let splitIntoIntervals minValue maxValue intervalSize =

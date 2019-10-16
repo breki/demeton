@@ -24,7 +24,7 @@ type CommandParameter =
     | Switch of CommandSwitch
     | Option of CommandOption
 
-type ParsedArg = { Value: Object }
+type ParsedArg = { Name: string; Value: Object }
 type ParsedSwitch = { Name: string }
 type ParsedOption = { Name: string; Value: Object }
 
@@ -86,7 +86,7 @@ let invalidOptionValue name reason =
 
 let invalidArgumentValue name reason =
     let message = 
-        sprintf "<%s> arguments's value is invalid, %s." name reason
+        sprintf "<%s> argument's value is invalid, %s." name reason
     ParsingFail message
 
 
@@ -218,7 +218,8 @@ let parseParameters
         | (Some arg, CommandParameter.Arg { Name = argName; Parser = parser }, _) -> 
             match parser arg with
             | OkValue value -> 
-                state |> appendParameter (ParsedArg { Value = value })
+                state 
+                |> appendParameter (ParsedArg { Name = argName; Value = value })
             | InvalidValue reason -> invalidArgumentValue argName reason
         | _ -> invalidOp "todo"
 

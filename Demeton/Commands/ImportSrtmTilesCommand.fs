@@ -76,7 +76,7 @@ let parseBounds (value: string) =
 
 let parseArgs (args: string list) =
     let supportedParameters = [|
-        Option { Name = BoundsParameter; 
+        Arg { Name = BoundsParameter; 
             Parser = parseBounds }
         Option { Name = SrtmDirParameter; 
             Parser = ValueParsers.parseDir }
@@ -89,7 +89,7 @@ let parseArgs (args: string list) =
 
     let processParameter options parameter =
         match parameter with
-        | ParsedOption { Name = BoundsParameter; Value = value } -> 
+        | ParsedArg { Name = BoundsParameter; Value = value } -> 
             { options with Bounds = Some (value :?> LonLatBounds) }
         | ParsedOption { Name = LocalCacheDirParameter; Value = value } ->
             { options with LocalCacheDir = value :?> string }
@@ -97,18 +97,13 @@ let parseArgs (args: string list) =
             { options with SrtmDir = value :?> string }
         | _ -> invalidOp "Unrecognized parameter."
 
-    let validateOptions options =
-        match options.Bounds with
-        | None -> Error "'bounds' parameter is missing."
-        | _ -> Ok options
-
     let parsingResult = parseParameters args supportedParameters
     match parsingResult with
     | Error reason -> Error reason
     | Ok parameters -> 
         parameters 
         |> List.fold processParameter defaultOptions
-        |> validateOptions
+        |> Ok
 
 
 type SrtmToPngEncoder = HeightsArray -> Stream -> unit

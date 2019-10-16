@@ -1,7 +1,9 @@
-﻿- use positional command arguments in existing commands
+﻿- can we somehow make a generalized way to process parsed parameters?
 - property tests for parameters parsing
 
 ## Wed 16.10.
+- Fixed a bug in FsCheck generators in `PropertiesHelp`.
+- `import` and `shade` commands now use positional command arguments for mandatory parameters.
 - Implemented support for positional command line arguments.
 - Defined a `CommandArg` and related.
 
