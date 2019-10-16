@@ -13,8 +13,38 @@ let supportedParameters: CommandParameter[] = [|
     Option { Name = "option1"; Parser = ValueParsers.parseInt }
 |]
 
+
 [<Fact>]
-let ``If parameter name does not start with prefix, returns an error``() =
+let ``All command arguments need to be specified before any options and switches``() =
+    let supportedParameters: CommandParameter[] = [|
+        Switch { Name = "switch1" }
+        Arg { Name = "arg1"; Parser = ValueParsers.parseFloat 10. }
+        Option { Name = "option1"; Parser = ValueParsers.parseInt }
+    |]
+    
+    let result = 
+        parseParameters [] supportedParameters
+    test <@ result |> isErrorData 
+                "All command arguments need to be specified before any options and switches." 
+        @>
+
+[<Fact>]
+let ``Reports an error if some of the command arguments are missing``() =
+    let supportedParameters: CommandParameter[] = [|
+        Arg { Name = "arg1"; Parser = ValueParsers.parseFloat 10. }
+        Arg { Name = "arg2"; Parser = ValueParsers.parseFloat 10. }
+        Switch { Name = "switch1" }
+    |]
+    
+    let args = [ "123."; "--switch1" ]
+    let result = parseParameters args supportedParameters
+    test <@ result |> isErrorData 
+                "<arg2> argument's value is missing." 
+        @>
+
+
+[<Fact>]
+let ``If option or switch name does not start with prefix, returns an error``() =
     let args = [ "weird" ]
 
     let result = 
@@ -22,7 +52,7 @@ let ``If parameter name does not start with prefix, returns an error``() =
     test <@ result |> isErrorData "Unrecognized parameter 'weird'." @>
 
 [<Fact>]
-let ``If parameter is not among supported ones, returns an error``() =
+let ``If option or switch is not among supported ones, returns an error``() =
     let args = [ "--par3" ]
 
     let result = 

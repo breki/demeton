@@ -1,7 +1,7 @@
 ﻿- introduce setting as an unnamed, mandatory and positional parameter
-    - it has to be before any options and settings
-        - enforce this
+    - we still need a name to identify it
     - it has to be present in the args
+- property tests for parameters parsing
 
 ## Wed 16.10.
 - Defined a `CommandArg` and related.

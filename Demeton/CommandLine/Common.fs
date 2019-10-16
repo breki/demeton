@@ -15,7 +15,7 @@ type OptionValueParsingResult =
 
 type OptionValueParser = string -> OptionValueParsingResult
 
-type CommandArg = { Parser: OptionValueParser }
+type CommandArg = { Name: string; Parser: OptionValueParser }
 type CommandSwitch = { Name: string }
 type CommandOption = { Name: string; Parser: OptionValueParser }
 
@@ -75,13 +75,21 @@ let optionValueIsMissing parameter =
     let message = (sprintf "'%s' option's value is missing." parameter)
     ParsingFail message
 
+let argumentValueIsMissing name =
+    let message = (sprintf "<%s> argument's value is missing." name)
+    ParsingFail message
 
 /// <summary>
 /// Constructs a parsing result indicating an invalid option's value error.
 /// </summary>
-let invalidOptionValue parameter reason =
+let invalidOptionValue name reason =
     let message = 
-        sprintf "'%s' option's value is invalid, %s." parameter reason
+        sprintf "'%s' option's value is invalid, %s." name reason
+    ParsingFail message
+
+let invalidArgumentValue name reason =
+    let message = 
+        sprintf "<%s> arguments's value is invalid, %s." name reason
     ParsingFail message
 
 
@@ -148,6 +156,23 @@ let findParameterByName
 
     supportedParameters |> Array.tryFind hasName
 
+let validateSupportedParameters 
+    args
+    (supportedParameters: CommandParameter[]) =
+    let anyWronglyOrderedParameters = 
+        supportedParameters 
+        |> Array.pairwise
+        |> Array.tryFind (fun x -> 
+            match x with 
+            | (CommandParameter.Switch _, CommandParameter.Arg _) -> true
+            | (CommandParameter.Option _, CommandParameter.Arg _) -> true
+            | _ -> false
+            )
+
+    match anyWronglyOrderedParameters with
+    | None -> ParsingInProgress (args, [])
+    | _ -> ParsingFail "All command arguments need to be specified before any options and switches."
+
 let parseParameters 
     (args: string list) 
     (supportedParameters: CommandParameter[])
@@ -158,12 +183,48 @@ let parseParameters
         | ParsingInProgress _ -> true
         | _ -> false
 
-    let mutable state: ParsingState = ParsingInProgress (args, [])
+    let isCommandArg = 
+        function
+        | CommandParameter.Arg _ -> true 
+        | _ -> false
 
-    while parsingInProgress state do
-        let (arg, consumedState) = nextArg state
+    let commandArgsCount() =
+        supportedParameters |> Array.filter isCommandArg |> Array.length
 
-        state <-
+    let nextCommandArgumentToFind =
+        function
+        | ParsingInProgress (_, parsedParameters) ->
+            let cmdArgsCount = commandArgsCount()
+            match parsedParameters.Length < cmdArgsCount with
+            | true -> 
+                let commandArgIndex = parsedParameters.Length
+                Some supportedParameters.[commandArgIndex]
+            | false -> None
+        | ParsingSuccess _ -> None
+        | ParsingFail _ -> invalidOp "should not be called in this state"
+
+    let consumeNextCommandArg 
+        (argMaybe: string option) 
+        (cmdArg: CommandParameter)
+        state =
+        match (argMaybe, cmdArg, state) with
+        | (None, CommandParameter.Arg { Name = argName }, _) -> 
+            ParsingFail (sprintf "<%s> argument's value is missing." argName)
+        | (Some arg, CommandParameter.Arg { Name = argName }, _) 
+            when arg.StartsWith ParameterPrefix ->
+            argumentValueIsMissing argName
+        | (Some arg, CommandParameter.Arg { Name = argName; Parser = parser }, _) -> 
+            match parser arg with
+            | OkValue value -> 
+                state |> appendParameter (ParsedArg { Value = value })
+            | InvalidValue reason -> invalidArgumentValue argName reason
+        | _ -> invalidOp "todo"
+
+    let handleNextArg (arg: string option) consumedState =
+        match nextCommandArgumentToFind consumedState with
+        | Some cmdArgument -> 
+            consumeNextCommandArg arg cmdArgument consumedState
+        | None ->
             match (arg, consumedState) with
             | (Some argParameter, _) 
                 when argParameter.StartsWith(ParameterPrefix) ->
@@ -178,7 +239,7 @@ let parseParameters
                     parseOptionValue option.Parser parameterName consumedState
                 | Some (CommandParameter.Switch switch) -> 
                     consumedState 
-                    |> appendParameter (ParsedSwitch { Name = parameterName })
+                    |> appendParameter (ParsedSwitch { Name = switch.Name })
                 | None -> 
                     ParsingFail 
                         (sprintf "Unrecognized parameter '%s'." parameterName)
@@ -187,6 +248,13 @@ let parseParameters
                     (sprintf "Unrecognized parameter '%s'." argParameter)
             | (None, ParsingSuccess _) -> consumedState
             | _ -> invalidOp "BUG: this should never happen"
+
+    let mutable state: ParsingState = 
+        validateSupportedParameters args supportedParameters
+
+    while parsingInProgress state do
+        let (arg, consumedState) = nextArg state
+        state <- handleNextArg arg consumedState
 
     match state with
     | ParsingSuccess parsedParameters -> 
