@@ -1,5 +1,4 @@
-﻿- can we somehow make a generalized way to process parsed parameters?
-- property tests for parameters parsing
+﻿- finish implementing tests for parsing whole command
 
 ## Wed 16.10.
 - Fixed a bug in FsCheck generators in `PropertiesHelp`.

@@ -1,5 +1,4 @@
-﻿- finish implementing tests for parsing whole command
-- add some textual info to the commands and parameters so we can auto-generate help messages
+﻿- add some textual info to the commands and parameters so we can auto-generate help messages
 
 - add an (optional) color ramps
     - format: "height:#color;"

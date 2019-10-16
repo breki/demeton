@@ -5,11 +5,11 @@ open CommandLine.Common
 open Xunit
 open Swensen.Unquote
 
-type CommandParserAndExecutor = string list -> int
+type CommandRunner = ParsedParameters -> ParsingResult
 
 type CommandLineCommand = {
     Name: string
-    ParserAndExecutor: CommandParserAndExecutor
+    Runner: CommandRunner
     }
 
 let parseAndExecuteCommandLine args supportedCommands = 
@@ -37,15 +37,15 @@ let par2Parser name: OptionValueParsingResult =
 
 let mutable command1Executed = false
 
-let command1ParserAndExecutor args =
+let command1Runner args =
     invalidOp "todo"
 
-let command2ParserAndExecutor args =
+let command2Runner args =
     invalidOp "todo"
 
 let supportedCommands: CommandLineCommand[] = [|
-    { Name = "cmd1"; ParserAndExecutor = command1ParserAndExecutor }
-    { Name = "cmd2"; ParserAndExecutor = command2ParserAndExecutor }
+    { Name = "cmd1"; Runner = command1Runner }
+    { Name = "cmd2"; Runner = command2Runner }
 |]
 
 [<Fact(Skip="todo")>]
