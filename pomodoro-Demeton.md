@@ -1,4 +1,10 @@
 ﻿- introduce setting as an unnamed, mandatory and positional parameter
+    - it has to be before any options and settings
+        - enforce this
+    - it has to be present in the args
+
+## Wed 16.10.
+- Defined a `CommandArg` and related.
 
 ## Tue 15.10.
 - Made a complete redesign of the command line parsing code so we could get rid of generics in the parameters specifications.

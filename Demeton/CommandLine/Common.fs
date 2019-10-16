@@ -3,11 +3,8 @@
 /// </summary>
 module CommandLine.Common
 
-open CommandLine
-
 open System
 open System.Globalization
-open System.IO
 
 [<Literal>]
 let ParameterPrefix = "--"
@@ -18,18 +15,21 @@ type OptionValueParsingResult =
 
 type OptionValueParser = string -> OptionValueParsingResult
 
-
+type CommandArg = { Parser: OptionValueParser }
 type CommandSwitch = { Name: string }
 type CommandOption = { Name: string; Parser: OptionValueParser }
 
 type CommandParameter = 
+    | Arg of CommandArg
     | Switch of CommandSwitch
     | Option of CommandOption
 
+type ParsedArg = { Value: Object }
 type ParsedSwitch = { Name: string }
 type ParsedOption = { Name: string; Value: Object }
 
 type ParsedParameter =
+    | ParsedArg of ParsedArg
     | ParsedSwitch of ParsedSwitch
     | ParsedOption of ParsedOption
 
@@ -144,6 +144,7 @@ let findParameterByName
                 parameterName, 
                 option.Name, 
                 StringComparison.OrdinalIgnoreCase)
+        | CommandParameter.Arg _ -> false
 
     supportedParameters |> Array.tryFind hasName
 
@@ -171,6 +172,8 @@ let parseParameters
                 let parameterMaybe = 
                     supportedParameters |> findParameterByName parameterName
                 match parameterMaybe with
+                | Some (CommandParameter.Arg commandArg) ->
+                    invalidOp "todo"
                 | Some (CommandParameter.Option option) -> 
                     parseOptionValue option.Parser parameterName consumedState
                 | Some (CommandParameter.Switch switch) -> 
