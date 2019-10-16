@@ -1,9 +1,8 @@
-﻿- introduce setting as an unnamed, mandatory and positional parameter
-    - we still need a name to identify it
-    - it has to be present in the args
+﻿- use positional command arguments in existing commands
 - property tests for parameters parsing
 
 ## Wed 16.10.
+- Implemented support for positional command line arguments.
 - Defined a `CommandArg` and related.
 
 ## Tue 15.10.

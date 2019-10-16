@@ -29,7 +29,7 @@ let ``All command arguments need to be specified before any options and switches
         @>
 
 [<Fact>]
-let ``Reports an error if some of the command arguments are missing``() =
+let ``Reports an error if some of the command arguments are missing and there is a switch after it``() =
     let supportedParameters: CommandParameter[] = [|
         Arg { Name = "arg1"; Parser = ValueParsers.parseFloat 10. }
         Arg { Name = "arg2"; Parser = ValueParsers.parseFloat 10. }
@@ -42,6 +42,31 @@ let ``Reports an error if some of the command arguments are missing``() =
                 "<arg2> argument's value is missing." 
         @>
 
+[<Fact>]
+let ``Reports an error if some of the command arguments are missing and there are no more args``() =
+    let supportedParameters: CommandParameter[] = [|
+        Arg { Name = "arg1"; Parser = ValueParsers.parseFloat 10. }
+        Arg { Name = "arg2"; Parser = ValueParsers.parseFloat 10. }
+        Switch { Name = "switch1" }
+    |]
+    
+    let args = [ "123." ]
+    let result = parseParameters args supportedParameters
+    test <@ result |> isErrorData 
+                "<arg2> argument's value is missing." 
+        @>
+
+[<Fact>]
+let ``Reports an error if command argument's value is invalid``() =
+    let supportedParameters: CommandParameter[] = [|
+        Arg { Name = "arg1"; Parser = ValueParsers.parseFloat 10. }
+    |]
+    
+    let args = [ "dsd" ]
+    let result = parseParameters args supportedParameters
+    test <@ result |> isErrorData 
+                "<arg2> argument's value is missing." 
+        @>
 
 [<Fact>]
 let ``If option or switch name does not start with prefix, returns an error``() =

@@ -36,7 +36,7 @@ type ParsedParameter =
 type ParsedParameters = ParsedParameter list
 
 type ParsingState = 
-    | ParsingSuccess of ParsedParameter list
+    | NoMoreArgs of ParsedParameter list
     | ParsingInProgress of (string list * ParsedParameters)
     | ParsingFail of string
 
@@ -51,20 +51,17 @@ let nextArg (state: ParsingState): (string option * ParsingState) =
 
     let consumeArg state = 
         match state with    
+        | ParsingInProgress ([], parsedParameters) ->
+            NoMoreArgs parsedParameters
         | ParsingInProgress (args, parsedParameters) ->
-            match args.Length with
-            | 0 -> ParsingSuccess parsedParameters
-            | _ -> 
-                ParsingInProgress (args |> List.tail, parsedParameters)
-        | ParsingSuccess _ -> invalidOp "should not be called in this state"
+            ParsingInProgress (args |> List.tail, parsedParameters)
+        | NoMoreArgs _ -> invalidOp "should not be called in this state"
         | ParsingFail _ -> invalidOp "should not be called in this state"
 
     match state with
-    | ParsingInProgress (args, _) ->
-        match args.Length with
-        | 0 -> (None, consumeArg state)
-        | _ -> 
-            (Some (args |> List.head), consumeArg state)
+    | ParsingInProgress ([], _) -> (None, consumeArg state)
+    | ParsingInProgress (args, _) -> 
+        (Some (args |> List.head), consumeArg state)
     | _ -> invalidOp "should not be called in this state"
 
 
@@ -191,16 +188,21 @@ let parseParameters
     let commandArgsCount() =
         supportedParameters |> Array.filter isCommandArg |> Array.length
 
+    let nextCommandArgumentToFindBasedOnParsed 
+        (parsedParameters: ParsedParameters) = 
+        let cmdArgsCount = commandArgsCount()
+        match parsedParameters.Length < cmdArgsCount with
+        | true -> 
+            let commandArgIndex = parsedParameters.Length
+            Some supportedParameters.[commandArgIndex]
+        | false -> None
+        
     let nextCommandArgumentToFind =
         function
         | ParsingInProgress (_, parsedParameters) ->
-            let cmdArgsCount = commandArgsCount()
-            match parsedParameters.Length < cmdArgsCount with
-            | true -> 
-                let commandArgIndex = parsedParameters.Length
-                Some supportedParameters.[commandArgIndex]
-            | false -> None
-        | ParsingSuccess _ -> None
+            nextCommandArgumentToFindBasedOnParsed parsedParameters
+        | NoMoreArgs parsedParameters -> 
+            nextCommandArgumentToFindBasedOnParsed parsedParameters
         | ParsingFail _ -> invalidOp "should not be called in this state"
 
     let consumeNextCommandArg 
@@ -209,7 +211,7 @@ let parseParameters
         state =
         match (argMaybe, cmdArg, state) with
         | (None, CommandParameter.Arg { Name = argName }, _) -> 
-            ParsingFail (sprintf "<%s> argument's value is missing." argName)
+            argumentValueIsMissing argName
         | (Some arg, CommandParameter.Arg { Name = argName }, _) 
             when arg.StartsWith ParameterPrefix ->
             argumentValueIsMissing argName
@@ -233,20 +235,20 @@ let parseParameters
                 let parameterMaybe = 
                     supportedParameters |> findParameterByName parameterName
                 match parameterMaybe with
-                | Some (CommandParameter.Arg commandArg) ->
-                    invalidOp "todo"
                 | Some (CommandParameter.Option option) -> 
                     parseOptionValue option.Parser parameterName consumedState
                 | Some (CommandParameter.Switch switch) -> 
                     consumedState 
                     |> appendParameter (ParsedSwitch { Name = switch.Name })
+                | Some (CommandParameter.Arg _) ->
+                    invalidOp "should this ever happen?"
                 | None -> 
                     ParsingFail 
                         (sprintf "Unrecognized parameter '%s'." parameterName)
             | (Some argParameter, _) -> 
                 ParsingFail 
                     (sprintf "Unrecognized parameter '%s'." argParameter)
-            | (None, ParsingSuccess _) -> consumedState
+            | (None, NoMoreArgs _) -> consumedState
             | _ -> invalidOp "BUG: this should never happen"
 
     let mutable state: ParsingState = 
@@ -257,7 +259,7 @@ let parseParameters
         state <- handleNextArg arg consumedState
 
     match state with
-    | ParsingSuccess parsedParameters -> 
+    | NoMoreArgs parsedParameters -> 
         Ok (parsedParameters |> List.rev)
     | ParsingFail message -> Error message
     | _ -> invalidOp "BUG: this should never happen"
