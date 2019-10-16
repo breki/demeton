@@ -32,7 +32,7 @@ let ``Reports error when coverage points parameter was not specified at all``() 
     let result = ShadeCommand.parseArgs []
     test <@ 
             result 
-            |> isErrorData "'coverage' parameter's value is invalid, it has to have at least two points specified." 
+            |> isErrorData "'coverage' option's value is invalid, it has to have at least two points specified." 
             @>
 
 [<Fact>]
@@ -40,7 +40,7 @@ let ``Reports error when coverage points parameter does not have any points``() 
     let result = ShadeCommand.parseArgs [ "--coverage" ]
     test <@ 
             result 
-            |> isErrorData "'coverage' parameter's value is missing." 
+            |> isErrorData "'coverage' option's value is missing." 
             @>
 
 [<Fact>]
@@ -48,7 +48,7 @@ let ``Reports error when coverage points parameter has an invalid value``() =
     let result = ShadeCommand.parseArgs [ "--coverage"; "10,a,30,40" ]
     test <@ 
             result 
-            |> isErrorData "'coverage' parameter's value is invalid, it has to consist of a list of coordinates." 
+            |> isErrorData "'coverage' option's value is invalid, it has to consist of a list of coordinates." 
             @>
 
 [<Fact>]
@@ -56,7 +56,7 @@ let ``Reports error when coverage points parameter has a missing coordinate``() 
     let result = ShadeCommand.parseArgs [ "--coverage"; "10,20,30" ]
     test <@ 
             result 
-            |> isErrorData "'coverage' parameter's value is invalid, it has an odd number of coordinates." 
+            |> isErrorData "'coverage' option's value is invalid, it has an odd number of coordinates." 
             @>
 
 [<Fact>]
@@ -64,7 +64,7 @@ let ``Reports error when there are less than 2 coverage points``() =
     let result = ShadeCommand.parseArgs [ "--coverage"; "10,20" ]
     test <@ 
             result 
-            |> isErrorData "'coverage' parameter's value is invalid, it has to have at least two points specified." 
+            |> isErrorData "'coverage' option's value is invalid, it has to have at least two points specified." 
             @>
 
 [<Fact>]
@@ -83,7 +83,7 @@ let ``Map scale has to be a numeric value`` () =
             "--coverage"; "10,20,30,40"; "--map-scale"; "xyz" ]
     test <@ 
             result 
-            |> isErrorData "'map-scale' parameter's value is invalid, it has to be a numeric value >= 1." 
+            |> isErrorData "'map-scale' option's value is invalid, it has to be a numeric value >= 1." 
             @>
 
 [<Theory>]
@@ -96,7 +96,7 @@ let ``Map scale has to be a positive value larger than 1`` mapScaleString =
             "--coverage"; "10,20,30,40"; "--map-scale"; mapScaleString ]
     test <@ 
             result 
-            |> isErrorData "'map-scale' parameter's value is invalid, it has to be a numeric value >= 1." 
+            |> isErrorData "'map-scale' option's value is invalid, it has to be a numeric value >= 1." 
             @>
 
 [<Fact>]
@@ -116,7 +116,7 @@ let ``DPI has to be a numeric value`` () =
             "--coverage"; "10,20,30,40"; "--dpi"; "xyz" ]
     test <@ 
             result 
-            |> isErrorData "'dpi' parameter's value is invalid, it has to be a positive numeric value." 
+            |> isErrorData "'dpi' option's value is invalid, it has to be a positive numeric value." 
             @>
 
 [<Theory>]
@@ -128,7 +128,7 @@ let ``DPI has to be a positive value`` mapScaleString =
             "--coverage"; "10,20,30,40"; "--dpi"; mapScaleString ]
     test <@ 
             result 
-            |> isErrorData "'dpi' parameter's value is invalid, it has to be a positive numeric value." 
+            |> isErrorData "'dpi' option's value is invalid, it has to be a positive numeric value." 
             @>
 
 [<Fact>]
@@ -148,7 +148,7 @@ let ``Tile size has to be a numeric value`` () =
             "--coverage"; "10,20,30,40"; "--tile-size"; "xyz" ]
     test <@ 
             result 
-            |> isErrorData "'tile-size' parameter's value is invalid, it has to be an integer value larger than 0." 
+            |> isErrorData "'tile-size' option's value is invalid, it has to be an integer value larger than 0." 
             @>
 
 [<Theory>]
@@ -160,7 +160,7 @@ let ``Tile size has to be a positive value`` tileSizeString =
             "--coverage"; "10,20,30,40"; "--tile-size"; tileSizeString ]
     test <@ 
             result 
-            |> isErrorData "'tile-size' parameter's value is invalid, it has to be an integer value larger than 0." 
+            |> isErrorData "'tile-size' option's value is invalid, it has to be an integer value larger than 0." 
             @>
 
 [<Fact>]
@@ -180,7 +180,7 @@ let ``FileName has to be a valid file name`` () =
             "--coverage"; "10,20,30,40"; "--file-name"; Pth.combine "test" "some" ]
     test <@ 
             result 
-            |> isErrorData "'file-name' parameter's value is invalid, it has to consist of valid path characters." 
+            |> isErrorData "'file-name' option's value is invalid, it has to consist of valid path characters." 
             @>
 
 [<Fact>]

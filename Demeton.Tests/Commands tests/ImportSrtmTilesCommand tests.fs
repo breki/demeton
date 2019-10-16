@@ -32,7 +32,7 @@ let ``Reports error when bounds value is not made of 4 parts`` parameterValue =
     let result = parseArgs [ "--bounds"; parameterValue ]
     test <@ 
             result 
-            |> isErrorData ("'bounds' parameter's value is invalid,"
+            |> isErrorData ("'bounds' option's value is invalid,"
                         + " it should consist of 4 numbers.")
     @>
 
@@ -42,7 +42,7 @@ let ``Reports error when at least one of bounds parts is not a number``() =
     let result = parseArgs [ "--bounds"; "10,20,a,30" ]
     test <@ 
             result 
-            |> isErrorData ("'bounds' parameter's value is invalid, "
+            |> isErrorData ("'bounds' option's value is invalid, "
                         + "it should consist of 4 comma-separated numbers.") 
     @>
 
@@ -54,7 +54,7 @@ let ``Reports error when longitude value is out of bounds`` parameterValue =
     let result = parseArgs [ "--bounds"; parameterValue ]
     test <@ 
             result 
-            |> isErrorData ("'bounds' parameter's value is invalid, "
+            |> isErrorData ("'bounds' option's value is invalid, "
                         + "longitude value is out of range.") 
         @>
 
@@ -66,7 +66,7 @@ let ``Reports error when latitude value is out of bounds`` parameterValue =
     let result = parseArgs [ "--bounds"; parameterValue ]
     test <@ 
             result 
-            |> isErrorData ("'bounds' parameter's value is invalid, "
+            |> isErrorData ("'bounds' option's value is invalid, "
                         + "latitude value is out of range.") 
         @>
 
@@ -76,7 +76,7 @@ let ``Reports error when min and max longitude values are switched``() =
     let result = parseArgs [ "--bounds"; "80,10,70,30" ]
     test <@ 
             result 
-            |> isErrorData ("'bounds' parameter's value is invalid, "
+            |> isErrorData ("'bounds' option's value is invalid, "
                 + "max longitude value is smaller than min longitude value.") 
         @>
 
@@ -86,7 +86,7 @@ let ``Reports error when min and max latitude values are switched``() =
     let result = parseArgs [ "--bounds"; "10,20,25,-10" ]
     test <@ 
             result 
-            |> isErrorData ("'bounds' parameter's value is invalid, "
+            |> isErrorData ("'bounds' option's value is invalid, "
                 + "max latitude value is smaller than min latitude value.") 
         @>
 

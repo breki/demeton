@@ -131,7 +131,7 @@ let parseArgs (args: string list) =
         | len when len < 2 ->
             let reason = "it has to have at least two points specified"
             let message = 
-                sprintf "'%s' parameter's value is invalid, %s." 
+                sprintf "'%s' option's value is invalid, %s." 
                     CoveragePointsParameter reason
             Error message
         | _ -> Ok options

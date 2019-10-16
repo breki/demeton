@@ -46,8 +46,6 @@ let command2ParserAndExecutor args =
 let supportedCommands: CommandLineCommand[] = [|
     { Name = "cmd1"; ParserAndExecutor = command1ParserAndExecutor }
     { Name = "cmd2"; ParserAndExecutor = command2ParserAndExecutor }
-    //{ Name = "cmd1"; Parameters = { Name = "par1"; Parser = par1Parser }}
-    //{ Name = "cmd2"; Parameters = { Name = "par2"; Parser = par2Parser }}
 |]
 
 [<Fact(Skip="todo")>]

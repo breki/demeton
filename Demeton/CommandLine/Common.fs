@@ -69,19 +69,19 @@ let nextArg (state: ParsingState): (string option * ParsingState) =
 
 
 /// <summary>
-/// Constructs a parsing result indicating a missing parameter value error.
+/// Constructs a parsing result indicating a missing option's value error.
 /// </summary>
-let parameterValueIsMissing parameter =
-    let message = (sprintf "'%s' parameter's value is missing." parameter)
+let optionValueIsMissing parameter =
+    let message = (sprintf "'%s' option's value is missing." parameter)
     ParsingFail message
 
 
 /// <summary>
-/// Constructs a parsing result indicating an invalid parameter value error.
+/// Constructs a parsing result indicating an invalid option's value error.
 /// </summary>
-let invalidParameter parameter reason =
+let invalidOptionValue parameter reason =
     let message = 
-        sprintf "'%s' parameter's value is invalid, %s." parameter reason
+        sprintf "'%s' option's value is invalid, %s." parameter reason
     ParsingFail message
 
 
@@ -103,13 +103,13 @@ let parseOptionValue
     (state: ParsingState)
     : ParsingState =
     match nextArg state with
-    | (None, _) -> parameterValueIsMissing parameterName
+    | (None, _) -> optionValueIsMissing parameterName
     | (Some value, _) when value.StartsWith(ParameterPrefix) ->
-        parameterValueIsMissing parameterName
+        optionValueIsMissing parameterName
     | (Some value, stateConsumed) -> 
         let result = parseValue value
         match result with
-        | InvalidValue reason -> invalidParameter parameterName reason
+        | InvalidValue reason -> invalidOptionValue parameterName reason
         | OkValue value -> 
             stateConsumed 
             |> appendParameter 
