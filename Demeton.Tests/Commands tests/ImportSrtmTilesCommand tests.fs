@@ -1,5 +1,6 @@
 ﻿module ``Commands tests``.``ImportSrtmTilesCommand tests``
 
+open CommandLine.Common
 open Demeton.Commands
 open Demeton.Srtm
 open Demeton.Srtm.Types
@@ -9,7 +10,13 @@ open Xunit
 open Swensen.Unquote
 open TestHelp
 
-let parseArgs = ImportSrtmTilesCommand.parseArgs
+let parseArgs args = 
+    let result = 
+        parseParameters args ImportSrtmTilesCommand.supportedParameters
+    match result with
+    | Ok parsedParameters -> 
+        parsedParameters |> ImportSrtmTilesCommand.fillOptions |> Ok
+    | Error error -> Error error
 
 let isOkWithOptions result: ImportSrtmTilesCommand.Options =
     match result with

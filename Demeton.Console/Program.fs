@@ -1,4 +1,5 @@
-﻿open Demeton.Srtm.Funcs
+﻿open CommandLine.Common
+open Demeton.Srtm.Funcs
 open Demeton.Commands
 open Demeton.Console
 
@@ -13,7 +14,9 @@ let handleUnknownCommand commandName =
     1
 
 
-let importTiles (options: ImportSrtmTilesCommand.Options) =
+let runImportCommand parsedParameters =
+    let options = ImportSrtmTilesCommand.fillOptions parsedParameters
+
     let tilesCords = boundsToTiles (Option.get options.Bounds) |> Seq.toArray
 
     ImportSrtmTilesCommand.run 
@@ -23,7 +26,7 @@ let importTiles (options: ImportSrtmTilesCommand.Options) =
             options.LocalCacheDir)
         (Wiring.fetchSrtmTile options.SrtmDir options.LocalCacheDir)
 
-    0
+    CommandExecuted
 
 
 let shade (options: ShadeCommand.Options) = 
@@ -49,16 +52,6 @@ let parseArgsAndRun (args: string[]) =
     | 0 -> displayHelp(0)
     | _ -> 
         match args.[0] with
-        | "import" -> 
-            let parseResult = 
-                args |> Array.toList |> List.tail 
-                |> ImportSrtmTilesCommand.parseArgs 
-
-            match parseResult with
-            | Ok parsedParameters  -> invalidOp "todo"// importTiles options
-            | Error errMessage -> 
-                printfn "Parsing error: %s" errMessage
-                1
         | "shade" ->
             let parseResult = 
                 args |> Array.toList |> List.tail |> ShadeCommand.parseArgs 
@@ -72,6 +65,16 @@ let parseArgsAndRun (args: string[]) =
         | x -> handleUnknownCommand x
 
 
+let supportedCommands: Command[] = [|
+    {
+        Name = "import";
+        Parameters = ImportSrtmTilesCommand.supportedParameters
+        Runner = runImportCommand }
+|]
+
 [<EntryPoint>]
 let main args =
-    parseArgsAndRun args
+    match parseAndExecuteCommandLine args supportedCommands with
+    | CommandExecuted -> 0
+    | ParsingFailed -> 1
+    | CommandNotFound -> 2

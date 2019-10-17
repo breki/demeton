@@ -1,4 +1,4 @@
-﻿- finish implementing tests for parsing whole command
+﻿- use the new commands system in the console code
 
 ## Wed 16.10.
 - Fixed a bug in FsCheck generators in `PropertiesHelp`.

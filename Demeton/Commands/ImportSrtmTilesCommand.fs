@@ -74,38 +74,6 @@ let parseBounds (value: string) =
     | _ -> InvalidValue "it should consist of 4 numbers"
 
 
-let parseArgs (args: string list) =
-    let supportedParameters = [|
-        Arg { Name = BoundsParameter; 
-            Parser = parseBounds }
-        Option { Name = SrtmDirParameter; 
-            Parser = ValueParsers.parseDir }
-        Option { Name = LocalCacheDirParameter; 
-            Parser = ValueParsers.parseDir }
-    |]
-    
-    let defaultOptions = { 
-        Bounds = None; SrtmDir = "srtm"; LocalCacheDir = "cache" }
-
-    let processParameter options parameter =
-        match parameter with
-        | ParsedArg { Name = BoundsParameter; Value = value } -> 
-            { options with Bounds = Some (value :?> LonLatBounds) }
-        | ParsedOption { Name = LocalCacheDirParameter; Value = value } ->
-            { options with LocalCacheDir = value :?> string }
-        | ParsedOption { Name = SrtmDirParameter; Value = value } ->
-            { options with SrtmDir = value :?> string }
-        | _ -> invalidOp "Unrecognized parameter."
-
-    let parsingResult = parseParameters args supportedParameters
-    match parsingResult with
-    | Error reason -> Error reason
-    | Ok parameters -> 
-        parameters 
-        |> List.fold processParameter defaultOptions
-        |> Ok
-
-
 type SrtmToPngEncoder = HeightsArray -> Stream -> unit
 
 
@@ -155,3 +123,33 @@ let run
     Log.info "All tiles were imported into the local cache."
 
     ignore()
+
+
+
+let fillOptions parsedParameters =
+   
+    let defaultOptions = { 
+        Bounds = None; SrtmDir = "srtm"; LocalCacheDir = "cache" }
+
+    let processParameter options parameter =
+        match parameter with
+        | ParsedArg { Name = BoundsParameter; Value = value } -> 
+            { options with Bounds = Some (value :?> LonLatBounds) }
+        | ParsedOption { Name = LocalCacheDirParameter; Value = value } ->
+            { options with LocalCacheDir = value :?> string }
+        | ParsedOption { Name = SrtmDirParameter; Value = value } ->
+            { options with SrtmDir = value :?> string }
+        | _ -> invalidOp "Unrecognized parameter."
+
+    parsedParameters 
+    |> List.fold processParameter defaultOptions
+
+
+let supportedParameters = [|
+    Arg { Name = BoundsParameter; 
+        Parser = parseBounds }
+    Option { Name = SrtmDirParameter; 
+        Parser = ValueParsers.parseDir }
+    Option { Name = LocalCacheDirParameter; 
+        Parser = ValueParsers.parseDir }
+|]
