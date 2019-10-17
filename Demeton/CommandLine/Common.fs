@@ -51,6 +51,7 @@ type CommandRunner = ParsedParameters -> CommandResult
 
 type Command = {
     Name: string
+    ShortDescription: string
     Parameters: CommandParameter[]
     Runner: CommandRunner
     }

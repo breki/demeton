@@ -52,10 +52,12 @@ let runShadeCommand parsedParameters =
 let supportedCommands: Command[] = [|
     {
         Name = "import";
+        ShortDescription = "imports SRTM tiles into the local cache"
         Parameters = ImportSrtmTilesCommand.supportedParameters
         Runner = runImportCommand };
     {
         Name = "shade";
+        ShortDescription = "generates a shaded raster"
         Parameters = ShadeCommand.supportedParameters
         Runner = runShadeCommand };
 |]

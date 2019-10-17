@@ -1,6 +1,8 @@
-﻿- implement help display
+﻿- implement help command
+    - with command name parameter
 
 ## Thu 17.10.
+- Implemented displaying of available commands in `help` command.
 - `import` and `shade` commands are now using the new system for parsing whole command lines.
 - Finished implementing parsing of whole command lines.
 

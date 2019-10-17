@@ -16,9 +16,11 @@ let command2Runner _ = CommandExecuted
 
 let supportedCommands: Command[] = [|
     { Name = "cmd1"; 
+        ShortDescription = "";
         Parameters = [| Switch { Name = "par1" } |];
         Runner = command1Runner }
     { Name = "cmd2"; 
+        ShortDescription = "";
         Parameters = [|  |];
         Runner = command2Runner }
 |]
