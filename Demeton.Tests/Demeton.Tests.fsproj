@@ -27,6 +27,7 @@
     <Compile Include="Command line parsing\Parsing a sequence of parameters.fs" />
     <Compile Include="Command line parsing\Parsing commands.fs" />
     <Compile Include="Command line parsing\Help command lists commands.fs" />
+    <Compile Include="Command line parsing\Rendering help for parameters.fs" />
     <Compile Include="Png\PNG filtering.fs" />
     <Compile Include="Png\IDAT compression.fs" />
     <Compile Include="Png\Reading and writing PNG files.fs" />

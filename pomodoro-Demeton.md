@@ -1,4 +1,5 @@
-﻿- implement help command
+﻿- help command definition has to be separate
+- implement help command
     - with command name parameter
 
 ## Thu 17.10.

@@ -1,10 +1,17 @@
 ﻿module Tests.``Command line parsing``.``Parsing commands``
 
+open CommandLine
 open CommandLine.Common
 
 open Xunit
 open Swensen.Unquote
 
+let parseAndExecuteCommandLine args supportedCommands = 
+    Shell.parseAndExecuteCommandLine 
+        (fun _ -> ())
+        ""
+        args 
+        supportedCommands 
 
 let mutable command1Executed = false
 

@@ -1,8 +1,8 @@
-﻿open CommandLine.Common
+﻿open CommandLine
+open CommandLine.Common
 open Demeton.Srtm.Funcs
 open Demeton.Commands
 open Demeton.Console
-
 
 let displayHelp exitCode = 
     // todo: add code to display all the available commands
@@ -62,9 +62,21 @@ let supportedCommands: Command[] = [|
         Runner = runShadeCommand };
 |]
 
+let helpCommand = {
+    Name = "help";
+    ShortDescription = "displays help information (this command)";
+    Parameters = [| |]
+    Runner = HelpCommand.runCommand 
+        "demeton" supportedCommands System.Console.Out.Write };
+
+
 [<EntryPoint>]
 let main args =
-    match parseAndExecuteCommandLine args supportedCommands with
+    let commandResult = 
+        Shell.parseAndExecuteCommandLine 
+            System.Console.Out.Write "demeton" args supportedCommands
+
+    match commandResult with
     | CommandExecuted -> 0
     | ParsingFailed -> 1
     | CommandNotFound -> 2

@@ -278,22 +278,3 @@ let parseParameters
         Ok (parsedParameters |> List.rev)
     | ParsingFail message -> Error message
     | _ -> invalidOp "BUG: this should never happen"
-
-
-
-let parseAndExecuteCommandLine (args: string[]) supportedCommands = 
-    let tryFindCommand commandName =
-        supportedCommands |> Array.tryFind (fun cmd -> cmd.Name = commandName)
-    
-    let commandName = args.[0]
-    let commandMaybe = tryFindCommand commandName
-
-    match commandMaybe with
-    | Some command -> 
-        let commandArgs = args |> Array.tail |> Array.toList
-
-        let parsingResult = parseParameters commandArgs command.Parameters
-        match parsingResult with
-        | Ok parsedParameters -> command.Runner parsedParameters
-        | Error _ -> ParsingFailed
-    | None -> CommandNotFound
