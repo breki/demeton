@@ -1,4 +1,8 @@
-﻿- use the new commands system in the console code
+﻿- implement help display
+
+## Thu 17.10.
+- `import` and `shade` commands are now using the new system for parsing whole command lines.
+- Finished implementing parsing of whole command lines.
 
 ## Wed 16.10.
 - Fixed a bug in FsCheck generators in `PropertiesHelp`.

@@ -72,7 +72,26 @@ let parseElevationColorShader value =
     OkValue (ElevationColoringShader (elevationColorScaleMaperitive))
 
 
-let parseArgs (args: string list) =
+let supportedParameters: CommandParameter[] = [|
+    Arg { Name = CoveragePointsParameter; 
+        Parser = parseCoverage }
+    Option { Name = DpiParameter; 
+        Parser = ValueParsers.parsePositiveFloat }
+    Switch { Name = ElevationColorShaderParameter }
+    Option { Name = FileNameParameter; 
+        Parser = ValueParsers.parseFileName }
+    Option { Name = LocalCacheDirParameter; 
+        Parser = ValueParsers.parseDir }
+    Option { Name = MapScaleParameter; 
+        Parser = ValueParsers.parseFloat 1.}
+    Option { Name = OutputDirParameter; 
+        Parser = ValueParsers.parseDir }
+    Option { Name = TileSizeParameter; 
+        Parser = ValueParsers.parsePositiveInt }
+|]
+
+
+let fillOptions parsedParameters =
     let defaultOptions = 
         { 
             CoveragePoints = []
@@ -85,24 +104,6 @@ let parseArgs (args: string list) =
             TileSize = 1000
             Shader = ElevationColoringShader elevationColorScaleMaperitive
         }
-
-    let supportedParameters: CommandParameter[] = [|
-        Arg { Name = CoveragePointsParameter; 
-            Parser = parseCoverage }
-        Option { Name = DpiParameter; 
-            Parser = ValueParsers.parsePositiveFloat }
-        Switch { Name = ElevationColorShaderParameter }
-        Option { Name = FileNameParameter; 
-            Parser = ValueParsers.parseFileName }
-        Option { Name = LocalCacheDirParameter; 
-            Parser = ValueParsers.parseDir }
-        Option { Name = MapScaleParameter; 
-            Parser = ValueParsers.parseFloat 1.}
-        Option { Name = OutputDirParameter; 
-            Parser = ValueParsers.parseDir }
-        Option { Name = TileSizeParameter; 
-            Parser = ValueParsers.parsePositiveInt }
-    |]
 
     let processParameter options parameter =
         match parameter with
@@ -125,13 +126,8 @@ let parseArgs (args: string list) =
             { options with TileSize = value :?> int }
         | _ -> invalidOp "Unrecognized parameter."
 
-    let parsingResult = parseParameters args supportedParameters
-    match parsingResult with
-    | Error reason -> Error reason
-    | Ok parameters -> 
-        parameters 
-        |> List.fold processParameter defaultOptions
-        |> Ok
+    parsedParameters 
+    |> List.fold processParameter defaultOptions
 
 
 let splitIntoIntervals minValue maxValue intervalSize =
