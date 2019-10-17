@@ -73,9 +73,14 @@ let parseElevationColorShader value =
 
 
 let supportedParameters: CommandParameter[] = [|
-    Arg { Name = CoveragePointsParameter; 
+    Arg { 
+        Name = CoveragePointsParameter; 
+        Description = "A list of points to be covered. At least two points need to be specified."
+        Format = "x1,y1,x2,y2..."
         Parser = parseCoverage }
-    Option { Name = DpiParameter; 
+    Option { 
+        Name = DpiParameter; 
+        //Description = "The printing resolution required"
         Parser = ValueParsers.parsePositiveFloat }
     Switch { Name = ElevationColorShaderParameter }
     Option { Name = FileNameParameter; 

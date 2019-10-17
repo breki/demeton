@@ -2,25 +2,7 @@
 module CommandLine.HelpCommand
 
 open Common
-
-open System.Text
-
-let appendLine text (sb: StringBuilder) =
-    sb.AppendLine(text)
-
-let appendLines lines (sb: StringBuilder) =
-    lines |> Seq.fold (fun builder line -> builder |> appendLine line) sb
-
-let appendFormat 
-    format 
-    ([<System.ParamArray>] args: obj []) 
-    (sb: StringBuilder) 
-    = 
-    sb.AppendFormat (format, args)
-
-let newLine (sb: StringBuilder) = sb.AppendLine()
-
-let toString (sb: StringBuilder) = sb.ToString()
+open Text
 
 let commandShortDescription (command: Command) =
     sprintf "%s: %s" command.Name command.ShortDescription
@@ -37,7 +19,7 @@ let runCommand
     let supportedCommandsIncludingHelp = 
         Array.append supportedCommands [| helpCommandTemplateDef |]
 
-    StringBuilder()
+    buildString()
     |> appendFormat
         "USAGE: {0} <command> {{<command parameters>}}" [| executableName |]
     |> newLine

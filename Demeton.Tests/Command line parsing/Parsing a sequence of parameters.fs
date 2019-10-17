@@ -7,6 +7,13 @@ open Xunit
 open Swensen.Unquote
 open TestHelp
 
+let someArg argName = 
+    Arg { 
+        Name = argName
+        Description = ""
+        Format = ""
+        Parser = ValueParsers.parseFloat 10. }
+
 
 let supportedParameters: CommandParameter[] = [|
     Switch { Name = "switch1" }
@@ -18,7 +25,7 @@ let supportedParameters: CommandParameter[] = [|
 let ``All command arguments need to be specified before any options and switches``() =
     let supportedParameters: CommandParameter[] = [|
         Switch { Name = "switch1" }
-        Arg { Name = "arg1"; Parser = ValueParsers.parseFloat 10. }
+        someArg "arg1"
         Option { Name = "option1"; Parser = ValueParsers.parseInt }
     |]
     
@@ -31,8 +38,8 @@ let ``All command arguments need to be specified before any options and switches
 [<Fact>]
 let ``Reports an error if some of the command arguments are missing and there is a switch after it``() =
     let supportedParameters: CommandParameter[] = [|
-        Arg { Name = "arg1"; Parser = ValueParsers.parseFloat 10. }
-        Arg { Name = "arg2"; Parser = ValueParsers.parseFloat 10. }
+        someArg "arg1"
+        someArg "arg2"
         Switch { Name = "switch1" }
     |]
     
@@ -45,8 +52,8 @@ let ``Reports an error if some of the command arguments are missing and there is
 [<Fact>]
 let ``Reports an error if some of the command arguments are missing and there are no more args``() =
     let supportedParameters: CommandParameter[] = [|
-        Arg { Name = "arg1"; Parser = ValueParsers.parseFloat 10. }
-        Arg { Name = "arg2"; Parser = ValueParsers.parseFloat 10. }
+        someArg "arg1"
+        someArg "arg2"
         Switch { Name = "switch1" }
     |]
     
@@ -59,7 +66,7 @@ let ``Reports an error if some of the command arguments are missing and there ar
 [<Fact>]
 let ``Reports an error if command argument's value is invalid``() =
     let supportedParameters: CommandParameter[] = [|
-        Arg { Name = "arg1"; Parser = ValueParsers.parseFloat 10. }
+        someArg "arg1"
     |]
     
     let args = [ "dsd" ]

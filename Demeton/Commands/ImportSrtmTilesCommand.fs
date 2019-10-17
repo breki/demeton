@@ -146,8 +146,12 @@ let fillOptions parsedParameters =
 
 
 let supportedParameters = [|
-    Arg { Name = BoundsParameter; 
-        Parser = parseBounds }
+    Arg { 
+        Name = BoundsParameter 
+        Description = "The boundaries of the area whose tiles need to be imported."
+        Format = "minlon,minlat,maxlon,maxlat"
+        Parser = parseBounds 
+    }
     Option { Name = SrtmDirParameter; 
         Parser = ValueParsers.parseDir }
     Option { Name = LocalCacheDirParameter; 

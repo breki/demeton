@@ -1,6 +1,7 @@
 ﻿- implement command and command parameters rendering
 
 ## Thu 17.10.
+- Started working on rendering command parameters help.
 - Implemented displaying of available commands in `help` command.
 - `import` and `shade` commands are now using the new system for parsing whole command lines.
 - Finished implementing parsing of whole command lines.

@@ -15,7 +15,11 @@ type OptionValueParsingResult =
 
 type OptionValueParser = string -> OptionValueParsingResult
 
-type CommandArg = { Name: string; Parser: OptionValueParser }
+type CommandArg = { 
+    Name: string
+    Description: string
+    Format: string
+    Parser: OptionValueParser }
 type CommandSwitch = { Name: string }
 type CommandOption = { Name: string; Parser: OptionValueParser }
 
