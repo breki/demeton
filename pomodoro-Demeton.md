@@ -1,6 +1,4 @@
-﻿- help command definition has to be separate
-- implement help command
-    - with command name parameter
+﻿- implement command and command parameters rendering
 
 ## Thu 17.10.
 - Implemented displaying of available commands in `help` command.
