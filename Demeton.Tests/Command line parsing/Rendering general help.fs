@@ -1,4 +1,4 @@
-﻿module Tests.``Command line parsing``.``Help command lists commands``
+﻿module Tests.``Command line parsing``.``Rendering general help``
 
 open CommandLine
 open CommandLine.Common

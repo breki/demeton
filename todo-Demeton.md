@@ -1,5 +1,4 @@
-﻿- render the whole command description
-- shortcut functions for command parameters
+﻿- shortcut functions for command parameters
 
 - add an (optional) color ramps
     - format: "height:#color;"
