@@ -77,51 +77,67 @@ let supportedParameters: CommandParameter[] = [|
         Name = CoveragePointsParameter; 
         Description = "A list of points to be covered. At least two points need to be specified."
         Format = "x1,y1,x2,y2..."
+        Example = Some 
+            ("5,43.3,16.6,48.4", "fetches (roughly) the whole Alps area")
         Parser = parseCoverage }
     Option { 
         Name = DpiParameter 
         Description = "The printing resolution required for the resulting raster image."
+        ValuePlaceholder = "number"
         Format = "positive real number"
         Default = 300.
+        Example = Some ("1200", "specifies the printing resolution of 1200 dots per inch")
         Parser = ValueParsers.parsePositiveFloat }
     Switch { Name = ElevationColorShaderParameter }
     Option { 
         Name = FileNameParameter
         Description = "The text used to prefix names of all generated image files."
+        ValuePlaceholder = "text"
         Format = "text"
         Default = "shading"
+        Example = Some ("hillshade", "all generated image file names will start with 'hillshade', like 'hillshade-2-3.png")
         Parser = ValueParsers.parseFileName }
     Option { 
         Name = LocalCacheDirParameter
         Description = "The path to the local SRTM cache directory. The directory will be created if it does not exist yet."
+        ValuePlaceholder = "path"
         Format = "directory path"
         Default = "cache"
+        Example = None
         Parser = ValueParsers.parseDir }
     Option { 
         Name = MapScaleParameter
         Description = "The map scale needed for the resulting raster image."
+        ValuePlaceholder = "number"
         Format = "real number >= 1"
         Default = 50000.
+        Example = Some("100000", "the map scale of resulting raster image will be 1 : 100,000")
         Parser = ValueParsers.parseFloat 1.}
     Option { 
         Name = OutputDirParameter
         Description = "The path to the directory where the raster files will be generated. The directory will be created if it does not exist yet."
+        ValuePlaceholder = "path"
         Format = "directory path"
         Default = "option"
+        Example = None
         Parser = ValueParsers.parseDir }
     Option { 
         Name = SrtmDirParameter
         Description = "The path to the directory containing the original zipped SRTM HGT files."
+        ValuePlaceholder = "path"
         Format = "directory path"
         Default = "srtm"
+        Example = None
         Parser = ValueParsers.parseDir }
     Option { 
         Name = TileSizeParameter
         Description = 
             "The maximum width and height in pixels of an individual raster image tile. "
             + "If the image is larger than this size, it will be split into multiple tiles."
+        ValuePlaceholder = "number"
         Format = "positive integer value"
         Default = 1000
+        Example = None
         Parser = ValueParsers.parsePositiveInt }
 |]
 

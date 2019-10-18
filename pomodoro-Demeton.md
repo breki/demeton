@@ -1,6 +1,6 @@
-﻿- render options
-- render switches
-- render the whole command description
+﻿## Fri 18.10.
+- Implemented rendering of command arguments and options.
+- Fixed a bug in one of `Mixing Rgba8Bit colors` properties.
 
 ## Thu 17.10.
 - Started working on rendering command parameters help.

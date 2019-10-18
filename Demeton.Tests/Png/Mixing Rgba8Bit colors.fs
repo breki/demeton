@@ -58,9 +58,19 @@ let isBetweenTwoOriginalColors (color1, color2, mixRatio) =
         (Rgba8Bit.a color1) (Rgba8Bit.a color2) (Rgba8Bit.a mixedColor)
 
 let swappingColorsProducesTheSameResult (color1, color2, mixRatio) =
+    // We use this relaxed equality comparison because of floating point
+    // rounding errors in "1. - mixRatio" we detected.
+    let areAlmostTheSameColors color1 color2 =
+        abs (int (Rgba8Bit.a color1) - int (Rgba8Bit.a color2)) <= 1
+        && abs (int (Rgba8Bit.r color1) - int (Rgba8Bit.r color2)) <= 1
+        && abs (int (Rgba8Bit.g color1) - int (Rgba8Bit.g color2)) <= 1
+        && abs (int (Rgba8Bit.b color1) - int (Rgba8Bit.b color2)) <= 1
+        
     let x = Rgba8Bit.mixColors color1 color2 mixRatio
     let y = Rgba8Bit.mixColors color2 color1 (1. - mixRatio)
-    x .=. y
+
+    areAlmostTheSameColors x y 
+    |> Prop.label "swappingColorsProducesTheSameResult"
 
 let distancesBetweenMixedColorAreProportionalToTheMixRatio
     (color1, color2, mixRatio) =

@@ -19,4 +19,8 @@ let appendFormat
 
 let newLine (sb: StringBuilder) = sb.AppendLine()
 
+let ifDo condition work (sb: StringBuilder) =
+    if condition then sb |> work
+    else sb
+
 let toString (sb: StringBuilder) = sb.ToString()

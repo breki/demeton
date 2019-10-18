@@ -12,14 +12,16 @@ let someArg argName =
         Name = argName
         Description = ""
         Format = ""
+        Example = None
         Parser = ValueParsers.parseFloat 10. }
 
 
 let supportedParameters: CommandParameter[] = [|
     Switch { Name = "switch1" }
     Option { 
-        Name = "option1"; Description = ""; Format = ""; Default = None
-        Parser = ValueParsers.parseInt }
+        Name = "option1"; Description = ""; ValuePlaceholder = ""; Format = ""; 
+        Example = None
+        Default = None; Parser = ValueParsers.parseInt }
 |]
 
 
@@ -29,8 +31,9 @@ let ``All command arguments need to be specified before any options and switches
         Switch { Name = "switch1" }
         someArg "arg1"
         Option { 
-            Name = "option1"; Description = ""; Format = ""; Default = None
-            Parser = ValueParsers.parseInt }
+            Name = "option1"; Description = ""; ValuePlaceholder = ""; Format = ""; 
+            Example = None
+            Default = None; Parser = ValueParsers.parseInt }
     |]
     
     let result = 

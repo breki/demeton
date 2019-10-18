@@ -19,14 +19,17 @@ type CommandArg = {
     Name: string
     Description: string
     Format: string
+    Example: (string * string) option
     Parser: OptionValueParser }
 type CommandSwitch = { 
     Name: string }
 type CommandOption = { 
     Name: string
     Description: string
+    ValuePlaceholder: string
     Format: string
     Default: obj
+    Example: (string * string) option
     Parser: OptionValueParser }
 
 type CommandParameter = 

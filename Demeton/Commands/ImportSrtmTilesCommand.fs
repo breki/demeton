@@ -150,18 +150,24 @@ let supportedParameters = [|
         Name = BoundsParameter 
         Description = "The boundaries of the area whose tiles need to be imported."
         Format = "minlon,minlat,maxlon,maxlat"
+        Example = Some 
+            ("5,43.3,16.6,48.4", "fetches (roughly) the whole Alps area")
         Parser = parseBounds 
     }
     Option { 
         Name = SrtmDirParameter
         Description = "The path to the directory containing the original zipped SRTM HGT files."
+        ValuePlaceholder = "path"
         Format = "directory path"
         Default = "srtm"
+        Example = None
         Parser = ValueParsers.parseDir }
     Option { 
         Name = LocalCacheDirParameter
         Description = "The path to the local SRTM cache directory. The directory will be created if it does not exist yet."
+        ValuePlaceholder = "path"
         Format = "directory path"
         Default = "cache"
+        Example = None
         Parser = ValueParsers.parseDir }
 |]
