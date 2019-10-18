@@ -1,4 +1,5 @@
-﻿- add some textual info to the commands and parameters so we can auto-generate help messages
+﻿- add example for arg value
+- shortcut functions for command parameters
 
 - add an (optional) color ramps
     - format: "height:#color;"

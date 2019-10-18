@@ -79,19 +79,49 @@ let supportedParameters: CommandParameter[] = [|
         Format = "x1,y1,x2,y2..."
         Parser = parseCoverage }
     Option { 
-        Name = DpiParameter; 
-        //Description = "The printing resolution required"
+        Name = DpiParameter 
+        Description = "The printing resolution required for the resulting raster image."
+        Format = "positive real number"
+        Default = 300.
         Parser = ValueParsers.parsePositiveFloat }
     Switch { Name = ElevationColorShaderParameter }
-    Option { Name = FileNameParameter; 
+    Option { 
+        Name = FileNameParameter
+        Description = "The text used to prefix names of all generated image files."
+        Format = "text"
+        Default = "shading"
         Parser = ValueParsers.parseFileName }
-    Option { Name = LocalCacheDirParameter; 
+    Option { 
+        Name = LocalCacheDirParameter
+        Description = "The path to the local SRTM cache directory. The directory will be created if it does not exist yet."
+        Format = "directory path"
+        Default = "cache"
         Parser = ValueParsers.parseDir }
-    Option { Name = MapScaleParameter; 
+    Option { 
+        Name = MapScaleParameter
+        Description = "The map scale needed for the resulting raster image."
+        Format = "real number >= 1"
+        Default = 50000.
         Parser = ValueParsers.parseFloat 1.}
-    Option { Name = OutputDirParameter; 
+    Option { 
+        Name = OutputDirParameter
+        Description = "The path to the directory where the raster files will be generated. The directory will be created if it does not exist yet."
+        Format = "directory path"
+        Default = "option"
         Parser = ValueParsers.parseDir }
-    Option { Name = TileSizeParameter; 
+    Option { 
+        Name = SrtmDirParameter
+        Description = "The path to the directory containing the original zipped SRTM HGT files."
+        Format = "directory path"
+        Default = "srtm"
+        Parser = ValueParsers.parseDir }
+    Option { 
+        Name = TileSizeParameter
+        Description = 
+            "The maximum width and height in pixels of an individual raster image tile. "
+            + "If the image is larger than this size, it will be split into multiple tiles."
+        Format = "positive integer value"
+        Default = 1000
         Parser = ValueParsers.parsePositiveInt }
 |]
 

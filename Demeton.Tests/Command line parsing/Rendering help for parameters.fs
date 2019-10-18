@@ -31,3 +31,19 @@ let ``Can render a command argument description``() =
         @"<coverage>: A list of points to be covered.
    FORMAT: x1,y1,x2,y2..." @>
 
+[<Fact(Skip="todo")>]
+let ``Can render an option description``() =
+    let par = 
+        Option { 
+            Name = "dpi" 
+            Description = 
+                "The printing resolution required for the resulting raster image."
+            Format = "positive real number"
+            Default = 300.
+            Parser = fun _ -> OkValue 1 
+        }
+
+    test <@ parameterDescription par = 
+        @"<coverage>: A list of points to be covered.
+   FORMAT: x1,y1,x2,y2..." @>
+

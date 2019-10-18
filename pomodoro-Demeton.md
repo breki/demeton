@@ -1,4 +1,6 @@
-﻿- implement command and command parameters rendering
+﻿- render options
+- render switches
+- render the whole command description
 
 ## Thu 17.10.
 - Started working on rendering command parameters help.

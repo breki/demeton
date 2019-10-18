@@ -152,8 +152,16 @@ let supportedParameters = [|
         Format = "minlon,minlat,maxlon,maxlat"
         Parser = parseBounds 
     }
-    Option { Name = SrtmDirParameter; 
+    Option { 
+        Name = SrtmDirParameter
+        Description = "The path to the directory containing the original zipped SRTM HGT files."
+        Format = "directory path"
+        Default = "srtm"
         Parser = ValueParsers.parseDir }
-    Option { Name = LocalCacheDirParameter; 
+    Option { 
+        Name = LocalCacheDirParameter
+        Description = "The path to the local SRTM cache directory. The directory will be created if it does not exist yet."
+        Format = "directory path"
+        Default = "cache"
         Parser = ValueParsers.parseDir }
 |]
