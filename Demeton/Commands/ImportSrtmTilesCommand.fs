@@ -24,6 +24,11 @@ let SrtmDirParameter = "srtm-dir"
 [<Literal>]
 let LocalCacheDirParameter = "local-cache-dir"
 
+[<Literal>]
+let DefaultSrtmDir = "srtm"
+[<Literal>]
+let DefaultLocalCacheDir = "cache"
+
 
 let parseBounds (value: string) =
 
@@ -124,12 +129,11 @@ let run
 
     ignore()
 
-
-
 let fillOptions parsedParameters =
    
     let defaultOptions = { 
-        Bounds = None; SrtmDir = "srtm"; LocalCacheDir = "cache" }
+        Bounds = None; SrtmDir = DefaultSrtmDir; 
+        LocalCacheDir = DefaultLocalCacheDir }
 
     let processParameter options parameter =
         match parameter with
@@ -159,7 +163,7 @@ let supportedParameters = [|
         Description = "The path to the directory containing the original zipped SRTM HGT files."
         ValuePlaceholder = "path"
         Format = "directory path"
-        Default = "srtm"
+        Default = DefaultSrtmDir
         Example = None
         Parser = ValueParsers.parseDir }
     Option { 
@@ -167,7 +171,7 @@ let supportedParameters = [|
         Description = "The path to the local SRTM cache directory. The directory will be created if it does not exist yet."
         ValuePlaceholder = "path"
         Format = "directory path"
-        Default = "cache"
+        Default = DefaultLocalCacheDir
         Example = None
         Parser = ValueParsers.parseDir }
 |]

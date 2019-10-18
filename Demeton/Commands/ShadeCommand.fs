@@ -23,7 +23,7 @@ open System
 type Options = {
     CoveragePoints: LonLat list
     Dpi: float
-    FileName: string
+    FilePrefix: string
     LocalCacheDir: string
     MapScale: float
     OutputDir: string
@@ -39,7 +39,7 @@ let DpiParameter = "dpi"
 [<Literal>]
 let ElevationColorShaderParameter = "elev-color"
 [<Literal>]
-let FileNameParameter = "file-name"
+let FilePrefixParameter = "file-prefix"
 [<Literal>]
 let LocalCacheDirParameter = "local-cache-dir"
 [<Literal>]
@@ -50,6 +50,21 @@ let OutputDirParameter = "output-dir"
 let SrtmDirParameter = "srtm-dir"
 [<Literal>]
 let TileSizeParameter = "tile-size"
+
+[<Literal>]
+let DefaultDpi = 300.
+[<Literal>]
+let DefaultFilePrefix = "shading"
+[<Literal>]
+let DefaultLocalCacheDir = "cache"
+[<Literal>]
+let DefaultMapScale = 50000.
+[<Literal>]
+let DefaultOutputDir = "output"
+[<Literal>]
+let DefaultSrtmDir = "srtm"
+[<Literal>]
+let DefaultTileSize = 1000
 
 
 let parseCoverage value =
@@ -85,16 +100,18 @@ let supportedParameters: CommandParameter[] = [|
         Description = "The printing resolution required for the resulting raster image."
         ValuePlaceholder = "number"
         Format = "positive real number"
-        Default = 300.
+        Default = DefaultDpi
         Example = Some ("1200", "specifies the printing resolution of 1200 dots per inch")
         Parser = ValueParsers.parsePositiveFloat }
-    Switch { Name = ElevationColorShaderParameter }
+    Switch { 
+        Name = ElevationColorShaderParameter
+        Description = "Uses elevation coloring shader to generate the raster image." }
     Option { 
-        Name = FileNameParameter
+        Name = FilePrefixParameter
         Description = "The text used to prefix names of all generated image files."
         ValuePlaceholder = "text"
         Format = "text"
-        Default = "shading"
+        Default = DefaultFilePrefix
         Example = Some ("hillshade", "all generated image file names will start with 'hillshade', like 'hillshade-2-3.png")
         Parser = ValueParsers.parseFileName }
     Option { 
@@ -102,7 +119,7 @@ let supportedParameters: CommandParameter[] = [|
         Description = "The path to the local SRTM cache directory. The directory will be created if it does not exist yet."
         ValuePlaceholder = "path"
         Format = "directory path"
-        Default = "cache"
+        Default = DefaultLocalCacheDir
         Example = None
         Parser = ValueParsers.parseDir }
     Option { 
@@ -110,7 +127,7 @@ let supportedParameters: CommandParameter[] = [|
         Description = "The map scale needed for the resulting raster image."
         ValuePlaceholder = "number"
         Format = "real number >= 1"
-        Default = 50000.
+        Default = DefaultMapScale
         Example = Some("100000", "the map scale of resulting raster image will be 1 : 100,000")
         Parser = ValueParsers.parseFloat 1.}
     Option { 
@@ -118,7 +135,7 @@ let supportedParameters: CommandParameter[] = [|
         Description = "The path to the directory where the raster files will be generated. The directory will be created if it does not exist yet."
         ValuePlaceholder = "path"
         Format = "directory path"
-        Default = "option"
+        Default = DefaultOutputDir
         Example = None
         Parser = ValueParsers.parseDir }
     Option { 
@@ -126,7 +143,7 @@ let supportedParameters: CommandParameter[] = [|
         Description = "The path to the directory containing the original zipped SRTM HGT files."
         ValuePlaceholder = "path"
         Format = "directory path"
-        Default = "srtm"
+        Default = DefaultSrtmDir
         Example = None
         Parser = ValueParsers.parseDir }
     Option { 
@@ -136,7 +153,7 @@ let supportedParameters: CommandParameter[] = [|
             + "If the image is larger than this size, it will be split into multiple tiles."
         ValuePlaceholder = "number"
         Format = "positive integer value"
-        Default = 1000
+        Default = DefaultTileSize
         Example = None
         Parser = ValueParsers.parsePositiveInt }
 |]
@@ -146,13 +163,13 @@ let fillOptions parsedParameters =
     let defaultOptions = 
         { 
             CoveragePoints = []
-            Dpi = 300. 
-            FileName = "shading"
-            LocalCacheDir = "cache"
-            MapScale = 50000.             
-            OutputDir = "output"
-            SrtmDir = "srtm"
-            TileSize = 1000
+            Dpi = DefaultDpi 
+            FilePrefix = DefaultFilePrefix
+            LocalCacheDir = DefaultLocalCacheDir
+            MapScale = DefaultMapScale
+            OutputDir = DefaultOutputDir
+            SrtmDir = DefaultSrtmDir
+            TileSize = DefaultTileSize
             Shader = ElevationColoringShader elevationColorScaleMaperitive
         }
 
@@ -165,8 +182,8 @@ let fillOptions parsedParameters =
         | ParsedSwitch { Name = ElevationColorShaderParameter } ->
             { options with 
                 Shader = ElevationColoringShader elevationColorScaleMaperitive }
-        | ParsedOption { Name = FileNameParameter; Value = value } ->
-            { options with FileName = value :?> string }
+        | ParsedOption { Name = FilePrefixParameter; Value = value } ->
+            { options with FilePrefix = value :?> string }
         | ParsedOption { Name = LocalCacheDirParameter; Value = value } ->
             { options with LocalCacheDir = value :?> string }
         | ParsedOption { Name = MapScaleParameter; Value = value } ->
@@ -377,7 +394,7 @@ let saveShadedRasterTile
         options.OutputDir 
         |> Pth.combine (
             sprintf "%s-%0*d-%0*d.png" 
-                options.FileName 
+                options.FilePrefix 
                 tileIndexStringWidth 
                 tileIndexX 
                 tileIndexStringWidth 

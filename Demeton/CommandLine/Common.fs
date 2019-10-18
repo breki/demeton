@@ -22,7 +22,8 @@ type CommandArg = {
     Example: (string * string) option
     Parser: OptionValueParser }
 type CommandSwitch = { 
-    Name: string }
+    Name: string 
+    Description: string }
 type CommandOption = { 
     Name: string
     Description: string

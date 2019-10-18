@@ -17,7 +17,7 @@ let coveragePoints = [(4.262676, 42.90816); (16.962471, 48.502048)]
 let options: ShadeCommand.Options = {
         CoveragePoints = coveragePoints
         Dpi = 300.
-        FileName = "shading"
+        FilePrefix = "shading"
         LocalCacheDir = "cache"
         MapScale = 5000000.
         OutputDir = "output"
@@ -75,7 +75,7 @@ let ``The name of tile PNG file has to be in the required format and is returned
     let expectedFileName = 
         options.OutputDir 
         |> Pth.combine 
-            (sprintf "%s-%d-%d.png" options.FileName tileIndexX tileIndexY)
+            (sprintf "%s-%d-%d.png" options.FilePrefix tileIndexX tileIndexY)
     test <@ pngFileNameUsed = Some expectedFileName @>
     test <@ returnedFileName = expectedFileName @>
 
@@ -94,7 +94,7 @@ let ``Zero-pads the tile index numbers in the PNG file name when required``
     let expectedFileName = 
         options.OutputDir 
         |> Pth.combine (
-            sprintf "%s-%s.png" options.FileName expectedTileIndexesString)
+            sprintf "%s-%s.png" options.FilePrefix expectedTileIndexesString)
     test <@ pngFileNameUsed = Some expectedFileName @>
     
 [<Fact>]

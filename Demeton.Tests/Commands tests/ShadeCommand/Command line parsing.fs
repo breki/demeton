@@ -30,7 +30,7 @@ let ``Sane defaults are used for options``() =
     let options = isOkWithOptions result
 
     test <@ options.Dpi = 300. @>
-    test <@ options.FileName = "shading" @>
+    test <@ options.FilePrefix = "shading" @>
     test <@ options.MapScale = 50000. @>
     test <@ options.OutputDir = "output" @>
     test <@ 
@@ -171,19 +171,19 @@ let ``Accepts a valid tile size value and puts it into the options`` () =
 let ``FileName has to be a valid file name`` () =
     let result = 
         parseArgs [ 
-            "10,20,30,40"; "--file-name"; Pth.combine "test" "some" ]
+            "10,20,30,40"; "--file-prefix"; Pth.combine "test" "some" ]
     test <@ 
             result 
-            |> isErrorData "'file-name' option's value is invalid, it has to consist of valid path characters." 
+            |> isErrorData "'file-prefix' option's value is invalid, it has to consist of valid path characters." 
             @>
 
 [<Fact>]
 let ``Accepts a valid FileName value and puts it into the options`` () =
     let result = 
-        parseArgs [ "10,20,30,40"; "--file-name"; "hillshading" ]
+        parseArgs [ "10,20,30,40"; "--file-prefix"; "hillshading" ]
     test <@ result |> isOk @>
     test <@ 
-            (isOkWithOptions result).FileName = "hillshading" 
+            (isOkWithOptions result).FilePrefix = "hillshading" 
         @>
 
 [<Fact>]

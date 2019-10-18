@@ -1,6 +1,4 @@
-﻿- render switches
-- how to enforce default values?
-- render the whole command description
+﻿- render the whole command description
 - shortcut functions for command parameters
 
 - add an (optional) color ramps

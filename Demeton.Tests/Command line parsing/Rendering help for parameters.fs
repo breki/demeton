@@ -38,7 +38,13 @@ let parameterDescription parameter: string =
                 ParameterPrefix; option.Name; 
                 fst (Option.get option.Example); snd (Option.get option.Example) |])
         |> toString
-    | _ -> invalidOp "todo"
+    
+    | Switch switch ->
+        buildString()
+        |> appendFormat "{0}{1}: {2}" [| 
+            ParameterPrefix; switch.Name; switch.Description |]
+        |> toString
+
 
 [<Fact>]
 let ``Can render a command argument description``() =
@@ -111,5 +117,16 @@ let ``Can render an option description with an example``() =
    FORMAT: positive real number
    DEFAULT VALUE: 300
    EXAMPLE: --dpi 1200 - specifies the printing resolution of 1200 dots per inch"
+   @>
+
+[<Fact>]
+let ``Can render a switch description``() =
+    let par = 
+        Switch { 
+            Name = "verbose" 
+            Description = "Turns on the verbose logging." }
+
+    test <@ parameterDescription par = 
+        @"--verbose: Turns on the verbose logging."
    @>
 

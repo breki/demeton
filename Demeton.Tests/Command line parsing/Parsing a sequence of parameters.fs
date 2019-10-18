@@ -17,7 +17,7 @@ let someArg argName =
 
 
 let supportedParameters: CommandParameter[] = [|
-    Switch { Name = "switch1" }
+    Switch { Name = "switch1"; Description = "" }
     Option { 
         Name = "option1"; Description = ""; ValuePlaceholder = ""; Format = ""; 
         Example = None
@@ -28,7 +28,7 @@ let supportedParameters: CommandParameter[] = [|
 [<Fact>]
 let ``All command arguments need to be specified before any options and switches``() =
     let supportedParameters: CommandParameter[] = [|
-        Switch { Name = "switch1" }
+        Switch { Name = "switch1"; Description = "" }
         someArg "arg1"
         Option { 
             Name = "option1"; Description = ""; ValuePlaceholder = ""; Format = ""; 
@@ -47,7 +47,7 @@ let ``Reports an error if some of the command arguments are missing and there is
     let supportedParameters: CommandParameter[] = [|
         someArg "arg1"
         someArg "arg2"
-        Switch { Name = "switch1" }
+        Switch { Name = "switch1"; Description = "" }
     |]
     
     let args = [ "123."; "--switch1" ]
@@ -61,7 +61,7 @@ let ``Reports an error if some of the command arguments are missing and there ar
     let supportedParameters: CommandParameter[] = [|
         someArg "arg1"
         someArg "arg2"
-        Switch { Name = "switch1" }
+        Switch { Name = "switch1"; Description = "" }
     |]
     
     let args = [ "123." ]

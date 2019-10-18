@@ -1,5 +1,6 @@
 ﻿## Fri 18.10.
-- Implemented rendering of command arguments and options.
+- Unified the default parameter values into constants.
+- Implemented rendering of command arguments, options and switches.
 - Fixed a bug in one of `Mixing Rgba8Bit colors` properties.
 
 ## Thu 17.10.
