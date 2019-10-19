@@ -4,6 +4,9 @@ open System.Text
 
 let buildString() = StringBuilder()
 
+let append (text: string) (sb: StringBuilder) =
+    sb.Append(text)
+
 let appendLine text (sb: StringBuilder) =
     sb.AppendLine(text)
 
