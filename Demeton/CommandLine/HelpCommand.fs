@@ -4,6 +4,28 @@ module CommandLine.HelpCommand
 open Common
 open Text
 
+open System
+
+let isArg parameter =
+    match parameter with
+    | Arg _ -> true
+    | _ -> false
+
+let isOptionOrSwitch parameter =
+    match parameter with
+    | Option _ -> true
+    | Switch _ -> true
+    | Arg _ -> false
+
+let hasOptionsAndSwitches (parameters: CommandParameter[]) =
+    parameters |> Array.exists isOptionOrSwitch
+
+let parameterName (parameter: CommandParameter) =
+    match parameter with
+    | Arg { Name = name } -> name
+    | Option { Name = name } -> name
+    | Switch { Name = name } -> name
+
 let parameterDescription parameter: string =
     match parameter with
     | Arg arg -> 
@@ -42,8 +64,61 @@ let parameterDescription parameter: string =
             ParameterPrefix; switch.Name; switch.Description |]
         |> toString
 
+
+let parametersDescriptions (parameters: CommandParameter[]) =
+    let argsSection =
+        parameters
+        |> Array.filter isArg
+        |> Array.map parameterDescription 
+        |> String.concat (Environment.NewLine + Environment.NewLine)
+
+    let optionsSection =
+        parameters
+        |> Array.filter isOptionOrSwitch
+        |> Array.sortBy parameterName
+        |> Array.map parameterDescription
+        |> String.concat (Environment.NewLine + Environment.NewLine)
+
+    let hasArgs = argsSection.Length > 0
+    let hasOptions = optionsSection.Length > 0
+
+    buildString()
+    |> ifDo hasArgs
+        (fun sb -> sb 
+                    |> appendLine "ARGUMENTS:" 
+                    |> append argsSection)
+    |> ifDo hasOptions
+        (fun sb -> sb 
+                    |> ifDo hasArgs (newLine >> newLine)
+                    |> appendLine "OPTIONS:" 
+                    |> append optionsSection)
+    |> toString
+
 let commandShortDescription (command: Command) =
     sprintf "%s: %s" command.Name command.ShortDescription
+
+let commandUsage (command: Command) =
+    let toArgMaybe parameter =
+        match parameter with
+        | Arg arg -> Some arg
+        | _ -> None
+
+    let commandArgs parameters = 
+        parameters |> Array.choose toArgMaybe
+
+    let argsList = commandArgs command.Parameters
+    let argsMentions = 
+        argsList 
+        |> Array.map (fun p -> "<" + p.Name + ">") 
+        |> String.concat " "
+
+    buildString()
+    |> appendFormat "USAGE: {0}" [| command.Name |]
+    |> ifDo (argsList.Length > 0) 
+        (fun sb -> sb |> append " " |> append argsMentions)
+    |> ifDo (hasOptionsAndSwitches command.Parameters)
+        (fun sb -> sb |> append " [<options>]")
+    |> toString
 
 let helpCommandTemplateDef = {
     Name = "help";

@@ -1,5 +1,8 @@
 ﻿- render the whole command description
 
+## Sat 19.10.
+- Finished implementing rendering of detailed help for command usage and parameters.
+
 ## Fri 18.10.
 - Unified the default parameter values into constants.
 - Implemented rendering of command arguments, options and switches.
