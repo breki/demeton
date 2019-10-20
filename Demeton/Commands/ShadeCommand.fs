@@ -100,9 +100,9 @@ let supportedParameters: CommandParameter[] = [|
     |> Option.example "1200"  "specifies the printing resolution of 1200 dots per inch"
     |> Option.toPar
 
-    Switch { 
-        Name = ElevationColorShaderParameter
-        Description = "Uses elevation coloring shader to generate the raster image." }
+    Switch.build ElevationColorShaderParameter
+    |> Switch.desc "Uses elevation coloring shader to generate the raster image."
+    |> Switch.toPar
 
     Option.build FilePrefixParameter
     |> Option.desc "The text used to prefix names of all generated image files."

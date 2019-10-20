@@ -11,7 +11,7 @@ let someArg argName =
     Arg.build argName |> Arg.asFloat 10. |> Arg.optional |> Arg.toPar
 
 let supportedParameters: CommandParameter[] = [|
-    Switch { Name = "switch1"; Description = "" }
+    Switch.build "switch1" |> Switch.toPar
     Option.build "option1" |> Option.asInt |> Option.toPar
 |]
 
@@ -19,7 +19,7 @@ let supportedParameters: CommandParameter[] = [|
 [<Fact>]
 let ``All command arguments need to be specified before any options and switches``() =
     let supportedParameters: CommandParameter[] = [|
-        Switch { Name = "switch1"; Description = "" }
+        Switch.build "switch1" |> Switch.toPar
         someArg "arg1"
         Option.build "option1" |> Option.toPar
     |]
@@ -35,7 +35,7 @@ let ``Reports an error if some of the command arguments are missing and there is
     let supportedParameters: CommandParameter[] = [|
         someArg "arg1"
         someArg "arg2"
-        Switch { Name = "switch1"; Description = "" }
+        Switch.build "switch1" |> Switch.toPar
     |]
     
     let args = [ "123."; "--switch1" ]
@@ -49,7 +49,7 @@ let ``Reports an error if some of the command arguments are missing and there ar
     let supportedParameters: CommandParameter[] = [|
         someArg "arg1"
         someArg "arg2"
-        Switch { Name = "switch1"; Description = "" }
+        Switch.build "switch1" |> Switch.toPar
     |]
     
     let args = [ "123." ]

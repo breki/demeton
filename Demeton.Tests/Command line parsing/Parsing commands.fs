@@ -25,7 +25,7 @@ let supportedCommands: Command[] = [|
     {   Name = "cmd1" 
         ShortDescription = ""
         Description = ""
-        Parameters = [| Switch { Name = "par1"; Description = "" } |]
+        Parameters = [| Switch.build "par1" |> Switch.toPar |]
         Runner = command1Runner }
     {   Name = "cmd2" 
         ShortDescription = ""

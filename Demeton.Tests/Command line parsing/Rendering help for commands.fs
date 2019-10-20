@@ -65,8 +65,7 @@ let ``Indicates when an argument is optional``() =
 [<Fact>]
 let ``Supports rendering command usage without args``() =    
     let optionsOnly = [|
-        Switch {
-            Name = "switch1"; Description = "" }
+        Switch.build "switch1" |> Switch.toPar
         Option.build "option1" |> Option.toPar
         |]
 
@@ -79,9 +78,9 @@ let ``Supports rendering command usage with args and options``() =
         Arg.build "arg1" 
         |> Arg.desc "some description 1" |> Arg.format "format1"
         |> Arg.toPar
-        Switch {
-            Name = "switch1"
-            Description = "some description 3" }
+
+        Switch.build "switch1" |> Switch.desc "some description 3"
+        |> Switch.toPar
         |]
     
     test <@ HelpCommand.commandUsage (cmdWith argAndSwitch) =
@@ -110,9 +109,8 @@ let ``Supports rendering parameter details when there are only options and switc
         |> Option.defaultValue 1
         |> Option.toPar
 
-        Switch {
-            Name = "switch1"
-            Description = "some description 3" }
+        Switch.build "switch1" |> Switch.desc "some description 3"
+        |> Switch.toPar
         |]
 
     test <@ HelpCommand.parametersDescriptions optionsOnly = @"OPTIONS:
@@ -125,9 +123,9 @@ let ``Supports rendering parameter details when there are only options and switc
 [<Fact>]
 let ``Orders options and switches details alphabetically``() =
     let optionsOnlyUnsorted = [|
-        Switch {
-            Name = "switch1"
-            Description = "some description 3" }
+        Switch.build "switch1" |> Switch.desc "some description 3"
+        |> Switch.toPar
+
         Option.build "option1" 
         |> Option.desc "some description 4"
         |> Option.placeholder "value"
@@ -153,9 +151,10 @@ let ``Can render a combination of arguments and options``() =
         |> Arg.desc "some description 2" |> Arg.format "format2"
         |> Arg.example "x1" "xx1"
         |> Arg.toPar
-        Switch {
-            Name = "switch1"
-            Description = "some description 3" }
+
+        Switch.build "switch1" |> Switch.desc "some description 3"
+        |> Switch.toPar
+
         Option.build "option1" 
         |> Option.desc "some description 4"
         |> Option.placeholder "value"
@@ -185,9 +184,9 @@ let ``Can render the whole command description``() =
         Arg.build "arg1" 
         |> Arg.desc "some description 1" |> Arg.format "format1"
         |> Arg.toPar
-        Switch {
-            Name = "switch1"
-            Description = "some description 3" }
+
+        Switch.build "switch1" |> Switch.desc "some description 3"
+        |> Switch.toPar
         |]
 
     test <@ HelpCommand.commandDescription (cmdWith parameters) =

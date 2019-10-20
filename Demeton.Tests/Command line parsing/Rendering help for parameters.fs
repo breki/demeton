@@ -70,9 +70,8 @@ let ``Can render an option description with an example``() =
 [<Fact>]
 let ``Can render a switch description``() =
     let par = 
-        Switch { 
-            Name = "verbose" 
-            Description = "Turns on the verbose logging." }
+        Switch.build "verbose" |> Switch.desc "Turns on the verbose logging." 
+        |> Switch.toPar
 
     test <@ HelpCommand.parameterDescription par = 
         @"--verbose: Turns on the verbose logging."

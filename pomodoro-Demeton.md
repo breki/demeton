@@ -7,6 +7,7 @@
 - do we also add examples for the whole command?
 
 ## Sun 20.10.
+- Added `Switch` module for building switches.
 - Added `Option` module for building options.
 - Added `Arg` module for building arguments.
 - Command line usage now indicates when an argument is optional.
