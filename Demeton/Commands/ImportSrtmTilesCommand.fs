@@ -150,15 +150,12 @@ let fillOptions parsedParameters =
 
 
 let supportedParameters = [|
-    Arg { 
-        Name = BoundsParameter 
-        IsMandatory = true
-        Description = "The boundaries of the area whose tiles need to be imported."
-        Format = "minlon,minlat,maxlon,maxlat"
-        Example = Some 
-            ("5,43.3,16.6,48.4", "fetches (roughly) the whole Alps area")
-        Parser = parseBounds 
-    }
+    Arg.build BoundsParameter 
+    |> Arg.desc "The boundaries of the area whose tiles need to be imported."
+    |> Arg.format "minlon,minlat,maxlon,maxlat"
+    |> Arg.example "5,43.3,16.6,48.4" "fetches (roughly) the whole Alps area"
+    |> Arg.parser parseBounds |> Arg.toPar
+
     Option { 
         Name = SrtmDirParameter
         Description = "The path to the directory containing the original zipped SRTM HGT files."

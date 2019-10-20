@@ -21,7 +21,19 @@ type CommandArg = {
     Description: string
     Format: string
     Example: (string * string) option
-    Parser: OptionValueParser }
+    Parser: OptionValueParser } with
+
+    static member create name =
+        { 
+            Name = name
+            IsMandatory = true
+            Description = ""
+            Format = ""
+            Example = None
+            Parser = fun _ -> OkValue None } 
+
+    member this.optional() = { this with IsMandatory = false }
+
 type CommandSwitch = { 
     Name: string 
     Description: string }

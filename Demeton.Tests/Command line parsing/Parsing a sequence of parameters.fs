@@ -8,14 +8,7 @@ open Swensen.Unquote
 open TestHelp
 
 let someArg argName = 
-    Arg { 
-        Name = argName
-        IsMandatory = true
-        Description = ""
-        Format = ""
-        Example = None
-        Parser = ValueParsers.parseFloat 10. }
-
+    Arg.build argName |> Arg.asFloat 10. |> Arg.optional |> Arg.toPar
 
 let supportedParameters: CommandParameter[] = [|
     Switch { Name = "switch1"; Description = "" }

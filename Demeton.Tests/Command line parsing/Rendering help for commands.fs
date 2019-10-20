@@ -9,20 +9,13 @@ open Swensen.Unquote
 let noParameters = [| |]
 
 let argumentsOnly = [|
-    Arg { 
-        Name = "arg1"
-        IsMandatory = true
-        Description = "some description 1"
-        Format = "format1"
-        Example = None
-        Parser = fun _ -> OkValue 1 } 
-    Arg { 
-        Name = "arg2"
-        IsMandatory = true
-        Description = "some description 2"
-        Format = "format2"
-        Example = None
-        Parser = fun _ -> OkValue 1 } 
+    Arg.build "arg1" 
+    |> Arg.desc "some description 1" |> Arg.format "format1"
+    |> Arg.toPar
+
+    Arg.build "arg2" 
+    |> Arg.desc "some description 2" |> Arg.format "format2"
+    |> Arg.toPar
     |]
 
 let cmdTemplate = { 
@@ -43,15 +36,10 @@ let ``Supports rendering command usage without args, options and switches``() =
 [<Fact>]
 let ``Supports rendering command usage without arguments only``() =
     let argumentOnly = [|
-        Arg { 
-            Name = "arg1"
-            IsMandatory = true
-            Description = "some description 1"
-            Format = "format1"
-            Example = None
-            Parser = fun _ -> OkValue 1 } 
+        Arg.build "arg1" 
+        |> Arg.desc "some description 1" |> Arg.format "format1"
+        |> Arg.toPar    
         |]
-    
     test <@ HelpCommand.commandUsage (cmdWith argumentOnly) =
         "USAGE: somecmd <arg1>" @>
 
@@ -62,24 +50,16 @@ let ``Adds space as a separator between args``() =
 
 [<Fact>]
 let ``Indicates when an argument is optional``() =
-    let argumentOnly = [|
-        Arg { 
-            Name = "arg1"
-            IsMandatory = true
-            Description = "some description 1"
-            Format = "format1"
-            Example = None
-            Parser = fun _ -> OkValue 1 } 
-        Arg { 
-            Name = "arg2"
-            IsMandatory = false
-            Description = "some description 2"
-            Format = "format2"
-            Example = None
-            Parser = fun _ -> OkValue 1 } 
-        |]
+    let argumentsOnly = [|
+        Arg.build "arg1" 
+        |> Arg.desc "some description 1" |> Arg.format "format1"
+        |> Arg.toPar
+        Arg.build "arg2" 
+        |> Arg.desc "some description 2" |> Arg.format "format2"
+        |> Arg.optional |> Arg.toPar
+    |]
     
-    test <@ HelpCommand.commandUsage (cmdWith argumentOnly) =
+    test <@ HelpCommand.commandUsage (cmdWith argumentsOnly) =
         "USAGE: somecmd <arg1> [<arg2>]" @>
 
 [<Fact>]
@@ -102,13 +82,9 @@ let ``Supports rendering command usage without args``() =
 [<Fact>]
 let ``Supports rendering command usage with args and options``() =
     let argAndSwitch = [|
-        Arg { 
-            Name = "arg1"
-            IsMandatory = true
-            Description = "some description 1"
-            Format = "format1"
-            Example = None
-            Parser = fun _ -> OkValue 1 }
+        Arg.build "arg1" 
+        |> Arg.desc "some description 1" |> Arg.format "format1"
+        |> Arg.toPar
         Switch {
             Name = "switch1"
             Description = "some description 3" }
@@ -179,20 +155,13 @@ let ``Orders options and switches details alphabetically``() =
 [<Fact>]
 let ``Can render a combination of arguments and options``() =
     let parameters = [|
-        Arg { 
-            Name = "arg1"
-            IsMandatory = true
-            Description = "some description 1"
-            Format = "format1"
-            Example = None
-            Parser = fun _ -> OkValue 1 }
-        Arg { 
-            Name = "arg2"
-            IsMandatory = true
-            Description = "some description 2"
-            Format = "format2"
-            Example = Some ("x1", "xx1")
-            Parser = fun _ -> OkValue 1 }
+        Arg.build "arg1" 
+        |> Arg.desc "some description 1" |> Arg.format "format1"
+        |> Arg.toPar
+        Arg.build "arg2" 
+        |> Arg.desc "some description 2" |> Arg.format "format2"
+        |> Arg.example "x1" "xx1"
+        |> Arg.toPar
         Switch {
             Name = "switch1"
             Description = "some description 3" }
@@ -224,13 +193,9 @@ OPTIONS:
 [<Fact>]
 let ``Can render the whole command description``() =
     let parameters = [|
-        Arg { 
-            Name = "arg1"
-            IsMandatory = true
-            Description = "some description 1"
-            Format = "format1"
-            Example = None
-            Parser = fun _ -> OkValue 1 }
+        Arg.build "arg1" 
+        |> Arg.desc "some description 1" |> Arg.format "format1"
+        |> Arg.toPar
         Switch {
             Name = "switch1"
             Description = "some description 3" }

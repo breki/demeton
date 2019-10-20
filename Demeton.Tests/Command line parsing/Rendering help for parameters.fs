@@ -9,14 +9,10 @@ open Swensen.Unquote
 [<Fact>]
 let ``Can render a command argument description``() =
     let par = 
-        Arg { 
-            Name = "coverage" 
-            IsMandatory = true
-            Description = "A list of points to be covered."
-            Format = "x1,y1,x2,y2..."
-            Example = None
-            Parser = fun _ -> OkValue 1 
-        }
+        Arg.build "coverage" 
+        |> Arg.desc "A list of points to be covered."
+        |> Arg.format "x1,y1,x2,y2..."
+        |> Arg.toPar
 
     test <@ HelpCommand.parameterDescription par = 
         @"<coverage>: A list of points to be covered.
@@ -25,15 +21,12 @@ let ``Can render a command argument description``() =
 [<Fact>]
 let ``Can render a command argument description with an example``() =
     let par = 
-        Arg { 
-            Name = "coverage" 
-            IsMandatory = true
-            Description = "A list of points to be covered."
-            Format = "x1,y1,x2,y2..."
-            Example = Some 
-                ("5,43.3,16.6,48.4", "fetches (roughly) the whole Alps area")
-            Parser = fun _ -> OkValue 1 
-        }
+        Arg.build "coverage" 
+        |> Arg.desc "A list of points to be covered."
+        |> Arg.format "x1,y1,x2,y2..."
+        |> Arg.example 
+            "5,43.3,16.6,48.4" "fetches (roughly) the whole Alps area"
+        |> Arg.toPar
 
     test <@ HelpCommand.parameterDescription par = 
         @"<coverage>: A list of points to be covered.

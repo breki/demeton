@@ -88,14 +88,11 @@ let parseElevationColorShader value =
 
 
 let supportedParameters: CommandParameter[] = [|
-    Arg { 
-        Name = CoveragePointsParameter
-        IsMandatory = true
-        Description = "A list of points to be covered. At least two points need to be specified."
-        Format = "x1,y1,x2,y2..."
-        Example = Some 
-            ("5,43.3,16.6,48.4", "fetches (roughly) the whole Alps area")
-        Parser = parseCoverage }
+    Arg.build CoveragePointsParameter
+    |> Arg.desc "A list of points to be covered. At least two points need to be specified."
+    |> Arg.format "x1,y1,x2,y2..."
+    |> Arg.example "5,43.3,16.6,48.4" "fetches (roughly) the whole Alps area"
+    |> Arg.parser parseCoverage |> Arg.toPar
     Option { 
         Name = DpiParameter 
         Description = "The printing resolution required for the resulting raster image."
