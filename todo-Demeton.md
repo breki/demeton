@@ -1,4 +1,6 @@
-﻿- shortcut functions for command parameters
+﻿- `help` command must support two modes of operation
+    - how do we support the optional command line argument in this mode?
+- shortcut functions for command parameters
 
 - add an (optional) color ramps
     - format: "height:#color;"

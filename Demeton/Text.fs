@@ -1,5 +1,6 @@
 ﻿module Text
 
+open System
 open System.Text
 
 let buildString() = StringBuilder()
@@ -27,3 +28,7 @@ let ifDo condition work (sb: StringBuilder) =
     else sb
 
 let toString (sb: StringBuilder) = sb.ToString()
+
+let inline (+@) (a: string) (b: string) = 
+    a + Environment.NewLine + Environment.NewLine + b
+

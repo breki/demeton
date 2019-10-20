@@ -1,4 +1,7 @@
-﻿- render the whole command description
+﻿- do we also add examples for the whole command?
+
+## Sun 20.10.
+- Implemented `HelpCommand.commandDescription` function.
 
 ## Sat 19.10.
 - Finished implementing rendering of detailed help for command usage and parameters.

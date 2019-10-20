@@ -120,9 +120,23 @@ let commandUsage (command: Command) =
         (fun sb -> sb |> append " [<options>]")
     |> toString
 
+let commandDescription (command: Command) = 
+    buildString()
+    |> appendFormat "{0}: {1}" [| command.Name; command.ShortDescription |]
+    |> newLine
+    |> newLine
+    |> appendLine command.Description
+    |> newLine
+    |> appendLine (commandUsage command)
+    |> newLine
+    |> append (parametersDescriptions command.Parameters)
+    |> toString
+
 let helpCommandTemplateDef = {
     Name = "help";
-    ShortDescription = "displays help information (this command)";
+    ShortDescription = "displays help information (this command)"
+    Description = 
+        "Displays the help information about the command line interface."
     Parameters = [| |]
     Runner = fun _ -> CommandExecuted };
 

@@ -8,9 +8,11 @@ open Swensen.Unquote
 
 let supportedCommands: Command[] = [|
     { Name = "potato"; ShortDescription = "boils a potato"; 
+        Description = "";
         Parameters = [| |];
         Runner = fun _ -> CommandExecuted }
     { Name = "tomato"; ShortDescription = "peels a tomato";
+        Description = "";
         Parameters = [|  |];
         Runner = fun _ -> CommandExecuted }
 |]

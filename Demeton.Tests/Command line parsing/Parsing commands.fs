@@ -22,13 +22,15 @@ let command1Runner _ =
 let command2Runner _ = CommandExecuted
 
 let supportedCommands: Command[] = [|
-    { Name = "cmd1"; 
-        ShortDescription = "";
-        Parameters = [| Switch { Name = "par1"; Description = "" } |];
+    {   Name = "cmd1" 
+        ShortDescription = ""
+        Description = ""
+        Parameters = [| Switch { Name = "par1"; Description = "" } |]
         Runner = command1Runner }
-    { Name = "cmd2"; 
-        ShortDescription = "";
-        Parameters = [|  |];
+    {   Name = "cmd2" 
+        ShortDescription = ""
+        Description = ""
+        Parameters = [|  |]
         Runner = command2Runner }
 |]
 

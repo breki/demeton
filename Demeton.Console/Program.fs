@@ -3,6 +3,7 @@ open CommandLine.Common
 open Demeton.Srtm.Funcs
 open Demeton.Commands
 open Demeton.Console
+open Text
 
 let displayHelp exitCode = 
     // todo: add code to display all the available commands
@@ -53,11 +54,24 @@ let supportedCommands: Command[] = [|
     {
         Name = "import";
         ShortDescription = "imports SRTM tiles into the local cache"
+        Description = 
+            "Converts SRTM tiles from the original format (zipped SRTM HGT "
+            + "files) to PNG files and stores them in the local cache, to be "
+            + @"available later for processing by the 'shade' command."
+            +@ "This command is useful if you want to pre-cache a certain area "
+            + "of the world and store it on another computer that has no "
+            + "access to the full SRTM tiles archive. Note that the 'shade' "
+            + "command also converts any SRTM tiles not found in the cache, so "
+            + "the 'import' is just a convenience command."
         Parameters = ImportSrtmTilesCommand.supportedParameters
         Runner = runImportCommand };
     {
         Name = "shade";
         ShortDescription = "generates a shaded raster"
+        Description =
+            "Generated a shaded raster image (consisting of one or more image " 
+            + "tiles) for a given geographic area, using the specified map "
+            + "projection, map scale and printing resolution."
         Parameters = ShadeCommand.supportedParameters
         Runner = runShadeCommand };
 |]
@@ -65,6 +79,8 @@ let supportedCommands: Command[] = [|
 let helpCommand = {
     Name = "help";
     ShortDescription = "displays help information (this command)";
+    Description =
+        "Displays the help information about the command line interface."
     Parameters = [| |]
     Runner = HelpCommand.runCommand 
         "demeton" supportedCommands System.Console.Out.Write };

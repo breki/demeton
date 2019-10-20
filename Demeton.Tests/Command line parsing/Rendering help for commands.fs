@@ -2,11 +2,10 @@
 
 open CommandLine
 open CommandLine.Common
+open Text
 
 open Xunit
 open Swensen.Unquote
-
-let commandDescription (command: Command) = invalidOp "todo"
 
 let noParameters = [| |]
 
@@ -48,7 +47,8 @@ let argAndSwitch = [|
 
 let cmdTemplate = { 
     Name = "somecmd"
-    ShortDescription = ""
+    ShortDescription = "some short description"
+    Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
     Parameters = [| |]
     Runner = fun _ -> CommandExecuted }
 
@@ -193,3 +193,31 @@ OPTIONS:
    DEFAULT VALUE: 1
 
 --switch1: some description 3" @>
+
+[<Fact>]
+let ``Can render the whole command description``() =
+    let parameters = [|
+        Arg { 
+            Name = "arg1"
+            Description = "some description 1"
+            Format = "format1"
+            Example = None
+            Parser = fun _ -> OkValue 1 }
+        Switch {
+            Name = "switch1"
+            Description = "some description 3" }
+        |]
+
+    test <@ HelpCommand.commandDescription (cmdWith parameters) =
+        @"somecmd: some short description
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+USAGE: somecmd <arg1> [<options>]
+
+ARGUMENTS:
+<arg1>: some description 1
+   FORMAT: format1
+
+OPTIONS:
+--switch1: some description 3" @>    
