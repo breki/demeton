@@ -9,7 +9,7 @@ let build name = {
     Description = ""
     Format = ""
     Example = None
-    Parser = fun _ -> OkValue None } 
+    Parser = fun value -> OkValue value } 
 
 let asFloat minValue (arg: CommandArg) =
     { arg with Parser = (ValueParsers.parseFloat minValue)}

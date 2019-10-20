@@ -250,49 +250,71 @@ let parseParameters
     let consumeNextCommandArg 
         (argMaybe: string option) 
         (cmdArg: CommandParameter)
-        state =
+        state
+        : ParsingState option =
         match (argMaybe, cmdArg, state) with
-        | (None, CommandParameter.Arg { Name = argName }, _) -> 
-            argumentValueIsMissing argName
-        | (Some arg, CommandParameter.Arg { Name = argName }, _) 
+        | (None, CommandParameter.Arg { Name = argName; IsMandatory = true }, _) -> 
+            argumentValueIsMissing argName |> Some
+        | (None, CommandParameter.Arg { IsMandatory = false }, _) -> 
+            // When the argument is optional and there are no more args left, 
+            // simply do nothing.
+            Some state
+        | (Some arg, CommandParameter.Arg { Name = argName; IsMandatory = true }, _) 
             when arg.StartsWith ParameterPrefix ->
-            argumentValueIsMissing argName
+            argumentValueIsMissing argName |> Some
+        | (Some _, CommandParameter.Arg { IsMandatory = false }, _) ->
+            None
         | (Some arg, CommandParameter.Arg { Name = argName; Parser = parser }, _) -> 
             match parser arg with
             | OkValue value -> 
                 state 
                 |> appendParameter (ParsedArg { Name = argName; Value = value })
-            | InvalidValue reason -> invalidArgumentValue argName reason
+                |> Some
+            | InvalidValue reason -> 
+                invalidArgumentValue argName reason |> Some
         | _ -> invalidOp "todo"
 
-    let handleNextArg (arg: string option) consumedState =
-        match nextCommandArgumentToFind consumedState with
-        | Some cmdArgument -> 
-            consumeNextCommandArg arg cmdArgument consumedState
-        | None ->
-            match (arg, consumedState) with
-            | (Some argParameter, _) 
-                when argParameter.StartsWith(ParameterPrefix) ->
+    let consumeNextOptionOrSwitch (arg: string option) state =
+        match (arg, state) with
+        | (Some argParameter, _) 
+            when argParameter.StartsWith(ParameterPrefix) ->
 
-                let parameterName = argParameter.Substring 2
-                let parameterMaybe = 
-                    supportedParameters |> findParameterByName parameterName
-                match parameterMaybe with
-                | Some (CommandParameter.Option option) -> 
-                    parseOptionValue option.Parser parameterName consumedState
-                | Some (CommandParameter.Switch switch) -> 
-                    consumedState 
-                    |> appendParameter (ParsedSwitch { Name = switch.Name })
-                | Some (CommandParameter.Arg _) ->
-                    invalidOp "should this ever happen?"
-                | None -> 
-                    ParsingFail 
-                        (sprintf "Unrecognized parameter '%s'." parameterName)
-            | (Some argParameter, _) -> 
+            let parameterName = argParameter.Substring 2
+            let parameterMaybe = 
+                supportedParameters |> findParameterByName parameterName
+            match parameterMaybe with
+            | Some (CommandParameter.Option option) -> 
+                parseOptionValue option.Parser parameterName state
+            | Some (CommandParameter.Switch switch) -> 
+                state 
+                |> appendParameter (ParsedSwitch { Name = switch.Name })
+            | Some (CommandParameter.Arg _) ->
+                invalidOp "should this ever happen?"
+            | None -> 
                 ParsingFail 
-                    (sprintf "Unrecognized parameter '%s'." argParameter)
-            | (None, NoMoreArgs _) -> consumedState
-            | _ -> invalidOp "BUG: this should never happen"
+                    (sprintf "Unrecognized parameter '%s'." parameterName)
+        | (Some argParameter, _) -> 
+            ParsingFail 
+                (sprintf "Unrecognized parameter '%s'." argParameter)
+        | (None, NoMoreArgs _) -> state
+        | _ -> invalidOp "BUG: this should never happen"
+
+    let handleNextArg (arg: string option) consumedState =
+        let nextCmdArgumentMaybe = nextCommandArgumentToFind consumedState
+
+        match nextCmdArgumentMaybe with
+        | Some cmdArgument -> 
+            let nextStateMaybe = 
+                consumeNextCommandArg arg cmdArgument consumedState
+
+            match nextStateMaybe with
+            // When the function returns state, return this 
+            | Some nextState -> nextState
+            // When no state has been returned, this indicates we got an option
+            // or a switch instead of a non-mandatory command argument, so we 
+            // need to consume it as such.
+            | None -> consumeNextOptionOrSwitch arg consumedState
+        | None -> consumeNextOptionOrSwitch arg consumedState
 
     let mutable state: ParsingState = 
         validateSupportedParameters args supportedParameters

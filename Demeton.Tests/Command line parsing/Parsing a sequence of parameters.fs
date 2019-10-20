@@ -8,13 +8,15 @@ open Swensen.Unquote
 open TestHelp
 
 let someArg argName = 
+    Arg.build argName |> Arg.asFloat 10. |> Arg.toPar
+
+let someOptionalArg argName = 
     Arg.build argName |> Arg.asFloat 10. |> Arg.optional |> Arg.toPar
 
 let supportedParameters: CommandParameter[] = [|
     Switch.build "switch1" |> Switch.toPar
     Option.build "option1" |> Option.asInt |> Option.toPar
 |]
-
 
 [<Fact>]
 let ``All command arguments need to be specified before any options and switches``() =
@@ -31,7 +33,7 @@ let ``All command arguments need to be specified before any options and switches
         @>
 
 [<Fact>]
-let ``Reports an error if some of the command arguments are missing and there is a switch after it``() =
+let ``Reports an error if some of the mandatory command arguments are missing and there is a switch after it``() =
     let supportedParameters: CommandParameter[] = [|
         someArg "arg1"
         someArg "arg2"
@@ -45,7 +47,7 @@ let ``Reports an error if some of the command arguments are missing and there is
         @>
 
 [<Fact>]
-let ``Reports an error if some of the command arguments are missing and there are no more args``() =
+let ``Reports an error if some of the mandatory command arguments are missing and there are no more args``() =
     let supportedParameters: CommandParameter[] = [|
         someArg "arg1"
         someArg "arg2"
@@ -57,6 +59,38 @@ let ``Reports an error if some of the command arguments are missing and there ar
     test <@ result |> isErrorData 
                 "<arg2> argument's value is missing." 
         @>
+
+[<Fact>]
+let ``Allows an optional command argument to not be specified (case when there are no parameters left)``() =
+    let supportedParameters: CommandParameter[] = [|
+        someArg "arg1"
+        someOptionalArg "arg2"
+    |]
+
+    let args = [ "123" ]
+
+    let result = 
+        parseParameters args supportedParameters
+    test <@ result 
+            |> isOkValue ([ ParsedArg { Name = "arg1"; Value = 123. } ]) @>    
+
+[<Fact>]
+let ``Allows an optional command argument to not be specified (case when there follows an option)``() =
+    let supportedParameters: CommandParameter[] = [|
+        someArg "arg1"
+        someOptionalArg "arg2"
+        Switch.build "switch1" |> Switch.toPar
+    |]
+
+    let args = [ "123"; "--switch1" ]
+
+    let result = 
+        parseParameters args supportedParameters
+    test <@ result 
+            |> isOkValue ([ 
+                ParsedArg { Name = "arg1"; Value = 123. }
+                ParsedSwitch { Name = "switch1" } 
+            ]) @>
 
 [<Fact>]
 let ``Reports an error if command argument's value is invalid``() =

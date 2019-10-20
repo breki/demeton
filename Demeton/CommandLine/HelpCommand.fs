@@ -26,11 +26,16 @@ let parameterName (parameter: CommandParameter) =
     | Option { Name = name } -> name
     | Switch { Name = name } -> name
 
+let argMention arg =
+    match arg.IsMandatory with
+    | true -> "<" + arg.Name + ">"
+    | false -> "[<" + arg.Name + ">]"
+
 let parameterDescription parameter: string =
     match parameter with
     | Arg arg -> 
         buildString()
-        |> appendFormat "<{0}>: {1}" [| arg.Name; arg.Description |]
+        |> appendFormat "{0}: {1}" [| argMention arg ; arg.Description |]
         |> newLine
         |> appendFormat "   FORMAT: {0}" [| arg.Format |]
         |> ifDo (arg.Example <> None) (fun x -> 
@@ -107,12 +112,8 @@ let commandUsage (command: Command) =
         parameters |> Array.choose toArgMaybe
 
     let argsList = commandArgs command.Parameters
-    let argsMentions = 
-        let argMention arg =
-            match arg.IsMandatory with
-            | true -> "<" + arg.Name + ">"
-            | false -> "[<" + arg.Name + ">]"
 
+    let argsMentions = 
         argsList |> Array.map argMention |> String.concat " "
 
     buildString()
@@ -140,7 +141,14 @@ let helpCommandTemplateDef = {
     ShortDescription = "displays help information (this command)"
     Description = 
         "Displays the help information about the command line interface."
-    Parameters = [| |]
+    Parameters = [|
+        Arg.build "command" |> Arg.optional
+        |> Arg.desc 
+            ("The name of the command whose detailed help is to be shown. "
+            + "If not specified, help command will display the list of all "
+            + "available commands with their short descriptions.")
+        |> Arg.toPar
+    |]
     Runner = fun _ -> CommandExecuted };
 
 let runCommand

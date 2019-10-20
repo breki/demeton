@@ -19,6 +19,18 @@ let ``Can render a command argument description``() =
    FORMAT: x1,y1,x2,y2..." @>
 
 [<Fact>]
+let ``Indicates when a command argument is optional``() =
+    let par = 
+        Arg.build "coverage" |> Arg.optional
+        |> Arg.desc "A list of points to be covered."
+        |> Arg.format "x1,y1,x2,y2..."
+        |> Arg.toPar
+
+    test <@ HelpCommand.parameterDescription par = 
+        @"[<coverage>]: A list of points to be covered.
+   FORMAT: x1,y1,x2,y2..." @>
+
+[<Fact>]
 let ``Can render a command argument description with an example``() =
     let par = 
         Arg.build "coverage" 
