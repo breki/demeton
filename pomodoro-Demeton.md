@@ -1,7 +1,7 @@
-﻿- validator function that checks the parameters have been specified in the right order
-- do we also add examples for the whole command?
+﻿- do we also add examples for the whole command?
 
 ## Sun 20.10.
+- Extended `validateSupportedParameters` function to checks that all non-mandatory command arguments are after mandatory ones.
 - Implemented support for non-mandatory command arguments.
 - Added `Switch` module for building switches.
 - Added `Option` module for building options.

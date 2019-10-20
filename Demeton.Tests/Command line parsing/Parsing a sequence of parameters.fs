@@ -26,10 +26,21 @@ let ``All command arguments need to be specified before any options and switches
         Option.build "option1" |> Option.toPar
     |]
     
-    let result = 
-        parseParameters [] supportedParameters
+    let result = parseParameters [] supportedParameters
     test <@ result |> isErrorData 
                 "All command arguments need to be specified before any options and switches." 
+        @>
+
+[<Fact>]
+let ``All mandatory command arguments need to be specified before any non-mandatory ones``() =
+    let supportedParameters: CommandParameter[] = [|
+        someOptionalArg "arg1"
+        someArg "arg2"
+    |]
+    
+    let result = parseParameters [] supportedParameters
+    test <@ result |> isErrorData 
+                "All mandatory command arguments need to be specified before any non-mandatory ones." 
         @>
 
 [<Fact>]
@@ -84,8 +95,7 @@ let ``Allows an optional command argument to not be specified (case when there f
 
     let args = [ "123"; "--switch1" ]
 
-    let result = 
-        parseParameters args supportedParameters
+    let result = parseParameters args supportedParameters
     test <@ result 
             |> isOkValue ([ 
                 ParsedArg { Name = "arg1"; Value = 123. }
@@ -108,24 +118,21 @@ let ``Reports an error if command argument's value is invalid``() =
 let ``If option or switch name does not start with prefix, returns an error``() =
     let args = [ "weird" ]
 
-    let result = 
-        parseParameters args supportedParameters
+    let result = parseParameters args supportedParameters
     test <@ result |> isErrorData "Unrecognized parameter 'weird'." @>
 
 [<Fact>]
 let ``If option or switch is not among supported ones, returns an error``() =
     let args = [ "--par3" ]
 
-    let result = 
-        parseParameters args supportedParameters
+    let result = parseParameters args supportedParameters
     test <@ result |> isErrorData "Unrecognized parameter 'par3'." @>
     
 [<Fact>]
 let ``If parameter is a supported switch, record it in parsed parameters list``() =
     let args = [ "--switch1" ]
 
-    let result = 
-        parseParameters args supportedParameters
+    let result = parseParameters args supportedParameters
     test <@ result 
             |> isOkValue ([ ParsedSwitch { Name = "switch1" } ]) @>
     
@@ -133,8 +140,7 @@ let ``If parameter is a supported switch, record it in parsed parameters list``(
 let ``If parameter is a supported option, record it and its value in parsed parameters list``() =
     let args = [ "--option1"; "123" ]
 
-    let result = 
-        parseParameters args supportedParameters
+    let result = parseParameters args supportedParameters
     test <@ result 
             |> isOkValue ([ ParsedOption { Name = "option1"; Value = 123 } ]) @>
     
@@ -142,8 +148,7 @@ let ``If parameter is a supported option, record it and its value in parsed para
 let ``Supports parsing of series of parameters``() =
     let args = [ "--switch1"; "--option1"; "123" ]
 
-    let result = 
-        parseParameters args supportedParameters
+    let result = parseParameters args supportedParameters
     test <@ result 
             |> isOkValue ([ 
                 ParsedSwitch { Name = "switch1" }

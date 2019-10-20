@@ -195,22 +195,41 @@ let findParameterByName
 
     supportedParameters |> Array.tryFind hasName
 
+type ParametersValidationResult =
+    | AllOk = 0
+    | OptionOrSwitchBeforeArg = 1
+    | NonMandatoryBeforeMandatory = 2
+
 let validateSupportedParameters 
     args
     (supportedParameters: CommandParameter[]) =
-    let anyWronglyOrderedParameters = 
+
+    let pairsValidationResults = 
         supportedParameters 
         |> Array.pairwise
-        |> Array.tryFind (fun x -> 
+        |> Array.map (fun x -> 
             match x with 
-            | (CommandParameter.Switch _, CommandParameter.Arg _) -> true
-            | (CommandParameter.Option _, CommandParameter.Arg _) -> true
-            | _ -> false
+            | (Arg { IsMandatory = false }, Arg { IsMandatory = true } ) -> 
+                ParametersValidationResult.NonMandatoryBeforeMandatory
+            | (Switch _, Arg _) -> 
+                ParametersValidationResult.OptionOrSwitchBeforeArg
+            | (Option _, Arg _) -> 
+                ParametersValidationResult.OptionOrSwitchBeforeArg
+            | _ -> ParametersValidationResult.AllOk
             )
 
+    let anyWronglyOrderedParameters =
+        match pairsValidationResults with
+        | [||] -> ParametersValidationResult.AllOk
+        | _ -> pairsValidationResults |> Array.max
+
     match anyWronglyOrderedParameters with
-    | None -> ParsingInProgress (args, [])
-    | _ -> ParsingFail "All command arguments need to be specified before any options and switches."
+    | ParametersValidationResult.AllOk -> ParsingInProgress (args, [])
+    | ParametersValidationResult.NonMandatoryBeforeMandatory -> 
+        ParsingFail "All mandatory command arguments need to be specified before any non-mandatory ones."
+    | ParametersValidationResult.OptionOrSwitchBeforeArg -> 
+        ParsingFail "All command arguments need to be specified before any options and switches."
+    | _ -> invalidOp "cannot happen"
 
 let parseParameters 
     (args: string list) 

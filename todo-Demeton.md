@@ -1,5 +1,4 @@
-﻿- validator function that checks the parameters have been specified in the right order
-- `help` command must support two modes of operation
+﻿- `help` command must support two modes of operation
     - how do we support the optional command line argument in this mode?
 - shortcut functions for command parameters
     - or builders?
