@@ -10,6 +10,7 @@ open TestHelp
 let someArg argName = 
     Arg { 
         Name = argName
+        IsMandatory = true
         Description = ""
         Format = ""
         Example = None

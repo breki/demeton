@@ -17,6 +17,7 @@ type OptionValueParser = string -> OptionValueParsingResult
 
 type CommandArg = { 
     Name: string
+    IsMandatory: bool
     Description: string
     Format: string
     Example: (string * string) option

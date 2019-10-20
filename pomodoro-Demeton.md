@@ -1,6 +1,14 @@
-﻿- do we also add examples for the whole command?
+﻿- implement parameter builders
+- implement support for optional arguments
+    - indicate whether it is mandatory in the usage
+    - indicate whether it is mandatory in the parameter description
+    - add support for parsing
+
+- do we also add examples for the whole command?
 
 ## Sun 20.10.
+- Command line usage now indicates when an argument is optional.
+- Added `IsMandatory` property to `CommandArg`.
 - Implemented `HelpCommand.commandDescription` function.
 
 ## Sat 19.10.

@@ -2,47 +2,27 @@
 
 open CommandLine
 open CommandLine.Common
-open Text
 
 open Xunit
 open Swensen.Unquote
 
 let noParameters = [| |]
 
-let argumentOnly = [|
-    Arg { 
-        Name = "arg1"
-        Description = "some description 1"
-        Format = "format1"
-        Example = None
-        Parser = fun _ -> OkValue 1 } 
-    |]
-
 let argumentsOnly = [|
     Arg { 
         Name = "arg1"
+        IsMandatory = true
         Description = "some description 1"
         Format = "format1"
         Example = None
         Parser = fun _ -> OkValue 1 } 
     Arg { 
         Name = "arg2"
+        IsMandatory = true
         Description = "some description 2"
         Format = "format2"
         Example = None
         Parser = fun _ -> OkValue 1 } 
-    |]
-
-let argAndSwitch = [|
-    Arg { 
-        Name = "arg1"
-        Description = "some description 1"
-        Format = "format1"
-        Example = None
-        Parser = fun _ -> OkValue 1 }
-    Switch {
-        Name = "switch1"
-        Description = "some description 3" }
     |]
 
 let cmdTemplate = { 
@@ -61,7 +41,17 @@ let ``Supports rendering command usage without args, options and switches``() =
         "USAGE: somecmd" @>
 
 [<Fact>]
-let ``Supports rendering command usage without options and switches``() =
+let ``Supports rendering command usage without arguments only``() =
+    let argumentOnly = [|
+        Arg { 
+            Name = "arg1"
+            IsMandatory = true
+            Description = "some description 1"
+            Format = "format1"
+            Example = None
+            Parser = fun _ -> OkValue 1 } 
+        |]
+    
     test <@ HelpCommand.commandUsage (cmdWith argumentOnly) =
         "USAGE: somecmd <arg1>" @>
 
@@ -69,6 +59,28 @@ let ``Supports rendering command usage without options and switches``() =
 let ``Adds space as a separator between args``() =
     test <@ HelpCommand.commandUsage (cmdWith argumentsOnly) =
         "USAGE: somecmd <arg1> <arg2>" @>
+
+[<Fact>]
+let ``Indicates when an argument is optional``() =
+    let argumentOnly = [|
+        Arg { 
+            Name = "arg1"
+            IsMandatory = true
+            Description = "some description 1"
+            Format = "format1"
+            Example = None
+            Parser = fun _ -> OkValue 1 } 
+        Arg { 
+            Name = "arg2"
+            IsMandatory = false
+            Description = "some description 2"
+            Format = "format2"
+            Example = None
+            Parser = fun _ -> OkValue 1 } 
+        |]
+    
+    test <@ HelpCommand.commandUsage (cmdWith argumentOnly) =
+        "USAGE: somecmd <arg1> [<arg2>]" @>
 
 [<Fact>]
 let ``Supports rendering command usage without args``() =    
@@ -89,6 +101,19 @@ let ``Supports rendering command usage without args``() =
 
 [<Fact>]
 let ``Supports rendering command usage with args and options``() =
+    let argAndSwitch = [|
+        Arg { 
+            Name = "arg1"
+            IsMandatory = true
+            Description = "some description 1"
+            Format = "format1"
+            Example = None
+            Parser = fun _ -> OkValue 1 }
+        Switch {
+            Name = "switch1"
+            Description = "some description 3" }
+        |]
+    
     test <@ HelpCommand.commandUsage (cmdWith argAndSwitch) =
         "USAGE: somecmd <arg1> [<options>]" @>
 
@@ -156,12 +181,14 @@ let ``Can render a combination of arguments and options``() =
     let parameters = [|
         Arg { 
             Name = "arg1"
+            IsMandatory = true
             Description = "some description 1"
             Format = "format1"
             Example = None
             Parser = fun _ -> OkValue 1 }
         Arg { 
             Name = "arg2"
+            IsMandatory = true
             Description = "some description 2"
             Format = "format2"
             Example = Some ("x1", "xx1")
@@ -199,6 +226,7 @@ let ``Can render the whole command description``() =
     let parameters = [|
         Arg { 
             Name = "arg1"
+            IsMandatory = true
             Description = "some description 1"
             Format = "format1"
             Example = None

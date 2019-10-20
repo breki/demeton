@@ -11,6 +11,7 @@ let ``Can render a command argument description``() =
     let par = 
         Arg { 
             Name = "coverage" 
+            IsMandatory = true
             Description = "A list of points to be covered."
             Format = "x1,y1,x2,y2..."
             Example = None
@@ -26,6 +27,7 @@ let ``Can render a command argument description with an example``() =
     let par = 
         Arg { 
             Name = "coverage" 
+            IsMandatory = true
             Description = "A list of points to be covered."
             Format = "x1,y1,x2,y2..."
             Example = Some 

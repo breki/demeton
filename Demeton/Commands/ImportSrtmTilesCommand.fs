@@ -152,6 +152,7 @@ let fillOptions parsedParameters =
 let supportedParameters = [|
     Arg { 
         Name = BoundsParameter 
+        IsMandatory = true
         Description = "The boundaries of the area whose tiles need to be imported."
         Format = "minlon,minlat,maxlon,maxlat"
         Example = Some 

@@ -89,7 +89,8 @@ let parseElevationColorShader value =
 
 let supportedParameters: CommandParameter[] = [|
     Arg { 
-        Name = CoveragePointsParameter; 
+        Name = CoveragePointsParameter
+        IsMandatory = true
         Description = "A list of points to be covered. At least two points need to be specified."
         Format = "x1,y1,x2,y2..."
         Example = Some 

@@ -108,9 +108,12 @@ let commandUsage (command: Command) =
 
     let argsList = commandArgs command.Parameters
     let argsMentions = 
-        argsList 
-        |> Array.map (fun p -> "<" + p.Name + ">") 
-        |> String.concat " "
+        let argMention arg =
+            match arg.IsMandatory with
+            | true -> "<" + arg.Name + ">"
+            | false -> "[<" + arg.Name + ">]"
+
+        argsList |> Array.map argMention |> String.concat " "
 
     buildString()
     |> appendFormat "USAGE: {0}" [| command.Name |]
