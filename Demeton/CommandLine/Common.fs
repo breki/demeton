@@ -281,7 +281,8 @@ let parseParameters
         | (Some arg, CommandParameter.Arg { Name = argName; IsMandatory = true }, _) 
             when arg.StartsWith ParameterPrefix ->
             argumentValueIsMissing argName |> Some
-        | (Some _, CommandParameter.Arg { IsMandatory = false }, _) ->
+        | (Some arg, CommandParameter.Arg { IsMandatory = false }, _) 
+            when arg.StartsWith ParameterPrefix ->
             None
         | (Some arg, CommandParameter.Arg { Name = argName; Parser = parser }, _) -> 
             match parser arg with
@@ -347,3 +348,7 @@ let parseParameters
         Ok (parsedParameters |> List.rev)
     | ParsingFail message -> Error message
     | _ -> invalidOp "BUG: this should never happen"
+    
+let tryFindCommand commandName supportedCommands =
+    supportedCommands |> Array.tryFind (fun cmd -> cmd.Name = commandName)
+    

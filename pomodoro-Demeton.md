@@ -1,6 +1,5 @@
-﻿- do we also add examples for the whole command?
-
-## Sun 20.10.
+﻿## Sun 20.10.
+- Finished working on CLI framework (for now).
 - Extended `validateSupportedParameters` function to checks that all non-mandatory command arguments are after mandatory ones.
 - Implemented support for non-mandatory command arguments.
 - Added `Switch` module for building switches.

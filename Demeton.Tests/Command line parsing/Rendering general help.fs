@@ -24,15 +24,13 @@ let writeHelpOutputToString output = helpOutput <- Some output
 [<Fact>]
 let ``Without arguments it returns normally``() =
     let result = 
-        HelpCommand.runCommand 
-            "someapp" supportedCommands writeHelpOutputToString []
+        HelpCommand.run "someapp" supportedCommands writeHelpOutputToString []
     test <@ result = CommandExecuted @>
 
 [<Fact>]
 let ``Without arguments it lists available commands and their descriptions``() =
     let _ = 
-        HelpCommand.runCommand 
-            "someapp" supportedCommands writeHelpOutputToString []
+        HelpCommand.run "someapp" supportedCommands writeHelpOutputToString []
     test <@ helpOutput = Some @"USAGE: someapp <command> {<command parameters>}
 
 AVAILABLE COMMANDS:

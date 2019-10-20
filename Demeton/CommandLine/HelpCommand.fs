@@ -136,6 +136,23 @@ let commandDescription (command: Command) =
     |> append (parametersDescriptions command.Parameters)
     |> toString
 
+let helpMainHelp executableName supportedCommands =
+    buildString()
+    |> appendFormat
+        "USAGE: {0} <command> {{<command parameters>}}" [| executableName |]
+    |> newLine
+    |> newLine
+    |> appendLine "AVAILABLE COMMANDS:"
+    |> appendLines 
+        (supportedCommands |> Array.map commandShortDescription)
+    |> newLine
+    |> appendLine 
+        "HINT: for a detailed help about a certain command, specify the command name, like:"
+    |> appendFormat
+        "{0} help {1}" 
+            [| executableName; supportedCommands.[0].Name |]
+    |> toString
+
 let helpCommandTemplateDef = {
     Name = "help";
     ShortDescription = "displays help information (this command)"
@@ -151,27 +168,51 @@ let helpCommandTemplateDef = {
     |]
     Runner = fun _ -> CommandExecuted };
 
-let runCommand
-    (executableName: string) supportedCommands writeHelpOutput parsedParameters 
+type Options = {
+    Command: string option
+}
+
+let fillOptions parsedParameters =
+    let defaultOptions = { Command = None }
+
+    let processParameter options parameter =
+        match parameter with
+        | ParsedArg { Name = "command"; Value = value } -> 
+            { options with Command = Some (value :?> string) }
+        | _ -> invalidOp "Unrecognized parameter."
+
+    parsedParameters 
+    |> List.fold processParameter defaultOptions
+
+let runCommandFromOptions
+    (options: Options)
+    (executableName: string) 
+    supportedCommands 
+    writeHelpOutput 
     =
     let supportedCommandsIncludingHelp = 
         Array.append supportedCommands [| helpCommandTemplateDef |]
 
-    buildString()
-    |> appendFormat
-        "USAGE: {0} <command> {{<command parameters>}}" [| executableName |]
-    |> newLine
-    |> newLine
-    |> appendLine "AVAILABLE COMMANDS:"
-    |> appendLines 
-        (supportedCommandsIncludingHelp |> Array.map commandShortDescription)
-    |> newLine
-    |> appendLine 
-        "HINT: for a detailed help about a certain command, specify the command name, like:"
-    |> appendFormat
-        "{0} help {1}" 
-            [| executableName; supportedCommandsIncludingHelp.[0].Name |]
-    |> toString
-    |> writeHelpOutput
+    let helpOutput = 
+        match options.Command with
+        | None -> helpMainHelp executableName supportedCommandsIncludingHelp
+        | Some commandName -> 
+            let commandMaybe = 
+                supportedCommandsIncludingHelp 
+                |> tryFindCommand commandName
+            match commandMaybe with
+            | Some command -> commandDescription command
+            | None -> invalidOp "todo"
+
+    writeHelpOutput helpOutput
 
     CommandExecuted
+
+let run 
+    executableName 
+    supportedCommands 
+    writeHelpOutput
+    parsedParameters =
+    let options = fillOptions parsedParameters
+    runCommandFromOptions
+        options executableName supportedCommands writeHelpOutput

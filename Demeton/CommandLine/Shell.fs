@@ -3,9 +3,6 @@ module CommandLine.Shell
 
 open CommandLine.Common
 
-let tryFindCommand commandName supportedCommands =
-    supportedCommands |> Array.tryFind (fun cmd -> cmd.Name = commandName)
-
 let parseAndExecuteCommandLine 
     writeHelpOutput
     executableName
@@ -14,7 +11,7 @@ let parseAndExecuteCommandLine
     let helpCommand = 
         { 
             HelpCommand.helpCommandTemplateDef 
-                with Runner = HelpCommand.runCommand 
+                with Runner = HelpCommand.run 
                     executableName supportedCommands writeHelpOutput };
 
     let supportedCommandsIncludingHelp =

@@ -145,7 +145,27 @@ let ``If parameter is a supported option, record it and its value in parsed para
             |> isOkValue ([ ParsedOption { Name = "option1"; Value = 123 } ]) @>
     
 [<Fact>]
-let ``Supports parsing of series of parameters``() =
+let ``Supports parsing of series of parameters (case 1)``() =
+    let pars = [|
+        someArg "arg1"
+        someOptionalArg "arg2"
+        Switch.build "switch1" |> Switch.toPar
+        Option.build "option1" |> Option.asInt |> Option.toPar
+    |]
+
+    let args = [ "123"; "234"; "--switch1"; "--option1"; "123" ]
+
+    let result = parseParameters args pars
+    test <@ result 
+            |> isOkValue ([ 
+                ParsedArg { Name = "arg1"; Value = 123. }
+                ParsedArg { Name = "arg2"; Value = 234. }
+                ParsedSwitch { Name = "switch1" }
+                ParsedOption { Name = "option1"; Value = 123 } 
+            ]) @>
+    
+[<Fact>]
+let ``Supports parsing of series of parameters (case 2)``() =
     let args = [ "--switch1"; "--option1"; "123" ]
 
     let result = parseParameters args supportedParameters
