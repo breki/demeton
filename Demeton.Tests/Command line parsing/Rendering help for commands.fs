@@ -67,13 +67,7 @@ let ``Supports rendering command usage without args``() =
     let optionsOnly = [|
         Switch {
             Name = "switch1"; Description = "" }
-        Option {
-            Name = "option1"; Description = ""
-            ValuePlaceholder = ""
-            Format = ""
-            Default = 1
-            Example = None
-            Parser = fun _ -> OkValue 1 }
+        Option.build "option1" |> Option.toPar
         |]
 
     test <@ HelpCommand.commandUsage (cmdWith optionsOnly) =
@@ -109,14 +103,13 @@ let ``Supports rendering parameter details when there are only arguments``() =
 [<Fact>]
 let ``Supports rendering parameter details when there are only options and switches``() =
     let optionsOnly = [|
-        Option {
-            Name = "option1" 
-            Description = "some description 4"
-            ValuePlaceholder = "value"
-            Format = "format3"
-            Default = 1
-            Example = None
-            Parser = fun _ -> OkValue 1 }
+        Option.build "option1" 
+        |> Option.desc "some description 4"
+        |> Option.placeholder "value"
+        |> Option.format "format3"
+        |> Option.defaultValue 1
+        |> Option.toPar
+
         Switch {
             Name = "switch1"
             Description = "some description 3" }
@@ -135,15 +128,13 @@ let ``Orders options and switches details alphabetically``() =
         Switch {
             Name = "switch1"
             Description = "some description 3" }
-        Option {
-            Name = "option1" 
-            Description = "some description 4"
-            ValuePlaceholder = "value"
-            Format = "format3"
-            Default = 1
-            Example = None
-            Parser = fun _ -> OkValue 1 }
-        |]
+        Option.build "option1" 
+        |> Option.desc "some description 4"
+        |> Option.placeholder "value"
+        |> Option.format "format3"
+        |> Option.defaultValue 1
+        |> Option.toPar
+    |]
 
     test <@ HelpCommand.parametersDescriptions optionsOnlyUnsorted = @"OPTIONS:
 --option1 <value>: some description 4
@@ -165,14 +156,12 @@ let ``Can render a combination of arguments and options``() =
         Switch {
             Name = "switch1"
             Description = "some description 3" }
-        Option {
-            Name = "option1" 
-            Description = "some description 4"
-            ValuePlaceholder = "value"
-            Format = "format3"
-            Default = 1
-            Example = None
-            Parser = fun _ -> OkValue 1 }
+        Option.build "option1" 
+        |> Option.desc "some description 4"
+        |> Option.placeholder "value"
+        |> Option.format "format3"
+        |> Option.defaultValue 1
+        |> Option.toPar
         |]
 
     test <@ HelpCommand.parametersDescriptions parameters = @"ARGUMENTS:

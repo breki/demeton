@@ -7,6 +7,7 @@
 - do we also add examples for the whole command?
 
 ## Sun 20.10.
+- Added `Option` module for building options.
 - Added `Arg` module for building arguments.
 - Command line usage now indicates when an argument is optional.
 - Added `IsMandatory` property to `CommandArg`.

@@ -17,6 +17,7 @@
     <Compile Include="CommandLine\Common.fs" />
     <Compile Include="CommandLine\ValueParsers.fs" />
     <Compile Include="CommandLine\Arg.fs" />
+    <Compile Include="CommandLine\Option.fs" />
     <Compile Include="CommandLine\HelpCommand.fs" />
     <Compile Include="CommandLine\Shell.fs" />
     <Compile Include="ResultSeq.fs" />

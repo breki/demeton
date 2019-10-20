@@ -156,20 +156,13 @@ let supportedParameters = [|
     |> Arg.example "5,43.3,16.6,48.4" "fetches (roughly) the whole Alps area"
     |> Arg.parser parseBounds |> Arg.toPar
 
-    Option { 
-        Name = SrtmDirParameter
-        Description = "The path to the directory containing the original zipped SRTM HGT files."
-        ValuePlaceholder = "path"
-        Format = "directory path"
-        Default = DefaultSrtmDir
-        Example = None
-        Parser = ValueParsers.parseDir }
-    Option { 
-        Name = LocalCacheDirParameter
-        Description = "The path to the local SRTM cache directory. The directory will be created if it does not exist yet."
-        ValuePlaceholder = "path"
-        Format = "directory path"
-        Default = DefaultLocalCacheDir
-        Example = None
-        Parser = ValueParsers.parseDir }
+    Option.build SrtmDirParameter
+    |> Option.desc "The path to the directory containing the original zipped SRTM HGT files."
+    |> Option.asDirectory |> Option.defaultValue DefaultSrtmDir
+    |> Option.toPar
+
+    Option.build LocalCacheDirParameter
+    |> Option.desc "The path to the local SRTM cache directory. The directory will be created if it does not exist yet."
+    |> Option.asDirectory |> Option.defaultValue DefaultLocalCacheDir
+    |> Option.toPar
 |]

@@ -36,16 +36,12 @@ let ``Can render a command argument description with an example``() =
 [<Fact>]
 let ``Can render an option description``() =
     let par = 
-        Option { 
-            Name = "dpi" 
-            Description = 
-                "The printing resolution required for the resulting raster image."
-            ValuePlaceholder = "number"
-            Format = "positive real number"
-            Default = 300.
-            Example = None
-            Parser = fun _ -> OkValue 1 
-        }
+        Option.build "dpi" 
+        |> Option.desc "The printing resolution required for the resulting raster image."
+        |> Option.placeholder "number"
+        |> Option.format "positive real number"
+        |> Option.defaultValue 300.
+        |> Option.toPar
 
     test <@ HelpCommand.parameterDescription par = 
         @"--dpi <number>: The printing resolution required for the resulting raster image.
@@ -56,16 +52,13 @@ let ``Can render an option description``() =
 [<Fact>]
 let ``Can render an option description with an example``() =
     let par = 
-        Option { 
-            Name = "dpi" 
-            Description = 
-                "The printing resolution required for the resulting raster image."
-            ValuePlaceholder = "number"
-            Format = "positive real number"
-            Default = 300.
-            Example = Some ("1200", "specifies the printing resolution of 1200 dots per inch")
-            Parser = fun _ -> OkValue 1 
-        }
+        Option.build "dpi" 
+        |> Option.desc "The printing resolution required for the resulting raster image."
+        |> Option.placeholder "number"
+        |> Option.format "positive real number"
+        |> Option.defaultValue 300.
+        |> Option.example "1200" "specifies the printing resolution of 1200 dots per inch"
+        |> Option.toPar
 
     test <@ HelpCommand.parameterDescription par = 
         @"--dpi <number>: The printing resolution required for the resulting raster image.

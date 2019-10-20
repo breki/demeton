@@ -93,67 +93,51 @@ let supportedParameters: CommandParameter[] = [|
     |> Arg.format "x1,y1,x2,y2..."
     |> Arg.example "5,43.3,16.6,48.4" "fetches (roughly) the whole Alps area"
     |> Arg.parser parseCoverage |> Arg.toPar
-    Option { 
-        Name = DpiParameter 
-        Description = "The printing resolution required for the resulting raster image."
-        ValuePlaceholder = "number"
-        Format = "positive real number"
-        Default = DefaultDpi
-        Example = Some ("1200", "specifies the printing resolution of 1200 dots per inch")
-        Parser = ValueParsers.parsePositiveFloat }
+
+    Option.build DpiParameter 
+    |> Option.desc "The printing resolution required for the resulting raster image."
+    |> Option.asPositiveFloat |> Option.defaultValue DefaultDpi
+    |> Option.example "1200"  "specifies the printing resolution of 1200 dots per inch"
+    |> Option.toPar
+
     Switch { 
         Name = ElevationColorShaderParameter
         Description = "Uses elevation coloring shader to generate the raster image." }
-    Option { 
-        Name = FilePrefixParameter
-        Description = "The text used to prefix names of all generated image files."
-        ValuePlaceholder = "text"
-        Format = "text"
-        Default = DefaultFilePrefix
-        Example = Some ("hillshade", "all generated image file names will start with 'hillshade', like 'hillshade-2-3.png")
-        Parser = ValueParsers.parseFileName }
-    Option { 
-        Name = LocalCacheDirParameter
-        Description = "The path to the local SRTM cache directory. The directory will be created if it does not exist yet."
-        ValuePlaceholder = "path"
-        Format = "directory path"
-        Default = DefaultLocalCacheDir
-        Example = None
-        Parser = ValueParsers.parseDir }
-    Option { 
-        Name = MapScaleParameter
-        Description = "The map scale needed for the resulting raster image."
-        ValuePlaceholder = "number"
-        Format = "real number >= 1"
-        Default = DefaultMapScale
-        Example = Some("100000", "the map scale of resulting raster image will be 1 : 100,000")
-        Parser = ValueParsers.parseFloat 1.}
-    Option { 
-        Name = OutputDirParameter
-        Description = "The path to the directory where the raster files will be generated. The directory will be created if it does not exist yet."
-        ValuePlaceholder = "path"
-        Format = "directory path"
-        Default = DefaultOutputDir
-        Example = None
-        Parser = ValueParsers.parseDir }
-    Option { 
-        Name = SrtmDirParameter
-        Description = "The path to the directory containing the original zipped SRTM HGT files."
-        ValuePlaceholder = "path"
-        Format = "directory path"
-        Default = DefaultSrtmDir
-        Example = None
-        Parser = ValueParsers.parseDir }
-    Option { 
-        Name = TileSizeParameter
-        Description = 
-            "The maximum width and height in pixels of an individual raster image tile. "
-            + "If the image is larger than this size, it will be split into multiple tiles."
-        ValuePlaceholder = "number"
-        Format = "positive integer value"
-        Default = DefaultTileSize
-        Example = None
-        Parser = ValueParsers.parsePositiveInt }
+
+    Option.build FilePrefixParameter
+    |> Option.desc "The text used to prefix names of all generated image files."
+    |> Option.asFileName |> Option.defaultValue DefaultFilePrefix
+    |> Option.example "hillshade"  "all generated image file names will start with 'hillshade', like 'hillshade-2-3.png"
+    |> Option.toPar
+
+    Option.build LocalCacheDirParameter
+    |> Option.desc "The path to the local SRTM cache directory. The directory will be created if it does not exist yet."
+    |> Option.asDirectory |> Option.defaultValue DefaultLocalCacheDir
+    |> Option.toPar
+
+    Option.build MapScaleParameter
+    |> Option.desc "The map scale needed for the resulting raster image."
+    |> Option.asFloat 1. |> Option.defaultValue DefaultMapScale
+    |> Option.example "100000"  "the map scale of resulting raster image will be 1 : 100,000"
+    |> Option.toPar
+
+    Option.build OutputDirParameter
+    |> Option.desc "The path to the directory where the raster files will be generated. The directory will be created if it does not exist yet."
+    |> Option.asDirectory |> Option.defaultValue DefaultOutputDir
+    |> Option.toPar
+
+    Option.build SrtmDirParameter
+    |> Option.desc "The path to the directory containing the original zipped SRTM HGT files."
+    |> Option.asDirectory |> Option.defaultValue DefaultSrtmDir
+    |> Option.toPar
+
+    Option.build TileSizeParameter 
+    |> Option.desc 
+        ("The maximum width and height in pixels of an individual raster image tile. "
+        + "If the image is larger than this size, it will be split into multiple tiles.")
+    |> Option.asPositiveInt |> Option.defaultValue DefaultTileSize
+    |> Option.example "1200"  "specifies the printing resolution of 1200 dots per inch"
+    |> Option.toPar
 |]
 
 
