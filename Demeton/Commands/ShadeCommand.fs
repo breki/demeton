@@ -9,6 +9,7 @@ open Demeton.Geometry
 open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
+open Demeton.Shaders
 open Demeton.Shaders.ElevationColoring
 open Demeton.Shaders.Hillshading
 open Demeton.Shaders.Terrain
@@ -292,7 +293,9 @@ let shadeRaster shaderParameters: RasterShader =
                 match slopeAndAspectMaybe with
                 | Some (slope, aspect) ->
                     let pixelValue = 
-                        igorHillshade shaderParameters 0. slope aspect
+                        //AspectShader.run shaderParameters 0. slope aspect
+                        SlopeShader.run shaderParameters 0. slope aspect
+                        //igorHillshade shaderParameters 0. slope aspect
                     Rgba8Bit.setPixelAt 
                         imageData
                         tileWidth

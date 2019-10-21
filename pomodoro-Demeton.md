@@ -5,6 +5,7 @@
         - tests for this
 
 ## Mon 21.10.
+- Implemented SlopeShader and AspectShader and discovered something is wrong with the aspect calculation.
 
 ## Sun 20.10.
 - Finished working on CLI framework (for now).
