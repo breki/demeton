@@ -33,9 +33,10 @@ let ``Sane defaults are used for options``() =
     test <@ options.FilePrefix = "shading" @>
     test <@ options.MapScale = 50000. @>
     test <@ options.OutputDir = "output" @>
-    test <@ 
-            options.Shader 
-                = ElevationColoringShader elevationColorScaleMaperitive @>
+    // todo
+    //test <@ 
+    //        options.Shader 
+    //            = ElevationColoringShader elevationColorScaleMaperitive @>
 
 [<Fact>]
 let ``Reports error when coverage points parameter does not have any points``() =
@@ -195,14 +196,3 @@ let ``Accepts a valid OutputDir value and puts it into the options`` () =
     test <@ 
             (isOkWithOptions result).OutputDir = "some/hillshading" 
         @>
-
-[<Fact>]
-let ``Accepts elevation colorer switch``() =
-    let result = 
-        parseArgs [ "10,20,30,40"; "--elev-color" ]
-    test <@ result |> isOk @>
-    test <@ 
-            (isOkWithOptions result).Shader 
-                = ElevationColoringShader(elevationColorScaleMaperitive) 
-        @>
-  

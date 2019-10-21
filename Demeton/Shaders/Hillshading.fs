@@ -27,7 +27,7 @@ let igorHillshade: PixelHillshaderFunc = fun parameters  _  slope aspect ->
     match Double.IsNaN(aspect) with
     | true -> Rgba8Bit.TransparentColor
     | false ->
-        let sunDirection = Math.PI * 3./2.
+        let sunDirection = degToRad 180.
 
         let aspectDiff = differenceBetweenAngles
                             aspect 

@@ -1,4 +1,12 @@
-﻿## Sun 20.10.
+﻿- try out the igor's hillshading method in command line
+    - there are some problems in the hillshading
+        - instead of shading intensity, use RGB colors
+            - calibrate alpha so it is at max on totally opposite slopes
+        - tests for this
+
+## Mon 21.10.
+
+## Sun 20.10.
 - Finished working on CLI framework (for now).
 - Extended `validateSupportedParameters` function to checks that all non-mandatory command arguments are after mandatory ones.
 - Implemented support for non-mandatory command arguments.

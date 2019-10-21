@@ -1,4 +1,9 @@
-﻿- add an (optional) color ramps
+﻿- hillshading
+    - inline things
+    - run the command on Alps
+    - how can we parallelize things?
+
+- add an (optional) color ramps
     - format: "height:#color;"
 - extend command line to support specifying Igor's hillshading method (+ parameters)
 - add support for both elevation coloring and hillshading in the `shade` command

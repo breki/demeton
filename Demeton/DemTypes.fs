@@ -69,6 +69,7 @@ type HeightsArray
     
     member this.heightAt ((x, y): GlobalCellCoords) = 
         let index = (y - this.MinY) * width + x - this.MinX
+
         let heightAtCell = this.Cells.[index]
         heightAtCell
 

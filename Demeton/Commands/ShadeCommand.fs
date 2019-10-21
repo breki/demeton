@@ -37,8 +37,6 @@ let CoveragePointsParameter = "coverage"
 [<Literal>]
 let DpiParameter = "dpi"
 [<Literal>]
-let ElevationColorShaderParameter = "elev-color"
-[<Literal>]
 let FilePrefixParameter = "file-prefix"
 [<Literal>]
 let LocalCacheDirParameter = "local-cache-dir"
@@ -100,10 +98,6 @@ let supportedParameters: CommandParameter[] = [|
     |> Option.example "1200"  "specifies the printing resolution of 1200 dots per inch"
     |> Option.toPar
 
-    Switch.build ElevationColorShaderParameter
-    |> Switch.desc "Uses elevation coloring shader to generate the raster image."
-    |> Switch.toPar
-
     Option.build FilePrefixParameter
     |> Option.desc "The text used to prefix names of all generated image files."
     |> Option.asFileName |> Option.defaultValue DefaultFilePrefix
@@ -152,7 +146,13 @@ let fillOptions parsedParameters =
             OutputDir = DefaultOutputDir
             SrtmDir = DefaultSrtmDir
             TileSize = DefaultTileSize
-            Shader = ElevationColoringShader elevationColorScaleMaperitive
+            //Shader = ElevationColoringShader elevationColorScaleMaperitive
+            Shader = Hillshader (IgorHillshader, { 
+                SunAzimuth = degToRad 45.
+                ShadingIntensity = 1.
+                ShadingColorR = 0uy
+                ShadingColorG = 0uy
+                ShadingColorB = 0uy } )
         }
 
     let processParameter options parameter =
@@ -161,9 +161,6 @@ let fillOptions parsedParameters =
             { options with CoveragePoints = value :?> LonLat list }
         | ParsedOption { Name = DpiParameter; Value = value } ->
             { options with Dpi = value :?> float }
-        | ParsedSwitch { Name = ElevationColorShaderParameter } ->
-            { options with 
-                Shader = ElevationColoringShader elevationColorScaleMaperitive }
         | ParsedOption { Name = FilePrefixParameter; Value = value } ->
             { options with FilePrefix = value :?> string }
         | ParsedOption { Name = LocalCacheDirParameter; Value = value } ->
@@ -172,6 +169,8 @@ let fillOptions parsedParameters =
             { options with MapScale = value :?> float }
         | ParsedOption { Name = OutputDirParameter; Value = value } ->
             { options with OutputDir = value :?> string }
+        | ParsedOption { Name = SrtmDirParameter; Value = value } ->
+            { options with SrtmDir = value :?> string }
         | ParsedOption { Name = TileSizeParameter; Value = value } ->
             { options with TileSize = value :?> int }
         | _ -> invalidOp "Unrecognized parameter."
@@ -245,67 +244,70 @@ let colorRasterBasedOnElevation: RasterShader =
                 (y - tileRect.MinY)
                 pixelValue
 
-let shadeRaster: RasterShader = 
+// todo: the function currently uses Igor's shader directly, but it should 
+// accept the shader as an additional argument
+let shadeRaster shaderParameters: RasterShader = 
     fun heightsArray tileRect imageData options ->
 
     let tileWidth = tileRect.Width
     let scaleFactor = options |> projectionScaleFactor
 
-    let heightOf x y =
+    let lonLatOf x y =
         let xUnscaled = x / scaleFactor
         let yUnscaled = y / scaleFactor
-        let lonLatOption = WebMercator.inverse xUnscaled yUnscaled
+        WebMercator.inverse xUnscaled yUnscaled
 
-        match lonLatOption with
-        | None -> None
-        | Some (lonRad, latRad) ->
-            let lonDeg = radToDeg lonRad
-            let latDeg = radToDeg latRad
+    let heightOf lonRad latRad =
+        let lonDeg = radToDeg lonRad
+        let latDeg = radToDeg latRad
 
-            let globalSrtmX = Tile.longitudeToGlobalX lonDeg 3600
-            let globalSrtmY = Tile.latitudeToGlobalY latDeg 3600
-            heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
-
-    let shaderParameters: ShaderParameters = {
-            SunAzimuth = degToRad 45.
-            ShadingIntensity = 1.
-            ShadingColorR = 0uy
-            ShadingColorG = 0uy
-            ShadingColorB = 0uy
-        }
+        let globalSrtmX = Tile.longitudeToGlobalX lonDeg 3600
+        let globalSrtmY = Tile.latitudeToGlobalY latDeg 3600
+        heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
 
     for y in tileRect.MinY .. (tileRect.MaxY-1) do
         for x in tileRect.MinX .. (tileRect.MaxX-1) do
-            let pixelWidthInMeters = invalidOp "todo"
-            let pixelHeightInMeters = invalidOp "todo"
+            let p1Maybe = lonLatOf ((float x) - 0.5) ((float y) - 0.5)
+            let p2Maybe = lonLatOf ((float x) + 0.5) ((float y) - 0.5)
+            let p3Maybe = lonLatOf ((float x) - 0.5) ((float y) + 0.5)
+            let p4Maybe = lonLatOf ((float x) + 0.5) ((float y) + 0.5)
 
-            let cornerHeights = [|
-                heightOf ((float x) - 0.5) ((float y) - 0.5)
-                heightOf ((float x) + 0.5) ((float y) - 0.5)
-                heightOf ((float x) - 0.5) ((float y) + 0.5)
-                heightOf ((float x) + 0.5) ((float y) + 0.5)
-                |]
+            match (p1Maybe, p2Maybe, p3Maybe, p4Maybe) with
+            | (Some (lon1, lat1), Some (lon2, lat2), Some (lon3, lat3), Some (lon4, lat4)) ->
+                let pixelWidthInMeters = 
+                    geodeticDistanceApproximate lon1 lat1 lon2 lat2
+                let pixelHeightInMeters =
+                    geodeticDistanceApproximate lon1 lat1 lon3 lat3
 
-            let slopeAndAspectMaybe =
-                calculateSlopeAndAspect 
-                    cornerHeights pixelWidthInMeters pixelHeightInMeters
+                let cornerHeights = [|
+                    heightOf lon1 lat1
+                    heightOf lon2 lat2
+                    heightOf lon3 lat3
+                    heightOf lon4 lat4 |]
 
-            match slopeAndAspectMaybe with
-            | Some (slope, aspect) ->
-                let pixelValue = igorHillshade shaderParameters 0. slope aspect
-                Rgba8Bit.setPixelAt 
-                    imageData
-                    tileWidth
-                    (x - tileRect.MinX) 
-                    (y - tileRect.MinY)
-                    pixelValue
-            | None -> ignore()
+                let slopeAndAspectMaybe =
+                    calculateSlopeAndAspect 
+                        cornerHeights pixelWidthInMeters pixelHeightInMeters
 
-    invalidOp "todo"
+                match slopeAndAspectMaybe with
+                | Some (slope, aspect) ->
+                    let pixelValue = 
+                        igorHillshade shaderParameters 0. slope aspect
+                    Rgba8Bit.setPixelAt 
+                        imageData
+                        tileWidth
+                        (x - tileRect.MinX) 
+                        (y - tileRect.MinY)
+                        pixelValue
+                | None -> ignore()
+            | _ -> ignore()
 
 let rasterShaderFactory: RasterShaderFactory = fun options ->
-    // todo: extend the factory to support various shaders based on options
-    colorRasterBasedOnElevation
+    match options.Shader with
+    | ElevationColoringShader _ -> colorRasterBasedOnElevation
+    // todo provide hillshader's properties to the shadeRaster function
+    | Hillshader (pixelHillshader, shaderParameters) -> 
+        shadeRaster shaderParameters
 
 type ShadedRasterTileGenerator = 
     Raster.Rect -> Options -> Result<RawImageData option, string>
@@ -393,7 +395,7 @@ let saveShadedRasterTile
 
     stream |> writePngToStream ihdr imageData |> ignore
     
-    Log.info "Saved a shade tile %s" tilePngFileName
+    Log.info "Saved a shade tile to %s" tilePngFileName
 
     tilePngFileName
 
@@ -450,6 +452,8 @@ let run
 
     tilesToGenerate 
     |> List.choose (fun (xIndex, yIndex, tileBounds) ->
+        Log.info "Generating a shade tile %d/%d..." xIndex yIndex
+
         let tileGenerationResult = generateTile tileBounds options
 
         match tileGenerationResult with

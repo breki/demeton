@@ -3,7 +3,9 @@
 open Demeton
 open Demeton.Commands
 open Demeton.DemTypes
+open Demeton.Geometry.Common
 open Demeton.Shaders.ElevationColoring
+open Demeton.Shaders.Hillshading
 open Demeton.Shaders.ShaderTypes
 open Png
 
@@ -53,7 +55,7 @@ let ``Elevation colorer colors all of the image``() =
 
     test <@ not anyNonColoredPixel @>
 
-[<Fact(Skip="todo")>]
+[<Fact(Skip="todo: this test, as written now, doesn't make much sense")>]
 let ``Hillshader colors all of the image``() =
     let imageWidth = 10
     let imageHeight = 10
@@ -66,11 +68,18 @@ let ``Hillshader colors all of the image``() =
 
     let heightsArray = 
         HeightsArray(
-            659736, 478459, 1000, 1000, HeightsArrayInitializer1D (
+            659730, 478450, 1000, 1000, HeightsArrayInitializer1D (
                 fun _ -> DemHeight 1000))
 
+    let shaderParameters: ShaderParameters = { 
+        SunAzimuth = degToRad 180.
+        ShadingIntensity = 1.
+        ShadingColorR = 0uy
+        ShadingColorG = 0uy
+        ShadingColorB = 0uy }
+
     ShadeCommand.shadeRaster 
-        heightsArray tileRect imageData options
+        shaderParameters heightsArray tileRect imageData options
 
     let mutable anyNonColoredPixel = false
     for y in 0 .. (imageHeight-1) do

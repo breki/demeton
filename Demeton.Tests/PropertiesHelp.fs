@@ -37,9 +37,6 @@ let valueIsBetweenInclusive
     let min = min fromValue toValue
     let max = max fromValue toValue
 
-    if not (min <= value && value <= max) then
-        System.Diagnostics.Debugger.Break();
-
     (min <= value && value <= max) 
         |@ sprintf "%s %A <= %A <= %A" name min value max
 
