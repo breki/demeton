@@ -1,8 +1,7 @@
-﻿- try out the igor's hillshading method in command line
-    - there are some problems in the hillshading
-        - instead of shading intensity, use RGB colors
-            - calibrate alpha so it is at max on totally opposite slopes
-        - tests for this
+﻿- try to implement a new `RasterShader` that can be used in `ShadeCommand` and that uses a 3x3 window to calculate the slope and orientation
+
+## Tue 22.10.
+- Reorganizing the shader code a bit, so I can implement a new hillshader based on some scientific articles.
 
 ## Mon 21.10.
 - Implemented SlopeShader and AspectShader and discovered something is wrong with the aspect calculation.

@@ -48,11 +48,13 @@
     <Compile Include="Srtm\Png.fs" />
     <Compile Include="Projections\Common.fs" />
     <Compile Include="Projections\WebMercator.fs" />
+    <Compile Include="Shaders\Types.fs" />
     <Compile Include="Shaders\Terrain.fs" />
     <Compile Include="Shaders\ElevationColoring.fs" />
     <Compile Include="Shaders\Hillshading.fs" />
     <Compile Include="Shaders\SlopeShader.fs" />
     <Compile Include="Shaders\AspectShader.fs" />
+    <Compile Include="Shaders\NewHillshading.fs" />
     <Compile Include="Shaders\ShaderTypes.fs" />
     <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />

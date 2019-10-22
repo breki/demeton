@@ -16,14 +16,13 @@ let coveragePoints = [(4.262676, 42.90816); (16.962471, 48.502048)]
 
 let options: ShadeCommand.Options = {
         CoveragePoints = coveragePoints
-        Dpi = 300.
         FilePrefix = "shading"
         LocalCacheDir = "cache"
-        MapScale = 5000000.
         OutputDir = "output"
         SrtmDir = "srtm"
         TileSize = 1000
         Shader = ElevationColoringShader elevationColorScaleMaperitive
+        ShaderOptions = { Dpi = 300.; MapScale = 5000000. }
     }
 
 let tileWidth = 500

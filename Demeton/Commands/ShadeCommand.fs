@@ -10,6 +10,7 @@ open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Shaders
+open Demeton.Shaders.Types
 open Demeton.Shaders.ElevationColoring
 open Demeton.Shaders.Hillshading
 open Demeton.Shaders.Terrain
@@ -23,14 +24,13 @@ open System
 
 type Options = {
     CoveragePoints: LonLat list
-    Dpi: float
     FilePrefix: string
     LocalCacheDir: string
-    MapScale: float
     OutputDir: string
     SrtmDir: string
     TileSize: int
     Shader: Shader
+    ShaderOptions: ShaderOptions
 }
 
 [<Literal>]
@@ -140,10 +140,8 @@ let fillOptions parsedParameters =
     let defaultOptions = 
         { 
             CoveragePoints = []
-            Dpi = DefaultDpi 
             FilePrefix = DefaultFilePrefix
             LocalCacheDir = DefaultLocalCacheDir
-            MapScale = DefaultMapScale
             OutputDir = DefaultOutputDir
             SrtmDir = DefaultSrtmDir
             TileSize = DefaultTileSize
@@ -154,6 +152,7 @@ let fillOptions parsedParameters =
                 ShadingColorR = 0uy
                 ShadingColorG = 0uy
                 ShadingColorB = 0uy } )
+            ShaderOptions = { MapScale = DefaultMapScale; Dpi = DefaultDpi }
         }
 
     let processParameter options parameter =
@@ -161,13 +160,17 @@ let fillOptions parsedParameters =
         | ParsedArg { Name = CoveragePointsParameter; Value = value } -> 
             { options with CoveragePoints = value :?> LonLat list }
         | ParsedOption { Name = DpiParameter; Value = value } ->
-            { options with Dpi = value :?> float }
+            { options with 
+                ShaderOptions = 
+                    { options.ShaderOptions with Dpi = value :?> float } }
         | ParsedOption { Name = FilePrefixParameter; Value = value } ->
             { options with FilePrefix = value :?> string }
         | ParsedOption { Name = LocalCacheDirParameter; Value = value } ->
             { options with LocalCacheDir = value :?> string }
         | ParsedOption { Name = MapScaleParameter; Value = value } ->
-            { options with MapScale = value :?> float }
+            { options with 
+                ShaderOptions = 
+                    { options.ShaderOptions with MapScale = value :?> float }}
         | ParsedOption { Name = OutputDirParameter; Value = value } ->
             { options with OutputDir = value :?> string }
         | ParsedOption { Name = SrtmDirParameter; Value = value } ->
@@ -198,12 +201,6 @@ let splitIntoIntervals minValue maxValue intervalSize =
             (intervalIndex, intervalMinValue, intervalMaxValue)
         )
 
-let projectionScaleFactor options =
-    EarthRadiusInMeters / options.MapScale * InchesPerMeter * options.Dpi
-
-type RasterShader = 
-    HeightsArray -> Raster.Rect -> RawImageData -> Options -> unit
-
 /// <summary>
 /// Fetches an appropriate <see cref="RasterShader" /> function based on the
 /// specified shade command options.
@@ -214,7 +211,7 @@ let colorRasterBasedOnElevation: RasterShader =
     fun heightsArray tileRect imageData options ->
 
     let tileWidth = tileRect.Width
-    let scaleFactor = options |> projectionScaleFactor
+    let scaleFactor = options.ProjectionScaleFactor
 
     let heightForTilePixel x y =
         let xUnscaled = float x / scaleFactor
@@ -251,7 +248,9 @@ let shadeRaster shaderParameters: RasterShader =
     fun heightsArray tileRect imageData options ->
 
     let tileWidth = tileRect.Width
-    let scaleFactor = options |> projectionScaleFactor
+    let scaleFactor = options.ProjectionScaleFactor
+
+    let aspectStats = Array.zeroCreate 360
 
     let lonLatOf x y =
         let xUnscaled = x / scaleFactor
@@ -292,9 +291,19 @@ let shadeRaster shaderParameters: RasterShader =
 
                 match slopeAndAspectMaybe with
                 | Some (slope, aspect) ->
+                    // todo: remove when we figure out what's wrong with the
+                    // aspect calculation
+                    match Double.IsNaN aspect with
+                    | true -> ignore()
+                    | false -> 
+                        let aspectRounded = int (radToDeg aspect)
+                        aspectStats.[aspectRounded] <- 
+                            aspectStats.[aspectRounded] + 1
+                        ignore()
+
                     let pixelValue = 
-                        //AspectShader.run shaderParameters 0. slope aspect
-                        SlopeShader.run shaderParameters 0. slope aspect
+                        AspectShader.run shaderParameters 0. slope aspect
+                        //SlopeShader.run shaderParameters 0. slope aspect
                         //igorHillshade shaderParameters 0. slope aspect
                     Rgba8Bit.setPixelAt 
                         imageData
@@ -305,12 +314,19 @@ let shadeRaster shaderParameters: RasterShader =
                 | None -> ignore()
             | _ -> ignore()
 
+    let totalAspects = aspectStats |> Array.sum
+
+    aspectStats 
+    |> Array.iteri (fun i count -> 
+        printfn "%d: %g" i ((float count) / (float totalAspects) * 100.))
+
 let rasterShaderFactory: RasterShaderFactory = fun options ->
     match options.Shader with
     | ElevationColoringShader _ -> colorRasterBasedOnElevation
     // todo provide hillshader's properties to the shadeRaster function
     | Hillshader (pixelHillshader, shaderParameters) -> 
         shadeRaster shaderParameters
+    | NewHillshader -> NewHillshading.shadeRasterNew
 
 type ShadedRasterTileGenerator = 
     Raster.Rect -> Options -> Result<RawImageData option, string>
@@ -318,11 +334,10 @@ type ShadedRasterTileGenerator =
 let generateShadedRasterTile 
     (fetchHeightsArray: SrtmHeightsArrayFetcher)
     (createRasterShader: RasterShaderFactory)
-    (tileRect: Raster.Rect)
-    options 
-    : Result<RawImageData option, string> =
+    : ShadedRasterTileGenerator = 
+    fun (tileRect: Raster.Rect) options ->
 
-    let scaleFactor = options |> projectionScaleFactor
+    let scaleFactor = options.ShaderOptions.ProjectionScaleFactor
 
     let x1 = float tileRect.MinX / scaleFactor
     let y1 = float tileRect.MinY / scaleFactor
@@ -355,7 +370,7 @@ let generateShadedRasterTile
 
             let shadeRaster = createRasterShader options
 
-            shadeRaster heightsArray tileRect imageData options
+            shadeRaster heightsArray tileRect imageData options.ShaderOptions
             Ok (Some imageData)
         | None -> Ok None
     
@@ -420,7 +435,7 @@ let run
     let projectionMbr = Bounds.mbrOf projectedPoints
 
     // calculate MBR in terms of pixels
-    let scaleFactor = options |> projectionScaleFactor
+    let scaleFactor = options.ShaderOptions.ProjectionScaleFactor
 
     let rasterMbr = projectionMbr |> Bounds.multiply scaleFactor
 

@@ -16,14 +16,13 @@ let coveragePoints = [(4.262676, 42.90816); (16.962471, 48.502048)]
 
 let options: ShadeCommand.Options = {
         CoveragePoints = coveragePoints
-        Dpi = 300.
         FilePrefix = "shading"
         LocalCacheDir = "cache"
-        MapScale = 5000000.
         OutputDir = "output"
         SrtmDir = "srtm"
         TileSize = 1000
         Shader = ElevationColoringShader elevationColorScaleMaperitive
+        ShaderOptions = { Dpi = 300.; MapScale = 5000000. }
     }
 
 [<Fact>]
@@ -43,7 +42,7 @@ let ``Elevation colorer colors all of the image``() =
                 fun _ -> DemHeight 1000))
 
     ShadeCommand.colorRasterBasedOnElevation 
-        heightsArray tileRect imageData options
+        heightsArray tileRect imageData options.ShaderOptions
 
     let mutable anyNonColoredPixel = false
     for y in 0 .. (imageHeight-1) do
@@ -79,7 +78,7 @@ let ``Hillshader colors all of the image``() =
         ShadingColorB = 0uy }
 
     ShadeCommand.shadeRaster 
-        shaderParameters heightsArray tileRect imageData options
+        shaderParameters heightsArray tileRect imageData options.ShaderOptions
 
     let mutable anyNonColoredPixel = false
     for y in 0 .. (imageHeight-1) do
