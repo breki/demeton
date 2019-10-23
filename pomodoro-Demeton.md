@@ -1,4 +1,5 @@
-﻿- extract slope and aspect calculation into its own pluggable function
+﻿- test
+- extract slope and aspect calculation into its own pluggable function
     - also extract p and q calculations
 
 ## Wed 23.10.
