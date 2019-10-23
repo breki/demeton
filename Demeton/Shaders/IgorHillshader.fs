@@ -10,7 +10,6 @@ open System
 type ShaderParameters = 
     { 
         SunAzimuth: float
-        ShadingIntensity: float 
         ShadingColorR: byte
         ShadingColorG: byte
         ShadingColorB: byte
@@ -31,8 +30,7 @@ let shadePixel parameters: Hillshading.PixelHillshader = fun _  slope aspect ->
         let aspectStrength = 1. - aspectDiff / Math.PI
         let shadowness = slopeStrength * aspectStrength
 
-        let alpha = Hillshading.colorComponentRatioToByte 
-                        (shadowness * parameters.ShadingIntensity)
+        let alpha = Hillshading.colorComponentRatioToByte shadowness
     
         Rgba8Bit.rgbaColor
             parameters.ShadingColorR

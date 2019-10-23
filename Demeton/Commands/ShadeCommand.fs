@@ -212,7 +212,6 @@ let rasterShaderFactory: RasterShaderFactory = fun options ->
     | Hillshader -> 
         let shaderParameters: IgorHillshader.ShaderParameters = {
             SunAzimuth = 45.
-            ShadingIntensity = 1.
             ShadingColorR = 0uy
             ShadingColorG = 0uy
             ShadingColorB = 0uy }

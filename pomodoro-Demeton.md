@@ -1,6 +1,8 @@
-﻿- do we need ShaderParameters for igor hillshading?
+﻿- extract slope and aspect calculation into its own pluggable function
+    - also extract p and q calculations
 
 ## Wed 23.10.
+- `ShadingIntensity` is no longer available in `ShaderParameters`.
 - `ShaderParameters` record is now specific to `IgorHillshader`.
 - Moved elevation coloring shader to its module.
 - Made the pixel shader names consistent.
