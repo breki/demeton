@@ -8,7 +8,7 @@ open Png
 open System
 
 let shadePixel: Hillshading.PixelHillshader = fun _  _ aspect ->
-    let mixColors colorA colorB degrees minDegrees =
+    let inline mixColors colorA colorB degrees minDegrees =
         Rgba8Bit.mixColors 
             colorA colorB ((degrees - minDegrees) / 90.)
 

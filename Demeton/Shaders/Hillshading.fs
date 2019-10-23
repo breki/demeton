@@ -9,10 +9,11 @@ open Demeton.Srtm
 open Png
 
 open System
+open System.Threading.Tasks
 
 type PixelHillshader = float -> float -> float -> Rgba8Bit.RgbaColor
 
-let colorComponentRatioToByte (value: float): byte =
+let inline colorComponentRatioToByte (value: float): byte =
     (byte)(max (min ((int)(value * 255.)) 255) 0)
 
 let gridSize (coords: LonLat option[]) =
@@ -72,7 +73,7 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
     let scaleFactor = options.ProjectionScaleFactor
     let tileWidth = tileRect.Width
 
-    let lonLatOf x y =
+    let inline lonLatOf x y =
         let xUnscaled = float x / scaleFactor
         let yUnscaled = float y / scaleFactor
         WebMercator.inverse xUnscaled yUnscaled
@@ -96,7 +97,7 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
             |> Some
         | false -> None
 
-    for y in tileRect.MinY .. (tileRect.MaxY-1) do
+    let processRasterLine y =
         for x in tileRect.MinX .. (tileRect.MaxX-1) do
             let neighborCoords = [|
                 lonLatOf (x-1) (y-1)
@@ -130,3 +131,4 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
 
             | None -> ignore()
 
+    Parallel.For(tileRect.MinY, tileRect.MaxY, processRasterLine) |> ignore

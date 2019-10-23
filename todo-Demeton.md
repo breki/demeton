@@ -1,7 +1,5 @@
 ﻿- hillshading
-    - inline things
     - run the command on Alps
-    - how can we parallelize things?
 
 - add an (optional) color ramps
     - format: "height:#color;"
@@ -11,16 +9,6 @@
     - how to specify which shader to use?
     - how to combine shaders in one image?
 
--  calculate pixel dimensions in meters
-    - convert to lon/lat and then use a function to calculate distances on Earth's surface
-
-- ShadeCommand.shadeRaster
-    - write tests
-
-- hillshading
-    - implement the actual hillshader for the raster
-    - implement Igor's shading method
-    - integrate it into the shade command
 - update readme.md docs
 
 - how to generate code docs?
@@ -29,7 +17,7 @@
 - in what format to save the shaded tile PNG metadata?  
     - extra sidecar file?
     - extra PNG chunk?
-'
+
 - we need one additional row of SRTM cells on each side to be able to calculate things for hillshading
 
 - " To be more exact, these

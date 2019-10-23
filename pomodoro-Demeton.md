@@ -1,7 +1,5 @@
-﻿- inline things
-- how can we parallelize shading?
-
-## Wed 23.10.
+﻿## Wed 23.10.
+- `Hillshading.shadeRaster` function now parallelizes the shading of the raster, line by line.
 - Extracted slope and aspect calculation into a separate function.
 - `ShadingIntensity` is no longer available in `ShaderParameters`.
 - `ShaderParameters` record is now specific to `IgorHillshader`.
