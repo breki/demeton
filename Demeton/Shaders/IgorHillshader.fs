@@ -7,7 +7,7 @@ open Png
 
 open System
 
-let run: Hillshading.PixelHillshader = fun parameters  _  slope aspect ->
+let shadePixel: Hillshading.PixelHillshader = fun parameters  _  slope aspect ->
     match Double.IsNaN(aspect) with
     | true -> Rgba8Bit.TransparentColor
     | false ->

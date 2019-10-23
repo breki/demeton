@@ -11,7 +11,7 @@ open FsCheck
 open PropertiesHelp
 
 let ``Uses transparency for totally flat area`` (parameters, slope, aspect) =
-    let color = IgorHillshader.run parameters 0. slope aspect
+    let color = IgorHillshader.shadePixel parameters 0. slope aspect
        
     let flatArea = Double.IsNaN(aspect)
 

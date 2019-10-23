@@ -1,7 +1,8 @@
-﻿- make the pixel shader names consistent
+﻿- move elevation coloring shader to its module
 - do we need ShaderParameters?
 
 ## Wed 23.10.
+- Made the pixel shader names consistent.
 - Moved code from `NewHillshader` module to `Hillshader`.
 - `Demeton.Shaders.Hillshading` module now requires qualified access.
 - Removed the "old" (2x2) slope and aspect calculation and shading function.
