@@ -1,7 +1,8 @@
-﻿- extract slope and aspect calculation into its own pluggable function
-    - also extract p and q calculations
+﻿- inline things
+- how can we parallelize shading?
 
 ## Wed 23.10.
+- Extracted slope and aspect calculation into a separate function.
 - `ShadingIntensity` is no longer available in `ShaderParameters`.
 - `ShaderParameters` record is now specific to `IgorHillshader`.
 - Moved elevation coloring shader to its module.
