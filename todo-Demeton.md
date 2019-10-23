@@ -1,4 +1,7 @@
-﻿- try out the igor's hillshading method in command line
+﻿- extract slope and aspect calculation into its own pluggable function
+    - also extract p and q calculations
+
+- try out the igor's hillshading method in command line
     - there are some problems in the hillshading
         - instead of shading intensity, use RGB colors
             - calibrate alpha so it is at max on totally opposite slopes
