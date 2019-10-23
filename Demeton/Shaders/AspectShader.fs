@@ -2,12 +2,12 @@
 module Demeton.Shaders.AspectShader
 
 open Demeton.Geometry.Common
-open Demeton.Shaders.Hillshading
+open Demeton.Shaders
 open Png
 
 open System
 
-let run: PixelHillshader = fun _  _  _ aspect ->
+let run: Hillshading.PixelHillshader = fun _  _  _ aspect ->
     let mixColors colorA colorB degrees minDegrees =
         Rgba8Bit.mixColors 
             colorA colorB ((degrees - minDegrees) / 90.)

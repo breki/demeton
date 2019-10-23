@@ -2,12 +2,12 @@
 module Demeton.Shaders.SlopeShader
 
 open Demeton.Geometry.Common
-open Demeton.Shaders.Hillshading
+open Demeton.Shaders
 open Png
 
 open System
 
-let run: PixelHillshader = fun _  _  slope _ ->
+let run: Hillshading.PixelHillshader = fun _  _  slope _ ->
     match Double.IsNaN(slope) with
     | true -> Rgba8Bit.TransparentColor
     | false ->

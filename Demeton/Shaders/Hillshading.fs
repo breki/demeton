@@ -1,4 +1,5 @@
-﻿module Demeton.Shaders.Hillshading
+﻿[<RequireQualifiedAccess>]
+module Demeton.Shaders.Hillshading
 
 open Png
 

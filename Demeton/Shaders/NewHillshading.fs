@@ -2,7 +2,6 @@
 module Demeton.Shaders.NewHillshading
 
 open Demeton.Shaders.Types
-open Demeton.Shaders.Hillshading
 open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Geometry.Common
@@ -78,7 +77,7 @@ let shadeRasterNew: RasterShader =
                     
                 Some (p, q)
 
-    let shaderParameters: ShaderParameters = { 
+    let shaderParameters: Hillshading.ShaderParameters = { 
         SunAzimuth = 45. 
         ShadingIntensity = 1.
         ShadingColorR = 0uy

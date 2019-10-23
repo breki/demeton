@@ -149,7 +149,7 @@ let fillOptions parsedParameters =
             //    ShadingColorR = 0uy
             //    ShadingColorG = 0uy
             //    ShadingColorB = 0uy } )
-            Shader = NewHillshader
+            Shader = Hillshader
             ShaderOptions = { MapScale = DefaultMapScale; Dpi = DefaultDpi }
         }
 
@@ -244,7 +244,7 @@ let rasterShaderFactory: RasterShaderFactory = fun options ->
     match options.Shader with
     | ElevationColoringShader _ -> colorRasterBasedOnElevation
     // todo provide hillshader's properties to the shadeRaster function
-    | NewHillshader -> NewHillshading.shadeRasterNew
+    | Hillshader -> NewHillshading.shadeRasterNew
 
 type ShadedRasterTileGenerator = 
     Raster.Rect -> Options -> Result<RawImageData option, string>

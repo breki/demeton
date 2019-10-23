@@ -3,9 +3,7 @@
 open Demeton
 open Demeton.Commands
 open Demeton.DemTypes
-open Demeton.Geometry.Common
 open Demeton.Shaders.ElevationColoring
-open Demeton.Shaders.Hillshading
 open Demeton.Shaders.ShaderTypes
 open Png
 

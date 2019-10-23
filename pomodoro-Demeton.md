@@ -1,7 +1,11 @@
 ﻿- rename NewHillshader to Hillshader
+- make the pixel shader names consistent
+- do we need ShaderParameters?
 - extract slope and aspect calculation into its own pluggable function
+    - also extract p and q calculations
 
 ## Wed 23.10.
+- `Demeton.Shaders.Hillshading` module now requires qualified access.
 - Removed the "old" (2x2) slope and aspect calculation and shading function.
 - Implemented the aspect + slope calculation based on Horn's formulas.
 

@@ -1,13 +1,13 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Shaders.IgorHillshader
 
-open Demeton.Shaders.Hillshading
+open Demeton.Shaders
 open Demeton.Geometry.Common
 open Png
 
 open System
 
-let run: PixelHillshader = fun parameters  _  slope aspect ->
+let run: Hillshading.PixelHillshader = fun parameters  _  slope aspect ->
     match Double.IsNaN(aspect) with
     | true -> Rgba8Bit.TransparentColor
     | false ->
@@ -22,7 +22,7 @@ let run: PixelHillshader = fun parameters  _  slope aspect ->
         let aspectStrength = 1. - aspectDiff / Math.PI
         let shadowness = slopeStrength * aspectStrength
 
-        let alpha = colorComponentRatioToByte 
+        let alpha = Hillshading.colorComponentRatioToByte 
                         (shadowness * parameters.ShadingIntensity)
     
         Rgba8Bit.rgbaColor

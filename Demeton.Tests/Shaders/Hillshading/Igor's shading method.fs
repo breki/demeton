@@ -2,7 +2,6 @@
 
 open Demeton.Geometry.Common
 open Demeton.Shaders
-open Demeton.Shaders.Hillshading
 open Png
 
 open System
@@ -28,6 +27,13 @@ let ``Uses transparency for totally flat area`` (parameters, slope, aspect) =
 
 [<Fact>]
 let ``Igor's shading properties``() =
+    let generateParametes (az, shint, (col: byte[]))
+        : Hillshading.ShaderParameters =
+        {  SunAzimuth = az; ShadingIntensity = shint; 
+            ShadingColorR = col.[0]; 
+            ShadingColorG = col.[1]; 
+            ShadingColorB = col.[2] }
+
     let genCircleAngle = floatInRange 0 360 |> Gen.map degToRad
 
     let genSunAzimuth = genCircleAngle
@@ -36,11 +42,7 @@ let ``Igor's shading properties``() =
     let genColor = genColorComponent |> Gen.arrayOfLength 3
     let genParameters = 
         Gen.zip3 genSunAzimuth genShadingIntensity genColor
-        |> Gen.map (fun (az, shint, col) -> 
-            { SunAzimuth = az; ShadingIntensity = shint; 
-                ShadingColorR = col.[0]; 
-                ShadingColorG = col.[1]; 
-                ShadingColorB = col.[2] })
+        |> Gen.map generateParametes
 
     let genAspect = 
         genCircleAngle
