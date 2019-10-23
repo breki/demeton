@@ -1,7 +1,8 @@
-﻿- remove the old hillshading method
-- remove the existing slope + aspect calculation
+﻿- rename NewHillshader to Hillshader
+- extract slope and aspect calculation into its own pluggable function
 
 ## Wed 23.10.
+- Removed the "old" (2x2) slope and aspect calculation and shading function.
 - Implemented the aspect + slope calculation based on Horn's formulas.
 
 ## Tue 22.10.

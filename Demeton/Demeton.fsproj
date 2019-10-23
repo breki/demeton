@@ -49,7 +49,6 @@
     <Compile Include="Projections\Common.fs" />
     <Compile Include="Projections\WebMercator.fs" />
     <Compile Include="Shaders\Types.fs" />
-    <Compile Include="Shaders\Terrain.fs" />
     <Compile Include="Shaders\ElevationColoring.fs" />
     <Compile Include="Shaders\Hillshading.fs" />
     <Compile Include="Shaders\SlopeShader.fs" />

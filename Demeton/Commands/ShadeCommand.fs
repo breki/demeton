@@ -11,8 +11,6 @@ open Demeton.Projections.Common
 open Demeton.Shaders
 open Demeton.Shaders.Types
 open Demeton.Shaders.ElevationColoring
-open Demeton.Shaders.Hillshading
-open Demeton.Shaders.Terrain
 open Demeton.Shaders.ShaderTypes
 open Demeton.Srtm
 open Demeton.Srtm.Funcs
@@ -242,90 +240,10 @@ let colorRasterBasedOnElevation: RasterShader =
                 (y - tileRect.MinY)
                 pixelValue
 
-// todo: the function currently uses Igor's shader directly, but it should 
-// accept the shader as an additional argument
-let shadeRaster shaderParameters: RasterShader = 
-    fun heightsArray tileRect imageData options ->
-
-    let tileWidth = tileRect.Width
-    let scaleFactor = options.ProjectionScaleFactor
-
-    let aspectStats = Array.zeroCreate 360
-
-    let lonLatOf x y =
-        let xUnscaled = x / scaleFactor
-        let yUnscaled = y / scaleFactor
-        WebMercator.inverse xUnscaled yUnscaled
-
-    let heightOf lonRad latRad =
-        let lonDeg = radToDeg lonRad
-        let latDeg = radToDeg latRad
-
-        let globalSrtmX = Tile.longitudeToGlobalX lonDeg 3600
-        let globalSrtmY = Tile.latitudeToGlobalY latDeg 3600
-        heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
-
-    for y in tileRect.MinY .. (tileRect.MaxY-1) do
-        for x in tileRect.MinX .. (tileRect.MaxX-1) do
-            let p1Maybe = lonLatOf ((float x) - 0.5) ((float y) - 0.5)
-            let p2Maybe = lonLatOf ((float x) + 0.5) ((float y) - 0.5)
-            let p3Maybe = lonLatOf ((float x) - 0.5) ((float y) + 0.5)
-            let p4Maybe = lonLatOf ((float x) + 0.5) ((float y) + 0.5)
-
-            match (p1Maybe, p2Maybe, p3Maybe, p4Maybe) with
-            | (Some (lon1, lat1), Some (lon2, lat2), Some (lon3, lat3), Some (lon4, lat4)) ->
-                let pixelWidthInMeters = 
-                    geodeticDistanceApproximate lon1 lat1 lon2 lat2
-                let pixelHeightInMeters =
-                    geodeticDistanceApproximate lon1 lat1 lon3 lat3
-
-                let cornerHeights = [|
-                    heightOf lon1 lat1
-                    heightOf lon2 lat2
-                    heightOf lon3 lat3
-                    heightOf lon4 lat4 |]
-
-                let slopeAndAspectMaybe =
-                    calculateSlopeAndAspect 
-                        cornerHeights pixelWidthInMeters pixelHeightInMeters
-
-                match slopeAndAspectMaybe with
-                | Some (slope, aspect) ->
-                    // todo: remove when we figure out what's wrong with the
-                    // aspect calculation
-                    match Double.IsNaN aspect with
-                    | true -> ignore()
-                    | false -> 
-                        let aspectRounded = int (radToDeg aspect)
-                        aspectStats.[aspectRounded] <- 
-                            aspectStats.[aspectRounded] + 1
-                        ignore()
-
-                    let pixelValue = 
-                        AspectShader.run shaderParameters 0. slope aspect
-                        //SlopeShader.run shaderParameters 0. slope aspect
-                        //igorHillshade shaderParameters 0. slope aspect
-                    Rgba8Bit.setPixelAt 
-                        imageData
-                        tileWidth
-                        (x - tileRect.MinX) 
-                        (y - tileRect.MinY)
-                        pixelValue
-                | None -> ignore()
-            | _ -> ignore()
-
-    let totalAspects = aspectStats |> Array.sum
-
-    aspectStats 
-    |> Array.iteri (fun i count -> 
-        printfn "%d: %g" i ((float count) / (float totalAspects) * 100.))
-
 let rasterShaderFactory: RasterShaderFactory = fun options ->
     match options.Shader with
     | ElevationColoringShader _ -> colorRasterBasedOnElevation
     // todo provide hillshader's properties to the shadeRaster function
-    | Hillshader (pixelHillshader, shaderParameters) -> 
-        shadeRaster shaderParameters
     | NewHillshader -> NewHillshading.shadeRasterNew
 
 type ShadedRasterTileGenerator = 
