@@ -1,4 +1,8 @@
-﻿- try to implement a new `RasterShader` that can be used in `ShadeCommand` and that uses a 3x3 window to calculate the slope and orientation
+﻿- remove the old hillshading method
+- remove the existing slope + aspect calculation
+
+## Wed 23.10.
+- Implemented the aspect + slope calculation based on Horn's formulas.
 
 ## Tue 22.10.
 - Reorganizing the shader code a bit, so I can implement a new hillshader based on some scientific articles.

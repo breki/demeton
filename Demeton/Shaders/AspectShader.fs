@@ -7,7 +7,7 @@ open Png
 
 open System
 
-let run: PixelHillshaderFunc = fun _  _  _ aspect ->
+let run: PixelHillshader = fun _  _  _ aspect ->
     let mixColors colorA colorB degrees minDegrees =
         Rgba8Bit.mixColors 
             colorA colorB ((degrees - minDegrees) / 90.)

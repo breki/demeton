@@ -4,7 +4,6 @@ module Demeton.Commands.ShadeCommand
 open CommandLine
 open CommandLine.Common
 open Demeton
-open Demeton.DemTypes
 open Demeton.Geometry
 open Demeton.Geometry.Common
 open Demeton.Projections
@@ -146,12 +145,13 @@ let fillOptions parsedParameters =
             SrtmDir = DefaultSrtmDir
             TileSize = DefaultTileSize
             //Shader = ElevationColoringShader elevationColorScaleMaperitive
-            Shader = Hillshader (IgorHillshader, { 
-                SunAzimuth = degToRad 45.
-                ShadingIntensity = 1.
-                ShadingColorR = 0uy
-                ShadingColorG = 0uy
-                ShadingColorB = 0uy } )
+            //Shader = Hillshader (IgorHillshader, { 
+            //    SunAzimuth = degToRad 45.
+            //    ShadingIntensity = 1.
+            //    ShadingColorR = 0uy
+            //    ShadingColorG = 0uy
+            //    ShadingColorB = 0uy } )
+            Shader = NewHillshader
             ShaderOptions = { MapScale = DefaultMapScale; Dpi = DefaultDpi }
         }
 

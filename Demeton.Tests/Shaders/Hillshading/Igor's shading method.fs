@@ -1,6 +1,7 @@
 ﻿module Tests.Shaders.Hillshading.``Igor's shading method``
 
 open Demeton.Geometry.Common
+open Demeton.Shaders
 open Demeton.Shaders.Hillshading
 open Png
 
@@ -11,7 +12,7 @@ open FsCheck
 open PropertiesHelp
 
 let ``Uses transparency for totally flat area`` (parameters, slope, aspect) =
-    let color = igorHillshade parameters 0. slope aspect
+    let color = IgorHillshader.run parameters 0. slope aspect
        
     let flatArea = Double.IsNaN(aspect)
 
