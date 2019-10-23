@@ -7,10 +7,8 @@ open Demeton
 open Demeton.Geometry
 open Demeton.Geometry.Common
 open Demeton.Projections
-open Demeton.Projections.Common
 open Demeton.Shaders
 open Demeton.Shaders.Types
-open Demeton.Shaders.ElevationColoring
 open Demeton.Shaders.ShaderTypes
 open Demeton.Srtm
 open Demeton.Srtm.Funcs
@@ -80,7 +78,8 @@ let parseCoverage value =
 
 
 let parseElevationColorShader value =
-    OkValue (ElevationColoringShader (elevationColorScaleMaperitive))
+    OkValue (ElevationColoringShader 
+        (ElevationColoring.colorScaleMaperitive))
 
 
 let supportedParameters: CommandParameter[] = [|
@@ -205,44 +204,10 @@ let splitIntoIntervals minValue maxValue intervalSize =
 /// </summary>
 type RasterShaderFactory = Options -> RasterShader
 
-let colorRasterBasedOnElevation: RasterShader = 
-    fun heightsArray tileRect imageData options ->
-
-    let tileWidth = tileRect.Width
-    let scaleFactor = options.ProjectionScaleFactor
-
-    let heightForTilePixel x y =
-        let xUnscaled = float x / scaleFactor
-        let yUnscaled = float y / scaleFactor
-        let lonLatOption = WebMercator.inverse xUnscaled yUnscaled
-
-        match lonLatOption with
-        | None -> None
-        | Some (lonRad, latRad) ->
-            let lonDeg = radToDeg lonRad
-            let latDeg = radToDeg latRad
-
-            let globalSrtmX = Tile.longitudeToGlobalX lonDeg 3600
-            let globalSrtmY = Tile.latitudeToGlobalY latDeg 3600
-            heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
-
-    for y in tileRect.MinY .. (tileRect.MaxY-1) do
-        for x in tileRect.MinX .. (tileRect.MaxX-1) do
-            let height = heightForTilePixel x y
-
-            let pixelValue = 
-                elevationColorScaleMaperitive |> colorOfHeight height
-
-            Rgba8Bit.setPixelAt 
-                imageData
-                tileWidth
-                (x - tileRect.MinX) 
-                (y - tileRect.MinY)
-                pixelValue
 
 let rasterShaderFactory: RasterShaderFactory = fun options ->
     match options.Shader with
-    | ElevationColoringShader _ -> colorRasterBasedOnElevation
+    | ElevationColoringShader _ -> ElevationColoring.shadeRaster
     // todo provide hillshader's properties to the shadeRaster function
     | Hillshader -> Hillshading.shadeRaster IgorHillshader.shadePixel
 

@@ -2,8 +2,6 @@
 
 open CommandLine.Common
 open Demeton.Commands
-open Demeton.Shaders.ElevationColoring
-open Demeton.Shaders.ShaderTypes
 
 open Xunit
 open Swensen.Unquote

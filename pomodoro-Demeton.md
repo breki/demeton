@@ -1,7 +1,7 @@
-﻿- move elevation coloring shader to its module
-- do we need ShaderParameters?
+﻿- do we need ShaderParameters?
 
 ## Wed 23.10.
+- Moved elevation coloring shader to its module.
 - Made the pixel shader names consistent.
 - Moved code from `NewHillshader` module to `Hillshader`.
 - `Demeton.Shaders.Hillshading` module now requires qualified access.

@@ -1,16 +1,21 @@
-﻿module Demeton.Shaders.ElevationColoring
+﻿[<RequireQualifiedAccess>]
+module Demeton.Shaders.ElevationColoring
 
 open Demeton.DemTypes
+open Demeton.Geometry.Common
+open Demeton.Projections
+open Demeton.Srtm
+open Demeton.Shaders.Types
 open Png
 
-type ElevationColorScaleMark = (DemHeight * Rgba8Bit.RgbaColor)
+type ColorScaleMark = (DemHeight * Rgba8Bit.RgbaColor)
 
-type ElevationColorScale = {
-    Marks: ElevationColorScaleMark[]
+type ColorScale = {
+    Marks: ColorScaleMark[]
     NoneColor: Rgba8Bit.RgbaColor
     }
 
-let colorOfHeight (heightMaybe: float option) (scale: ElevationColorScale) = 
+let colorOfHeight (heightMaybe: float option) (scale: ColorScale) = 
     let findColor (height: float): Rgba8Bit.RgbaColor =
         let mutable color = None
         let mutable markIndex = 0;
@@ -42,10 +47,11 @@ let colorOfHeight (heightMaybe: float option) (scale: ElevationColorScale) =
     | None -> scale.NoneColor
     | Some height -> findColor height
 
+
 /// <summary>
 /// A elevation color scale used in Maperitive program.
 /// </summary>
-let elevationColorScaleMaperitive =
+let colorScaleMaperitive =
     {
         Marks = [| 
             -1s, Rgba8Bit.rgbColor 142uy 212uy 142uy
@@ -59,3 +65,38 @@ let elevationColorScaleMaperitive =
 
         NoneColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
     }
+
+
+let shadeRaster: RasterShader = 
+    fun heightsArray tileRect imageData options ->
+
+    let tileWidth = tileRect.Width
+    let scaleFactor = options.ProjectionScaleFactor
+
+    let heightForTilePixel x y =
+        let xUnscaled = float x / scaleFactor
+        let yUnscaled = float y / scaleFactor
+        let lonLatOption = WebMercator.inverse xUnscaled yUnscaled
+
+        match lonLatOption with
+        | None -> None
+        | Some (lonRad, latRad) ->
+            let lonDeg = radToDeg lonRad
+            let latDeg = radToDeg latRad
+
+            let globalSrtmX = Tile.longitudeToGlobalX lonDeg 3600
+            let globalSrtmY = Tile.latitudeToGlobalY latDeg 3600
+            heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
+
+    for y in tileRect.MinY .. (tileRect.MaxY-1) do
+        for x in tileRect.MinX .. (tileRect.MaxX-1) do
+            let height = heightForTilePixel x y
+
+            let pixelValue = colorScaleMaperitive |> colorOfHeight height
+
+            Rgba8Bit.setPixelAt 
+                imageData
+                tileWidth
+                (x - tileRect.MinX) 
+                (y - tileRect.MinY)
+                pixelValue

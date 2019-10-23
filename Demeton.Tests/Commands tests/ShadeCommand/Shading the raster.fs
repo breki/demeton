@@ -3,7 +3,7 @@
 open Demeton
 open Demeton.Commands
 open Demeton.DemTypes
-open Demeton.Shaders.ElevationColoring
+open Demeton.Shaders
 open Demeton.Shaders.ShaderTypes
 open Png
 
@@ -19,7 +19,8 @@ let options: ShadeCommand.Options = {
         OutputDir = "output"
         SrtmDir = "srtm"
         TileSize = 1000
-        Shader = ElevationColoringShader elevationColorScaleMaperitive
+        Shader = ElevationColoringShader 
+            ElevationColoring.colorScaleMaperitive
         ShaderOptions = { Dpi = 300.; MapScale = 5000000. }
     }
 
@@ -39,7 +40,7 @@ let ``Elevation colorer colors all of the image``() =
             659736, 478459, 1000, 1000, HeightsArrayInitializer1D (
                 fun _ -> DemHeight 1000))
 
-    ShadeCommand.colorRasterBasedOnElevation 
+    ElevationColoring.shadeRaster 
         heightsArray tileRect imageData options.ShaderOptions
 
     let mutable anyNonColoredPixel = false
