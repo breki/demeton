@@ -10,17 +10,7 @@ open Png
 
 open System
 
-type ShaderParameters = 
-    { 
-        SunAzimuth: float
-        ShadingIntensity: float 
-        ShadingColorR: byte
-        ShadingColorG: byte
-        ShadingColorB: byte
-    }
-
-type PixelHillshader = 
-    ShaderParameters -> float -> float -> float -> Rgba8Bit.RgbaColor
+type PixelHillshader = float -> float -> float -> Rgba8Bit.RgbaColor
 
 let colorComponentRatioToByte (value: float): byte =
     (byte)(max (min ((int)(value * 255.)) 255) 0)
@@ -92,13 +82,6 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
                     
                 Some (p, q)
 
-    let shaderParameters: ShaderParameters = { 
-        SunAzimuth = 45. 
-        ShadingIntensity = 1.
-        ShadingColorR = 0uy
-        ShadingColorG = 0uy
-        ShadingColorB = 0uy }
-
     for y in tileRect.MinY .. (tileRect.MaxY-1) do
         for x in tileRect.MinX .. (tileRect.MaxX-1) do
             let neighborCoords = [|
@@ -129,8 +112,7 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
                 //let azimuth2 = Math.Acos (-p / surfaceInclination)
                 let aspect = Math.Atan2 (-q, p)
 
-                let pixelValue = 
-                    pixelHillshader shaderParameters height slope aspect 
+                let pixelValue = pixelHillshader height slope aspect 
 
                 Rgba8Bit.setPixelAt 
                     imageData

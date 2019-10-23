@@ -1,6 +1,7 @@
-﻿- do we need ShaderParameters?
+﻿- do we need ShaderParameters for igor hillshading?
 
 ## Wed 23.10.
+- `ShaderParameters` record is now specific to `IgorHillshader`.
 - Moved elevation coloring shader to its module.
 - Made the pixel shader names consistent.
 - Moved code from `NewHillshader` module to `Hillshader`.

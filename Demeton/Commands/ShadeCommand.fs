@@ -209,7 +209,15 @@ let rasterShaderFactory: RasterShaderFactory = fun options ->
     match options.Shader with
     | ElevationColoringShader _ -> ElevationColoring.shadeRaster
     // todo provide hillshader's properties to the shadeRaster function
-    | Hillshader -> Hillshading.shadeRaster IgorHillshader.shadePixel
+    | Hillshader -> 
+        let shaderParameters: IgorHillshader.ShaderParameters = {
+            SunAzimuth = 45.
+            ShadingIntensity = 1.
+            ShadingColorR = 0uy
+            ShadingColorG = 0uy
+            ShadingColorB = 0uy }
+
+        Hillshading.shadeRaster (IgorHillshader.shadePixel shaderParameters)
 
 type ShadedRasterTileGenerator = 
     Raster.Rect -> Options -> Result<RawImageData option, string>

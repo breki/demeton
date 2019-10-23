@@ -28,7 +28,7 @@ let ``Uses transparency for totally flat area`` (parameters, slope, aspect) =
 [<Fact>]
 let ``Igor's shading properties``() =
     let generateParametes (az, shint, (col: byte[]))
-        : Hillshading.ShaderParameters =
+        : IgorHillshader.ShaderParameters =
         {  SunAzimuth = az; ShadingIntensity = shint; 
             ShadingColorR = col.[0]; 
             ShadingColorG = col.[1]; 
