@@ -1,4 +1,9 @@
-﻿## Wed 23.10.
+﻿- write property tests for alpha compositing
+
+## Thu 24.10.
+- Started writing property tests for alpha compositing.
+
+## Wed 23.10.
 - `Hillshading.shadeRaster` function now parallelizes the shading of the raster, line by line.
 - Extracted slope and aspect calculation into a separate function.
 - `ShadingIntensity` is no longer available in `ShaderParameters`.

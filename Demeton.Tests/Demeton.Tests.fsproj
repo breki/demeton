@@ -33,6 +33,7 @@
     <Compile Include="Png\IDAT compression.fs" />
     <Compile Include="Png\Reading and writing PNG files.fs" />
     <Compile Include="Png\Mixing Rgba8Bit colors.fs" />
+    <Compile Include="Png\Alpha compositing.fs" />
     <Compile Include="Geometry\GeometryTestHelp.fs" />
     <Compile Include="Geometry\Common tests.fs" />
     <Compile Include="Geometry\Bounds tests.fs" />

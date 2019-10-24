@@ -1,4 +1,12 @@
-﻿- hillshading
+﻿- how to combine multiple shaders?
+    - https://en.wikipedia.org/wiki/Blend_modes
+    - check how blending is done in Paint.NET
+        - blend mode: Normal, opacity: 255
+        - Normal, Multiply, Additive
+    - https://en.wikipedia.org/wiki/Alpha_compositing
+    - http://ssp.impulsetrain.com/porterduff.htm
+  
+- hillshading
     - run the command on Alps
 
 - add an (optional) color ramps
