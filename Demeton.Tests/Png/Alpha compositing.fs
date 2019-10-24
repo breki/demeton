@@ -9,49 +9,58 @@ module Tests.Png.``Alpha compositing``
 
 open Png
 
+open System
+
 open Xunit
 open FsCheck
 
-//type ColorPremultiplied = {
-//    A: float
-//    RGB: (float * float * float)
-//}
+let byteToRatio (byteValue: byte) = (float byteValue) / 255.
+let ratioToByte (ratio: float): byte = 
+    let asInt = int (Math.Round (ratio * 255.))
+    byte (min (max asInt 0) 255)
 
-//let multiply value (color: ColorPremultiplied)
-//    =
+type ColorRgbRatio = float * float * float
 
-////let inline alpha color = float (Rgba8Bit.a color) / 255.
-//let inline toPremultiplied color = 
-//    let alpha = float (Rgba8Bit.a color) / 255.
+let toPremultiplied color: ColorRgbRatio =
+    let a = int (Rgba8Bit.a color)
+    let rPremultiplied = float (int (Rgba8Bit.r color) * a) / 65025.
+    let gPremultiplied = float (int (Rgba8Bit.g color) * a) / 65025.
+    let bPremultiplied = float (int (Rgba8Bit.b color) * a) / 65025.
+    (rPremultiplied, gPremultiplied, bPremultiplied)
 
-//    (
-//        float (Rgba8Bit.r color) / 255.,
-//        float (Rgba8Bit.g color) / 255.,
-//        float (Rgba8Bit.b color) / 255.,
-//    )
+let inline addColors ((r1, g1, b1): ColorRgbRatio) ((r2, g2, b2): ColorRgbRatio)
+    : ColorRgbRatio =
+    ((r1 + r2), (g1 + g2), (b1 + b2))
 
-//let inline premultiply
+let inline multiplyColor factor ((r, g, b): ColorRgbRatio): ColorRgbRatio =
+    (r * factor, g * factor, b * factor)
 
-//let alphaCompositing 
-//    (source: Rgba8Bit.RgbaColor) 
-//    (destination: Rgba8Bit.RgbaColor): Rgba8Bit.RgbaColor =
-    
-//    let sourceAlpha = alpha source
-//    let destAlpha = alpha destination
+let toRgbaColor ((r, g, b): ColorRgbRatio) (a: float): Rgba8Bit.RgbaColor =
+    Rgba8Bit.rgbaColor
+        (ratioToByte (255. * r / a))
+        (ratioToByte (255. * g / a))
+        (ratioToByte (255. * b / a))
+        (ratioToByte a)
 
-//    let outAlpha = sourceAlpha + destAlpha * (1 - sourceAlpha)
-
-//    (Rgba8Bit.r source) * sourceAlpha
-
-//    //let r = 
-//    //    (float (Rgba8Bit.r source)) * aSource
-//    //    + 
-    
 let over source dest = 
-    match (Rgba8Bit.a source, Rgba8Bit.a dest) with
+    let sourceAb = Rgba8Bit.a source
+    let destAb = Rgba8Bit.a dest
+
+    match (sourceAb, destAb) with
     | (0uy, _) -> dest
+    | (255uy, _) -> source
     | (_, 0uy) -> source
-    | _ -> 0u
+    | (_, 255uy) -> dest
+    | _ -> 
+        let sourceAr = byteToRatio sourceAb
+        let destAr = byteToRatio destAb
+
+        let srcRgbR = toPremultiplied source
+        let destRgbR = toPremultiplied source
+
+        let outR = addColors srcRgbR (multiplyColor (1. - sourceAr) destRgbR)
+        let outA = sourceAr + destAr * (1. - sourceAr)
+        toRgbaColor outR outA
 
 let ``Compositing properties``(source, dest) =
     let composed = over source dest
@@ -63,13 +72,20 @@ let ``Compositing properties``(source, dest) =
         match (sourceA, destA) with
         | (0uy, _) -> 
             composed = dest |> Prop.label "source alpha = 0 -> composed = dest"
+        | (255uy, _) -> 
+            composed = source |> Prop.label "source alpha = 1 -> composed = source"
         | (_, 0uy) -> 
             composed = source |> Prop.label "dest alpha = 0 -> composed = source"
+        | (_, 255uy) -> 
+            Rgba8Bit.a composed = 255uy 
+            |> Prop.label "dest alpha = 1 -> composed alpha = 1"
         | _ -> true |> Prop.label "not covered yet"
 
     props 
     |> Prop.classify (sourceA = 0uy) "sourceA = 0"
+    |> Prop.classify (sourceA = 255uy) "sourceA = 1"
     |> Prop.classify (destA = 0uy) "destA = 0"
+    |> Prop.classify (destA = 255uy) "destA = 1"
 
 [<Fact>]
 let ``Testing compositing properties``() =
