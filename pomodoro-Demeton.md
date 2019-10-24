@@ -1,7 +1,8 @@
-﻿- write property tests for alpha compositing
+﻿- move alpha compositing to its own module
+- start preparing the shader pipeline framework
 
 ## Thu 24.10.
-- Started writing property tests for alpha compositing.
+- Written property tests for alpha compositing.
 
 ## Wed 23.10.
 - `Hillshading.shadeRaster` function now parallelizes the shading of the raster, line by line.
