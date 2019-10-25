@@ -3,6 +3,7 @@
 /// </summary>
 module Png.Filters
 
+open Raster
 open Png.Types
 
 open System

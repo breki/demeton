@@ -1,5 +1,6 @@
 ﻿module Png.File
 
+open Raster
 open Png.Types
 open Png.FileStructure
 open Png.Chunks

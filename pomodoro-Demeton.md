@@ -1,5 +1,10 @@
-﻿- move alpha compositing to its own module
-- start preparing the shader pipeline framework
+﻿- implement `alphaCompositingOver` function
+    - it should use parallelization over rows
+- move the new stuff to the production project
+- use it in the command instead of the existing code
+
+## Fri 25.10.
+- Implemented a prototype shader pipeline framework.
 
 ## Thu 24.10.
 - Written property tests for alpha compositing.

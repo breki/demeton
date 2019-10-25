@@ -1,5 +1,6 @@
 ﻿module Png.Chunks
 
+open Raster
 open Png.Types
 open Png.Filters
 open Png.Unfilters

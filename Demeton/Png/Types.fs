@@ -119,11 +119,6 @@ type IhdrData = {
             invalidOp "This PNG type is currently not supported."
 
 /// <summary>
-/// Raw image data represented as a byte array.
-/// </summary>
-type RawImageData = byte[]
-
-/// <summary>
 /// A byte array representing a sequence of filtered scanlines of the image.
 /// </summary>
 type FilteredImageData = byte[]

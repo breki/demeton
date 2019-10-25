@@ -12,6 +12,8 @@ open FsUnit
 open Xunit
 open Swensen.Unquote
 
+open Raster
+
 open System
 open System.IO
 open System.Reflection

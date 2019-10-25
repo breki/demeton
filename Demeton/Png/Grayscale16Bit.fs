@@ -1,7 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module Png.Grayscale16Bit
 
-open Png.Types
+open Raster
 
 type ImageDataInitializer =
     ImageDataInitializer1D of (int -> uint16)

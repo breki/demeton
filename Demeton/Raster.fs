@@ -1,8 +1,7 @@
 ﻿/// <summary>
 /// Contains common code for working with rasters.
 /// </summary>
-[<RequireQualifiedAccess>]
-module Demeton.Raster
+module Raster
 
 /// <summary>
 /// Represents a pixel rectangle.
@@ -20,3 +19,8 @@ type Rect = { MinX: int; MinY: int; Width: int; Height: int }
 
     member this.MaxX = this.MinX + this.Width
     member this.MaxY = this.MinY + this.Height
+
+/// <summary>
+/// Raw image data represented as a byte array.
+/// </summary>
+type RawImageData = byte[]

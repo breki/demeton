@@ -1,12 +1,11 @@
 ﻿module ``Commands tests``.``ShadeCommand``.``Generating shaded tile``
 
-open Demeton
+open Raster
 open Demeton.Commands
 open Demeton.DemTypes
 open Demeton.Shaders
 open Demeton.Shaders.ShaderTypes
 open Demeton.Srtm.Types
-open Png.Types
 
 open Xunit
 open Swensen.Unquote

@@ -3,7 +3,7 @@ module Demeton.Commands.ShadeCommand
 
 open CommandLine
 open CommandLine.Common
-open Demeton
+open Raster
 open Demeton.Geometry
 open Demeton.Geometry.Common
 open Demeton.Projections
@@ -211,7 +211,7 @@ let rasterShaderFactory: RasterShaderFactory = fun options ->
     // todo provide hillshader's properties to the shadeRaster function
     | Hillshader -> 
         let shaderParameters: IgorHillshader.ShaderParameters = {
-            SunAzimuth = 45.
+            SunAzimuth = degToRad 45.
             ShadingColorR = 0uy
             ShadingColorG = 0uy
             ShadingColorB = 0uy }

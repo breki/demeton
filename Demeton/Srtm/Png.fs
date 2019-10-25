@@ -1,6 +1,7 @@
 ﻿module Demeton.Srtm.Png
 
 open Demeton.DemTypes
+open Raster
 open Png
 open Png.Types
 open Png.File

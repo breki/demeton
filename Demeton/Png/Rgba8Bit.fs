@@ -1,7 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module Png.Rgba8Bit
 
-open Png.Types
+open Raster
 
 open System
 

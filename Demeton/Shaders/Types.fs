@@ -1,9 +1,8 @@
 ﻿module Demeton.Shaders.Types
 
-open Demeton
+open Raster
 open Demeton.DemTypes
 open Demeton.Projections.Common
-open Png.Types
 
 type ShaderOptions = {
     MapScale: float

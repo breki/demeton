@@ -1,6 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Shaders.ElevationColoring
 
+open Raster
 open Demeton.DemTypes
 open Demeton.Geometry.Common
 open Demeton.Projections

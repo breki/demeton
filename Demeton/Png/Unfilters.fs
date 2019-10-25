@@ -1,6 +1,6 @@
 ﻿module Png.Unfilters
 
-open Png.Types
+open Raster
 open Png.Filters
 
 open System

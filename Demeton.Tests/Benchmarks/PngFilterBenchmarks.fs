@@ -1,6 +1,6 @@
 ﻿module Demeton.Benchmarks.PngFilterBenchmarks
 
-open Png.Types
+open Raster
 open Png.Filters
 
 open BenchmarkDotNet.Attributes
