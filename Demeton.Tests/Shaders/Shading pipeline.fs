@@ -25,7 +25,7 @@ let ``Supports running a simple, single-step pipeline``() =
 
     let shaderOptions: ShaderOptions = { MapScale = 100000.; Dpi = 300. }
 
-    let step = Shading(stupidRasterShader)
+    let step = CustomShading stupidRasterShader
 
     let resultingImageData = 
         executeShadingStep heights tileRect shaderOptions step
@@ -56,8 +56,8 @@ let ``Supports compositing of images``() =
 
     let shaderOptions: ShaderOptions = { MapScale = 100000.; Dpi = 300. }
 
-    let shader1Step = Shading(stupidRasterShader)
-    let shader2Step = Shading(stupidRasterShader)
+    let shader1Step = CustomShading stupidRasterShader
+    let shader2Step = CustomShading stupidRasterShader
     let compositingStep = 
         Compositing (shader1Step, shader2Step, stupidCompositing)
 

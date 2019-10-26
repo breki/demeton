@@ -4,9 +4,10 @@ open Raster
 open Demeton.Shaders.Types
 open Png
 
-
 type ShadingStep =
-    | Shading of RasterShader
+    | ElevationColoring
+    | IgorHillshading of IgorHillshader.ShaderParameters
+    | CustomShading of RasterShader
     | Compositing of 
         (ShadingStep * ShadingStep * AlphaCompositing.CompositingFunc)
 
@@ -19,14 +20,6 @@ let rec executeShadingStep
     : RawImageData =
 
     match step with
-    | Shading rasterShader -> 
-        let imageData =
-            Rgba8Bit.createImageData 
-                tileRect.Width tileRect.Height Rgba8Bit.ImageDataZero
-
-        rasterShader heightsArray tileRect imageData shaderOptions
-        imageData
-
     | Compositing (step1, step2, compositingFunc) ->
         let image1 = 
             executeShadingStep heightsArray tileRect shaderOptions step1
@@ -34,3 +27,18 @@ let rec executeShadingStep
             executeShadingStep heightsArray tileRect shaderOptions step2
 
         compositingFunc tileRect.Width tileRect.Height image1 image2
+    | _ -> 
+        let rasterShaderToUse = 
+            match step with
+            | ElevationColoring -> ElevationColoring.shadeRaster
+            | IgorHillshading parameters -> 
+                Hillshading.shadeRaster (IgorHillshader.shadePixel parameters)
+            | CustomShading rasterShader -> rasterShader
+            | _ -> invalidOp "Unsupported shading step"
+
+        let imageData =
+            Rgba8Bit.createImageData 
+                tileRect.Width tileRect.Height Rgba8Bit.ImageDataZero
+
+        rasterShaderToUse heightsArray tileRect imageData shaderOptions
+        imageData

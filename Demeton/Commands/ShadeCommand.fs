@@ -135,10 +135,8 @@ let fillOptions parsedParameters =
     let shadingPipeline = 
         ShadingPipeline.Compositing
             (
-                ShadingPipeline.Shading
-                    (Hillshading.shadeRaster 
-                        (IgorHillshader.shadePixel igorShaderParameters)),
-                ShadingPipeline.Shading(ElevationColoring.shadeRaster),
+                ShadingPipeline.IgorHillshading igorShaderParameters,
+                ShadingPipeline.ElevationColoring,
                 Png.AlphaCompositing.imageOver
             )
 

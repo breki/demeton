@@ -21,7 +21,7 @@ let options: ShadeCommand.Options = {
         OutputDir = "output"
         SrtmDir = "srtm"
         TileSize = 1000
-        RootShadingStep = ShadingPipeline.Shading (mockRasterShader)
+        RootShadingStep = ShadingPipeline.CustomShading (mockRasterShader)
         ShaderOptions = { Dpi = 300.; MapScale = 5000000. }
     }
 
@@ -104,7 +104,7 @@ let ``Tile generator prepares the tile image data and returns it``() =
             tileRect 
             { options with 
                 RootShadingStep 
-                    = ShadingPipeline.Shading 
+                    = ShadingPipeline.CustomShading 
                         shadeRasterReceivesTileRectAndImageData }
 
     test <@ result = Ok imageDataReceived @>
