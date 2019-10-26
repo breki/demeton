@@ -23,7 +23,15 @@ let alphaCompositingOver: CompositingFunc =
         (imageHeight: int)
         (source: RawImageData)
         (dest: RawImageData) ->
-    invalidOp "todo"
+    for y in 0 .. imageHeight - 1 do
+        for x in 0 .. imageWidth - 1 do
+            let sourcePixel = Rgba8Bit.pixelAt source imageWidth x y
+            let destPixel = Rgba8Bit.pixelAt dest imageWidth x y
+
+            let outPixel = AlphaCompositing.over sourcePixel destPixel
+            Rgba8Bit.setPixelAt dest imageWidth x y outPixel
+
+    dest
 
 let rec executeShadingStep 
     heightsArray

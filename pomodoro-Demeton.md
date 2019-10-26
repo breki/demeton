@@ -1,7 +1,8 @@
-﻿- implement `alphaCompositingOver` function
-    - it should use parallelization over rows
-- move the new stuff to the production project
+﻿- move the new stuff to the production project
 - use it in the command instead of the existing code
+
+## Sat 26.10.
+- Implemented `alphaCompositingOver` function.
 
 ## Fri 25.10.
 - Implemented a prototype shader pipeline framework.
