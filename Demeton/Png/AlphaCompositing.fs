@@ -4,6 +4,7 @@ module Png.AlphaCompositing
 open Raster
 
 open System
+open System.Threading.Tasks
 
 type ColorRgbRatio = float * float * float
 
@@ -14,7 +15,7 @@ let ratioToByte (ratio: float): byte =
     byte (min (max asInt 0) 255)
 
 let toPremultiplied color: ColorRgbRatio =
-    let premultiply value a = float (int value * a) / 65025.
+    let inline premultiply value a = float (int value * a) / 65025.
 
     let a = int (Rgba8Bit.a color)
     let rPremultiplied = premultiply (Rgba8Bit.r color) a
@@ -23,7 +24,7 @@ let toPremultiplied color: ColorRgbRatio =
     (rPremultiplied, gPremultiplied, bPremultiplied)
 
 let toRgbaColor ((r, g, b): ColorRgbRatio) (a: float): Rgba8Bit.RgbaColor =       
-    let fromPremultiplied value a = ratioToByte (value / a)
+    let inline fromPremultiplied value a = ratioToByte (value / a)
     
     Rgba8Bit.rgbaColor
         (fromPremultiplied r a)
@@ -77,12 +78,13 @@ let imageOver: CompositingFunc =
         (imageHeight: int)
         (source: RawImageData)
         (dest: RawImageData) ->
-    for y in 0 .. imageHeight - 1 do
+    Parallel.For (0, imageHeight, fun y ->
         for x in 0 .. imageWidth - 1 do
             let sourcePixel = Rgba8Bit.pixelAt source imageWidth x y
             let destPixel = Rgba8Bit.pixelAt dest imageWidth x y
 
             let outPixel = pixelOver sourcePixel destPixel
             Rgba8Bit.setPixelAt dest imageWidth x y outPixel
+        ) |> ignore
 
     dest

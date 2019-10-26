@@ -1,6 +1,7 @@
-﻿- inline short alpha compositing functions
+﻿- implement a parser for shading script
 
 ## Sat 26.10.
+- Speeded up `Png.AlphaCompositing.imageOver` function using parallelization and inlining.
 - Fixed a bug in alpha compositing code, it seems to be working now.
 - Moved shading pipeline code to the production module (`Demeton.Shaders.ShadingPipeline`).
 - Implemented `alphaCompositingOver` function.

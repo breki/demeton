@@ -1,23 +1,8 @@
-﻿- parallelize alphaCompositingOver
-
-- how to combine multiple shaders?
-    - https://en.wikipedia.org/wiki/Blend_modes
-    - check how blending is done in Paint.NET
-        - blend mode: Normal, opacity: 255
-        - Normal, Multiply, Additive
-    - https://en.wikipedia.org/wiki/Alpha_compositing
-    - http://ssp.impulsetrain.com/porterduff.htm
-  
-- hillshading
+﻿- hillshading
     - run the command on Alps
 
 - add an (optional) color ramps
     - format: "height:#color;"
-- extend command line to support specifying Igor's hillshading method (+ parameters)
-- add support for both elevation coloring and hillshading in the `shade` command
-    - how to specify shading parameters?
-    - how to specify which shader to use?
-    - how to combine shaders in one image?
 
 - update readme.md docs
 
