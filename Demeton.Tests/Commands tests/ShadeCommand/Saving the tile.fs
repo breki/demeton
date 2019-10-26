@@ -1,9 +1,7 @@
 ﻿module ``Commands tests``.``ShadeCommand``.``Saving the tile``
 
-open Demeton
 open Demeton.Commands
 open Demeton.Shaders
-open Demeton.Shaders.ShaderTypes
 open Png
 open Png.Types
 

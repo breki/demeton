@@ -55,7 +55,6 @@
     <Compile Include="Shaders\SlopeShader.fs" />
     <Compile Include="Shaders\AspectShader.fs" />
     <Compile Include="Shaders\IgorHillshader.fs" />
-    <Compile Include="Shaders\ShaderTypes.fs" />
     <Compile Include="Shaders\ShadingPipeline.fs" />
     <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />

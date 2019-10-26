@@ -1,9 +1,7 @@
 ﻿module ``Commands tests``.``ShadeCommand``.``Running the command``
 
-open Demeton
 open Demeton.Commands
 open Demeton.Shaders
-open Demeton.Shaders.ShaderTypes
 
 open Xunit
 open Swensen.Unquote

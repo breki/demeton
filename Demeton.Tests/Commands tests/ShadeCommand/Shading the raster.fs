@@ -1,10 +1,8 @@
 ﻿module ``Commands tests``.``ShadeCommand``.``Shading the raster``
 
-open Demeton
 open Demeton.Commands
 open Demeton.DemTypes
 open Demeton.Shaders
-open Demeton.Shaders.ShaderTypes
 open Png
 
 open Xunit

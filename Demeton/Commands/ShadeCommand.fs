@@ -9,10 +9,8 @@ open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Shaders
 open Demeton.Shaders.Types
-open Demeton.Shaders.ShaderTypes
 open Demeton.Srtm
 open Demeton.Srtm.Funcs
-open Png
 open Png.Types
 
 open System
@@ -75,11 +73,6 @@ let parseCoverage value =
         | _ -> 
             let coveragePoints = floatsListToPoints floatsList
             OkValue coveragePoints
-
-
-let parseElevationColorShader value =
-    OkValue (ElevationColoringShader 
-        (ElevationColoring.colorScaleMaperitive))
 
 
 let supportedParameters: CommandParameter[] = [|
