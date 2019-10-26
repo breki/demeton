@@ -9,13 +9,48 @@ module Tests.Png.``Alpha compositing``
 
 open Png
 
-open System
-
 open Xunit
 open FsCheck
 
+let ``Color premultiplication properties`` color =
+    let alpha = AlphaCompositing.byteToRatio (Rgba8Bit.a color)
 
-let ``Compositing properties``(source, dest) =
+    let premultiplied = AlphaCompositing.toPremultiplied color
+    let fromPremultiplied = 
+        AlphaCompositing.toRgbaColor premultiplied alpha
+    match alpha with
+    | 0. -> true |> Prop.classify true "A=0"
+    | _ -> 
+        (color = fromPremultiplied)
+        |> Prop.classify true "A>0"
+        |> Prop.label "Color premultiplication is invertible when A>0"
+        |@ sprintf "%s <> %s" 
+            (Rgba8Bit.toHex fromPremultiplied) (Rgba8Bit.toHex color) 
+
+
+[<Fact>]
+let ``Color premultiplication``() =
+    let genByte = Arb.generate<byte>
+
+    let genRandomColor = Arb.generate<Rgba8Bit.RgbaColor>
+    let genColorWith0Alpha = 
+        genByte |> Gen.arrayOfLength 3
+        |> Gen.map (fun components -> 
+            Rgba8Bit.rgbaColor components.[0] components.[1] components.[2] 0uy)
+    let genColorWith1Alpha = 
+        genByte |> Gen.arrayOfLength 3
+        |> Gen.map (fun components -> 
+            Rgba8Bit.rgbaColor components.[0] components.[1] components.[2] 255uy)
+
+    let genColor = Gen.frequency [ 
+        (1, genColorWith0Alpha); (1, genColorWith1Alpha); (8, genRandomColor)]
+
+    genColor
+    |> Arb.fromGen
+    |> Prop.forAll <| ``Color premultiplication properties``
+    |> Check.QuickThrowOnFailure
+
+let ``Alpha compositing over operation properties``(source, dest) =
     let composed = AlphaCompositing.pixelOver source dest
 
     let sourceA = Rgba8Bit.a source
@@ -35,20 +70,24 @@ let ``Compositing properties``(source, dest) =
         | (_, 255uy) -> 
             Rgba8Bit.a composed = 255uy 
             |> Prop.label "dest alpha = 1 -> composed alpha = 1"
-        | _ -> 
-            let composedA = Rgba8Bit.a composed
+        | _ -> true |> Prop.classify true "mixed colors"
+
+    let composedA = Rgba8Bit.a composed
+
+    let props2 = 
+        props .&. (
             composedA >= sourceA 
             |> Prop.label "composed alpha >= source alpha"
-            |@ sprintf "%d <= %d <= %d" sourceA composedA destA
+            |@ sprintf "%d <= %d <= %d" sourceA composedA destA)
 
-    props 
+    props2 
     |> Prop.classify (sourceA = 0uy) "sourceA = 0"
     |> Prop.classify (sourceA = 255uy) "sourceA = 1"
     |> Prop.classify (destA = 0uy) "destA = 0"
     |> Prop.classify (destA = 255uy) "destA = 1"
 
 [<Fact>]
-let ``Testing compositing properties``() =
+let ``Alpha compositing over operation``() =
     let genByte = Arb.generate<byte>
 
     let genRandomColor = Arb.generate<Rgba8Bit.RgbaColor>
@@ -66,5 +105,5 @@ let ``Testing compositing properties``() =
 
     Gen.zip genColor genColor
     |> Arb.fromGen
-    |> Prop.forAll <| ``Compositing properties``
+    |> Prop.forAll <| ``Alpha compositing over operation properties``
     |> Check.QuickThrowOnFailure

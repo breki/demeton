@@ -1,7 +1,8 @@
-﻿- move the new stuff to the production project
-- use it in the command instead of the existing code
+﻿- inline short alpha compositing functions
 
 ## Sat 26.10.
+- Fixed a bug in alpha compositing code, it seems to be working now.
+- Moved shading pipeline code to the production module (`Demeton.Shaders.ShadingPipeline`).
 - Implemented `alphaCompositingOver` function.
 
 ## Fri 25.10.

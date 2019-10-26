@@ -67,7 +67,7 @@ let colorScaleMaperitive =
         NoneColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
     }
 
-
+// todo the function should accept the color scale as a parameter
 let shadeRaster: RasterShader = 
     fun heightsArray tileRect imageData options ->
 

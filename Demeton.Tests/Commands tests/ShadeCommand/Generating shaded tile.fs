@@ -4,7 +4,6 @@ open Raster
 open Demeton.Commands
 open Demeton.DemTypes
 open Demeton.Shaders
-open Demeton.Shaders.ShaderTypes
 open Demeton.Srtm.Types
 
 open Xunit
@@ -13,6 +12,8 @@ open TestHelp
 
 let coveragePoints = [(4.262676, 42.90816); (16.962471, 48.502048)]
 
+let mockRasterShader _ _ _ _ = ()
+
 let options: ShadeCommand.Options = {
         CoveragePoints = coveragePoints
         FilePrefix = "shading"
@@ -20,8 +21,7 @@ let options: ShadeCommand.Options = {
         OutputDir = "output"
         SrtmDir = "srtm"
         TileSize = 1000
-        Shader = ElevationColoringShader 
-            ElevationColoring.colorScaleMaperitive
+        RootShadingStep = ShadingPipeline.Shading (mockRasterShader)
         ShaderOptions = { Dpi = 300.; MapScale = 5000000. }
     }
 
@@ -36,9 +36,6 @@ let someHeightsArray =
         (Some 
         (HeightsArray(0, 0, 10, 10, 
             HeightsArrayInitializer1D (fun _ -> DemHeightNone))))
-
-let mockRasterShader _ _ _ _ = ()
-let mockRasterShaderFactory _ = mockRasterShader
 
 [<Fact>]
 let ``Tile generator correctly calculates which SRTM tiles it needs``() =
@@ -56,7 +53,6 @@ let ``Tile generator correctly calculates which SRTM tiles it needs``() =
 
     ShadeCommand.generateShadedRasterTile 
         correctSrtmTilesWereRequested
-        mockRasterShaderFactory
         tileRect 
         options 
     |> ignore
@@ -71,7 +67,6 @@ let ``When heights array fetcher returns None, tile generator does nothing and r
     let shadeTileResult = 
         ShadeCommand.generateShadedRasterTile 
             returnNoneForHeightsArray
-            mockRasterShaderFactory
             tileRect 
             options 
 
@@ -86,7 +81,6 @@ let ``When heights array fetcher returns an error, tile generator returns an err
     let shadeTileResult = 
         ShadeCommand.generateShadedRasterTile 
             returnErrorInsteadOfHeightsArray
-            mockRasterShaderFactory
             tileRect 
             options 
 
@@ -107,8 +101,10 @@ let ``Tile generator prepares the tile image data and returns it``() =
     let result =
         ShadeCommand.generateShadedRasterTile 
             fetchSomeHeights
-            (fun _ -> shadeRasterReceivesTileRectAndImageData)
             tileRect 
-            options 
+            { options with 
+                RootShadingStep 
+                    = ShadingPipeline.Shading 
+                        shadeRasterReceivesTileRectAndImageData }
 
     test <@ result = Ok imageDataReceived @>

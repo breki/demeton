@@ -24,7 +24,7 @@ type Options = {
     OutputDir: string
     SrtmDir: string
     TileSize: int
-    Shader: Shader
+    RootShadingStep: ShadingPipeline.ShadingStep 
     ShaderOptions: ShaderOptions
 }
 
@@ -133,6 +133,22 @@ let supportedParameters: CommandParameter[] = [|
 
 
 let fillOptions parsedParameters =
+    let igorShaderParameters: IgorHillshader.ShaderParameters = { 
+        SunAzimuth = degToRad 45.
+        ShadingColorR = 0uy
+        ShadingColorG = 0uy
+        ShadingColorB = 0uy }
+
+    let shadingPipeline = 
+        ShadingPipeline.Compositing
+            (
+                ShadingPipeline.Shading
+                    (Hillshading.shadeRaster 
+                        (IgorHillshader.shadePixel igorShaderParameters)),
+                ShadingPipeline.Shading(ElevationColoring.shadeRaster),
+                Png.AlphaCompositing.imageOver
+            )
+
     let defaultOptions = 
         { 
             CoveragePoints = []
@@ -141,14 +157,7 @@ let fillOptions parsedParameters =
             OutputDir = DefaultOutputDir
             SrtmDir = DefaultSrtmDir
             TileSize = DefaultTileSize
-            //Shader = ElevationColoringShader elevationColorScaleMaperitive
-            //Shader = Hillshader (IgorHillshader, { 
-            //    SunAzimuth = degToRad 45.
-            //    ShadingIntensity = 1.
-            //    ShadingColorR = 0uy
-            //    ShadingColorG = 0uy
-            //    ShadingColorB = 0uy } )
-            Shader = Hillshader
+            RootShadingStep = shadingPipeline
             ShaderOptions = { MapScale = DefaultMapScale; Dpi = DefaultDpi }
         }
 
@@ -198,32 +207,11 @@ let splitIntoIntervals minValue maxValue intervalSize =
             (intervalIndex, intervalMinValue, intervalMaxValue)
         )
 
-/// <summary>
-/// Fetches an appropriate <see cref="RasterShader" /> function based on the
-/// specified shade command options.
-/// </summary>
-type RasterShaderFactory = Options -> RasterShader
-
-
-let rasterShaderFactory: RasterShaderFactory = fun options ->
-    match options.Shader with
-    | ElevationColoringShader _ -> ElevationColoring.shadeRaster
-    // todo provide hillshader's properties to the shadeRaster function
-    | Hillshader -> 
-        let shaderParameters: IgorHillshader.ShaderParameters = {
-            SunAzimuth = degToRad 45.
-            ShadingColorR = 0uy
-            ShadingColorG = 0uy
-            ShadingColorB = 0uy }
-
-        Hillshading.shadeRaster (IgorHillshader.shadePixel shaderParameters)
-
 type ShadedRasterTileGenerator = 
     Raster.Rect -> Options -> Result<RawImageData option, string>
 
 let generateShadedRasterTile 
     (fetchHeightsArray: SrtmHeightsArrayFetcher)
-    (createRasterShader: RasterShaderFactory)
     : ShadedRasterTileGenerator = 
     fun (tileRect: Raster.Rect) options ->
 
@@ -243,7 +231,7 @@ let generateShadedRasterTile
             MinLat = radToDeg (min lat1Rad lat2Rad)
             MaxLon = radToDeg (max lon1Rad lon2Rad)
             MaxLat = radToDeg (max lat1Rad lat2Rad)
-    }
+        }
 
     let srtmTilesNeeded = boundsToTiles lonLatBounds
 
@@ -254,13 +242,12 @@ let generateShadedRasterTile
     | Ok heightArrayOption ->
         match heightArrayOption with
         | Some heightsArray ->
-            let imageData =
-                Rgba8Bit.createImageData 
-                    tileRect.Width tileRect.Height Rgba8Bit.ImageDataZero
-
-            let shadeRaster = createRasterShader options
-
-            shadeRaster heightsArray tileRect imageData options.ShaderOptions
+            let imageData = 
+                ShadingPipeline.executeShadingStep 
+                    heightsArray 
+                    tileRect 
+                    options.ShaderOptions 
+                    options.RootShadingStep 
             Ok (Some imageData)
         | None -> Ok None
     

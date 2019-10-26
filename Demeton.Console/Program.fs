@@ -36,7 +36,6 @@ let runShadeCommand parsedParameters =
     let generateTile =
         ShadeCommand.generateShadedRasterTile
             (Wiring.fetchSrtmHeights options.SrtmDir options.LocalCacheDir)
-            ShadeCommand.rasterShaderFactory
 
     let saveTile =
         ShadeCommand.saveShadedRasterTile

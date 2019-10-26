@@ -1,4 +1,6 @@
-﻿- how to combine multiple shaders?
+﻿- parallelize alphaCompositingOver
+
+- how to combine multiple shaders?
     - https://en.wikipedia.org/wiki/Blend_modes
     - check how blending is done in Paint.NET
         - blend mode: Normal, opacity: 255
