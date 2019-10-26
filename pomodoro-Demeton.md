@@ -1,4 +1,6 @@
-﻿- implement a parser for shading script
+﻿- implement parser for colors
+- implement parser for color scales
+- implement a parser for shading script
 
 ## Sat 26.10.
 - Started working on the shading script parser.

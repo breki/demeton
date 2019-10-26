@@ -7,16 +7,31 @@ open Xunit
 open Swensen.Unquote
 
 let parseShadingScript script: ShadingStep =
-    ElevationColoring 
+    ElevationColoring { ColorScale = ElevationColoring.colorScaleMaperitive }
 
 [<Fact>]
-let ``Parsing elevation coloring step without parameters``() =
+let ``Supports parsing elevation coloring step without parameters``() =
     let script = "elecolor"
 
     let rootStep = parseShadingScript script
 
     test <@ match rootStep with 
-            | ElevationColoring -> true
+            | ElevationColoring parameters -> 
+                parameters = 
+                    { ColorScale = ElevationColoring.colorScaleMaperitive }
             | _ -> false
         @>
 
+[<Fact>]
+let ``Supports parsing elevation coloring step with custom color scale``() =
+    let script = "elecolor(scale='-1:#0;1000:#ffffff')"
+
+    let rootStep = parseShadingScript script
+
+    test <@ match rootStep with 
+            | ElevationColoring parameters -> 
+                // todo check the color scale
+                true
+            | _ -> false
+        @>
+    

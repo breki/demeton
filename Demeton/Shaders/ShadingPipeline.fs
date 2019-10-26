@@ -4,8 +4,10 @@ open Raster
 open Demeton.Shaders.Types
 open Png
 
+type ElevationColoringParameters = { ColorScale: ElevationColoring.ColorScale }
+
 type ShadingStep =
-    | ElevationColoring
+    | ElevationColoring of ElevationColoringParameters
     | IgorHillshading of IgorHillshader.ShaderParameters
     | CustomShading of RasterShader
     | Compositing of 
@@ -30,7 +32,8 @@ let rec executeShadingStep
     | _ -> 
         let rasterShaderToUse = 
             match step with
-            | ElevationColoring -> ElevationColoring.shadeRaster
+            | ElevationColoring parameters -> 
+                ElevationColoring.shadeRaster parameters.ColorScale
             | IgorHillshading parameters -> 
                 Hillshading.shadeRaster (IgorHillshader.shadePixel parameters)
             | CustomShading rasterShader -> rasterShader

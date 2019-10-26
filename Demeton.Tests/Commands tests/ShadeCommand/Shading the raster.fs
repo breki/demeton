@@ -18,6 +18,7 @@ let options: ShadeCommand.Options = {
         SrtmDir = "srtm"
         TileSize = 1000
         RootShadingStep = ShadingPipeline.ElevationColoring
+            { ColorScale = ElevationColoring.colorScaleMaperitive }
         ShaderOptions = { Dpi = 300.; MapScale = 5000000. }
     }
 
@@ -38,7 +39,11 @@ let ``Elevation colorer colors all of the image``() =
                 fun _ -> DemHeight 1000))
 
     ElevationColoring.shadeRaster 
-        heightsArray tileRect imageData options.ShaderOptions
+        ElevationColoring.colorScaleMaperitive
+        heightsArray 
+        tileRect 
+        imageData 
+        options.ShaderOptions
 
     let mutable anyNonColoredPixel = false
     for y in 0 .. (imageHeight-1) do

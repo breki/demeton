@@ -68,7 +68,7 @@ let colorScaleMaperitive =
     }
 
 // todo the function should accept the color scale as a parameter
-let shadeRaster: RasterShader = 
+let shadeRaster (colorScale: ColorScale): RasterShader = 
     fun heightsArray tileRect imageData options ->
 
     let tileWidth = tileRect.Width
@@ -93,7 +93,7 @@ let shadeRaster: RasterShader =
         for x in tileRect.MinX .. (tileRect.MaxX-1) do
             let height = heightForTilePixel x y
 
-            let pixelValue = colorScaleMaperitive |> colorOfHeight height
+            let pixelValue = colorScale |> colorOfHeight height
 
             Rgba8Bit.setPixelAt 
                 imageData
