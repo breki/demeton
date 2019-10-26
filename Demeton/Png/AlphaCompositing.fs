@@ -1,11 +1,13 @@
 ﻿[<RequireQualifiedAccess>]
 module Png.AlphaCompositing
 
+open Raster
+
 open System
 
 type private ColorRgbRatio = float * float * float
 
-let over source dest = 
+let pixelOver source dest = 
     let inline byteToRatio (byteValue: byte) = (float byteValue) / 255.
 
     let ratioToByte (ratio: float): byte = 
@@ -57,3 +59,22 @@ let over source dest =
         let outA = sourceAr + destAr * (1. - sourceAr)
 
         toRgbaColor outR outA
+
+type CompositingFunc = 
+    int -> int -> RawImageData -> RawImageData -> RawImageData
+
+let imageOver: CompositingFunc = 
+    fun
+        (imageWidth: int)
+        (imageHeight: int)
+        (source: RawImageData)
+        (dest: RawImageData) ->
+    for y in 0 .. imageHeight - 1 do
+        for x in 0 .. imageWidth - 1 do
+            let sourcePixel = Rgba8Bit.pixelAt source imageWidth x y
+            let destPixel = Rgba8Bit.pixelAt dest imageWidth x y
+
+            let outPixel = pixelOver sourcePixel destPixel
+            Rgba8Bit.setPixelAt dest imageWidth x y outPixel
+
+    dest

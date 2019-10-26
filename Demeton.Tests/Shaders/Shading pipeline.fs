@@ -1,37 +1,20 @@
 ﻿module Tests.Shaders.``Shading pipeline``
 
 open Raster
-open Demeton.Shaders
 open Demeton.Shaders.Types
-open Demeton.Geometry.Common
+open Png
 
 open Xunit
 open Swensen.Unquote
 open Png
 open Demeton.DemTypes
 
-type CompositingFunc = 
-    int -> int -> RawImageData -> RawImageData -> RawImageData
 
 type ShadingStep =
     | Shading of RasterShader
-    | Compositing of (ShadingStep * ShadingStep * CompositingFunc)
+    | Compositing of 
+        (ShadingStep * ShadingStep * AlphaCompositing.CompositingFunc)
 
-let alphaCompositingOver: CompositingFunc = 
-    fun
-        (imageWidth: int)
-        (imageHeight: int)
-        (source: RawImageData)
-        (dest: RawImageData) ->
-    for y in 0 .. imageHeight - 1 do
-        for x in 0 .. imageWidth - 1 do
-            let sourcePixel = Rgba8Bit.pixelAt source imageWidth x y
-            let destPixel = Rgba8Bit.pixelAt dest imageWidth x y
-
-            let outPixel = AlphaCompositing.over sourcePixel destPixel
-            Rgba8Bit.setPixelAt dest imageWidth x y outPixel
-
-    dest
 
 let rec executeShadingStep 
     heightsArray

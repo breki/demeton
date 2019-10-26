@@ -16,7 +16,7 @@ open FsCheck
 
 
 let ``Compositing properties``(source, dest) =
-    let composed = AlphaCompositing.over source dest
+    let composed = AlphaCompositing.pixelOver source dest
 
     let sourceA = Rgba8Bit.a source
     let destA = Rgba8Bit.a dest
