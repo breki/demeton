@@ -55,6 +55,7 @@
     <Compile Include="Projections\WebMercator tests.fs" />
     <Compile Include="Shaders\Hillshading\Igor%27s shading method.fs" />
     <Compile Include="Shaders\Elevation coloring.fs" />
+    <Compile Include="Shaders\Parsing elevation color scales.fs" />
     <Compile Include="Shaders\Shading pipeline.fs" />
     <Compile Include="Shaders\Parsing shading scripts.fs" />
     <Compile Include="Commands tests\ShadeCommand\Command line parsing.fs" />

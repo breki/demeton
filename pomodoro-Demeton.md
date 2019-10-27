@@ -1,9 +1,11 @@
-﻿- implement parser for colors
-    - expose it as a 
-- implement parser for color scales
+﻿- implement parser for color scales
+    - format: "height:#color;"
+    - support insensitive case
+    - support whitespace
 - implement a parser for shading script
 
 ## Sun 27.10.
+- Started working on the elevation color scale parser.
 - Implemented parser for color hex triplets and quadruplets.
 - Studying and experimenting with FParsec. Added some exploratory tests for it.
 
