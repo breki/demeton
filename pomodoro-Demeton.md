@@ -2,6 +2,9 @@
 - implement parser for color scales
 - implement a parser for shading script
 
+## Sun 27.10.
+- Studying and experimenting with FParsec. Added some exploratory tests for it.
+
 ## Sat 26.10.
 - Started working on the shading script parser.
 - Switched to using concrete steps in `Demeton.Shaders.ShadingPipeline.ShadingStep`.

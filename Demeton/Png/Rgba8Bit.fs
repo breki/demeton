@@ -38,7 +38,7 @@ let inline toArgb(color: RgbaColor): ArgbColor =
     ||| (uint32 (g color) <<< 8) ||| (uint32 (b color))
 
 let inline toHex(color: RgbaColor): string =
-    sprintf "%02X%02X%02X%02X" (a color) (r color) (g color) (b color)
+    sprintf "#%02X%02X%02X%02X" (a color) (r color) (g color) (b color)
 
 let inline mixColors colorA colorB mixRatio = 
     let mixByteValues (v1:byte) (v2: byte): byte =
