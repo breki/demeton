@@ -2,8 +2,6 @@
 
 open FParsec
 
-open System
-
 open Xunit
 open Swensen.Unquote
 

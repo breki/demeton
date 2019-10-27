@@ -3,6 +3,7 @@ module Png.Rgba8Bit
 
 open Raster
 
+open FParsec
 open System
 
 [<Literal>]
@@ -38,7 +39,56 @@ let inline toArgb(color: RgbaColor): ArgbColor =
     ||| (uint32 (g color) <<< 8) ||| (uint32 (b color))
 
 let inline toHex(color: RgbaColor): string =
-    sprintf "#%02X%02X%02X%02X" (a color) (r color) (g color) (b color)
+    let alpha = a color
+    match alpha with
+    | 0xffuy -> sprintf "#%02x%02x%02x" (r color) (g color) (b color)
+    | _ -> sprintf "#%02x%02x%02x%02x" alpha (r color) (g color) (b color)
+
+/// <summary>
+/// FParsec function for parsing color hex triplets and quadruplets into
+/// <see cref="Rgba8Bit.RgbaColor" /> colors.
+/// </summary>
+let hexColor: Parser<RgbaColor, unit> =
+    let hexCharToUInt c = 
+        let cInt = (uint32 c)
+
+        match c with
+        | x when x >= '0' && x <= '9' -> cInt - (uint32 '0')
+        | x when x >= 'a' && x <= 'f' -> cInt - (uint32 'a') + 10u
+        | x when x >= 'A' && x <= 'F' -> cInt - (uint32 'A') + 10u
+        | _ -> invalidOp "Invalid hex character."
+    
+    let calcHex digits =   
+        digits
+        |> Seq.toArray
+        |> Array.fold 
+            (fun sum digit -> 
+                sum * 16u + (digit |> hexCharToUInt)) 0u
+
+    pstring "#" 
+    >>. manyMinMaxSatisfyL 6 6 isHex "hex color value"
+    .>>. opt (hex .>>. hex)
+    |>> fun (digits, additionalDigits) ->
+        let (alphaDigits, rgbDigits) =
+            match additionalDigits with
+            | Some (digit7, digit8) -> 
+                (digits.Substring(0, 2), 
+                 digits.Substring(2, 4) + string digit7 + string digit8)
+            | None -> ("FF", digits)
+
+        let alpha = calcHex alphaDigits
+        let rgb = calcHex rgbDigits
+
+        rgb <<< 8 ||| alpha
+
+/// <summary>
+/// Tries to parse a color hex triplet or quadruplet (with '#' prefix) into
+/// <see cref="Rgba8Bit.RgbaColor" /> color.
+/// </summary>
+let tryParseColorHexValue hexValue: Result<RgbaColor, string> =
+    match run hexColor hexValue with
+    | Success(result, _, _)   -> Result.Ok result
+    | Failure(errorMsg, _, _) -> Result.Error errorMsg
 
 let inline mixColors colorA colorB mixRatio = 
     let mixByteValues (v1:byte) (v2: byte): byte =

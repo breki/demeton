@@ -1,8 +1,10 @@
 ﻿- implement parser for colors
+    - expose it as a 
 - implement parser for color scales
 - implement a parser for shading script
 
 ## Sun 27.10.
+- Implemented parser for color hex triplets and quadruplets.
 - Studying and experimenting with FParsec. Added some exploratory tests for it.
 
 ## Sat 26.10.

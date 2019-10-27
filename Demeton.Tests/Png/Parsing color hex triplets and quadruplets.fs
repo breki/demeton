@@ -2,56 +2,19 @@
 
 open Png
 
-open FParsec
-open FParsec.CharParsers
-
 open Xunit
 open FsCheck
-
-let runParser(str: string) (parsingFunc: Parser<'u, unit>) =
-    use charStream = new CharStream<unit>(str, 0, str.Length)
-
-    let reply = parsingFunc charStream
-    match reply.Status with
-    | Ok -> Result.Ok reply.Result
-    | _ -> Result.Error()
-
-
-let parseColorHexValue hexValue =
-    invalidOp "todo"
-    //let hexParser = hex
-
-    //let hexColor = 
-    //    pstring "#" 
-    //    >>. manyMinMaxSatisfy 6 8 isHex 
-    //    |>> many |>> hex
-        
-
-    //let result = runParser hexValue hexColor
-    //match result 
-
-    //let parser = pstring "#"
-
-    //CharParsers.
-
-    //let parseHash = FParsec.CharParsers.pchar '#'
-    //let parseHexByte = 
-    //    FParsec.Primitives.pipe2 
-    //        FParsec.CharParsers.hex FParsec.CharParsers.hex
-    //let parseHexBytes = 
-    //    FParsec.Primitives.pipe4 
-    //        parseHexByte parseHexByte parseHexByte parseHexByte 
 
 let ``Color hex properties`` color =
     let hexValue = Rgba8Bit.toHex color
 
-    let parsedColor = parseColorHexValue hexValue
+    let parsedColorMaybe = Rgba8Bit.tryParseColorHexValue hexValue
 
     let fullOpacity = (Rgba8Bit.a color) = 0xffuy
 
     let propInverse = 
-        parsedColor = color
-        |> Prop.label "parsing hex value does returns the same color"
+        parsedColorMaybe = Result.Ok color
+        |> Prop.label "parsing hex value returns the same color"
 
     let propLength =
         match fullOpacity with
@@ -62,10 +25,22 @@ let ``Color hex properties`` color =
             hexValue.Length = 9
             |> Prop.label "full opacity hex value has 1+8 characters"
         
-    (propInverse .&. propLength)
-    |> Prop.classify fullOpacity "A = FF"
+    let propLowercase =
+        let parsedColorMaybe = 
+            Rgba8Bit.tryParseColorHexValue (hexValue.ToLower())
+        parsedColorMaybe = Result.Ok color
+        |> Prop.label "supports lowercase hex values"
+        
+    let propUppercase =
+        let parsedColorMaybe = 
+            Rgba8Bit.tryParseColorHexValue (hexValue.ToUpper())
+        parsedColorMaybe = Result.Ok color
+        |> Prop.label "supports uppercase hex values"
 
-[<Fact(Skip="todo")>]
+    (propInverse .&. propLength .&. propLowercase .&. propUppercase)
+    |> Prop.classify fullOpacity "A = 0xFF"
+
+[<Fact>]
 let ``Testing hex color properties``() =
     let genByte = Arb.generate<byte>
 
