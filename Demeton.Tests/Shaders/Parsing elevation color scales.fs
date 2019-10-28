@@ -12,6 +12,7 @@ open PropertiesHelp
 
 type ScaleCase =
     | ValidScale of (string * ElevationColoring.ColorScale)
+    | NoMarks of string
     | UnsortedScale of string
     | InvalidScale of string
 
@@ -47,6 +48,9 @@ let parseScale: Parser<ElevationColoring.ColorScale, unit> =
             { Marks = marks; NoneColor = noneColor }
         colorScale
 
+let sortScaleMarks marks =
+    marks |> Array.sortBy (fun (elevation, _) -> elevation)
+
 let tryParseScale value: Result<ElevationColoring.ColorScale, string> =
     match value with
     | null -> Result.Error "invalid color scale"
@@ -54,7 +58,13 @@ let tryParseScale value: Result<ElevationColoring.ColorScale, string> =
         let result = run parseScale value
 
         match result with
-        | Success(result, _, _)   -> Result.Ok result
+        | Success(scale, _, _) -> 
+            let sortedMarks = scale.Marks |> sortScaleMarks
+            let marksAreSorted = scale.Marks = sortedMarks
+            match marksAreSorted with
+            | true -> Result.Ok scale
+            | false -> Result.Error "color scale marks are not sorted"
+
         | _ -> Result.Error "invalid color scale"
 
 let ``elevation color scale parsing properties`` scaleCase =
@@ -64,6 +74,11 @@ let ``elevation color scale parsing properties`` scaleCase =
         scaleParseResult = Result.Ok expectedColorScale
         |> Prop.classify true "valid scale"
         |> Prop.label "parsed scale is as expected"
+    | NoMarks scaleString ->
+        let scaleParseResult = tryParseScale scaleString
+        scaleParseResult = Result.Error "invalid color scale"
+        |> Prop.classify true "scale without any marks"
+        |> Prop.label "scale must have at least one mark"        
     | UnsortedScale (unsortedScaleString) ->
         let scaleParseResult = tryParseScale unsortedScaleString
         scaleParseResult = Result.Error "color scale marks are not sorted"
@@ -71,7 +86,6 @@ let ``elevation color scale parsing properties`` scaleCase =
         |> Prop.label "scale marks must be sorted"
     | InvalidScale (invalidScaleString) ->
         let scaleParseResult = tryParseScale invalidScaleString
-
         scaleParseResult = Result.Error "invalid color scale"
         |> Prop.classify true "invalid color scale"
         |> Prop.label "scale must adhere to the format"
@@ -83,8 +97,8 @@ let ``Testing properties of elevation color scale parsing``() =
     let genRandomColor = Arb.generate<Rgba8Bit.RgbaColor>
     let genColorWith1Alpha = 
         genByte |> Gen.arrayOfLength 3
-        |> Gen.map (fun components -> 
-            Rgba8Bit.rgbaColor components.[0] components.[1] components.[2] 255uy)
+        |> Gen.map (fun rgb -> 
+            Rgba8Bit.rgbaColor rgb.[0] rgb.[1] rgb.[2] 255uy)
 
     let genColor = Gen.frequency [ 
         (1, genColorWith1Alpha); (8, genRandomColor)]
@@ -92,26 +106,49 @@ let ``Testing properties of elevation color scale parsing``() =
     let genInvalidScale = 
         Arb.generate<string> |> Gen.map (fun x -> InvalidScale x)
 
-    let genElevation = Gen.choose (-1000, 5000)
-    let genColorMark = Gen.zip genElevation genColor
+    let genElevation = 
+        Gen.choose (-1000, 5000) |> Gen.map (fun x -> DemHeight (int16 x))
+    let genMark = 
+        Gen.zip genElevation genColor 
+        |> Gen.map (fun (elevation, color) -> 
+            ElevationColoring.ColorScaleMark (elevation, color))
+    let genMarks = Gen.arrayOf genMark
 
-    let scaleToString (elevation, color) noneColor =
-        sprintf "%d=%s;none=%s" 
-            elevation (Rgba8Bit.toHex color) (Rgba8Bit.toHex noneColor)
+    let buildScale marks noneColor: ElevationColoring.ColorScale =
+        { Marks = marks; NoneColor = noneColor; }
 
-    let buildScale (elevation, color) noneColor: ElevationColoring.ColorScale =
-        { NoneColor = noneColor; 
-            Marks = [| (DemHeight (int16 elevation), color) |] }
+    let genScale: Gen<ElevationColoring.ColorScale> =
+        Gen.zip genMarks genColor
+        |> Gen.map (fun (marks, noneColor) -> buildScale marks noneColor)
 
-    let genSingleMark: Gen<string * ElevationColoring.ColorScale> =
-        Gen.zip genColorMark genColor 
-        |> Gen.map (fun (mark, noneColor) -> 
-            let scale = buildScale mark noneColor
+    let genSortedScale =
+        genScale
+        |> Gen.map (fun scale -> 
+            { scale with 
+                Marks = scale.Marks 
+                |> Array.sortBy (fun (elevation, _) -> elevation) })
+
+    let genSortedAndUnsortedScale =
+        Gen.frequency [ (5, genSortedScale); (1, genScale) ]
+
+    let genScaleAndString: Gen<string * ElevationColoring.ColorScale> =
+        genSortedAndUnsortedScale
+        |> Gen.map (fun scale -> 
             (ElevationColoring.colorScaleToString scale, scale))
 
-    let genValidSingleMark = genSingleMark |> Gen.map (fun x -> ValidScale x)
+    let genCaseFromScale = 
+        genScaleAndString |> Gen.map (fun (scaleString, scale) -> 
+            match scale.Marks with
+            | [||] -> NoMarks scaleString
+            | _ -> 
+                let sortedMarks = scale.Marks |> sortScaleMarks
+                let marksAreSorted = scale.Marks = sortedMarks
+                match marksAreSorted with
+                | true -> ValidScale (scaleString, scale)
+                | false -> UnsortedScale scaleString 
+            )
 
-    let genCase = Gen.frequency [(2, genInvalidScale); (2, genValidSingleMark) ]
+    let genCase = Gen.frequency [(2, genInvalidScale); (2, genCaseFromScale) ]
 
     genCase |> Arb.fromGen
     |> Prop.forAll <| ``elevation color scale parsing properties``

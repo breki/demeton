@@ -1,6 +1,7 @@
 ﻿- implement parser for color scales
-    - implement case for multiple marks
-    - format: "height:#color;"
+    - extra cases:
+        - missing none
+    - extract color generators into their own module
     - support insensitive case
     - support whitespace
 - implement a parser for shading script
