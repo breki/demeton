@@ -1,10 +1,11 @@
-﻿- implement parser for color scales
-    - extra cases:
-        - missing none
-    - support insensitive case
-    - support whitespace
+﻿- implement a parser for shading script
+    - design the framework for the script and implement parser for generic framework
+        - step + parameters
+        - parameter has a name, type (string, numeric) and parser
+        - once parameters are parsed, they are fed to the step's parser
 
 ## Mon 28.10.
+- Moved elevation coloring parser to the production module.
 - Extracted color generators into `ColorGen` module.
 - Implemented `colorScaleToString` function which is now used in tests.
 

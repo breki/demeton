@@ -1,5 +1,4 @@
-﻿- implement a parser for shading script
-
+﻿
 - hillshading
     - run the command on Alps
 

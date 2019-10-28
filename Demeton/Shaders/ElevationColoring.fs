@@ -7,6 +7,7 @@ open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Srtm
 open Demeton.Shaders.Types
+open FParsec
 open Png
 open Text
 
@@ -24,6 +25,57 @@ let colorScaleToString scale =
         (buildString())
     |> appendFormat "none={0}" [| scale.NoneColor |> Rgba8Bit.toHex |]
     |> toString
+
+type ParsedMark =
+    | Mark of ColorScaleMark
+    | NoneColor of Rgba8Bit.RgbaColor
+
+let parseMark: Parser<ParsedMark, unit> =
+    pipe4 pint16 (pstring "=") Rgba8Bit.hexColor (pstring ";")
+        (fun elevation _ color _ -> Mark (DemHeight elevation, color))
+
+let parseNoneColor: Parser<ParsedMark, unit> =
+    pipe3 (pstring "none") (pstring "=") Rgba8Bit.hexColor
+        (fun _ _ color -> NoneColor color)
+
+let parseScale: Parser<ColorScale, unit> =
+    ((many1 parseMark <?> "invalid color scale") .>>. parseNoneColor)
+    |>> fun (marksUntyped, noneColorUntyped) -> 
+        let marks = 
+            marksUntyped 
+            |> List.map (fun x ->
+                match x with
+                | Mark mark -> mark
+                | _ -> invalidOp "bug" )
+            |> List.toArray
+
+        let noneColor = 
+            match noneColorUntyped with
+            | NoneColor color -> color
+            | _ -> invalidOp "bug"
+
+        let colorScale: ColorScale = 
+            { Marks = marks; NoneColor = noneColor }
+        colorScale
+
+let sortScaleMarks marks =
+    marks |> Array.sortBy (fun (elevation, _) -> elevation)
+
+let tryParseScale value: Result<ColorScale, string> =
+    match value with
+    | null -> Result.Error "invalid color scale"
+    | _ -> 
+        let result = run parseScale value
+
+        match result with
+        | Success(scale, _, _) -> 
+            let sortedMarks = scale.Marks |> sortScaleMarks
+            let marksAreSorted = scale.Marks = sortedMarks
+            match marksAreSorted with
+            | true -> Result.Ok scale
+            | false -> Result.Error "color scale marks are not sorted"
+
+        | _ -> Result.Error "invalid color scale"
 
 let colorOfHeight (heightMaybe: float option) (scale: ColorScale) = 
     let findColor (height: float): Rgba8Bit.RgbaColor =
