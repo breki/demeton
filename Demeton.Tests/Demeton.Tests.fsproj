@@ -20,6 +20,7 @@
   <ItemGroup>
     <Compile Include="TestHelp.fs" />
     <Compile Include="PropertiesHelp.fs" />
+    <Compile Include="ColorGen.fs" />
     <Compile Include="ResultSeq tests.fs" />
     <Compile Include="FileSystem tests\Zip files tests.fs" />
     <Compile Include="Reading binary streams.fs" />

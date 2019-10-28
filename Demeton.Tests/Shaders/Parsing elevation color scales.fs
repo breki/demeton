@@ -92,16 +92,8 @@ let ``elevation color scale parsing properties`` scaleCase =
         
 [<Fact>]
 let ``Testing properties of elevation color scale parsing``() =
-    let genByte = Arb.generate<byte>
-
-    let genRandomColor = Arb.generate<Rgba8Bit.RgbaColor>
-    let genColorWith1Alpha = 
-        genByte |> Gen.arrayOfLength 3
-        |> Gen.map (fun rgb -> 
-            Rgba8Bit.rgbaColor rgb.[0] rgb.[1] rgb.[2] 255uy)
-
     let genColor = Gen.frequency [ 
-        (1, genColorWith1Alpha); (8, genRandomColor)]
+        (1, ColorGen.colorWith1Alpha); (8, ColorGen.color)]
 
     let genInvalidScale = 
         Arb.generate<string> |> Gen.map (fun x -> InvalidScale x)

@@ -1,12 +1,11 @@
 ﻿- implement parser for color scales
     - extra cases:
         - missing none
-    - extract color generators into their own module
     - support insensitive case
     - support whitespace
-- implement a parser for shading script
 
 ## Mon 28.10.
+- Extracted color generators into `ColorGen` module.
 - Implemented `colorScaleToString` function which is now used in tests.
 
 ## Sun 27.10.

@@ -42,16 +42,8 @@ let ``Color hex properties`` color =
 
 [<Fact>]
 let ``Testing hex color properties``() =
-    let genByte = Arb.generate<byte>
-
-    let genRandomColor = Arb.generate<Rgba8Bit.RgbaColor>
-    let genColorWith1Alpha = 
-        genByte |> Gen.arrayOfLength 3
-        |> Gen.map (fun components -> 
-            Rgba8Bit.rgbaColor components.[0] components.[1] components.[2] 255uy)
-
     let genColor = Gen.frequency [ 
-        (1, genColorWith1Alpha); (8, genRandomColor)]
+        (1, ColorGen.colorWith1Alpha); (8, ColorGen.color)]
 
     genColor |> Arb.fromGen
     |> Prop.forAll <| ``Color hex properties``

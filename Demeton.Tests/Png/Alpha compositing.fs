@@ -30,20 +30,10 @@ let ``Color premultiplication properties`` color =
 
 [<Fact>]
 let ``Color premultiplication``() =
-    let genByte = Arb.generate<byte>
-
-    let genRandomColor = Arb.generate<Rgba8Bit.RgbaColor>
-    let genColorWith0Alpha = 
-        genByte |> Gen.arrayOfLength 3
-        |> Gen.map (fun components -> 
-            Rgba8Bit.rgbaColor components.[0] components.[1] components.[2] 0uy)
-    let genColorWith1Alpha = 
-        genByte |> Gen.arrayOfLength 3
-        |> Gen.map (fun components -> 
-            Rgba8Bit.rgbaColor components.[0] components.[1] components.[2] 255uy)
-
     let genColor = Gen.frequency [ 
-        (1, genColorWith0Alpha); (1, genColorWith1Alpha); (8, genRandomColor)]
+        (1, ColorGen.colorWith0Alpha); 
+        (1, ColorGen.colorWith1Alpha); 
+        (8, ColorGen.color)]
 
     genColor
     |> Arb.fromGen
@@ -88,20 +78,10 @@ let ``Alpha compositing over operation properties``(source, dest) =
 
 [<Fact>]
 let ``Alpha compositing over operation``() =
-    let genByte = Arb.generate<byte>
-
-    let genRandomColor = Arb.generate<Rgba8Bit.RgbaColor>
-    let genColorWith0Alpha = 
-        genByte |> Gen.arrayOfLength 3
-        |> Gen.map (fun components -> 
-            Rgba8Bit.rgbaColor components.[0] components.[1] components.[2] 0uy)
-    let genColorWith1Alpha = 
-        genByte |> Gen.arrayOfLength 3
-        |> Gen.map (fun components -> 
-            Rgba8Bit.rgbaColor components.[0] components.[1] components.[2] 255uy)
-
     let genColor = Gen.frequency [ 
-        (1, genColorWith0Alpha); (1, genColorWith1Alpha); (8, genRandomColor)]
+        (1, ColorGen.colorWith0Alpha); 
+        (1, ColorGen.colorWith1Alpha); 
+        (8, ColorGen.color)]
 
     Gen.zip genColor genColor
     |> Arb.fromGen
