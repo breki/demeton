@@ -1,8 +1,12 @@
 ﻿- implement parser for color scales
+    - implement case for multiple marks
     - format: "height:#color;"
     - support insensitive case
     - support whitespace
 - implement a parser for shading script
+
+## Mon 28.10.
+- Implemented `colorScaleToString` function which is now used in tests.
 
 ## Sun 27.10.
 - Started working on the elevation color scale parser.

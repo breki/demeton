@@ -95,19 +95,19 @@ let ``Testing properties of elevation color scale parsing``() =
     let genElevation = Gen.choose (-1000, 5000)
     let genColorMark = Gen.zip genElevation genColor
 
-    let scaleToString noneColor elevation color =
+    let scaleToString (elevation, color) noneColor =
         sprintf "%d=%s;none=%s" 
             elevation (Rgba8Bit.toHex color) (Rgba8Bit.toHex noneColor)
 
-    let buildScale noneColor elevation color: ElevationColoring.ColorScale =
+    let buildScale (elevation, color) noneColor: ElevationColoring.ColorScale =
         { NoneColor = noneColor; 
             Marks = [| (DemHeight (int16 elevation), color) |] }
 
     let genSingleMark: Gen<string * ElevationColoring.ColorScale> =
-        Gen.zip genColor genColorMark
-        |> Gen.map (fun (noneColor, (elevation, color)) -> 
-            ((scaleToString noneColor elevation color),
-                (buildScale noneColor elevation color)))
+        Gen.zip genColorMark genColor 
+        |> Gen.map (fun (mark, noneColor) -> 
+            let scale = buildScale mark noneColor
+            (ElevationColoring.colorScaleToString scale, scale))
 
     let genValidSingleMark = genSingleMark |> Gen.map (fun x -> ValidScale x)
 

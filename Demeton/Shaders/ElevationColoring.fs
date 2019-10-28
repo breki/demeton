@@ -8,6 +8,7 @@ open Demeton.Projections
 open Demeton.Srtm
 open Demeton.Shaders.Types
 open Png
+open Text
 
 type ColorScaleMark = (DemHeight * Rgba8Bit.RgbaColor)
 
@@ -15,6 +16,14 @@ type ColorScale = {
     Marks: ColorScaleMark[]
     NoneColor: Rgba8Bit.RgbaColor
     }
+
+let colorScaleToString scale =
+    scale.Marks 
+    |> Array.fold (fun s (elevation, color) -> 
+        s |> appendFormat "{0}={1};" [| elevation; Rgba8Bit.toHex color |])
+        (buildString())
+    |> appendFormat "none={0}" [| scale.NoneColor |> Rgba8Bit.toHex |]
+    |> toString
 
 let colorOfHeight (heightMaybe: float option) (scale: ColorScale) = 
     let findColor (height: float): Rgba8Bit.RgbaColor =
