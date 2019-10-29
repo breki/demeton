@@ -1,7 +1,4 @@
-﻿- add negative scenarios, too
-- once parameters are parsed, they are fed to the step's parser
-
-- hillshading
+﻿- hillshading
     - run the command on Alps
 
 - add an (optional) color ramps

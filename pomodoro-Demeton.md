@@ -1,8 +1,10 @@
-﻿- implement a parser for shading script
-    - design the framework for the script and implement parser for generic framework
-        - step + parameters
-        - parameter has a name, type (string, numeric) and parser
-- add negative scenarios, too
+﻿- move the new parsing code to the production module
+- now we have `ParsedScript`, implement the pipeline builder that will know how to map each `ParsedStep` into a pipeline step
+    - for each available step, provide a builder function that builds the step from `ParsedStep`
+
+## Tue 29.10.
+- Implemented negative parsing scenarios for the tokenizing parser.
+- Implemented the tokenizing parser for shading scripts.
 
 ## Mon 28.10.
 - Moved elevation coloring parser to the production module.
