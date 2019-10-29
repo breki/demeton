@@ -1,4 +1,5 @@
-﻿- now we have `ParsedScript`, implement the pipeline builder that will know how to map each `ParsedStep` into a pipeline step
+﻿- do we expose `CompositingFunc` as a DU instead of using funcs directly?
+- now we have `ParsedScript`, implement the pipeline builder that will know how to map each `ParsedStep` into a pipeline step
     - for each available step, provide a builder function that builds the step from `ParsedStep`
 
 ## Tue 29.10.

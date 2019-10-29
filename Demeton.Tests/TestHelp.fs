@@ -2,6 +2,9 @@
 
 open System
 
+let fail errorMessage =
+    raise (Xunit.Sdk.XunitException errorMessage)
+
 let isOk result =
     match result with
     | Ok _ -> true
