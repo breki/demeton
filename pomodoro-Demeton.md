@@ -2,7 +2,7 @@
     - design the framework for the script and implement parser for generic framework
         - step + parameters
         - parameter has a name, type (string, numeric) and parser
-        - once parameters are parsed, they are fed to the step's parser
+- add negative scenarios, too
 
 ## Mon 28.10.
 - Moved elevation coloring parser to the production module.
