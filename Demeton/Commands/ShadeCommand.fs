@@ -203,6 +203,7 @@ type ShadedRasterTileGenerator =
 
 let generateShadedRasterTile 
     (fetchHeightsArray: SrtmHeightsArrayFetcher)
+    (createShaderFunction: Demeton.Shaders.Pipeline.Common.ShadingFuncFactory)
     : ShadedRasterTileGenerator = 
     fun (tileRect: Raster.Rect) options ->
 
@@ -235,6 +236,7 @@ let generateShadedRasterTile
         | Some heightsArray ->
             let imageData = 
                 Pipeline.Common.executeShadingStep 
+                    createShaderFunction
                     Demeton.Shaders.Pipeline.Common.createCompositingFuncById
                     heightsArray 
                     tileRect 

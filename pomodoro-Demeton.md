@@ -1,8 +1,5 @@
-﻿- instead of using funcs in DUs, we should just use a string as an identifier of the function
-    - then we also need a map/factory for these functions
-- how to know which step is which? we can't compare funcs
-
-## Tue 29.10.
+﻿## Tue 29.10.
+- `ShadingStep.CustomShading` no longer has a direct `RasterShader` function as a property, it now has a string identifier of the shader function, which is then used by `ShadingFuncFactory` to access the actual function.
 - `ShadingStep.Compositing` no longer has a direct compositing function as a property. Instead, it now has a string identifier of the function, which is then used by `CompositingFuncFactory` to access the actual function. This makes things easier to work with and test.
 - Move the new parsing code to the production module.
 - Implemented negative parsing scenarios for the tokenizing parser.

@@ -21,7 +21,7 @@ let options: ShadeCommand.Options = {
         OutputDir = "output"
         SrtmDir = "srtm"
         TileSize = 1000
-        RootShadingStep = Pipeline.Common.CustomShading (mockRasterShader)
+        RootShadingStep = Pipeline.Common.CustomShading ("some shader")
         ShaderOptions = { Dpi = 300.; MapScale = 5000000. }
     }
 
@@ -53,6 +53,7 @@ let ``Tile generator correctly calculates which SRTM tiles it needs``() =
 
     ShadeCommand.generateShadedRasterTile 
         correctSrtmTilesWereRequested
+        (fun _ -> mockRasterShader)
         tileRect 
         options 
     |> ignore
@@ -67,6 +68,7 @@ let ``When heights array fetcher returns None, tile generator does nothing and r
     let shadeTileResult = 
         ShadeCommand.generateShadedRasterTile 
             returnNoneForHeightsArray
+            (fun _ -> mockRasterShader)
             tileRect 
             options 
 
@@ -81,6 +83,7 @@ let ``When heights array fetcher returns an error, tile generator returns an err
     let shadeTileResult = 
         ShadeCommand.generateShadedRasterTile 
             returnErrorInsteadOfHeightsArray
+            (fun _ -> mockRasterShader)
             tileRect 
             options 
 
@@ -101,10 +104,10 @@ let ``Tile generator prepares the tile image data and returns it``() =
     let result =
         ShadeCommand.generateShadedRasterTile 
             fetchSomeHeights
+            (fun _ -> shadeRasterReceivesTileRectAndImageData)
             tileRect 
             { options with 
                 RootShadingStep 
-                    = Pipeline.Common.CustomShading 
-                        shadeRasterReceivesTileRectAndImageData }
+                    = Pipeline.Common.CustomShading "whatever" }
 
     test <@ result = Ok imageDataReceived @>

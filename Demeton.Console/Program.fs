@@ -36,6 +36,7 @@ let runShadeCommand parsedParameters =
     let generateTile =
         ShadeCommand.generateShadedRasterTile
             (Wiring.fetchSrtmHeights options.SrtmDir options.LocalCacheDir)
+            Demeton.Shaders.Pipeline.Common.createShadingFuncById
 
     let saveTile =
         ShadeCommand.saveShadedRasterTile

@@ -8,19 +8,29 @@ open Png
 open Xunit
 open Swensen.Unquote
 open TestHelp
+open System.Collections.Generic
 
 let stupidRasterShader: RasterShader =  fun _ _ _ _ -> ()
 
-let buildShadingPipeline (parsedScript: ParsedScript) =
+let testRegisteredShaders = dict [
+    ("shader1", "shader1")
+    ("shader2", "shader2")
+    ("shader3", "shader3")
+]
+
+let buildShadingPipeline 
+    (registeredShaders: IDictionary<string, string>) 
+    (parsedScript: ParsedScript) =
     let pipeline = 
         parsedScript
-        |> List.fold (fun pipeline parsedStep -> 
+        |> List.fold (fun pipeline (parsedStep: ParsedStep) -> 
+            let shaderFuncId = registeredShaders.[parsedStep.Name]
+            let shaderStep = CustomShading shaderFuncId
+
             match pipeline with
-            | None -> CustomShading stupidRasterShader |> Some
+            | None -> Some shaderStep 
             | Some pipelineStep ->
-                let currentStep = CustomShading stupidRasterShader
-                Compositing 
-                    (pipelineStep, currentStep, CompositingFuncIdOver)
+                Compositing (pipelineStep, shaderStep, CompositingFuncIdOver)
                 |> Some
             ) None
 
@@ -51,53 +61,59 @@ let compositing step =
 
 [<Fact>]
 let ``Reports an error is pipeline is empty``() =
-    let result: Result<ShadingStep, string> = buildShadingPipeline []
+    let result: Result<ShadingStep, string> = 
+        buildShadingPipeline testRegisteredShaders []
 
     test <@ result |> isErrorData "Shading pipeline is empty." @>
 
 [<Fact>]
 let ``Supports a single-step pipeline without any arguments``() =
-    let parsedScript = [ { Name = "step1"; Parameters = [] } ]
+    let parsedScript = [ { Name = "shader1"; Parameters = [] } ]
 
-    let result: Result<ShadingStep, string> = buildShadingPipeline parsedScript
+    let result: Result<ShadingStep, string> = 
+        buildShadingPipeline testRegisteredShaders parsedScript
 
     test <@ result |> rootStep |> isCustomShader @>
 
 [<Fact>]
 let ``Two steps are combined using Compositing step``() =
     let parsedScript = [ 
-        { Name = "step1"; Parameters = [] } 
-        { Name = "step2"; Parameters = [] } 
+        { Name = "shader1"; Parameters = [] } 
+        { Name = "shader2"; Parameters = [] } 
         ]
     
-    let result: Result<ShadingStep, string> = buildShadingPipeline parsedScript
+    let result: Result<ShadingStep, string> = 
+        buildShadingPipeline testRegisteredShaders parsedScript
 
     test <@ result |> rootStep |> isCompositing @>
-    test <@ 
-            // todo: how to know which step is which? we can't compare funcs
-            let (step1, step2, compositingFunc) = 
-                result |> rootStep |> compositing
-            step1 |> isCustomShader && step2 |> isCustomShader
-        @>
+
+    // todo: how to know which step is which? we can't compare funcs
+    let (step1, step2, compositingFuncId) = 
+        result |> rootStep |> compositing
+
+    test <@ step1 |> isCustomShader @>
+    test <@ step2 |> isCustomShader @>
+    test <@ compositingFuncId = CompositingFuncIdOver @>
 
 [<Fact>]
 let ``Three steps are combined using Compositing step``() =
     let parsedScript = [ 
-        { Name = "step1"; Parameters = [] } 
-        { Name = "step2"; Parameters = [] } 
-        { Name = "step3"; Parameters = [] } 
+        { Name = "shader1"; Parameters = [] } 
+        { Name = "shader2"; Parameters = [] } 
+        { Name = "shader3"; Parameters = [] } 
         ]
     
-    let result: Result<ShadingStep, string> = buildShadingPipeline parsedScript
+    let result: Result<ShadingStep, string> = 
+        buildShadingPipeline testRegisteredShaders parsedScript
 
     test <@ result |> rootStep |> isCompositing @>
 
-    let (compositingStep1, step3, compositingFunc) = 
+    let (compositingStep1, step3, _) = 
         result |> rootStep |> compositing
 
     test <@ compositingStep1 |> isCompositing && step3 |> isCustomShader @>
 
-    let (step1, step2, compositingFunc) = compositingStep1 |> compositing
+    let (step1, step2, _) = compositingStep1 |> compositing
 
     test <@ step1 |> isCustomShader && step2 |> isCustomShader @>
 

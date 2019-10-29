@@ -9,6 +9,19 @@ open Xunit
 open Swensen.Unquote
 open Demeton.DemTypes
 
+let mutable shadedImageGenerated = None
+
+[<Literal>]
+let ShadingFuncIdStupid = "stupid"
+
+let stupidRasterShader: RasterShader = 
+    fun heights rect imageData options -> 
+    shadedImageGenerated <- Some imageData
+
+let createShadingFuncById shadingFuncId =
+    match shadingFuncId with
+    | ShadingFuncIdStupid -> stupidRasterShader
+    | _ -> invalidOp "Unknown shading function."
 
 [<Literal>]
 let CompositingFuncIdStupid = "stupid"
@@ -31,13 +44,7 @@ let createCompositingFuncById compositingFuncId =
     | _ -> invalidOp "Unknown compositing function."
 
 [<Fact>]
-let ``Supports running a simple, single-step pipeline``() =
-    let mutable shadedImageGenerated = None
-
-    let stupidRasterShader: RasterShader = 
-        fun heights rect imageData options -> 
-        shadedImageGenerated <- Some imageData
-            
+let ``Supports running a simple, single-step pipeline``() =           
     let heights = 
         HeightsArray
             (10, 20, 40, 50, HeightsArrayInitializer1D(fun x -> DemHeightNone))
@@ -45,11 +52,13 @@ let ``Supports running a simple, single-step pipeline``() =
 
     let shaderOptions: ShaderOptions = { MapScale = 100000.; Dpi = 300. }
 
-    let step = CustomShading stupidRasterShader
+    let step = CustomShading ShadingFuncIdStupid
 
     let resultingImageData = 
         executeShadingStep 
-            createCompositingFuncById heights tileRect shaderOptions step
+            createShadingFuncById
+            createCompositingFuncById 
+            heights tileRect shaderOptions step
     test <@ Some resultingImageData = shadedImageGenerated @>
 
 [<Fact>]
@@ -64,13 +73,14 @@ let ``Supports compositing of images``() =
 
     let shaderOptions: ShaderOptions = { MapScale = 100000.; Dpi = 300. }
 
-    let shader1Step = CustomShading stupidRasterShader
-    let shader2Step = CustomShading stupidRasterShader
+    let shader1Step = CustomShading ShadingFuncIdStupid
+    let shader2Step = CustomShading ShadingFuncIdStupid
     let compositingStep = 
         Compositing (shader1Step, shader2Step, CompositingFuncIdStupid)
 
     let resultingImageData = 
         executeShadingStep 
+            createShadingFuncById
             createCompositingFuncById 
             heights 
             tileRect 
