@@ -1,7 +1,9 @@
-﻿- implement step builders for standard steps
+﻿- implement a generic way of building+parsing step parameters, so we can return errors in an unified way
+- implement step builders for standard steps
     - they also need to parse parameters from strings into their own types
 
 ## Tue 29.10.
+- Started working on parsing specific shading steps.
 - `buildShadingPipeline` now accepts a dictionary of registered step builders.
 - `ShadingStep.CustomShading` no longer has a direct `RasterShader` function as a property, it now has a string identifier of the shader function, which is then used by `ShadingFuncFactory` to access the actual function.
 - `ShadingStep.Compositing` no longer has a direct compositing function as a property. Instead, it now has a string identifier of the function, which is then used by `CompositingFuncFactory` to access the actual function. This makes things easier to work with and test.

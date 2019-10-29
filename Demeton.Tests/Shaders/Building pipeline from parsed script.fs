@@ -10,6 +10,23 @@ open System.Collections.Generic
 
 type ShadingStepBuildingFunc = ParsedStep -> ShadingStep
 
+let elevationColoringStepBuilder: ShadingStepBuildingFunc = fun parsedStep ->
+    let parametersBuilder (parsedParameters: ParsedParameter list)
+        : ElevationColoringParameters =
+        let mutable pars = 
+            { ColorScale = 
+                Demeton.Shaders.ElevationColoring.colorScaleMaperitive }
+
+        for parsedParameter in parsedParameters do
+            match parsedParameter.Name with
+            | "scale" -> invalidOp "todo"
+            | _ -> invalidOp "todo"
+
+        pars
+
+    ElevationColoring (parametersBuilder parsedStep.Parameters)
+
+
 let private testRegisteredStepBuilders = dict [
     ("shader1", fun _ -> CustomShading "shaderfunc1")
     ("shader2", fun _ -> CustomShading "shaderfunc2")
@@ -116,3 +133,13 @@ let ``Three steps are combined using Compositing step``() =
 
     test <@ step1 |> isCustomShader "shaderfunc1" @>
     test <@ step2 |> isCustomShader "shaderfunc2" @>
+
+[<Fact>]
+let ``Can successfully parse elevation coloring step without parameters``() =
+    let parsedStep = { Name = "elecolor"; Parameters = [] } 
+
+    let step = elevationColoringStepBuilder parsedStep
+    test <@ step = ElevationColoring { 
+                ColorScale = 
+                    Demeton.Shaders.ElevationColoring.colorScaleMaperitive } 
+        @>
