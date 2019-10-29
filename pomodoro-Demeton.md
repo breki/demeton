@@ -1,4 +1,8 @@
-﻿## Tue 29.10.
+﻿- implement step builders for standard steps
+    - they also need to parse parameters from strings into their own types
+
+## Tue 29.10.
+- `buildShadingPipeline` now accepts a dictionary of registered step builders.
 - `ShadingStep.CustomShading` no longer has a direct `RasterShader` function as a property, it now has a string identifier of the shader function, which is then used by `ShadingFuncFactory` to access the actual function.
 - `ShadingStep.Compositing` no longer has a direct compositing function as a property. Instead, it now has a string identifier of the function, which is then used by `CompositingFuncFactory` to access the actual function. This makes things easier to work with and test.
 - Move the new parsing code to the production module.
