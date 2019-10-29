@@ -1,13 +1,11 @@
 ﻿module Tests.Shaders.``Parsing shading scripts``
 
 open Demeton.Shaders
-open Demeton.Shaders.ShadingPipeline
+open Demeton.Shaders.Pipeline.Common
 open Demeton.DemTypes
-open Png
 
 open Xunit
 open Swensen.Unquote
-open Demeton
 
 let parseShadingScript script: ShadingStep =
     ElevationColoring { ColorScale = ElevationColoring.colorScaleMaperitive }

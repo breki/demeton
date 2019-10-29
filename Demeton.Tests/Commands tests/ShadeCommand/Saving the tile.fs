@@ -19,7 +19,7 @@ let options: ShadeCommand.Options = {
         OutputDir = "output"
         SrtmDir = "srtm"
         TileSize = 1000
-        RootShadingStep = ShadingPipeline.ElevationColoring
+        RootShadingStep = Pipeline.Common.ElevationColoring
             { ColorScale = ElevationColoring.colorScaleMaperitive }
         ShaderOptions = { Dpi = 300.; MapScale = 5000000. }
     }

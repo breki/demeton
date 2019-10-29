@@ -1,6 +1,6 @@
 ﻿module Tests.Shaders.``Shading pipeline``
 
-open Demeton.Shaders.ShadingPipeline
+open Demeton.Shaders.Pipeline.Common
 open Raster
 open Demeton.Shaders.Types
 open Png

@@ -1,6 +1,7 @@
-﻿module Demeton.Shaders.ShadingPipeline
+﻿module Demeton.Shaders.Pipeline.Common
 
 open Raster
+open Demeton.Shaders
 open Demeton.Shaders.Types
 open Png
 

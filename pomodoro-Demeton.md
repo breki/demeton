@@ -1,8 +1,8 @@
-﻿- move the new parsing code to the production module
-- now we have `ParsedScript`, implement the pipeline builder that will know how to map each `ParsedStep` into a pipeline step
+﻿- now we have `ParsedScript`, implement the pipeline builder that will know how to map each `ParsedStep` into a pipeline step
     - for each available step, provide a builder function that builds the step from `ParsedStep`
 
 ## Tue 29.10.
+- Move the new parsing code to the production module.
 - Implemented negative parsing scenarios for the tokenizing parser.
 - Implemented the tokenizing parser for shading scripts.
 

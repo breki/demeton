@@ -22,7 +22,7 @@ type Options = {
     OutputDir: string
     SrtmDir: string
     TileSize: int
-    RootShadingStep: ShadingPipeline.ShadingStep 
+    RootShadingStep: Pipeline.Common.ShadingStep 
     ShaderOptions: ShaderOptions
 }
 
@@ -133,10 +133,10 @@ let fillOptions parsedParameters =
         ShadingColorB = 0uy }
 
     let shadingPipeline = 
-        ShadingPipeline.Compositing
+        Pipeline.Common.Compositing
             (
-                ShadingPipeline.IgorHillshading igorShaderParameters,
-                ShadingPipeline.ElevationColoring
+                Pipeline.Common.IgorHillshading igorShaderParameters,
+                Pipeline.Common.ElevationColoring
                     { ColorScale = ElevationColoring.colorScaleMaperitive } ,
                 Png.AlphaCompositing.imageOver
             )
@@ -235,7 +235,7 @@ let generateShadedRasterTile
         match heightArrayOption with
         | Some heightsArray ->
             let imageData = 
-                ShadingPipeline.executeShadingStep 
+                Pipeline.Common.executeShadingStep 
                     heightsArray 
                     tileRect 
                     options.ShaderOptions 
