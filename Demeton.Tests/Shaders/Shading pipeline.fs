@@ -10,6 +10,26 @@ open Swensen.Unquote
 open Demeton.DemTypes
 
 
+[<Literal>]
+let CompositingFuncIdStupid = "stupid"
+
+let mutable compositedImageGenerated = None
+
+let stupidCompositing (width: int) (height: int) _ _ =
+    let imageInitializer _ = Rgba8Bit.rgbaColor 1uy 1uy 1uy 1uy
+
+    let compositedImage =
+        Rgba8Bit.createImageData 
+            width height 
+            (Rgba8Bit.ImageDataInitializer1D imageInitializer)
+    compositedImageGenerated <- Some compositedImage
+    compositedImage
+
+let createCompositingFuncById compositingFuncId =
+    match compositingFuncId with
+    | CompositingFuncIdStupid -> stupidCompositing
+    | _ -> invalidOp "Unknown compositing function."
+
 [<Fact>]
 let ``Supports running a simple, single-step pipeline``() =
     let mutable shadedImageGenerated = None
@@ -28,26 +48,14 @@ let ``Supports running a simple, single-step pipeline``() =
     let step = CustomShading stupidRasterShader
 
     let resultingImageData = 
-        executeShadingStep heights tileRect shaderOptions step
+        executeShadingStep 
+            createCompositingFuncById heights tileRect shaderOptions step
     test <@ Some resultingImageData = shadedImageGenerated @>
 
 [<Fact>]
 let ``Supports compositing of images``() =
-    let mutable compositedImageGenerated = None
-
     let stupidRasterShader: RasterShader = 
-        fun _ _ _ _ -> ignore()
-
-    let stupidCompositing (width: int) (height: int) _ _ =
-        let imageInitializer _ = Rgba8Bit.rgbaColor 1uy 1uy 1uy 1uy
-
-        let compositedImage =
-            Rgba8Bit.createImageData 
-                width height 
-                (Rgba8Bit.ImageDataInitializer1D imageInitializer)
-        compositedImageGenerated <- Some compositedImage
-        compositedImage
-        
+        fun _ _ _ _ -> ignore()       
             
     let heights = 
         HeightsArray
@@ -59,8 +67,13 @@ let ``Supports compositing of images``() =
     let shader1Step = CustomShading stupidRasterShader
     let shader2Step = CustomShading stupidRasterShader
     let compositingStep = 
-        Compositing (shader1Step, shader2Step, stupidCompositing)
+        Compositing (shader1Step, shader2Step, CompositingFuncIdStupid)
 
     let resultingImageData = 
-        executeShadingStep heights tileRect shaderOptions compositingStep
+        executeShadingStep 
+            createCompositingFuncById 
+            heights 
+            tileRect 
+            shaderOptions 
+            compositingStep
     test <@ Some resultingImageData = compositedImageGenerated @>

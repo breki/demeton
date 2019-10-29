@@ -58,7 +58,6 @@ let DefaultSrtmDir = "srtm"
 [<Literal>]
 let DefaultTileSize = 1000
 
-
 let parseCoverage value =
     let floatsListResult = TextParsers.parseFloatsList value
 
@@ -138,7 +137,7 @@ let fillOptions parsedParameters =
                 Pipeline.Common.IgorHillshading igorShaderParameters,
                 Pipeline.Common.ElevationColoring
                     { ColorScale = ElevationColoring.colorScaleMaperitive } ,
-                Png.AlphaCompositing.imageOver
+                Demeton.Shaders.Pipeline.Common.CompositingFuncIdOver
             )
 
     let defaultOptions = 
@@ -236,6 +235,7 @@ let generateShadedRasterTile
         | Some heightsArray ->
             let imageData = 
                 Pipeline.Common.executeShadingStep 
+                    Demeton.Shaders.Pipeline.Common.createCompositingFuncById
                     heightsArray 
                     tileRect 
                     options.ShaderOptions 

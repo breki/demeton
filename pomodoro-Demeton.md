@@ -1,8 +1,9 @@
-﻿- do we expose `CompositingFunc` as a DU instead of using funcs directly?
-- now we have `ParsedScript`, implement the pipeline builder that will know how to map each `ParsedStep` into a pipeline step
-    - for each available step, provide a builder function that builds the step from `ParsedStep`
+﻿- instead of using funcs in DUs, we should just use a string as an identifier of the function
+    - then we also need a map/factory for these functions
+- how to know which step is which? we can't compare funcs
 
 ## Tue 29.10.
+- `ShadingStep.Compositing` no longer has a direct compositing function as a property. Instead, it now has a string identifier of the function, which is then used by `CompositingFuncFactory` to access the actual function. This makes things easier to work with and test.
 - Move the new parsing code to the production module.
 - Implemented negative parsing scenarios for the tokenizing parser.
 - Implemented the tokenizing parser for shading scripts.

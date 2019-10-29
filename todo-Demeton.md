@@ -1,4 +1,7 @@
-﻿- hillshading
+﻿- now we have `ParsedScript`, implement the pipeline builder that will know how to map each `ParsedStep` into a pipeline step
+    - for each available step, provide a builder function that builds the step from `ParsedStep`
+
+- hillshading
     - run the command on Alps
 
 - add an (optional) color ramps

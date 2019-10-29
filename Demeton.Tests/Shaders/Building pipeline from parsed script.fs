@@ -20,7 +20,7 @@ let buildShadingPipeline (parsedScript: ParsedScript) =
             | Some pipelineStep ->
                 let currentStep = CustomShading stupidRasterShader
                 Compositing 
-                    (pipelineStep, currentStep, AlphaCompositing.imageOver)
+                    (pipelineStep, currentStep, CompositingFuncIdOver)
                 |> Some
             ) None
 
