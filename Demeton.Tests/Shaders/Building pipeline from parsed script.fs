@@ -1,7 +1,9 @@
 ﻿module Tests.Shaders.``Building pipeline from parsed script``
 
+open Demeton.Shaders
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
+open Png
 
 open Xunit
 open Swensen.Unquote
@@ -14,14 +16,21 @@ let elevationColoringStepBuilder: ShadingStepBuildingFunc = fun parsedStep ->
     let parametersBuilder (parsedParameters: ParsedParameter list)
         : ElevationColoringParameters =
         let mutable pars = 
-            { ColorScale = 
-                Demeton.Shaders.ElevationColoring.colorScaleMaperitive }
+            { ColorScale = ElevationColoring.colorScaleMaperitive }
 
         for parsedParameter in parsedParameters do
             match parsedParameter.Name with
-            | "scale" -> invalidOp "todo"
+            | "scale" ->
+                let parsingResult =
+                    ElevationColoring.tryParseScale parsedParameter.Value
+                match parsingResult with 
+                | Ok colorScale -> 
+                    pars <- { pars with ColorScale = colorScale }
+                | Error errorMessage -> invalidOp "todo"
+
             | _ -> invalidOp "todo"
 
+            |> ignore
         pars
 
     ElevationColoring (parametersBuilder parsedStep.Parameters)
@@ -135,7 +144,7 @@ let ``Three steps are combined using Compositing step``() =
     test <@ step2 |> isCustomShader "shaderfunc2" @>
 
 [<Fact>]
-let ``Can successfully parse elevation coloring step without parameters``() =
+let ``Can parse elevation coloring step without parameters``() =
     let parsedStep = { Name = "elecolor"; Parameters = [] } 
 
     let step = elevationColoringStepBuilder parsedStep
@@ -143,3 +152,24 @@ let ``Can successfully parse elevation coloring step without parameters``() =
                 ColorScale = 
                     Demeton.Shaders.ElevationColoring.colorScaleMaperitive } 
         @>
+
+[<Fact>]
+let ``Can parse elevation coloring step with valid parameters``() =
+    let parsedStep = 
+        { Name = "elecolor"; 
+        Parameters = 
+            [ { Name = "scale"; 
+                Value = "-1:#000000;2000:#ffffff;none:#000000" } ] } 
+
+    let expectedColorScale: Demeton.Shaders.ElevationColoring.ColorScale = 
+        {
+            Marks = [| 
+                -1s, Rgba8Bit.rgbColor 0uy 0uy 0uy 
+                200s, Rgba8Bit.rgbColor 0xffuy 0xffuy 0xffuy 
+                |]
+            NoneColor = Rgba8Bit.rgbColor 0uy 0uy 0uy
+        }
+
+    let step = elevationColoringStepBuilder parsedStep
+    test <@ step = ElevationColoring { ColorScale = expectedColorScale } @>
+    

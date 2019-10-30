@@ -2,6 +2,9 @@
 - implement step builders for standard steps
     - they also need to parse parameters from strings into their own types
 
+## Wed 30.10.
+- Implement the positive scenario for parsing elevation color scale parameter in the shading script.
+
 ## Tue 29.10.
 - Started working on parsing specific shading steps.
 - `buildShadingPipeline` now accepts a dictionary of registered step builders.

@@ -3,12 +3,8 @@
 open Demeton.Shaders
 open Demeton.DemTypes
 
-open FParsec
-
 open Xunit
 open FsCheck
-open Png
-open PropertiesHelp
 
 type ScaleCase =
     | ValidScale of (string * ElevationColoring.ColorScale)
@@ -47,7 +43,7 @@ let ``elevation color scale parsing properties`` scaleCase =
         |> Prop.label "scale must adhere to the format"
         
 let removeNoneFromString (scaleString: string) =
-    let i = scaleString.IndexOf "none="
+    let i = scaleString.IndexOf "none:"
     match i with
     | 0 -> ""
     | _ -> scaleString.Substring(0, i - 1)

@@ -21,9 +21,9 @@ type ColorScale = {
 let colorScaleToString scale =
     scale.Marks 
     |> Array.fold (fun s (elevation, color) -> 
-        s |> appendFormat "{0}={1};" [| elevation; Rgba8Bit.toHex color |])
+        s |> appendFormat "{0}:{1};" [| elevation; Rgba8Bit.toHex color |])
         (buildString())
-    |> appendFormat "none={0}" [| scale.NoneColor |> Rgba8Bit.toHex |]
+    |> appendFormat "none:{0}" [| scale.NoneColor |> Rgba8Bit.toHex |]
     |> toString
 
 type ParsedMark =
@@ -31,11 +31,11 @@ type ParsedMark =
     | NoneColor of Rgba8Bit.RgbaColor
 
 let parseMark: Parser<ParsedMark, unit> =
-    pipe4 pint16 (pstring "=") Rgba8Bit.hexColor (pstring ";")
+    pipe4 pint16 (pstring ":") Rgba8Bit.hexColor (pstring ";")
         (fun elevation _ color _ -> Mark (DemHeight elevation, color))
 
 let parseNoneColor: Parser<ParsedMark, unit> =
-    pipe3 (pstring "none") (pstring "=") Rgba8Bit.hexColor
+    pipe3 (pstring "none") (pstring ":") Rgba8Bit.hexColor
         (fun _ _ color -> NoneColor color)
 
 let parseScale: Parser<ColorScale, unit> =

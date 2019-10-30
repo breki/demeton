@@ -1,9 +1,6 @@
 ﻿- hillshading
     - run the command on Alps
 
-- add an (optional) color ramps
-    - format: "height:#color;"
-
 - update readme.md docs
 
 - how to generate code docs?
