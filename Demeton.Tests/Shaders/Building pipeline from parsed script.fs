@@ -10,36 +10,58 @@ open Swensen.Unquote
 open TestHelp
 open System.Collections.Generic
 
-type ShadingStepBuildingFunc = ParsedStep -> ShadingStep
+type ShadingStepBuildingFunc = ParsedStep -> Result<ShadingStep, string>
 
 let elevationColoringStepBuilder: ShadingStepBuildingFunc = fun parsedStep ->
-    let parametersBuilder (parsedParameters: ParsedParameter list)
-        : ElevationColoringParameters =
-        let mutable pars = 
-            { ColorScale = ElevationColoring.colorScaleMaperitive }
-
-        for parsedParameter in parsedParameters do
+    let collectParameters 
+        (state: Result<ElevationColoringParameters, string>) 
+        (parsedParameter: ParsedParameter) 
+        = 
+        match state with
+        | Ok parameters ->
             match parsedParameter.Name with
             | "scale" ->
                 let parsingResult =
                     ElevationColoring.tryParseScale parsedParameter.Value
                 match parsingResult with 
                 | Ok colorScale -> 
-                    pars <- { pars with ColorScale = colorScale }
-                | Error errorMessage -> invalidOp "todo"
+                    Ok { parameters with ColorScale = colorScale }
+                | Error errorMessage -> 
+                    let parameterErrorMessage = 
+                        sprintf 
+                            "'scale' parameter value error: %s." errorMessage
+                    Error parameterErrorMessage
+            | _ -> 
+                let errorMessage = 
+                    sprintf 
+                        "'%s' parameter is not recognized." 
+                        parsedParameter.Name
+                Error errorMessage
+        | Error errorMessage -> Error errorMessage
 
-            | _ -> invalidOp "todo"
+    let parametersBuilder (parsedParameters: ParsedParameter list)
+        : Result<ElevationColoringParameters, string> =
 
-            |> ignore
-        pars
+        let defaultParameters = 
+            { ColorScale = ElevationColoring.colorScaleMaperitive }
+        parsedParameters 
+        |> List.fold collectParameters (Ok defaultParameters)
 
-    ElevationColoring (parametersBuilder parsedStep.Parameters)
+    match parametersBuilder parsedStep.Parameters with
+    | Ok parameters -> ElevationColoring parameters |> Ok
+    | Error parametersParsingErrorMessage -> 
+        let completeMessage =
+            sprintf 
+                "Error in step '%s': %s" 
+                parsedStep.Name 
+                parametersParsingErrorMessage
+        Error completeMessage
 
 
 let private testRegisteredStepBuilders = dict [
-    ("shader1", fun _ -> CustomShading "shaderfunc1")
-    ("shader2", fun _ -> CustomShading "shaderfunc2")
-    ("shader3", fun _ -> CustomShading "shaderfunc3")
+    ("shader1", fun _ -> CustomShading "shaderfunc1" |> Ok)
+    ("shader2", fun _ -> CustomShading "shaderfunc2" |> Ok)
+    ("shader3", fun _ -> CustomShading "shaderfunc3" |> Ok)
 ]
 
 let buildShadingPipeline 
@@ -49,13 +71,16 @@ let buildShadingPipeline
         parsedScript
         |> List.fold (fun pipeline (parsedStep: ParsedStep) -> 
             let stepBuilder = registeredStepBuilders.[parsedStep.Name]
-            let shaderStep = stepBuilder parsedStep
+            let shaderStepMaybe = stepBuilder parsedStep
 
-            match pipeline with
-            | None -> Some shaderStep 
-            | Some pipelineStep ->
-                Compositing (pipelineStep, shaderStep, CompositingFuncIdOver)
-                |> Some
+            match shaderStepMaybe with
+            | Ok shaderStep ->
+                match pipeline with
+                | None -> Some shaderStep 
+                | Some pipelineStep ->
+                    Compositing (pipelineStep, shaderStep, CompositingFuncIdOver)
+                    |> Some
+            | Error stepBuildingErrorMessage -> invalidOp "todo"
             ) None
 
     match pipeline with
@@ -148,9 +173,11 @@ let ``Can parse elevation coloring step without parameters``() =
     let parsedStep = { Name = "elecolor"; Parameters = [] } 
 
     let step = elevationColoringStepBuilder parsedStep
-    test <@ step = ElevationColoring { 
-                ColorScale = 
-                    Demeton.Shaders.ElevationColoring.colorScaleMaperitive } 
+    test
+        <@ step =
+            Ok
+                (ElevationColoring
+                    ({ ColorScale = ElevationColoring.colorScaleMaperitive })) 
         @>
 
 [<Fact>]
@@ -161,15 +188,56 @@ let ``Can parse elevation coloring step with valid parameters``() =
             [ { Name = "scale"; 
                 Value = "-1:#000000;2000:#ffffff;none:#000000" } ] } 
 
-    let expectedColorScale: Demeton.Shaders.ElevationColoring.ColorScale = 
+    let expectedColorScale: ElevationColoring.ColorScale = 
         {
             Marks = [| 
                 -1s, Rgba8Bit.rgbColor 0uy 0uy 0uy 
-                200s, Rgba8Bit.rgbColor 0xffuy 0xffuy 0xffuy 
+                2000s, Rgba8Bit.rgbColor 0xffuy 0xffuy 0xffuy 
                 |]
             NoneColor = Rgba8Bit.rgbColor 0uy 0uy 0uy
         }
 
     let step = elevationColoringStepBuilder parsedStep
-    test <@ step = ElevationColoring { ColorScale = expectedColorScale } @>
+    test <@ step = Ok (ElevationColoring { ColorScale = expectedColorScale }) 
+        @>
+
+[<Fact>]
+let ``Reports an error when color scale parameter is invalid``() =
+    let parsedStep = 
+        { Name = "elecolor"; 
+        Parameters = 
+            [ { Name = "scale"; Value = "-1:#000000;2000:#ffffff" } ] } 
+
+    let step = elevationColoringStepBuilder parsedStep
+    test <@ step = 
+        Error 
+            ("Error in step 'elecolor': 'scale' parameter value error: " 
+                + "invalid color scale.") @>
     
+[<Fact>]
+let ``Reports an error when parameter is not recognized``() =
+    let parsedStep = 
+        { Name = "elecolor"; 
+        Parameters = 
+            [ { Name = "somepar"; Value = "some value" } ] } 
+
+    let step = elevationColoringStepBuilder parsedStep
+    test <@ step = 
+        Error 
+            "Error in step 'elecolor': 'somepar' parameter is not recognized." 
+            @>
+    
+[<Fact>]
+let ``Can handle parsing of remaining parameters when error is found``() =
+    let parsedStep = 
+        { Name = "elecolor"; 
+        Parameters = 
+            [ { Name = "somepar"; Value = "some value" };
+            { Name = "somepar2"; Value = "some value" } ] } 
+
+    let step = elevationColoringStepBuilder parsedStep
+    test <@ step = 
+        Error 
+            "Error in step 'elecolor': 'somepar' parameter is not recognized." 
+            @>
+
