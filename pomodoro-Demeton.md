@@ -1,6 +1,8 @@
-﻿- implement a generic way of building+parsing step parameters, so we can return errors in an unified way
+﻿- rename stuff in `stepBuilder` and related, to make things more consistent
 - implement step builders for standard steps
-    - they also need to parse parameters from strings into their own types
+
+## Sat 02.11.
+- Implemented a generic way of building and parsing step parameters, so we can return errors in an unified way.
 
 ## Wed 30.10.
 - Implement the positive scenario for parsing elevation color scale parameter in the shading script.

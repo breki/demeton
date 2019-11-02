@@ -57,6 +57,8 @@
     <Compile Include="Shaders\IgorHillshader.fs" />
     <Compile Include="Shaders\Pipeline\Common.fs" />
     <Compile Include="Shaders\Pipeline\Parsing.fs" />
+    <Compile Include="Shaders\Pipeline\Building.fs" />
+    <Compile Include="Shaders\Pipeline\BuildingElevationColoring.fs" />
     <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
   </ItemGroup>
