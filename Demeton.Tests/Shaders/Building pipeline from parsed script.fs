@@ -12,50 +12,84 @@ open System.Collections.Generic
 
 type ShadingStepBuildingFunc = ParsedStep -> Result<ShadingStep, string>
 
-let elevationColoringStepBuilder: ShadingStepBuildingFunc = fun parsedStep ->
+type StepParameterParsingResult<'T> = Result<'T, string>
+type StepParameterParser<'T> = string -> 'T -> StepParameterParsingResult<'T>
+
+let stepBuilder 
+    parsedStep
+    (parametersDefinitions: IDictionary<string, StepParameterParser<'T>>)
+    (defaultParAccumulator: 'T)
+    : Result<'T, string> 
+    =
+    let tryFindParameterDefinition parameterName =
+        let found, parameterDefinition = 
+            parametersDefinitions.TryGetValue(parameterName)
+        match found with
+        | false -> None
+        | true -> Some parameterDefinition
+
     let collectParameters 
-        (state: Result<ElevationColoringParameters, string>) 
+        (state: Result<'T, string>) 
         (parsedParameter: ParsedParameter) 
         = 
         match state with
-        | Ok parameters ->
-            match parsedParameter.Name with
-            | "scale" ->
-                let parsingResult =
-                    ElevationColoring.tryParseScale parsedParameter.Value
+        | Ok parAccumulator ->
+            let parameterName = parsedParameter.Name
+
+            match tryFindParameterDefinition parameterName with
+            | Some parameterParser ->
+                let parsingResult = 
+                    parameterParser parsedParameter.Value parAccumulator 
                 match parsingResult with 
-                | Ok colorScale -> 
-                    Ok { parameters with ColorScale = colorScale }
+                | Ok newParAccumulator -> Ok newParAccumulator
                 | Error errorMessage -> 
                     let parameterErrorMessage = 
                         sprintf 
-                            "'scale' parameter value error: %s." errorMessage
+                            "'%s' parameter value error: %s" 
+                            parameterName
+                            errorMessage
                     Error parameterErrorMessage
-            | _ -> 
+            | None -> 
                 let errorMessage = 
                     sprintf 
-                        "'%s' parameter is not recognized." 
-                        parsedParameter.Name
+                        "'%s' parameter is not recognized" 
+                        parameterName
                 Error errorMessage
         | Error errorMessage -> Error errorMessage
 
-    let parametersBuilder (parsedParameters: ParsedParameter list)
-        : Result<ElevationColoringParameters, string> =
+    let parametersCollectingResult = 
+        parsedStep.Parameters 
+        |> List.fold collectParameters (Ok defaultParAccumulator)
 
-        let defaultParameters = 
-            { ColorScale = ElevationColoring.colorScaleMaperitive }
-        parsedParameters 
-        |> List.fold collectParameters (Ok defaultParameters)
-
-    match parametersBuilder parsedStep.Parameters with
-    | Ok parameters -> ElevationColoring parameters |> Ok
+    match parametersCollectingResult with
+    | Ok parAccumulator -> Ok parAccumulator
     | Error parametersParsingErrorMessage -> 
         let completeMessage =
             sprintf 
-                "Error in step '%s': %s" 
+                "Error in step '%s': %s." 
                 parsedStep.Name 
                 parametersParsingErrorMessage
         Error completeMessage
+
+let elevationColoringStepBuilder: ShadingStepBuildingFunc = fun parsedStep ->
+    let parseScale scaleString settings =
+        let parsingResult = ElevationColoring.tryParseScale scaleString
+        match parsingResult with 
+        | Ok colorScale -> 
+            Ok { settings with ColorScale = colorScale }
+        | Error errorMessage -> Error errorMessage
+
+    let parDefs = dict [
+        "scale", parseScale
+        ]
+
+    let defaultParameters = 
+        { ColorScale = ElevationColoring.colorScaleMaperitive }
+
+    let stepBuildingResult = stepBuilder parsedStep parDefs defaultParameters
+    match stepBuildingResult with
+    | Ok finalSettings -> ElevationColoring finalSettings |> Ok
+    | Error errorMessage -> Error errorMessage
 
 
 let private testRegisteredStepBuilders = dict [
