@@ -7,37 +7,13 @@ open Demeton.Shaders.Pipeline.Building
 open Xunit
 open Swensen.Unquote
 open TestHelp
-open System.Collections.Generic
 
 let private testRegisteredStepBuilders = dict [
     ("shader1", fun _ -> CustomShading "shaderfunc1" |> Ok)
     ("shader2", fun _ -> CustomShading "shaderfunc2" |> Ok)
     ("shader3", fun _ -> CustomShading "shaderfunc3" |> Ok)
+    ("shader4", fun _ -> Error "some error")
 ]
-
-let buildShadingPipeline 
-    (registeredStepBuilders: IDictionary<string, ShadingStepBuildingFunc>) 
-    (parsedScript: ParsedScript) =
-    let pipeline = 
-        parsedScript
-        |> List.fold (fun pipeline (parsedStep: ParsedStep) -> 
-            let stepBuilder = registeredStepBuilders.[parsedStep.Name]
-            let shaderStepMaybe = stepBuilder parsedStep
-
-            match shaderStepMaybe with
-            | Ok shaderStep ->
-                match pipeline with
-                | None -> Some shaderStep 
-                | Some pipelineStep ->
-                    Compositing 
-                        (pipelineStep, shaderStep, CompositingFuncIdOver)
-                    |> Some
-            | Error stepBuildingErrorMessage -> invalidOp "todo"
-            ) None
-
-    match pipeline with
-    | None -> Error "Shading pipeline is empty."
-    | Some rootStep -> Ok rootStep
 
 let private rootStep (result: Result<ShadingStep, string>) =
     match result with
@@ -88,7 +64,6 @@ let ``Two steps are combined using Compositing step``() =
 
     test <@ result |> rootStep |> isCompositing @>
 
-    // todo: how to know which step is which? we can't compare funcs
     let (step1, step2, compositingFuncId) = 
         result |> rootStep |> compositing
 
@@ -119,4 +94,19 @@ let ``Three steps are combined using Compositing step``() =
 
     test <@ step1 |> isCustomShader "shaderfunc1" @>
     test <@ step2 |> isCustomShader "shaderfunc2" @>
+
+[<Fact>]
+let ``Handles an error when building a step``() =
+    let parsedScript = [ 
+        { Name = "shader4"; Parameters = [] } 
+        { Name = "shader3"; Parameters = [] } 
+        ]
+    
+    let result: Result<ShadingStep, string> = 
+        buildShadingPipeline testRegisteredStepBuilders parsedScript
+
+    test <@ 
+            result 
+            |> isErrorData 
+                "Error parsing the shading script: some error." @>
 

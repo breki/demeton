@@ -6,14 +6,17 @@ open System.Collections.Generic
 
 type ShadingStepBuildingFunc = ParsedStep -> Result<ShadingStep, string>
 
-type StepParameterParsingResult<'T> = Result<'T, string>
-type StepParameterParser<'T> = string -> 'T -> StepParameterParsingResult<'T>
+type StepParameterParsingResult<'TSettings> = Result<'TSettings, string>
+
+type StepParameterParser<'TSettings> = 
+    string -> 'TSettings -> StepParameterParsingResult<'TSettings>
 
 let stepBuilder 
     parsedStep
-    (parametersDefinitions: IDictionary<string, StepParameterParser<'T>>)
-    (defaultParAccumulator: 'T)
-    : Result<'T, string> 
+    (parametersDefinitions: 
+        IDictionary<string, StepParameterParser<'TSettings>>)
+    (defaultSettings: 'TSettings)
+    : Result<'TSettings, string> 
     =
     let tryFindParameterDefinition parameterName =
         let found, parameterDefinition = 
@@ -23,19 +26,19 @@ let stepBuilder
         | true -> Some parameterDefinition
 
     let collectParameters 
-        (state: Result<'T, string>) 
+        (collectingState: Result<'TSettings, string>) 
         (parsedParameter: ParsedParameter) 
         = 
-        match state with
-        | Ok parAccumulator ->
+        match collectingState with
+        | Ok settingsSoFar ->
             let parameterName = parsedParameter.Name
 
             match tryFindParameterDefinition parameterName with
             | Some parameterParser ->
                 let parsingResult = 
-                    parameterParser parsedParameter.Value parAccumulator 
+                    parameterParser parsedParameter.Value settingsSoFar 
                 match parsingResult with 
-                | Ok newParAccumulator -> Ok newParAccumulator
+                | Ok newSettings -> Ok newSettings
                 | Error errorMessage -> 
                     let parameterErrorMessage = 
                         sprintf 
@@ -53,10 +56,10 @@ let stepBuilder
 
     let parametersCollectingResult = 
         parsedStep.Parameters 
-        |> List.fold collectParameters (Ok defaultParAccumulator)
+        |> List.fold collectParameters (Ok defaultSettings)
 
     match parametersCollectingResult with
-    | Ok parAccumulator -> Ok parAccumulator
+    | Ok settings -> Ok settings
     | Error parametersParsingErrorMessage -> 
         let completeMessage =
             sprintf 
@@ -64,3 +67,40 @@ let stepBuilder
                 parsedStep.Name 
                 parametersParsingErrorMessage
         Error completeMessage
+
+
+let buildShadingPipeline 
+    (registeredStepBuilders: IDictionary<string, ShadingStepBuildingFunc>) 
+    (parsedScript: ParsedScript) =
+
+    let foldPipeline state parsedStep =
+        match state with
+        | Error errorMessage -> Error errorMessage
+        | Ok previousStep ->
+            let stepBuilder = registeredStepBuilders.[parsedStep.Name]
+            let shaderStepMaybe = stepBuilder parsedStep
+
+            match shaderStepMaybe with
+            | Ok shaderStep ->
+                match previousStep with
+                | None -> Some shaderStep |> Ok 
+                | Some pipelineStep ->
+                    Compositing 
+                        (pipelineStep, shaderStep, CompositingFuncIdOver)
+                    |> Some |> Ok
+            | Error stepBuildingErrorMessage -> 
+                Error stepBuildingErrorMessage
+
+
+    let pipelineFoldingResult = 
+        parsedScript |> List.fold foldPipeline (Ok None)
+
+    match pipelineFoldingResult with
+    | Error stepBuildingErrorMessage -> 
+        let finalErrorMessage = 
+            sprintf 
+                "Error parsing the shading script: %s."
+                stepBuildingErrorMessage
+        Error finalErrorMessage
+    | Ok None -> Error "Shading pipeline is empty."
+    | Ok (Some rootStep) -> Ok rootStep

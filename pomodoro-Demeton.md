@@ -1,5 +1,7 @@
-﻿- rename stuff in `stepBuilder` and related, to make things more consistent
-- implement step builders for standard steps
+﻿- implement step builders for standard steps
+
+## Sun 03.11.
+- Implemented handling of errors when shading step building in `buildShadingPipeline` function.
 
 ## Sat 02.11.
 - Implemented a generic way of building and parsing step parameters, so we can return errors in an unified way.
