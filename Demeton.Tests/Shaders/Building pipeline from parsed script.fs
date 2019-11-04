@@ -41,7 +41,7 @@ let ``Reports an error is pipeline is empty``() =
     let result: Result<ShadingStep, string> = 
         buildShadingPipeline testRegisteredStepBuilders []
 
-    test <@ result |> isErrorData "shading pipeline is empty" @>
+    test <@ result |> isErrorData "Shading pipeline is empty." @>
 
 [<Fact>]
 let ``Supports a single-step pipeline without any arguments``() =
@@ -104,7 +104,7 @@ let ``Reports an error if shading step is unrecognized``() =
         buildShadingPipeline testRegisteredStepBuilders parsedScript
 
     test <@ result 
-            |> isErrorData "unrecognized shading step 'something'" @>
+            |> isErrorData "Unrecognized shading step 'something'." @>
 
 [<Fact>]
 let ``Handles an error when building a step``() =

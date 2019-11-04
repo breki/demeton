@@ -1,11 +1,4 @@
-﻿- add the new shading script parsing into the console code
-    - write tests for ShadeCommand
-    - add a new option, `shading-script`
-        - specify parser
-            OptionValueParser = string -> OptionValueParsingResult
-    - sets `RootShadingStep`
-
-- implement step builders for standard steps
+﻿- implement step builders for standard steps
 
 - hillshading
     - run the command on Alps

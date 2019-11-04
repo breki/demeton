@@ -48,11 +48,11 @@ let ``Correctly splits the raster into multiple tiles``() =
 
     test <@ generatedTiles.Length = 12 @>
     test <@ generatedTiles.[0] 
-        = { MinX = 1119; MinY = 12500; Width = 1000; Height = 1000 } @>
+        = { MinX = 1119; MinY = -14608; Width = 1000; Height = 1000 } @>
     test <@ generatedTiles.[1] 
-        = { MinX = 2119; MinY = 12500; Width = 1000; Height = 1000 } @>
+        = { MinX = 2119; MinY = -14608; Width = 1000; Height = 1000 } @>
     test <@ generatedTiles.[11] 
-        = { MinX = 4119; MinY = 14500; Width = 337; Height = 108 } @>
+        = { MinX = 4119; MinY = -12608; Width = 337; Height = 108 } @>
 
 [<Fact>]
 let ``Saves the generated tile images to files``() =

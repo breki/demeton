@@ -94,7 +94,7 @@ let ``Can create heights array from SRTM heights sequence``() =
     test <@ tile.Width = tileSize @>
     test <@ tile.Height = tileSize @>
     test <@ tile.MinX = (16 + 179) * tileSize @>
-    test <@ tile.MinY = (45 + 90) * tileSize @>
+    test <@ tile.MinY = (90 - 45) * tileSize - (tileSize - 1) @>
     test <@ tile.Cells.[0] = sampleHeight1 @>
     test <@ tile.Cells.[tileSize] = sampleHeight2 @>
 

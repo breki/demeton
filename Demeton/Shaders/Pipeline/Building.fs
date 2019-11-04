@@ -95,7 +95,7 @@ let buildShadingPipeline
                 | Error stepBuildingErrorMessage -> 
                     Error stepBuildingErrorMessage
             | false, _ ->
-                Error (sprintf "unrecognized shading step '%s'" stepName)
+                Error (sprintf "Unrecognized shading step '%s'." stepName)
 
 
     let pipelineFoldingResult = 
@@ -103,5 +103,5 @@ let buildShadingPipeline
 
     match pipelineFoldingResult with
     | Error errorMessage -> Error errorMessage
-    | Ok None -> Error "shading pipeline is empty"
+    | Ok None -> Error "Shading pipeline is empty."
     | Ok (Some rootStep) -> Ok rootStep

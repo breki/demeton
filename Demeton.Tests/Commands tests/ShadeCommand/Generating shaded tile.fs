@@ -29,7 +29,7 @@ let tileWidth = 500
 let tileHeight = 750
 
 let tileRect: Raster.Rect = 
-    { MinX = 1119; MinY = 12500; Width = tileWidth; Height = tileHeight }
+    { MinX = 1119; MinY = -12500; Width = tileWidth; Height = tileHeight }
 
 let someHeightsArray = 
     Ok 
@@ -45,9 +45,9 @@ let ``Tile generator correctly calculates which SRTM tiles it needs``() =
 
         test <@ tilesArray.Length = 9 @>
         test <@ tilesArray.[0] = { 
-            Lon = { Value = 4 }; Lat = { Value = 42 } } @>
+            Lon = { Value = 4 }; Lat = { Value = 40 } } @>
         test <@ tilesArray.[8] = { 
-            Lon = { Value = 6 }; Lat = { Value = 44 } } @>
+            Lon = { Value = 6 }; Lat = { Value = 42 } } @>
 
         someHeightsArray
 

@@ -47,19 +47,30 @@ let ``Can parse south and east tile IDs``() =
                 Lat = SrtmLatitude.fromInt -22 } 
     @>
 
-[<Fact>]
-let ``Calculates global coordinates for a given tile ID``() =
+[<Literal>]
+let Multiply_90_with_3600_minus_3599 = 320401
+[<Literal>]
+let Multiply_90_plus_22_with_3600_minus_3599 = 399601
+
+[<Theory>]
+[<InlineData("N90W179", 1, 0, 0)>]
+[<InlineData("N00W179", 1, 0, 90)>]
+[<InlineData("N00W179", 3600, 0, Multiply_90_with_3600_minus_3599)>]
+[<InlineData("S22E080", 3600, 932400, Multiply_90_plus_22_with_3600_minus_3599)>]
+let ``Calculates global coordinates for a given tile ID``
+    tileId tileSize expectedMinX expectedMinY =
     test <@ 
-            Tile.parseTileId "S22E080"
-            |> Tile.tileCellMinCoords 3600 = (932400, 244800)
+            Tile.parseTileId tileId
+            |> Tile.tileCellMinCoords tileSize = (expectedMinX, expectedMinY)
     @>
 
 [<Theory>]
-[<InlineData(0., 0., 1, 178.5, 89.5)>]
-[<InlineData(1., 1., 1, 179.5, 90.5)>]
-[<InlineData(0.5, 0.5, 1, 179., 90.)>]
-[<InlineData(0., 0., 3600, 644399.5, 323999.5)>]
-[<InlineData(46.557611, 15.6455, 3600, 812006.8996, 380323.3)>]
+[<InlineData(0., 90., 1, 178.5, 0.)>]
+[<InlineData(0., 0., 1, 178.5, 90.)>]
+[<InlineData(1., -1., 1, 179.5, 91)>]
+[<InlineData(0.5, 0.5, 1, 179., 89.5)>]
+[<InlineData(0., 0., 3600, 644399.5, 324000.)>]
+[<InlineData(46.557611, 15.6455, 3600, 812006.8996, 267676.2)>]
 let ``Calculates fractional global coordinates for given longitude and latitude``
     longitude latitude tileSize expectedGlobalX expectedGlobalY =
     test <@ Tile.longitudeToGlobalX longitude tileSize = expectedGlobalX @>

@@ -1,6 +1,8 @@
-﻿- add support for multiline command line parsing errors
+﻿- parallelize `ElevationColoring.shadeRaster`
 
 ## Mon 04.11.
+- Fixed a bug in the SRTM tiles coordinate system.
+- Added the new shading script parsing into the console code.
 - `shade` command now prints out the shading script error location.
 - Added support for multiline command line parsing errors.
 - `buildShadingPipeline` function did not handle the case when the step was not recognized.

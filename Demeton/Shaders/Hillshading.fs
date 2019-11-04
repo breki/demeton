@@ -76,7 +76,7 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
     let inline lonLatOf x y =
         let xUnscaled = float x / scaleFactor
         let yUnscaled = float y / scaleFactor
-        WebMercator.inverse xUnscaled yUnscaled
+        WebMercator.inverse xUnscaled -yUnscaled
 
     let heightOf (lonRad, latRad) =
         let lonDeg = radToDeg lonRad
@@ -98,7 +98,7 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
         | false -> None
 
     let processRasterLine y =
-        for x in tileRect.MinX .. (tileRect.MaxX-1) do
+        for x in tileRect.MinX .. (tileRect.MaxX-1) do           
             let neighborCoords = [|
                 lonLatOf (x-1) (y-1)
                 lonLatOf x (y-1)

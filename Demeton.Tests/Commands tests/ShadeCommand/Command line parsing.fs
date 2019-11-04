@@ -208,6 +208,17 @@ let ``Accepts a valid shading script value and puts it into the options`` () =
         @>
 
 [<Fact>]
+let ``Reports an error when the shading script is empty``() =
+    let result = 
+        parseArgs [ 
+            "10,20,30,40"; "--shading-script"; "" ]
+    test <@ result
+            |> isErrorData 
+                @"'shading-script' option's value is invalid:
+Shading pipeline is empty."
+        @>
+
+[<Fact>]
 let ``Reports an error when the shading script has a syntax error``() =
     let result = 
         parseArgs [ 
@@ -219,7 +230,7 @@ sasd)
     ^
 Expected: step operator, step parameters."
         @>
-
+    
 [<Fact>]
 let ``Reports an error when the shading script has an unrecognized step``() =
     let result = 
@@ -227,18 +238,17 @@ let ``Reports an error when the shading script has an unrecognized step``() =
             "10,20,30,40"; "--shading-script"; "something" ]
     test <@ result
             |> isErrorData 
-                ("'shading-script' option's value is invalid, " 
-                + "unrecognized shading step 'something'.")
-        @>
-
-[<Fact>]
-let ``Reports an error when the shading script is empty``() =
-    let result = 
-        parseArgs [ 
-            "10,20,30,40"; "--shading-script"; "" ]
-    test <@ result
-            |> isErrorData 
-                ("'shading-script' option's value is invalid, " 
-                + "shading pipeline is empty.")
+                @"'shading-script' option's value is invalid:
+Unrecognized shading step 'something'."
         @>
     
+[<Fact>]
+let ``Reports an error when the shading script step has an error``() =
+    let result = 
+        parseArgs [ 
+            "10,20,30,40"; "--shading-script"; "elecolor(scale='sdsd')" ]
+    test <@ result
+            |> isErrorData 
+                @"'shading-script' option's value is invalid:
+Error in step 'elecolor': 'scale' parameter value error: invalid color scale."
+        @>

@@ -89,7 +89,12 @@ let parseShadingScriptOption: OptionValueParser = fun value ->
     | Ok parsedScript ->
         match buildShadingPipeline registeredStepBuilders parsedScript with
         | Ok rootStep -> OkValue rootStep
-        | Error errorMessage -> InvalidValue errorMessage
+        | Error errorMessage -> 
+            buildString()
+            |> newLine
+            |> append errorMessage
+            |> toString
+            |> InvalidValue 
     | Error parsingError -> 
         buildString()
         |> newLine
@@ -246,13 +251,15 @@ let generateShadedRasterTile
 
     let scaleFactor = options.ShaderOptions.ProjectionScaleFactor
 
-    let x1 = float tileRect.MinX / scaleFactor
-    let y1 = float tileRect.MinY / scaleFactor
-    let (lon1Rad, lat1Rad) = WebMercator.inverse x1 y1 |> Option.get
+    let buffer = 1
 
-    let x2 = float tileRect.MaxX / scaleFactor
-    let y2 = float tileRect.MaxY / scaleFactor
-    let (lon2Rad, lat2Rad) = WebMercator.inverse x2 y2 |> Option.get
+    let x1 = float (tileRect.MinX - buffer) / scaleFactor
+    let y1 = float (tileRect.MinY - buffer) / scaleFactor
+    let (lon1Rad, lat1Rad) = WebMercator.inverse x1 -y1 |> Option.get
+
+    let x2 = float (tileRect.MaxX + buffer) / scaleFactor
+    let y2 = float (tileRect.MaxY + buffer) / scaleFactor
+    let (lon2Rad, lat2Rad) = WebMercator.inverse x2 -y2 |> Option.get
 
     let lonLatBounds: LonLatBounds = 
         { 
@@ -338,6 +345,7 @@ let run
                 WebMercator.proj (degToRad lonDegrees) (degToRad latDegrees))
         |> List.filter (fun p -> Option.isSome p)
         |> List.map (fun p -> Option.get p)
+        |> List.map (fun (x, y) -> (x, -y))
 
     // calculate the minimum bounding rectangle of all the projected points
     let projectionMbr = Bounds.mbrOf projectedPoints

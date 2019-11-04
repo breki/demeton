@@ -138,7 +138,7 @@ let shadeRaster (colorScale: ColorScale): RasterShader =
     let heightForTilePixel x y =
         let xUnscaled = float x / scaleFactor
         let yUnscaled = float y / scaleFactor
-        let lonLatOption = WebMercator.inverse xUnscaled yUnscaled
+        let lonLatOption = WebMercator.inverse xUnscaled -yUnscaled
 
         match lonLatOption with
         | None -> None
