@@ -121,9 +121,14 @@ let argumentValueIsMissing name =
 /// <summary>
 /// Constructs a parsing result indicating an invalid option's value error.
 /// </summary>
-let invalidOptionValue name reason =
-    let message = 
-        sprintf "'%s' option's value is invalid, %s." name reason
+let invalidOptionValue (name: string) (reason: string) =
+    let isMultilineReason = reason.Contains Environment.NewLine
+    let messageFormat: Printf.StringFormat<(string -> string -> string)> =
+        match isMultilineReason with
+        | true -> "'%s' option's value is invalid:%s"
+        | false -> "'%s' option's value is invalid, %s."
+
+    let message = sprintf messageFormat name reason
     ParsingFail message
 
 let invalidArgumentValue name reason =

@@ -41,7 +41,7 @@ let ``Reports an error is pipeline is empty``() =
     let result: Result<ShadingStep, string> = 
         buildShadingPipeline testRegisteredStepBuilders []
 
-    test <@ result |> isErrorData "Shading pipeline is empty." @>
+    test <@ result |> isErrorData "shading pipeline is empty" @>
 
 [<Fact>]
 let ``Supports a single-step pipeline without any arguments``() =
@@ -96,6 +96,17 @@ let ``Three steps are combined using Compositing step``() =
     test <@ step2 |> isCustomShader "shaderfunc2" @>
 
 [<Fact>]
+let ``Reports an error if shading step is unrecognized``() =
+    let parsedScript = [ 
+        { Name = "something"; Parameters = [] } ]
+    
+    let result: Result<ShadingStep, string> = 
+        buildShadingPipeline testRegisteredStepBuilders parsedScript
+
+    test <@ result 
+            |> isErrorData "unrecognized shading step 'something'" @>
+
+[<Fact>]
 let ``Handles an error when building a step``() =
     let parsedScript = [ 
         { Name = "shader4"; Parameters = [] } 
@@ -105,8 +116,6 @@ let ``Handles an error when building a step``() =
     let result: Result<ShadingStep, string> = 
         buildShadingPipeline testRegisteredStepBuilders parsedScript
 
-    test <@ 
-            result 
-            |> isErrorData 
-                "Error parsing the shading script: some error." @>
+    test <@ result 
+            |> isErrorData "some error" @>
 

@@ -9,12 +9,14 @@ open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Shaders
 open Demeton.Shaders.Types
+open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
 open Demeton.Shaders.Pipeline.Building
 open Demeton.Shaders.Pipeline.BuildingElevationColoring
 open Demeton.Srtm
 open Demeton.Srtm.Funcs
 open Png.Types
+open Text
 
 open System
 
@@ -88,7 +90,15 @@ let parseShadingScriptOption: OptionValueParser = fun value ->
         match buildShadingPipeline registeredStepBuilders parsedScript with
         | Ok rootStep -> OkValue rootStep
         | Error errorMessage -> InvalidValue errorMessage
-    | _ -> invalidOp "todo"
+    | Error parsingError -> 
+        buildString()
+        |> newLine
+        |> appendLine value
+        |> appendLine (sprintf "%s^" (new String(' ', parsingError.Location)))
+        |> append parsingError.Message
+        |> append "."
+        |> toString
+        |> InvalidValue 
 
 let supportedParameters: CommandParameter[] = [|
     Arg.build CoveragePointsParameter
@@ -195,6 +205,8 @@ let fillOptions parsedParameters =
                     { options.ShaderOptions with MapScale = value :?> float }}
         | ParsedOption { Name = OutputDirParameter; Value = value } ->
             { options with OutputDir = value :?> string }
+        | ParsedOption { Name = ShadingScriptParameter; Value = value } ->
+            { options with RootShadingStep = value :?> ShadingStep }
         | ParsedOption { Name = SrtmDirParameter; Value = value } ->
             { options with SrtmDir = value :?> string }
         | ParsedOption { Name = TileSizeParameter; Value = value } ->

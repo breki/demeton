@@ -77,30 +77,31 @@ let buildShadingPipeline
         match state with
         | Error errorMessage -> Error errorMessage
         | Ok previousStep ->
-            let stepBuilder = registeredStepBuilders.[parsedStep.Name]
-            let shaderStepMaybe = stepBuilder parsedStep
+            let stepName = parsedStep.Name
+            let stepBuilderMaybe = registeredStepBuilders.TryGetValue stepName
 
-            match shaderStepMaybe with
-            | Ok shaderStep ->
-                match previousStep with
-                | None -> Some shaderStep |> Ok 
-                | Some pipelineStep ->
-                    Compositing 
-                        (pipelineStep, shaderStep, CompositingFuncIdOver)
-                    |> Some |> Ok
-            | Error stepBuildingErrorMessage -> 
-                Error stepBuildingErrorMessage
+            match stepBuilderMaybe with
+            | true, stepBuilder -> 
+                let shaderStepMaybe = stepBuilder parsedStep
+
+                match shaderStepMaybe with
+                | Ok shaderStep ->
+                    match previousStep with
+                    | None -> Some shaderStep |> Ok 
+                    | Some pipelineStep ->
+                        Compositing 
+                            (pipelineStep, shaderStep, CompositingFuncIdOver)
+                        |> Some |> Ok
+                | Error stepBuildingErrorMessage -> 
+                    Error stepBuildingErrorMessage
+            | false, _ ->
+                Error (sprintf "unrecognized shading step '%s'" stepName)
 
 
     let pipelineFoldingResult = 
         parsedScript |> List.fold foldPipeline (Ok None)
 
     match pipelineFoldingResult with
-    | Error stepBuildingErrorMessage -> 
-        let finalErrorMessage = 
-            sprintf 
-                "Error parsing the shading script: %s."
-                stepBuildingErrorMessage
-        Error finalErrorMessage
-    | Ok None -> Error "Shading pipeline is empty."
+    | Error errorMessage -> Error errorMessage
+    | Ok None -> Error "shading pipeline is empty"
     | Ok (Some rootStep) -> Ok rootStep

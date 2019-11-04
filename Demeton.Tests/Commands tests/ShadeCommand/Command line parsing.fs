@@ -196,14 +196,49 @@ let ``Accepts a valid OutputDir value and puts it into the options`` () =
             (isOkWithOptions result).OutputDir = "some/hillshading" 
         @>
 
-[<Fact(Skip="todo")>]
+[<Fact>]
 let ``Accepts a valid shading script value and puts it into the options`` () =
     let result = 
         parseArgs [ 
             "10,20,30,40"; "--shading-script"; "elecolor" ]
     test <@ result |> isOk @>
-    test <@ 
-            match (isOkWithOptions result).RootShadingStep with 
+    test <@ match (isOkWithOptions result).RootShadingStep with 
             | ElevationColoring _ -> true
             | _ -> false
         @>
+
+[<Fact>]
+let ``Reports an error when the shading script has a syntax error``() =
+    let result = 
+        parseArgs [ 
+            "10,20,30,40"; "--shading-script"; "sasd)" ]
+    test <@ result
+            |> isErrorData 
+                @"'shading-script' option's value is invalid:
+sasd)
+    ^
+Expected: step operator, step parameters."
+        @>
+
+[<Fact>]
+let ``Reports an error when the shading script has an unrecognized step``() =
+    let result = 
+        parseArgs [ 
+            "10,20,30,40"; "--shading-script"; "something" ]
+    test <@ result
+            |> isErrorData 
+                ("'shading-script' option's value is invalid, " 
+                + "unrecognized shading step 'something'.")
+        @>
+
+[<Fact>]
+let ``Reports an error when the shading script is empty``() =
+    let result = 
+        parseArgs [ 
+            "10,20,30,40"; "--shading-script"; "" ]
+    test <@ result
+            |> isErrorData 
+                ("'shading-script' option's value is invalid, " 
+                + "shading pipeline is empty.")
+        @>
+    

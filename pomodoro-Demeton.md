@@ -1,10 +1,9 @@
-﻿- add the new shading script parsing into the console code
-    - write tests for ShadeCommand
-    - add a new option, `shading-script`
-        - specify parser
-            OptionValueParser = string -> OptionValueParsingResult
-    - sets `RootShadingStep`
-- implement step builders for standard steps
+﻿- add support for multiline command line parsing errors
+
+## Mon 04.11.
+- `shade` command now prints out the shading script error location.
+- Added support for multiline command line parsing errors.
+- `buildShadingPipeline` function did not handle the case when the step was not recognized.
 
 ## Sun 03.11.
 - Implemented handling of errors when shading step building in `buildShadingPipeline` function.
