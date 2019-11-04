@@ -2,6 +2,7 @@
 
 open CommandLine.Common
 open Demeton.Commands
+open Demeton.Shaders.Pipeline.Common
 
 open Xunit
 open Swensen.Unquote
@@ -193,4 +194,16 @@ let ``Accepts a valid OutputDir value and puts it into the options`` () =
     test <@ result |> isOk @>
     test <@ 
             (isOkWithOptions result).OutputDir = "some/hillshading" 
+        @>
+
+[<Fact(Skip="todo")>]
+let ``Accepts a valid shading script value and puts it into the options`` () =
+    let result = 
+        parseArgs [ 
+            "10,20,30,40"; "--shading-script"; "elecolor" ]
+    test <@ result |> isOk @>
+    test <@ 
+            match (isOkWithOptions result).RootShadingStep with 
+            | ElevationColoring _ -> true
+            | _ -> false
         @>

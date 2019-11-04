@@ -9,6 +9,9 @@ open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Shaders
 open Demeton.Shaders.Types
+open Demeton.Shaders.Pipeline.Parsing
+open Demeton.Shaders.Pipeline.Building
+open Demeton.Shaders.Pipeline.BuildingElevationColoring
 open Demeton.Srtm
 open Demeton.Srtm.Funcs
 open Png.Types
@@ -38,6 +41,8 @@ let LocalCacheDirParameter = "local-cache-dir"
 let MapScaleParameter = "map-scale"
 [<Literal>]
 let OutputDirParameter = "output-dir"
+[<Literal>]
+let ShadingScriptParameter = "shading-script"
 [<Literal>]
 let SrtmDirParameter = "srtm-dir"
 [<Literal>]
@@ -73,6 +78,17 @@ let parseCoverage value =
             let coveragePoints = floatsListToPoints floatsList
             OkValue coveragePoints
 
+let registeredStepBuilders = dict [
+    ("elecolor", elevationColoringStepBuilder)
+]
+
+let parseShadingScriptOption: OptionValueParser = fun value ->
+    match parseShadingScript value with
+    | Ok parsedScript ->
+        match buildShadingPipeline registeredStepBuilders parsedScript with
+        | Ok rootStep -> OkValue rootStep
+        | Error errorMessage -> InvalidValue errorMessage
+    | _ -> invalidOp "todo"
 
 let supportedParameters: CommandParameter[] = [|
     Arg.build CoveragePointsParameter
@@ -108,6 +124,15 @@ let supportedParameters: CommandParameter[] = [|
     |> Option.desc "The path to the directory where the raster files will be generated. The directory will be created if it does not exist yet."
     |> Option.asDirectory |> Option.defaultValue DefaultOutputDir
     |> Option.toPar
+
+    Option.build ShadingScriptParameter 
+    |> Option.desc "The path to the directory where the raster files will be generated. The directory will be created if it does not exist yet."
+    |> Option.parser parseShadingScriptOption
+    |> Option.defaultValue "elevation coloring + hillshading"
+    // todo: add example
+    //|> Option.example "1200"  "specifies the printing resolution of 1200 dots per inch"
+    |> Option.toPar
+
 
     Option.build SrtmDirParameter
     |> Option.desc "The path to the directory containing the original zipped SRTM HGT files."
