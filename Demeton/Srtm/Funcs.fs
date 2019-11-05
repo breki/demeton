@@ -142,9 +142,8 @@ let fetchSrtmTile
     (localCacheDir: string)
     (fileExists: FileSys.FileExistsChecker)
     (pngTileReader: SrtmPngTileReader)
-    (pngTileConverter: SrtmHgtToPngTileConverter)
-    (tile: SrtmTileCoords)
-    : HeightsArrayResult =
+    (pngTileConverter: SrtmHgtToPngTileConverter): SrtmTileReader =
+    fun tile ->
     let localTileFile = toLocalCacheTileFile localCacheDir tile
 
     match fileExists localTileFile.FileName with
@@ -167,12 +166,11 @@ let fetchSrtmTile
 type SrtmHeightsArrayFetcher = SrtmTileCoords seq -> HeightsArrayResult
 
 let fetchSrtmHeights 
-    (readSrtmTile: SrtmTileReader)
-    (tilesToUse: SrtmTileCoords seq)
-    : HeightsArrayResult = 
+    (readSrtmTile: SrtmTileReader): SrtmHeightsArrayFetcher =
+    fun tilesToUse ->
 
     let mutable errorMessage = None
-    let mutable i = 0;
+    let mutable i = 0
 
     let tilesArray = tilesToUse |> Seq.toArray
     let mutable heightsArraysToMerge = []

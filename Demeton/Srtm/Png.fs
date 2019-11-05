@@ -6,6 +6,7 @@ open Png
 open Png.Types
 open Png.File
 open Demeton.Srtm.Types
+open Demeton.Srtm.Funcs
 open System.IO
 
 [<Literal>]
@@ -87,9 +88,10 @@ let encodeHeightsArrayIntoPngFile
 
 
 let decodeSrtmTileFromPngFile
-    (openFile: FileSys.FileOpener)
-    pngFileName
-    : Result<HeightsArray, string> =
+    (openFile: FileSys.FileOpener): SrtmPngTileReader =
+    fun pngFileName ->
+    Log.info "Loading PNG SRTM tile '%s'..." pngFileName
+
     use stream = openFile pngFileName
 
     let (ihdr, imageData) = stream |> loadPngFromStream

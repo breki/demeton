@@ -60,14 +60,17 @@ let rec executeShadingStep
                 shaderOptions 
                 step2
 
+        Log.info "Running compositing step '%s'..." compositingFuncId
         let compositingFunc = compositingFuncFactory compositingFuncId
         compositingFunc tileRect.Width tileRect.Height image1 image2
     | _ -> 
         let rasterShaderToUse = 
             match step with
             | ElevationColoring parameters -> 
+                Log.info "Running elevation coloring step..."
                 ElevationColoring.shadeRaster parameters.ColorScale
             | IgorHillshading parameters -> 
+                Log.info "Running igor hillshading step..."
                 Hillshading.shadeRaster (IgorHillshader.shadePixel parameters)
             | CustomShading shadingFuncId -> shadingFuncFactory shadingFuncId
             | _ -> invalidOp "Unsupported shading step"

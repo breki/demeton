@@ -171,9 +171,9 @@ let fillOptions parsedParameters =
     let shadingPipeline = 
         Pipeline.Common.Compositing
             (
-                Pipeline.Common.IgorHillshading igorShaderParameters,
                 Pipeline.Common.ElevationColoring
                     { ColorScale = ElevationColoring.colorScaleMaperitive } ,
+                Pipeline.Common.IgorHillshading igorShaderParameters,
                 Demeton.Shaders.Pipeline.Common.CompositingFuncIdOver
             )
 

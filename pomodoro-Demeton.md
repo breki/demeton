@@ -1,7 +1,8 @@
-﻿- 
-- log shade pipeline actions
+﻿- implement step builders for standard steps
+    - igor
 
 ## Tue 05.11.
+- Added more logging to the operations run by `shade` command.
 - Fixed `Supports parsing elevation coloring step with custom color scale` test case.
 - Added more property tests for `IgorHillshader`
 - Fixing wrong calculation of aspect in `Hillshading`, added some tests for it.
