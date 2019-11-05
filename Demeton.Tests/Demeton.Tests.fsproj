@@ -54,6 +54,7 @@
     <Compile Include="Srtm\fetchSrtmHeights tests.fs" />
     <Compile Include="Projections\ProjectionsTestHelpers.fs" />
     <Compile Include="Projections\WebMercator tests.fs" />
+    <Compile Include="Shaders\Hillshading\Calculating aspect and slope.fs" />
     <Compile Include="Shaders\Hillshading\Igor%27s shading method.fs" />
     <Compile Include="Shaders\Elevation coloring.fs" />
     <Compile Include="Shaders\Parsing elevation color scales.fs" />

@@ -166,7 +166,7 @@ let supportedParameters: CommandParameter[] = [|
 
 let fillOptions parsedParameters =
     let igorShaderParameters: IgorHillshader.ShaderParameters = { 
-        SunAzimuth = degToRad 45.
+        SunAzimuth = degToRad -90.
         ShadingColor = 0u }
 
     let shadingPipeline = 

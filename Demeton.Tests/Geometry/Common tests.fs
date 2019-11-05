@@ -69,8 +69,18 @@ let ``Normalizes the angle``() =
     let genAngle = floatInRange -1000 1000
     genAngle |> Arb.fromGen |> Prop.forAll <| props
 
+[<Theory>]
+[<InlineData(90., 270., 360., 180.)>]
+[<InlineData(270., 90., 360., 180.)>]
+[<InlineData(91., 270., 360., 179.)>]
+[<InlineData(89., 270., 360., 179.)>]
+let ``Difference between angles - samples`` 
+    (angle1, angle2, normalizer, expectedDifference) =
+    test <@ differenceBetweenAngles angle1 angle2 normalizer 
+        = expectedDifference @>
+
 [<Fact>]
-let ``Difference between angles``() =
+let ``Difference between angles - properties``() =
     let normalizer = 360.
 
     let isPositive (angle1, angle2) = 

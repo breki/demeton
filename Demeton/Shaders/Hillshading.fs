@@ -62,7 +62,10 @@ let calculateSlopeAndAspect p q: SlopeAndAspect =
     //let surfaceInclination = Math.Atan maxSlope
     //let azimuth1 = Math.Asin (-q / surfaceInclination)
     //let azimuth2 = Math.Acos (-p / surfaceInclination)
-    let aspect = Math.Atan2 (-q, p)
+    
+    // Math.PI / 2 is needed so the north facing slopes have an aspect 
+    // of 0 degrees.
+    let aspect = Math.Atan2 (q, p) - Math.PI / 2.
 
     (slope, aspect)
 
@@ -117,7 +120,7 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
 
             match pqMaybe with
             | Some (p, q) -> 
-                let (slope, aspect) = calculateSlopeAndAspect p q           
+                let (slope, aspect) = calculateSlopeAndAspect p q
                 let height = (Option.get heights).[4] |> Option.get
 
                 let pixelValue = pixelHillshader height slope aspect 

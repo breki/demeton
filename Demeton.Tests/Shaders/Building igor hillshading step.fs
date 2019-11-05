@@ -17,12 +17,10 @@ let igorHillshadingStepBuilder: ShadingStepBuildingFunc = fun parsedStep ->
 let ``Can parse elevation coloring step without parameters``() =
     let parsedStep = { Name = "igor"; Parameters = [] } 
 
-    invalidOp "todo"
-
-    //let step = igorHillshadingStepBuilder parsedStep
-    //test
-    //    <@ step =
-    //        Ok
-    //            (IgorHillshading
-    //                ({ SunAzimuth = degToRad -45. })) 
-    //    @>
+    let step = igorHillshadingStepBuilder parsedStep
+    test
+        <@ step =
+            Ok
+                (IgorHillshading
+                    ({ SunAzimuth = degToRad -45.; ShadingColor = 0u })) 
+        @>

@@ -1,7 +1,11 @@
 ﻿- implement step builders for standard steps
+    - igor
     - slope
     - aspect
 
+- investigate possible filters
+    - use Paint.NET as a start
+    
 - hillshading
     - run the command on Alps
 

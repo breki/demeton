@@ -1,9 +1,9 @@
-﻿- implement step builders for standard steps
-    - igor
-        - add sun direction as a parameter
+﻿- fix `Supports parsing elevation coloring step with custom color scale` test case
+- log shade pipeline actions
 
-    
 ## Tue 05.11.
+- Added more property tests for `IgorHillshader`
+- Fixing wrong calculation of aspect in `Hillshading`, added some tests for it.
 - `IgorHillshader.ShaderParameters` now has a single color property, `ShadingColor`.
 - Added sea color to the default color scale.
 - Parallelized `ElevationColoring.shadeRaster`.
