@@ -117,8 +117,7 @@ let colorOfHeight (heightMaybe: float option) (scale: ColorScale) =
 let colorScaleMaperitive =
     {
         Marks = [| 
-            -1s, Rgba8Bit.rgbColor 142uy 212uy 142uy
-            0s, Rgba8Bit.rgbaColor 142uy 212uy 142uy 0uy
+            0s, Rgba8Bit.rgbColor 204uy 243uy 255uy
             1s, Rgba8Bit.rgbColor 142uy 212uy 142uy
             700s, Rgba8Bit.rgbColor 245uy 250uy 196uy
             1500s, Rgba8Bit.rgbColor 217uy 215uy 189uy
