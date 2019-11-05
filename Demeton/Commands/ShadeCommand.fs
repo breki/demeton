@@ -148,7 +148,6 @@ let supportedParameters: CommandParameter[] = [|
     //|> Option.example "1200"  "specifies the printing resolution of 1200 dots per inch"
     |> Option.toPar
 
-
     Option.build SrtmDirParameter
     |> Option.desc "The path to the directory containing the original zipped SRTM HGT files."
     |> Option.asDirectory |> Option.defaultValue DefaultSrtmDir

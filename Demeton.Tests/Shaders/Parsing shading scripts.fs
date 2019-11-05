@@ -3,12 +3,18 @@
 open Demeton.Shaders
 open Demeton.Shaders.Pipeline.Common
 open Demeton.DemTypes
+open Demeton.Commands
+open CommandLine.Common
 
 open Xunit
 open Swensen.Unquote
+open TestHelp
 
 let parseShadingScript script: ShadingStep =
-    ElevationColoring { ColorScale = ElevationColoring.colorScaleMaperitive }
+    match ShadeCommand.parseShadingScriptOption script with
+    | OkValue parsedValue -> parsedValue :?> ShadingStep
+    | InvalidValue errorMessage -> 
+        fail (sprintf "parsing of shading script failed: %s" errorMessage)
 
 [<Fact>]
 let ``Supports parsing elevation coloring step without parameters``() =
@@ -23,9 +29,9 @@ let ``Supports parsing elevation coloring step without parameters``() =
             | _ -> false
         @>
 
-[<Fact(Skip="todo")>]
+[<Fact>]
 let ``Supports parsing elevation coloring step with custom color scale``() =
-    let script = "elecolor(scale='-1:#0;1000:#ffffff';none:#0')"
+    let script = "elecolor(scale='-1:#00000000;1000:#ffffff;none:#00000000')"
 
     let rootStep = parseShadingScript script
 

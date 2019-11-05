@@ -1,7 +1,8 @@
-﻿- fix `Supports parsing elevation coloring step with custom color scale` test case
+﻿- 
 - log shade pipeline actions
 
 ## Tue 05.11.
+- Fixed `Supports parsing elevation coloring step with custom color scale` test case.
 - Added more property tests for `IgorHillshader`
 - Fixing wrong calculation of aspect in `Hillshading`, added some tests for it.
 - `IgorHillshader.ShaderParameters` now has a single color property, `ShadingColor`.
