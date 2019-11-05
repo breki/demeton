@@ -96,7 +96,7 @@ let tileCellMinCoords tileSize (tileCoords: SrtmTileCoords)
 /// of X.
 /// </remarks>
 let longitudeToGlobalX (longitude: float) (tileSize: int): float =
-    (longitude + 179.) * float tileSize - 0.5
+    (longitude + 179.) * float tileSize
 
 /// <summary>
 /// Calculates the global fractional cell Y coordinate for the specified

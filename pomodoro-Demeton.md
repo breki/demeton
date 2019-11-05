@@ -1,5 +1,8 @@
 ﻿- parallelize `ElevationColoring.shadeRaster`
 
+## Tue 05.11.
+- SRTM cells are now treated as having coordinates on the geometric centers, so 0.5 offset is no longer used.
+
 ## Mon 04.11.
 - Fixed a bug in the SRTM tiles coordinate system.
 - Added the new shading script parsing into the console code.

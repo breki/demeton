@@ -65,12 +65,12 @@ let ``Calculates global coordinates for a given tile ID``
     @>
 
 [<Theory>]
-[<InlineData(0., 90., 1, 178.5, 0.)>]
-[<InlineData(0., 0., 1, 178.5, 90.)>]
-[<InlineData(1., -1., 1, 179.5, 91)>]
-[<InlineData(0.5, 0.5, 1, 179., 89.5)>]
-[<InlineData(0., 0., 3600, 644399.5, 324000.)>]
-[<InlineData(46.557611, 15.6455, 3600, 812006.8996, 267676.2)>]
+[<InlineData(0., 90., 1, 179., 0.)>]
+[<InlineData(0., 0., 1, 179., 90.)>]
+[<InlineData(1., -1., 1, 180., 91)>]
+[<InlineData(0.5, 0.5, 1, 179.5, 89.5)>]
+[<InlineData(0., 0., 3600, 644400., 324000.)>]
+[<InlineData(46.557611, 15.6455, 3600, 812007.3996, 267676.2)>]
 let ``Calculates fractional global coordinates for given longitude and latitude``
     longitude latitude tileSize expectedGlobalX expectedGlobalY =
     test <@ Tile.longitudeToGlobalX longitude tileSize = expectedGlobalX @>
