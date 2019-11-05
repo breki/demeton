@@ -29,9 +29,8 @@ let ``Uses transparency for totally flat area`` (parameters, slope, aspect) =
 let ``Igor's shading properties``() =
     let generateParametes (az, (col: byte [])): IgorHillshader.ShaderParameters =
         { SunAzimuth = az
-          ShadingColorR = col.[0]
-          ShadingColorG = col.[1]
-          ShadingColorB = col.[2] }
+          ShadingColor = Rgba8Bit.rgbColor col.[0] col.[1] col.[2]
+        }
 
     let genCircleAngle = floatInRange 0 360 |> Gen.map degToRad
 

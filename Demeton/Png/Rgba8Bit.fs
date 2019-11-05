@@ -34,6 +34,9 @@ let inline rgbaColor (r: byte) (g: byte) (b: byte) (a: byte): RgbaColor =
 let inline rgbColor (r: byte) (g: byte) (b: byte): RgbaColor =
     (uint32 r <<< 24) ||| (uint32 g <<< 16) ||| (uint32 b <<< 8) ||| 255u
 
+let inline withAlpha (alpha: byte) (color: RgbaColor): RgbaColor =
+    (color &&& 0xffffff00u) ||| uint32 alpha
+
 let inline toArgb(color: RgbaColor): ArgbColor =
     (uint32 (a color) <<< 24) ||| (uint32 (r color) <<< 16)
     ||| (uint32 (g color) <<< 8) ||| (uint32 (b color))

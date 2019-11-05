@@ -1,4 +1,6 @@
 ﻿- implement step builders for standard steps
+    - slope
+    - aspect
 
 - hillshading
     - run the command on Alps

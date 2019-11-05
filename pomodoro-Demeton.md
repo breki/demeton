@@ -1,6 +1,10 @@
 ﻿- implement step builders for standard steps
+    - igor
+        - add sun direction as a parameter
 
+    
 ## Tue 05.11.
+- `IgorHillshader.ShaderParameters` now has a single color property, `ShadingColor`.
 - Added sea color to the default color scale.
 - Parallelized `ElevationColoring.shadeRaster`.
 - SRTM cells are now treated as having coordinates on the geometric centers, so 0.5 offset is no longer used.
