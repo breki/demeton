@@ -14,9 +14,6 @@
 
 - we need one additional row of SRTM cells on each side to be able to calculate things for hillshading
 
-- " To be more exact, these
-coordinates refer to the geometric center of the lower left pixel, which in the case of SRTM3 data will be about 90 meters in extent."
-
 - https://fsprojects.github.io/FSharp.Formatting/metadata.html
 
 - proj4 links

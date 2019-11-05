@@ -1,6 +1,7 @@
-﻿- parallelize `ElevationColoring.shadeRaster`
+﻿- how to add sea color to color mask?
 
 ## Tue 05.11.
+- Parallelized `ElevationColoring.shadeRaster`.
 - SRTM cells are now treated as having coordinates on the geometric centers, so 0.5 offset is no longer used.
 
 ## Mon 04.11.

@@ -9,6 +9,7 @@ open Demeton.Srtm
 open Demeton.Shaders.Types
 open FParsec
 open Png
+open System.Threading.Tasks
 open Text
 
 type ColorScaleMark = (DemHeight * Rgba8Bit.RgbaColor)
@@ -150,7 +151,7 @@ let shadeRaster (colorScale: ColorScale): RasterShader =
             let globalSrtmY = Tile.latitudeToGlobalY latDeg 3600
             heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
 
-    for y in tileRect.MinY .. (tileRect.MaxY-1) do
+    let processRasterLine y =
         for x in tileRect.MinX .. (tileRect.MaxX-1) do
             let height = heightForTilePixel x y
 
@@ -162,3 +163,5 @@ let shadeRaster (colorScale: ColorScale): RasterShader =
                 (x - tileRect.MinX) 
                 (y - tileRect.MinY)
                 pixelValue
+
+    Parallel.For(tileRect.MinY, tileRect.MaxY, processRasterLine) |> ignore
