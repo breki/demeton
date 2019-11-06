@@ -63,6 +63,7 @@
     <Compile Include="Shaders\Building pipeline from parsed script.fs" />
     <Compile Include="Shaders\Building elevation coloring step.fs" />
     <Compile Include="Shaders\Building igor hillshading step.fs" />
+    <Compile Include="Shaders\Building slope shader step.fs" />
     <Compile Include="Shaders\Parsing shading scripts.fs" />
     <Compile Include="Commands tests\ShadeCommand\Command line parsing.fs" />
     <Compile Include="Commands tests\ShadeCommand\Running the command.fs" />

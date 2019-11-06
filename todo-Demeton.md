@@ -1,9 +1,8 @@
-﻿- do we really need special `OptionValueParsingResult`?
-- investigate Result monad
+﻿- investigate Result monad
 
-- implement step builders for standard steps
-    - slope
-    - aspect
+    
+- add sample DEM PNGs to the source control
+- add batch script that generates some sample images from these sample DEMs
 
 - investigate possible filters
     - use Paint.NET as a start

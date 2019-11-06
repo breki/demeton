@@ -1,4 +1,9 @@
-﻿## Wed 06.11.
+﻿- log saving of output tile PNG 
+- implement step builders for standard steps
+    - aspect
+
+## Wed 06.11.
+- Implemented `slopeShaderStepBuilder`
 - Implemented `igorHillshadingStepBuilder`
 - Implemented a reusable way to fetch errors from fparsec parsing.
 - Moved `CommandLine.TextParsers` to its own top-level module.

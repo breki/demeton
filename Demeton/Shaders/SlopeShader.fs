@@ -7,13 +7,23 @@ open Png
 
 open System
 
-let shadePixel: Hillshading.PixelHillshader = fun _  slope _ ->
+type ShaderParameters = 
+    { 
+        HorizontalColor: Rgba8Bit.RgbaColor
+        VerticalColor: Rgba8Bit.RgbaColor
+    }
+
+let defaultParameters = { 
+    HorizontalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy; 
+    VerticalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy }
+
+let shadePixel parameters: Hillshading.PixelHillshader = fun _  slope _ ->
     match Double.IsNaN(slope) with
     | true -> Rgba8Bit.TransparentColor
     | false ->
-        let flatColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
-        let verticalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy 
-
         let degrees = radToDeg slope
 
-        Rgba8Bit.mixColors flatColor verticalColor (degrees / 90.)
+        Rgba8Bit.mixColors 
+            parameters.HorizontalColor 
+            parameters.VerticalColor 
+            (degrees / 90.)

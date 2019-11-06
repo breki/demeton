@@ -60,6 +60,7 @@
     <Compile Include="Shaders\Pipeline\Building.fs" />
     <Compile Include="Shaders\Pipeline\BuildingElevationColoring.fs" />
     <Compile Include="Shaders\Pipeline\BuildingIgorHillshading.fs" />
+    <Compile Include="Shaders\Pipeline\BuildingSlopeShader.fs" />
     <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
   </ItemGroup>

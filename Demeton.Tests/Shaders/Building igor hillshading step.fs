@@ -1,4 +1,4 @@
-﻿module Tests.``Shaders``.Building_igor_hillshading_step
+﻿module Tests.Shaders.``Building igor hillshading step``
 
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
@@ -9,7 +9,7 @@ open Xunit
 open Swensen.Unquote
 
 [<Fact>]
-let ``Can parse elevation coloring step without parameters``() =
+let ``Can parse step without parameters``() =
     let parsedStep = { Name = "igor"; Parameters = [] } 
 
     let step = igorHillshadingStepBuilder parsedStep
@@ -20,7 +20,7 @@ let ``Can parse elevation coloring step without parameters``() =
         @>
 
 [<Fact>]
-let ``Can parse elevation coloring step with valid parameters``() =
+let ``Can parse step with valid parameters``() =
     let parsedStep = 
         { Name = "igor"; 
         Parameters =

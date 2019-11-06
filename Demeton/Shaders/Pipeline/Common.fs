@@ -18,6 +18,7 @@ type CompositingFuncFactory =
 type ShadingStep =
     | ElevationColoring of ElevationColoringParameters
     | IgorHillshading of IgorHillshader.ShaderParameters
+    | SlopeShading of SlopeShader.ShaderParameters
     | CustomShading of ShadingFuncId
     | Compositing of (ShadingStep * ShadingStep * CompositingFuncId)
 
@@ -72,6 +73,9 @@ let rec executeShadingStep
             | IgorHillshading parameters -> 
                 Log.info "Running igor hillshading step..."
                 Hillshading.shadeRaster (IgorHillshader.shadePixel parameters)
+            | SlopeShading parameters ->
+                Log.info "Running slope shading step..."
+                Hillshading.shadeRaster (SlopeShader.shadePixel parameters)
             | CustomShading shadingFuncId -> shadingFuncFactory shadingFuncId
             | _ -> invalidOp "Unsupported shading step"
 
