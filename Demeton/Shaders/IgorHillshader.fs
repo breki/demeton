@@ -14,6 +14,8 @@ type ShaderParameters =
         ShadingColor: Rgba8Bit.RgbaColor
     }
 
+let defaultParameters = { SunAzimuth = degToRad -45.; ShadingColor = 0u }
+
 let shadePixel parameters: Hillshading.PixelHillshader = fun _  slope aspect ->
     match Double.IsNaN(aspect) with
     | true -> Rgba8Bit.TransparentColor

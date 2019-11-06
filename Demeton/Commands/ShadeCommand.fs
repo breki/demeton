@@ -13,6 +13,7 @@ open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
 open Demeton.Shaders.Pipeline.Building
 open Demeton.Shaders.Pipeline.BuildingElevationColoring
+open Demeton.Shaders.Pipeline.BuildingIgorHillshading
 open Demeton.Srtm
 open Demeton.Srtm.Funcs
 open Png.Types
@@ -82,6 +83,7 @@ let parseCoverage value =
 
 let registeredStepBuilders = dict [
     ("elecolor", elevationColoringStepBuilder)
+    ("igor", igorHillshadingStepBuilder)
 ]
 
 let parseShadingScriptOption: OptionValueParser = fun value ->

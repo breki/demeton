@@ -88,10 +88,12 @@ let hexColor: Parser<RgbaColor, unit> =
 /// Tries to parse a color hex triplet or quadruplet (with '#' prefix) into
 /// <see cref="Rgba8Bit.RgbaColor" /> color.
 /// </summary>
-let tryParseColorHexValue hexValue: Result<RgbaColor, string> =
+let tryParseColorHexValue hexValue
+    : Result<RgbaColor, TextParsers.ParsingError> =
     match run hexColor hexValue with
     | Success(result, _, _)   -> Result.Ok result
-    | Failure(errorMsg, _, _) -> Result.Error errorMsg
+    | Failure (_, parserError, _) -> 
+        TextParsers.formatParsingFailure parserError
 
 let inline mixColors colorA colorB mixRatio = 
     let mixByteValues (v1:byte) (v2: byte): byte =

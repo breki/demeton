@@ -13,7 +13,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Text.fs" />
-    <Compile Include="CommandLine\TextParsers.fs" />
+    <Compile Include="TextParsers.fs" />
     <Compile Include="CommandLine\Common.fs" />
     <Compile Include="CommandLine\ValueParsers.fs" />
     <Compile Include="CommandLine\Arg.fs" />
@@ -59,6 +59,7 @@
     <Compile Include="Shaders\Pipeline\Parsing.fs" />
     <Compile Include="Shaders\Pipeline\Building.fs" />
     <Compile Include="Shaders\Pipeline\BuildingElevationColoring.fs" />
+    <Compile Include="Shaders\Pipeline\BuildingIgorHillshading.fs" />
     <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
   </ItemGroup>

@@ -1,5 +1,7 @@
-﻿- implement step builders for standard steps
-    - igor
+﻿- do we really need special `OptionValueParsingResult`?
+- investigate Result monad
+
+- implement step builders for standard steps
     - slope
     - aspect
 

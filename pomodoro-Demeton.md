@@ -1,5 +1,7 @@
-﻿- implement step builders for standard steps
-    - igor
+﻿## Wed 06.11.
+- Implemented `igorHillshadingStepBuilder`
+- Implemented a reusable way to fetch errors from fparsec parsing.
+- Moved `CommandLine.TextParsers` to its own top-level module.
 
 ## Tue 05.11.
 - Added more logging to the operations run by `shade` command.

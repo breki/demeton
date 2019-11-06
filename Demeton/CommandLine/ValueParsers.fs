@@ -49,7 +49,6 @@ let parsePositiveFloat value =
             InvalidValue "it has to be a positive numeric value"
         | _ -> OkValue value
 
-
 let parseFileName (value: string) =
     let checkedValue = Path.GetFileName(value)
 

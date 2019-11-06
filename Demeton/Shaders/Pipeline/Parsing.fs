@@ -10,8 +10,6 @@ type ParsedStep = {
 
 type ParsedScript = ParsedStep list
 
-type ParsingError = { Message: string; Location: int }
-
 let isAny _ = true
 let isAlphanumeric x = isAsciiLetter x || isDigit x
 let isWhitespace x = isAnyOf [| ' '; '\t'; '\n'; '\r' |] x
@@ -20,7 +18,7 @@ let unquotedParameterValueChars x =
     x <> ')' && x <> ',' && isNotQuote x && not (isWhitespace x)
 let pstringWS x = skipString x .>> spaces
 
-let parseShadingScript script: Result<ParsedScript, ParsingError> =
+let parseShadingScript script: Result<ParsedScript, TextParsers.ParsingError> =
     let pParameterName = 
         many1Satisfy isAlphanumeric .>> spaces <?> "step parameter name"
     let pParameterEndingQuote =
@@ -67,28 +65,4 @@ let parseShadingScript script: Result<ParsedScript, ParsingError> =
     match run pSteps script with
     | Success (steps, _, _) -> Result.Ok steps
     | Failure (_, parserError, _) -> 
-        let location = int parserError.Position.Column - 1
-
-        let allMessages = ErrorMessageList.ToSortedArray parserError.Messages
-
-        let errorMessage =
-            match allMessages with
-            | [||] -> "Unknown error"
-            | _ -> 
-                let expectedTokens =
-                    allMessages
-                    |> Array.choose (fun err ->
-                        match err with
-                        | Expected x -> Some x
-                        | ExpectedString x -> Some x
-                        | _ -> None)
-
-                match expectedTokens with
-                | [||] ->
-                    let firstError = parserError.Messages.Head
-                    match firstError with
-                    | Unexpected x -> x
-                    | _ -> invalidOp "todo"
-                | _ -> "Expected: " + (String.concat ", " expectedTokens)
-
-        Result.Error { Message = errorMessage; Location = location }
+        TextParsers.formatParsingFailure parserError
