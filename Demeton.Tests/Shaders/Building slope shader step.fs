@@ -8,9 +8,16 @@ open Png
 open Xunit
 open Swensen.Unquote
 
+let isError errorDescription step =
+    step = Error 
+            (sprintf 
+                "Error in step '%s': %s" 
+                StepNameSlopeShading 
+                errorDescription)
+
 [<Fact>]
 let ``Can parse step without parameters``() =
-    let parsedStep = { Name = "slope"; Parameters = [] } 
+    let parsedStep = { Name = StepNameSlopeShading; Parameters = [] } 
 
     let step = slopeShaderStepBuilder parsedStep
     test
@@ -23,7 +30,7 @@ let ``Can parse step without parameters``() =
 [<Fact>]
 let ``Can parse step with valid parameters``() =
     let parsedStep = 
-        { Name = "slope"; 
+        { Name = StepNameSlopeShading; 
         Parameters =
             [ { Name = "hcol"; Value = "#00000000" };
                 { Name = "vcol"; Value = "#333333" } ] } 
@@ -40,27 +47,23 @@ let ``Can parse step with valid parameters``() =
 [<Fact>]
 let ``Reports an error when horizontal color is invalid``() =
     let parsedStep = 
-        { Name = "slope"; 
+        { Name = StepNameSlopeShading; 
         Parameters =
             [ { Name = "hcol"; Value = "2234" };
                 { Name = "vcol"; Value = "#333333" } ] } 
 
     let step = slopeShaderStepBuilder parsedStep
-    test <@ step = 
-        Result.Error 
-            ("Error in step 'slope': 'hcol' parameter value error: " 
-            + "invalid color value.") @>
+    test <@ step
+            |> isError "'hcol' parameter value error: invalid color value." @>
 
 [<Fact>]
 let ``Reports an error when vertical color is invalid``() =
     let parsedStep = 
-        { Name = "slope"; 
+        { Name = StepNameSlopeShading; 
         Parameters =
             [ { Name = "hcol"; Value = "#333333" };
                 { Name = "vcol"; Value = "2234" } ] } 
 
     let step = slopeShaderStepBuilder parsedStep
-    test <@ step = 
-        Result.Error 
-            ("Error in step 'slope': 'vcol' parameter value error: " 
-            + "invalid color value.") @>
+    test <@ step
+            |> isError "'vcol' parameter value error: invalid color value." @>

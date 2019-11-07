@@ -5,8 +5,6 @@ open Demeton.Shaders
 open Demeton.Shaders.Types
 open Png
 
-type ElevationColoringParameters = { ColorScale: ElevationColoring.ColorScale }
-
 type ShadingFuncId = string
 type CompositingFuncId = string
 
@@ -16,7 +14,7 @@ type CompositingFuncFactory =
     CompositingFuncId -> AlphaCompositing.CompositingFunc
 
 type ShadingStep =
-    | ElevationColoring of ElevationColoringParameters
+    | ElevationColoring of ElevationColoring.Parameters
     | IgorHillshading of IgorHillshader.ShaderParameters
     | SlopeShading of SlopeShader.ShaderParameters
     | AspectShading of AspectShader.ShaderParameters
@@ -26,7 +24,8 @@ type ShadingStep =
 [<Literal>]
 let CompositingFuncIdOver = "over"
 
-let createShadingFuncById shadingFuncId = invalidOp "todo"
+let createShadingFuncById shadingFuncId 
+    = invalidOp "we currently do not support custom shading functions"
 
 let createCompositingFuncById compositingFuncId =
     match compositingFuncId with

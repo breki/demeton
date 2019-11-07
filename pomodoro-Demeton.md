@@ -1,7 +1,10 @@
-﻿- use constants for shade step names
-- tests for `executeShadingStep` for all supported steps
+﻿- tests for `executeShadingStep` for all supported steps
+    - we need to have the heights array and tiles rect with proper coordinates
+        - extract this into a common helper method
+    - `Shading pipeline.fs`
 
 ## Thu 07.11.
+- Switching to using constants for shade step names.
 - Implemented `aspectShaderStepBuilder`.
 
 ## Wed 06.11.

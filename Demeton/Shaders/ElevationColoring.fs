@@ -19,6 +19,8 @@ type ColorScale = {
     NoneColor: Rgba8Bit.RgbaColor
     }
 
+type Parameters = { ColorScale: ColorScale }
+
 let colorScaleToString scale =
     scale.Marks 
     |> Array.fold (fun s (elevation, color) -> 
@@ -128,7 +130,8 @@ let colorScaleMaperitive =
         NoneColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
     }
 
-// todo the function should accept the color scale as a parameter
+let defaultParameters = { ColorScale = colorScaleMaperitive }
+
 let shadeRaster (colorScale: ColorScale): RasterShader = 
     fun heightsArray tileRect imageData options ->
 

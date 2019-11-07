@@ -6,6 +6,9 @@ open Demeton.Shaders.Pipeline.Building
 open Demeton.Geometry.Common
 open Png
 
+[<Literal>]
+let StepNameIgorHillshading = "igor"
+
 let igorHillshadingStepBuilder: ShadingStepBuildingFunc = fun parsedStep ->
     let parseSunAzimuth value (settings: IgorHillshader.ShaderParameters) =
         match TextParsers.parseFloat value with

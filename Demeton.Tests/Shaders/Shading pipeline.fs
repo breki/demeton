@@ -2,6 +2,7 @@
 
 open Demeton.Shaders.Pipeline.Common
 open Raster
+open Demeton.Shaders
 open Demeton.Shaders.Types
 open Png
 
@@ -43,15 +44,10 @@ let createCompositingFuncById compositingFuncId =
     | CompositingFuncIdStupid -> stupidCompositing
     | _ -> invalidOp "Unknown compositing function."
 
+let (heights, shaderOptions, tileRect) = ShadingSampleGenerator.generateSample()
+
 [<Fact>]
 let ``Supports running a simple, single-step pipeline``() =           
-    let heights = 
-        HeightsArray
-            (10, 20, 40, 50, HeightsArrayInitializer1D(fun x -> DemHeightNone))
-    let tileRect = { MinX = 10; MinY = 20; Width = 5; Height = 6 }
-
-    let shaderOptions: ShaderOptions = { MapScale = 100000.; Dpi = 300. }
-
     let step = CustomShading ShadingFuncIdStupid
 
     let resultingImageData = 
@@ -63,16 +59,6 @@ let ``Supports running a simple, single-step pipeline``() =
 
 [<Fact>]
 let ``Supports compositing of images``() =
-    let stupidRasterShader: RasterShader = 
-        fun _ _ _ _ -> ignore()       
-            
-    let heights = 
-        HeightsArray
-            (10, 20, 40, 50, HeightsArrayInitializer1D(fun x -> DemHeightNone))
-    let tileRect = { MinX = 10; MinY = 20; Width = 5; Height = 6 }
-
-    let shaderOptions: ShaderOptions = { MapScale = 100000.; Dpi = 300. }
-
     let shader1Step = CustomShading ShadingFuncIdStupid
     let shader2Step = CustomShading ShadingFuncIdStupid
     let compositingStep = 
@@ -87,3 +73,29 @@ let ``Supports compositing of images``() =
             shaderOptions 
             compositingStep
     test <@ Some resultingImageData = compositedImageGenerated @>
+
+[<Fact>]
+let ``Supports elevation coloring``() =
+    let step = ElevationColoring ElevationColoring.defaultParameters
+    let resultingImageData = 
+        executeShadingStep 
+            createShadingFuncById
+            createCompositingFuncById 
+            heights 
+            tileRect 
+            shaderOptions 
+            step
+    ignore()
+
+[<Fact(Skip="todo")>]
+let ``Supports aspect shading``() =
+    let step = AspectShading AspectShader.defaultParameters
+    let resultingImageData = 
+        executeShadingStep 
+            createShadingFuncById
+            createCompositingFuncById 
+            heights 
+            tileRect 
+            shaderOptions 
+            step
+    ignore()

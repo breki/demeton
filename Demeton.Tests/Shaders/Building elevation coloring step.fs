@@ -9,10 +9,16 @@ open Png
 open Xunit
 open Swensen.Unquote
 
+let isError errorDescription step =
+    step = Error 
+            (sprintf 
+                "Error in step '%s': %s" 
+                StepNameElevationColoring 
+                errorDescription)
 
 [<Fact>]
 let ``Can parse elevation coloring step without parameters``() =
-    let parsedStep = { Name = "elecolor"; Parameters = [] } 
+    let parsedStep = { Name = StepNameElevationColoring; Parameters = [] } 
 
     let step = elevationColoringStepBuilder parsedStep
     test
@@ -25,7 +31,7 @@ let ``Can parse elevation coloring step without parameters``() =
 [<Fact>]
 let ``Can parse elevation coloring step with valid parameters``() =
     let parsedStep = 
-        { Name = "elecolor"; 
+        { Name = StepNameElevationColoring; 
         Parameters = 
             [ { Name = "scale"; 
                 Value = "-1:#000000;2000:#ffffff;none:#000000" } ] } 
@@ -46,39 +52,33 @@ let ``Can parse elevation coloring step with valid parameters``() =
 [<Fact>]
 let ``Reports an error when color scale parameter is invalid``() =
     let parsedStep = 
-        { Name = "elecolor"; 
+        { Name = StepNameElevationColoring; 
         Parameters = 
             [ { Name = "scale"; Value = "-1:#000000;2000:#ffffff" } ] } 
 
     let step = elevationColoringStepBuilder parsedStep
-    test <@ step = 
-        Error 
-            ("Error in step 'elecolor': 'scale' parameter value error: " 
-                + "invalid color scale.") @>
+    test <@ step 
+            |> isError "'scale' parameter value error: invalid color scale." @>
     
 [<Fact>]
 let ``Reports an error when parameter is not recognized``() =
     let parsedStep = 
-        { Name = "elecolor"; 
+        { Name = StepNameElevationColoring; 
         Parameters = 
             [ { Name = "somepar"; Value = "some value" } ] } 
 
     let step = elevationColoringStepBuilder parsedStep
-    test <@ step = 
-        Error 
-            "Error in step 'elecolor': 'somepar' parameter is not recognized." 
-            @>
+    test <@ step
+            |> isError "'somepar' parameter is not recognized." @>
     
 [<Fact>]
 let ``Can handle parsing of remaining parameters when error is found``() =
     let parsedStep = 
-        { Name = "elecolor"; 
+        { Name = StepNameElevationColoring; 
         Parameters = 
             [ { Name = "somepar"; Value = "some value" };
             { Name = "somepar2"; Value = "some value" } ] } 
 
     let step = elevationColoringStepBuilder parsedStep
-    test <@ step = 
-        Error 
-            "Error in step 'elecolor': 'somepar' parameter is not recognized." 
-            @>
+    test <@ step 
+            |> isError "'somepar' parameter is not recognized." @>

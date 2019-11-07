@@ -5,6 +5,9 @@ open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Building
 open Png
 
+[<Literal>]
+let StepNameSlopeShading = "slope"
+
 let slopeShaderStepBuilder: ShadingStepBuildingFunc = fun parsedStep ->
     let parseHorizontalColor value (settings: SlopeShader.ShaderParameters) =
         match Rgba8Bit.tryParseColorHexValue value with

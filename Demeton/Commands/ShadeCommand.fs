@@ -85,9 +85,9 @@ let parseCoverage value =
 
 let registeredStepBuilders = dict [
     ("aspect", aspectShaderStepBuilder)
-    ("elecolor", elevationColoringStepBuilder)
-    ("igor", igorHillshadingStepBuilder)
-    ("slope", slopeShaderStepBuilder)
+    (StepNameElevationColoring, elevationColoringStepBuilder)
+    (StepNameIgorHillshading, igorHillshadingStepBuilder)
+    (StepNameSlopeShading, slopeShaderStepBuilder)
 ]
 
 let parseShadingScriptOption: OptionValueParser = fun value ->

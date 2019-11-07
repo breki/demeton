@@ -5,6 +5,9 @@ open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Building
 open Png
 
+[<Literal>]
+let StepNameAspectShading = "aspect"
+
 let aspectShaderStepBuilder: ShadingStepBuildingFunc = fun parsedStep ->
     let parseNorthColor value (settings: AspectShader.ShaderParameters) =
         match Rgba8Bit.tryParseColorHexValue value with

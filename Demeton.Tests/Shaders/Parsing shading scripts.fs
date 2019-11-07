@@ -2,6 +2,7 @@
 
 open Demeton.Shaders
 open Demeton.Shaders.Pipeline.Common
+open Demeton.Shaders.Pipeline.BuildingElevationColoring
 open Demeton.DemTypes
 open Demeton.Commands
 open CommandLine.Common
@@ -18,7 +19,7 @@ let parseShadingScript script: ShadingStep =
 
 [<Fact>]
 let ``Supports parsing elevation coloring step without parameters``() =
-    let script = "elecolor"
+    let script = StepNameElevationColoring
 
     let rootStep = parseShadingScript script
 

@@ -8,9 +8,16 @@ open Demeton.Geometry.Common
 open Xunit
 open Swensen.Unquote
 
+let isError errorDescription step =
+    step = Error 
+            (sprintf 
+                "Error in step '%s': %s" 
+                StepNameIgorHillshading
+                errorDescription)
+
 [<Fact>]
 let ``Can parse step without parameters``() =
-    let parsedStep = { Name = "igor"; Parameters = [] } 
+    let parsedStep = { Name = StepNameIgorHillshading; Parameters = [] } 
 
     let step = igorHillshadingStepBuilder parsedStep
     test
@@ -22,7 +29,7 @@ let ``Can parse step without parameters``() =
 [<Fact>]
 let ``Can parse step with valid parameters``() =
     let parsedStep = 
-        { Name = "igor"; 
+        { Name = StepNameIgorHillshading; 
         Parameters =
             [ { Name = "sunaz"; Value = "-90" };
                 { Name = "shadcol"; Value = "#333333" } ] } 
@@ -37,27 +44,25 @@ let ``Can parse step with valid parameters``() =
 [<Fact>]
 let ``Reports an error when shading color is invalid``() =
     let parsedStep = 
-        { Name = "igor"; 
+        { Name = StepNameIgorHillshading; 
         Parameters =
             [ { Name = "sunaz"; Value = "-90" };
                 { Name = "shadcol"; Value = "wsdd" } ] } 
 
     let step = igorHillshadingStepBuilder parsedStep
-    test <@ step = 
-        Result.Error 
-            ("Error in step 'igor': 'shadcol' parameter value error: " 
-            + "invalid color value.") @>
+    test <@ step 
+            |> isError "'shadcol' parameter value error: invalid color value." 
+            @>
 
 [<Fact>]
 let ``Reports an error when sun azimuth is invalid``() =
     let parsedStep = 
-        { Name = "igor"; 
+        { Name = StepNameIgorHillshading; 
         Parameters =
             [ { Name = "sunaz"; Value = "xcd" };
                 { Name = "shadcol"; Value = "#333333" } ] } 
 
     let step = igorHillshadingStepBuilder parsedStep
-    test <@ step = 
-        Result.Error 
-            ("Error in step 'igor': 'sunaz' parameter value error: " 
-            + "invalid degrees value.") @>
+    test <@ step 
+            |> isError "'sunaz' parameter value error: invalid degrees value." 
+            @>

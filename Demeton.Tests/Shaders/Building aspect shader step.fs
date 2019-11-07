@@ -10,7 +10,7 @@ open Swensen.Unquote
 
 [<Fact>]
 let ``Can parse step without parameters``() =
-    let parsedStep = { Name = "aspect"; Parameters = [] } 
+    let parsedStep = { Name = StepNameAspectShading; Parameters = [] } 
 
     let step = aspectShaderStepBuilder parsedStep
     test <@ step = Ok (AspectShading AspectShader.defaultParameters) @>
@@ -18,7 +18,7 @@ let ``Can parse step without parameters``() =
 [<Fact>]
 let ``Can parse step with valid parameters``() =
     let parsedStep = 
-        { Name = "aspect"; 
+        { Name = StepNameAspectShading; 
         Parameters =
             [ { Name = "ncol"; Value = "#000000" };
                 { Name = "ecol"; Value = "#111111" };
@@ -43,7 +43,7 @@ let ``Can parse step with valid parameters``() =
 let ``Reports an error a color value is invalid``   
     (colorName, nColor, eColor, sColor, wColor) =
     let parsedStep = 
-        { Name = "aspect"; 
+        { Name = StepNameAspectShading; 
         Parameters =
             [ { Name = "ncol"; Value = nColor };
                 { Name = "ecol"; Value = eColor };
@@ -51,7 +51,8 @@ let ``Reports an error a color value is invalid``
                 { Name = "wcol"; Value = wColor } ] } 
 
     let step = aspectShaderStepBuilder parsedStep
-    test <@ step = 
+    test <@ step =
         Result.Error (sprintf 
-            "Error in step 'aspect': '%s' parameter value error: invalid color value." 
+            "Error in step '%s': '%s' parameter value error: invalid color value."
+            StepNameAspectShading
             colorName) @>
