@@ -19,6 +19,7 @@ type ShadingStep =
     | ElevationColoring of ElevationColoringParameters
     | IgorHillshading of IgorHillshader.ShaderParameters
     | SlopeShading of SlopeShader.ShaderParameters
+    | AspectShading of AspectShader.ShaderParameters
     | CustomShading of ShadingFuncId
     | Compositing of (ShadingStep * ShadingStep * CompositingFuncId)
 
@@ -67,6 +68,9 @@ let rec executeShadingStep
     | _ -> 
         let rasterShaderToUse = 
             match step with
+            | AspectShading parameters ->
+                Log.info "Running aspect shading step..."
+                Hillshading.shadeRaster (AspectShader.shadePixel parameters)
             | ElevationColoring parameters -> 
                 Log.info "Running elevation coloring step..."
                 ElevationColoring.shadeRaster parameters.ColorScale

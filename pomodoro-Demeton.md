@@ -1,10 +1,12 @@
-﻿- log saving of output tile PNG 
-- implement step builders for standard steps
-    - aspect
+﻿- use constants for shade step names
+- tests for `executeShadingStep` for all supported steps
+
+## Thu 07.11.
+- Implemented `aspectShaderStepBuilder`.
 
 ## Wed 06.11.
-- Implemented `slopeShaderStepBuilder`
-- Implemented `igorHillshadingStepBuilder`
+- Implemented `slopeShaderStepBuilder`.
+- Implemented `igorHillshadingStepBuilder`.
 - Implemented a reusable way to fetch errors from fparsec parsing.
 - Moved `CommandLine.TextParsers` to its own top-level module.
 

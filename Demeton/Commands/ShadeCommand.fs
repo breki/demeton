@@ -12,6 +12,7 @@ open Demeton.Shaders.Types
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
 open Demeton.Shaders.Pipeline.Building
+open Demeton.Shaders.Pipeline.BuildingAspectShader
 open Demeton.Shaders.Pipeline.BuildingElevationColoring
 open Demeton.Shaders.Pipeline.BuildingIgorHillshading
 open Demeton.Shaders.Pipeline.BuildingSlopeShader
@@ -83,6 +84,7 @@ let parseCoverage value =
             OkValue coveragePoints
 
 let registeredStepBuilders = dict [
+    ("aspect", aspectShaderStepBuilder)
     ("elecolor", elevationColoringStepBuilder)
     ("igor", igorHillshadingStepBuilder)
     ("slope", slopeShaderStepBuilder)
@@ -396,6 +398,8 @@ let run
         | Ok maybeGeneratedTile ->
             match maybeGeneratedTile with
             | Some imageData -> 
+                Log.info "Saving the shade tile..."
+
                 let tileImageFileName = 
                     saveTile 
                         options 
