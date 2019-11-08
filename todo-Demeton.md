@@ -1,5 +1,10 @@
-﻿- investigate Result monad
+﻿- implement support for multi-level DEM PNGs
+    - something is wrong with the dy calculation
+    - implement a method that calculates the min (dx, dy) for a set of sample points
+    - first implement a method that, for a given map scale and dpi, calculates the DEM level needed
+    - for the lowest level, detect that DPI is too low 
 
+- investigate Result monad
     
 - add sample DEM PNGs to the source control
 - add batch script that generates some sample images from these sample DEMs

@@ -44,7 +44,8 @@ let createCompositingFuncById compositingFuncId =
     | CompositingFuncIdStupid -> stupidCompositing
     | _ -> invalidOp "Unknown compositing function."
 
-let (heights, shaderOptions, tileRect) = ShadingSampleGenerator.generateSample()
+let (area, heights, shaderOptions, tileRect) = 
+    ShadingSampleGenerator.generateSample()
 
 [<Fact>]
 let ``Supports running a simple, single-step pipeline``() =           
@@ -77,25 +78,43 @@ let ``Supports compositing of images``() =
 [<Fact>]
 let ``Supports elevation coloring``() =
     let step = ElevationColoring ElevationColoring.defaultParameters
-    let resultingImageData = 
-        executeShadingStep 
-            createShadingFuncById
-            createCompositingFuncById 
-            heights 
-            tileRect 
-            shaderOptions 
-            step
-    ignore()
+    executeShadingStep 
+        createShadingFuncById
+        createCompositingFuncById 
+        heights 
+        tileRect 
+        shaderOptions 
+        step |> ignore
 
-[<Fact(Skip="todo")>]
+[<Fact>]
 let ``Supports aspect shading``() =
     let step = AspectShading AspectShader.defaultParameters
-    let resultingImageData = 
-        executeShadingStep 
-            createShadingFuncById
-            createCompositingFuncById 
-            heights 
-            tileRect 
-            shaderOptions 
-            step
-    ignore()
+    executeShadingStep 
+        createShadingFuncById
+        createCompositingFuncById 
+        heights 
+        tileRect 
+        shaderOptions 
+        step |> ignore
+
+[<Fact>]
+let ``Supports slope shading``() =
+    let step = SlopeShading SlopeShader.defaultParameters
+    executeShadingStep 
+        createShadingFuncById
+        createCompositingFuncById 
+        heights 
+        tileRect 
+        shaderOptions 
+        step |> ignore
+
+[<Fact>]
+let ``Supports igor shading``() =
+    let step = IgorHillshading IgorHillshader.defaultParameters
+    executeShadingStep 
+        createShadingFuncById
+        createCompositingFuncById 
+        heights 
+        tileRect 
+        shaderOptions 
+        step |> ignore

@@ -1,9 +1,8 @@
-﻿- tests for `executeShadingStep` for all supported steps
-    - we need to have the heights array and tiles rect with proper coordinates
-        - extract this into a common helper method
-    - `Shading pipeline.fs`
+﻿## Fri 08.11.
+- Working on implementing the calculation for the needed SRTM level based on the map scale and DPI.
 
 ## Thu 07.11.
+- Extended tests for `executeShadingStep` for all supported steps.
 - Switching to using constants for shade step names.
 - Implemented `aspectShaderStepBuilder`.
 

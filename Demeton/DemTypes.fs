@@ -1,5 +1,7 @@
 ﻿module Demeton.DemTypes 
 
+open System
+
 type DemHeight = int16
 
 [<Literal>]
@@ -68,6 +70,16 @@ type HeightsArray
     member this.Cells = cells
     
     member this.heightAt ((x, y): GlobalCellCoords) = 
+
+    #if DEBUG
+        match (x, y) with
+        | _ when x < this.MinX || x > this.MaxX ->
+            raise <| new ArgumentOutOfRangeException("x")
+        | _ when y < this.MinY || y > this.MaxY ->
+            raise <| new ArgumentOutOfRangeException("y")
+        | _ -> ignore()
+    #endif
+
         let index = (y - this.MinY) * width + x - this.MinX
 
         let heightAtCell = this.Cells.[index]

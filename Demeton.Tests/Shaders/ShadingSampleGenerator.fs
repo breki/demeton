@@ -33,12 +33,12 @@ let generateSample() =
     let (minLonNeeded, minLatNeeded) = 
         WebMercator.inverse 
             ((rasterRect.MinX - 1 |> float) / shaderOptions.ProjectionScaleFactor)
-            ((rasterRect.MinY - 1 |> float) / shaderOptions.ProjectionScaleFactor)
+            -((rasterRect.MinY - 1 |> float) / shaderOptions.ProjectionScaleFactor)
         |> Option.get
     let (maxLonNeeded, maxLatNeeded) = 
         WebMercator.inverse 
             ((rasterRect.MaxX + 1 |> float) / shaderOptions.ProjectionScaleFactor)
-            ((rasterRect.MaxY + 1 |> float) / shaderOptions.ProjectionScaleFactor)
+            -((rasterRect.MaxY + 1 |> float) / shaderOptions.ProjectionScaleFactor)
         |> Option.get
 
     let minLonNeededDeg = radToDeg minLonNeeded 
@@ -47,21 +47,21 @@ let generateSample() =
     let maxLatNeededDeg = radToDeg maxLatNeeded 
 
     let minSrtmX = Tile.longitudeToGlobalX minLonNeededDeg 3600 |> floor |> int
-    let minSrtmY = Tile.latitudeToGlobalY maxLatNeededDeg 3600 |> floor |> int
+    let minSrtmY = Tile.latitudeToGlobalY minLatNeededDeg 3600 |> floor |> int
     let maxSrtmX = Tile.longitudeToGlobalX maxLonNeededDeg 3600 |> floor |> int
-    let maxSrtmY = Tile.latitudeToGlobalY minLatNeededDeg 3600 |> floor |> int
+    let maxSrtmY = Tile.latitudeToGlobalY maxLatNeededDeg 3600 |> floor |> int
 
     let heights = 
         HeightsArray
             (minSrtmX, minSrtmY, 
             maxSrtmX - minSrtmX + 1, maxSrtmY - minSrtmY + 1, 
-            HeightsArrayInitializer1D(fun x -> DemHeightNone))
+            HeightsArrayInitializer1D(fun _ -> DemHeight 1000))
 
-    (heights, shaderOptions, rasterRect)
+    (area, heights, shaderOptions, rasterRect)
 
 [<Fact>]
 let ``Sample data is valid and sane``() =
-    let (heights, _, rasterRect) = generateSample()
+    let (_, heights, _, rasterRect) = generateSample()
 
     test <@ heights.Width = 741 @>
     test <@ heights.Height = 340 @>

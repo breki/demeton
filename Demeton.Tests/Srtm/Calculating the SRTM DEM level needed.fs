@@ -1,0 +1,91 @@
+﻿module Tests.Srtm.``Calculating the SRTM DEM level needed``
+
+open Demeton.Geometry.Common
+open Demeton.Projections
+open Demeton.Shaders.Types
+open Demeton.Srtm
+open Png
+
+open Xunit
+open Swensen.Unquote
+
+let area = 
+    { MinLon = 4.702148; MinLat = 43.331571; 
+    MaxLon = 16.976075; MaxLat = 48.580605 }
+
+let rasterRectFor scaleFactor =
+    let minCornerX, minCornerY = 
+        WebMercator.proj (area.MinLon |> degToRad) (area.MaxLat |> degToRad)
+        |> Option.get
+    let maxCornerX, maxCornerY = 
+        WebMercator.proj (area.MaxLon |> degToRad) (area.MinLat |> degToRad) 
+        |> Option.get
+
+    Raster.Rect.asMinMax
+        (int (floor (minCornerX * scaleFactor)))
+        -(int (floor (minCornerY * scaleFactor)))
+        (int (ceil (maxCornerX * scaleFactor)))
+        -(int (ceil (maxCornerY * scaleFactor)))
+
+let rasterToSrtmCoords (rasterX, rasterY) scaleFactor =
+    let sampleLonLatMaybe = 
+        WebMercator.inverse 
+            ((float rasterX) / scaleFactor)
+            -((float rasterY) / scaleFactor)
+
+    match sampleLonLatMaybe with
+    | None -> None
+    | Some (lon, lat) -> 
+        let tileX = Tile.longitudeToGlobalX lon 3600
+        let tileY = Tile.latitudeToGlobalY lat 3600
+        Some (tileX, tileY)
+
+let calculateSrtmDistanceOfPixels
+    scaleFactor
+    (mapRasterBox: Raster.Rect)
+    =
+    let rasterSamplePointX = 
+        mapRasterBox.MinX + mapRasterBox.Width / 2
+    let rasterSamplePointY =
+        mapRasterBox.MinY + mapRasterBox.Height / 2
+
+    let (tx0, ty0) = 
+        rasterToSrtmCoords 
+            (rasterSamplePointX, rasterSamplePointY) scaleFactor
+        |> Option.get
+    let (tx1, ty1) = 
+        rasterToSrtmCoords 
+            (rasterSamplePointX + 1, rasterSamplePointY + 1) scaleFactor
+        |> Option.get
+
+    (abs (tx1-tx0), abs (ty1-ty0))
+
+[<Fact>]
+let ``Icebreaker``() =
+    let scaleFactor = { MapScale = 1000000.; Dpi = 1. }.ProjectionScaleFactor
+    let (dx, dy) = 
+        scaleFactor 
+        |> rasterRectFor
+        |> calculateSrtmDistanceOfPixels scaleFactor
+
+    test <@ abs (dx - 14.35252717) < 0.0001 @>
+    test <@ abs (dy - 9.993502117) < 0.0001 @>
+
+    let scaleFactor = { MapScale = 2000000.; Dpi = 1. }.ProjectionScaleFactor
+    let (dx, dy) = 
+        scaleFactor 
+        |> rasterRectFor
+        |> calculateSrtmDistanceOfPixels scaleFactor
+
+    test <@ abs (dx - 28.70505435) < 0.0001 @>
+    test <@ abs (dy - 19.9584096) < 0.0001 @>
+
+    let scaleFactor = { MapScale = 1000000.; Dpi = 2. }.ProjectionScaleFactor
+    let (dx, dy) = 
+        scaleFactor 
+        |> rasterRectFor
+        |> calculateSrtmDistanceOfPixels scaleFactor
+
+    test <@ abs (dx - 7.176263587) < 0.0001 @>
+    test <@ abs (dy - 4.986027734) < 0.0001 @>
+
