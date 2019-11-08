@@ -1,11 +1,12 @@
-﻿- implement support for multi-level DEM PNGs
-    - something is wrong with the dy calculation
+﻿- implement some kind of search algorithm that identifies the minimum distance between pixels?
+    - simulated annealing?
+    - this function can work on lon, lat coordinates, SRTM coords are not needed
+    - then, based on that, calculate the level needed
+- implement support for multi-level DEM PNGs
     - implement a method that calculates the min (dx, dy) for a set of sample points
     - first implement a method that, for a given map scale and dpi, calculates the DEM level needed
     - for the lowest level, detect that DPI is too low 
 
-- investigate Result monad
-    
 - add sample DEM PNGs to the source control
 - add batch script that generates some sample images from these sample DEMs
 

@@ -1,4 +1,7 @@
-﻿## Fri 08.11.
+﻿- implement generic simulated annealing algorithm
+
+## Fri 08.11.
+- Started working on a simulated annealing algorithm.
 - Working on implementing the calculation for the needed SRTM level based on the map scale and DPI.
 
 ## Thu 07.11.

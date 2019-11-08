@@ -1,10 +1,22 @@
-﻿module Text
+﻿/// <summary>
+/// Contains functions for building a string using 
+/// <see cref="System.Text.StringBuilder" />.
+/// </summary>
+module Text
 
 open System
 open System.Text
 
+/// <summary>
+/// Starts building of a string by creating a 
+/// <see cref="System.Text.StringBuilder" /> instance.
+/// </summary>
 let buildString() = StringBuilder()
 
+/// <summary>
+/// Appends a text to the
+/// <see cref="System.Text.StringBuilder" /> instance.
+/// </summary>
 let append (text: string) (sb: StringBuilder) =
     sb.Append(text)
 

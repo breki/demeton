@@ -9,6 +9,11 @@ open Demeton.Srtm
 open Xunit
 open Swensen.Unquote
 
+/// <summary>
+/// Generates a sample geographic area bounds, its corresponding heights array
+/// (filled with dummy height values) and calculates the raster rectangle needed
+/// to cover the area. This function is used for shader tests.
+/// </summary>
 let generateSample() =
     let area = 
         { MinLon = 15.331473; MinLat = 46.45726; 

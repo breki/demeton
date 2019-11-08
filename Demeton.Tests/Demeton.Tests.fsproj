@@ -43,7 +43,6 @@
     <Compile Include="Geometry\Distance on Earth.fs" />
     <Compile Include="Dem\Working with HeightsArrays.fs" />
     <Compile Include="Dem\Merging DEM data.fs" />
-    <Compile Include="Srtm\Calculating the SRTM DEM level needed.fs" />
     <Compile Include="Srtm\SRTM tile tests.fs" />
     <Compile Include="Srtm\Bounds to DEM tiles.fs" />
     <Compile Include="Srtm\Reading SRTM HGT files.fs" />
@@ -53,6 +52,8 @@
     <Compile Include="Srtm\decodeSrtmTileFromPngFile tests.fs" />
     <Compile Include="Srtm\fetchSrtmTile tests.fs" />
     <Compile Include="Srtm\fetchSrtmHeights tests.fs" />
+    <Compile Include="Srtm\Calculating the SRTM DEM level needed.fs" />
+    <Compile Include="SimAnn\Simulated annealing.fs" />
     <Compile Include="Projections\ProjectionsTestHelpers.fs" />
     <Compile Include="Projections\WebMercator tests.fs" />
     <Compile Include="Shaders\ShadingSampleGenerator.fs" />

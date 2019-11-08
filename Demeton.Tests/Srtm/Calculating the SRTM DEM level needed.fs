@@ -4,7 +4,6 @@ open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Shaders.Types
 open Demeton.Srtm
-open Png
 
 open Xunit
 open Swensen.Unquote
@@ -13,7 +12,7 @@ let area =
     { MinLon = 4.702148; MinLat = 43.331571; 
     MaxLon = 16.976075; MaxLat = 48.580605 }
 
-let rasterRectFor scaleFactor =
+let private rasterRectFor scaleFactor =
     let minCornerX, minCornerY = 
         WebMercator.proj (area.MinLon |> degToRad) (area.MaxLat |> degToRad)
         |> Option.get
@@ -27,7 +26,7 @@ let rasterRectFor scaleFactor =
         (int (ceil (maxCornerX * scaleFactor)))
         -(int (ceil (maxCornerY * scaleFactor)))
 
-let rasterToSrtmCoords (rasterX, rasterY) scaleFactor =
+let private rasterToSrtmCoords (rasterX, rasterY) scaleFactor =
     let sampleLonLatMaybe = 
         WebMercator.inverse 
             ((float rasterX) / scaleFactor)
@@ -39,6 +38,21 @@ let rasterToSrtmCoords (rasterX, rasterY) scaleFactor =
         let tileX = Tile.longitudeToGlobalX lon 3600
         let tileY = Tile.latitudeToGlobalY lat 3600
         Some (tileX, tileY)
+
+let calculateSrtmDistanceOfSample
+    rasterSamplePointX rasterSamplePointY
+    scaleFactor
+    =
+    let (tx0, ty0) = 
+        rasterToSrtmCoords 
+            (rasterSamplePointX, rasterSamplePointY) scaleFactor
+        |> Option.get
+    let (tx1, ty1) = 
+        rasterToSrtmCoords 
+            (rasterSamplePointX + 1, rasterSamplePointY + 1) scaleFactor
+        |> Option.get
+
+    (abs (tx1-tx0), abs (ty1-ty0))
 
 let calculateSrtmDistanceOfPixels
     scaleFactor
@@ -61,7 +75,7 @@ let calculateSrtmDistanceOfPixels
     (abs (tx1-tx0), abs (ty1-ty0))
 
 [<Fact>]
-let ``Icebreaker``() =
+let ``Can calculate distance between rasters pixels in terms of SRTM DEM cells``() =
     let scaleFactor = { MapScale = 1000000.; Dpi = 1. }.ProjectionScaleFactor
     let (dx, dy) = 
         scaleFactor 
