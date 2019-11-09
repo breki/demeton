@@ -4,7 +4,7 @@ module Tests.Shaders.ShadingSampleGenerator
 open Demeton.DemTypes
 open Demeton.Geometry.Common
 open Demeton.Projections
-open Demeton.Shaders.Types
+open Demeton.Projections.Common
 open Demeton.Srtm
 open Xunit
 open Swensen.Unquote

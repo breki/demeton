@@ -7,8 +7,8 @@ open Raster
 open Demeton.Geometry
 open Demeton.Geometry.Common
 open Demeton.Projections
+open Demeton.Projections.Common
 open Demeton.Shaders
-open Demeton.Shaders.Types
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
 open Demeton.Shaders.Pipeline.Building
@@ -31,7 +31,7 @@ type Options = {
     SrtmDir: string
     TileSize: int
     RootShadingStep: Pipeline.Common.ShadingStep 
-    ShaderOptions: ShaderOptions
+    ShaderOptions: MapProjectionParameters
 }
 
 [<Literal>]

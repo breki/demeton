@@ -11,6 +11,15 @@ let MetersPerInch = 0.0254
 [<Literal>]
 let InchesPerMeter = 39.3701
 
+type MapProjectionParameters = {
+    MapScale: float
+    Dpi: float
+    }
+
+    with
+    member this.ProjectionScaleFactor =
+        EarthRadiusInMeters / this.MapScale * InchesPerMeter * this.Dpi
+
 /// <summary>
 /// Calculates an approximate geodetic distance (in meters) between two points 
 /// on Earth. Not suitable for high-precision calculations.

@@ -1,6 +1,7 @@
-﻿- `ShaderOptions` should be renamed to `MapProjectionParameters` and moved to projections module.
+﻿- Move the "min lon/lat delta" to a projection module.
 
 ## Sun 09.11.
+- Renamed `ShaderOptions` should be to `MapProjectionParameters` and moved to projections module.
 - Implemented the first version of "min lon/lat delta" algorithm.
 - Finished implementing simulated annealing algorithm.
 
