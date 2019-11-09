@@ -12,12 +12,13 @@ let ``Creates the necessary directories for the local cache``() =
         HeightsArray(
             10, 20, 5, 5, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
     let localCacheDir = @"dir1\dir2"
-    let pngFileName = localCacheDir |> Pth.combine "file.png"
+    let localCacheDirWithLevel = localCacheDir |> Pth.combine "0"
+    let pngFileName = localCacheDirWithLevel |> Pth.combine "file.png"
 
     encodeHeightsArrayIntoPngFile 
         (fun dir -> 
-            test <@ dir = localCacheDir @>
-            localCacheDir)
+            test <@ dir = localCacheDirWithLevel @>
+            dir)
         (fun _ -> new MemoryStream() :> Stream)
         heightsArray 
         pngFileName
@@ -31,7 +32,8 @@ let ``Writes the encoded PNG image to the specified file``() =
 
     FileSys.deleteDirectoryIfExists localCacheDir |> ignore
 
-    let pngFileName = localCacheDir |> Pth.combine "file.png"
+    let pngFileName = 
+        localCacheDir |> Pth.combine "0" |> Pth.combine "file.png"
 
     encodeHeightsArrayIntoPngFile 
         FileSys.ensureDirectoryExists

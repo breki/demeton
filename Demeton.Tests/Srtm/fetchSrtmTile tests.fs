@@ -23,7 +23,8 @@ let withPngTilePresentInLocalCache tileId =
         HeightsArray(
             10, 20, 5, 5, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
     let fileInCache = (
-        (localCacheDir |> Pth.combine tileId |> Pth.extension ".png"),
+        (localCacheDir |> Pth.combine "0" 
+        |> Pth.combine tileId |> Pth.extension ".png"),
         fileContents)
     pngFilesInLocalCacheDir <- fileInCache :: pngFilesInLocalCacheDir
     fileContents

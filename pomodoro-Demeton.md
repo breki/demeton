@@ -1,4 +1,7 @@
-﻿## Sat 09.11.
+﻿- implement a method that, for a given map scale and dpi, calculates the DEM level needed
+
+## Sat 09.11.
+- Tile cache is now organized into level subfolders.
 - `boundsToTiles` function now works with tile levels.
 - `SrtmTileCoords` now has `Level` property.
 - Moved the "min lon/lat delta" to a projection module and documented it.

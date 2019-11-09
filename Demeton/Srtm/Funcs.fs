@@ -104,7 +104,7 @@ let toZippedSrtmTileFile
 
     { 
         TileCoords = tileCoords; 
-        FileName = Path.Combine(srtmDir, zippedTileFileName) 
+        FileName = srtmDir |> Pth.combine zippedTileFileName
     }
 
 
@@ -112,10 +112,16 @@ let toLocalCacheTileFile
     (localCacheDir: string) 
     (tileCoords: SrtmTileCoords) : SrtmTileFile =
     let tilePngFileName = sprintf "%s.png" (Tile.tileId tileCoords)
+    let levelDirName = 
+        tileCoords.Level.ToString(
+            System.Globalization.CultureInfo.InvariantCulture)
 
     { 
-        TileCoords = tileCoords; 
-        FileName = Path.Combine(localCacheDir, tilePngFileName) 
+        TileCoords = tileCoords;
+        FileName = 
+            localCacheDir 
+            |> Pth.combine levelDirName 
+            |> Pth.combine tilePngFileName 
     }
 
 
