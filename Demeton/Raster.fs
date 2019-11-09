@@ -21,6 +21,11 @@ type Rect = { MinX: int; MinY: int; Width: int; Height: int }
     member this.MaxY = this.MinY + this.Height
 
 /// <summary>
+/// Represents a location of a pixel.
+/// </summary>
+type Point = (int * int)
+
+/// <summary>
 /// Raw image data represented as a byte array.
 /// </summary>
 type RawImageData = byte[]

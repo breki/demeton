@@ -1,7 +1,4 @@
-﻿- Implement tests using simulated annealing that search for lowest lon/lat increments.
-    - implement a brute force calculation of min delta so we can compare it with simulated annealing
-    - reuse raster point type for `SrtmMinCellDeltaState`
-    - calculate just lon/lat dx, not SRTM cell dx, dy, because we only really need it once we get the min
+﻿- `ShaderOptions` should be renamed to `MapProjectionParameters` and moved to projections module.
 
 ## Sun 09.11.
 - Implemented the first version of "min lon/lat delta" algorithm.

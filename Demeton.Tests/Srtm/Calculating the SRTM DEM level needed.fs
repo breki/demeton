@@ -28,11 +28,13 @@ let private rasterRectFor scaleFactor =
         (int (ceil (maxCornerX * scaleFactor)))
         -(int (ceil (maxCornerY * scaleFactor)))
 
+let private rasterXYToLonLat (rasterX, rasterY) scaleFactor =
+    WebMercator.inverse 
+        ((float rasterX) / scaleFactor)
+        -((float rasterY) / scaleFactor)
+
 let private rasterToSrtmCoords (rasterX, rasterY) scaleFactor =
-    let sampleLonLatMaybe = 
-        WebMercator.inverse 
-            ((float rasterX) / scaleFactor)
-            -((float rasterY) / scaleFactor)
+    let sampleLonLatMaybe = rasterXYToLonLat (rasterX, rasterY) scaleFactor
 
     match sampleLonLatMaybe with
     | None -> None
@@ -41,31 +43,30 @@ let private rasterToSrtmCoords (rasterX, rasterY) scaleFactor =
         let tileY = Tile.latitudeToGlobalY lat 3600
         Some (tileX, tileY)
 
-let calculateSrtmDistanceOfSample
+let calculateLonLatDeltaOfPoint
     rasterSamplePointX rasterSamplePointY
     scaleFactor
     =
-    let (tx0, ty0) = 
-        rasterToSrtmCoords 
+    let lonlat0Maybe = 
+        rasterXYToLonLat 
             (rasterSamplePointX, rasterSamplePointY) scaleFactor
-        |> Option.get
-    let (tx1, ty1) = 
-        rasterToSrtmCoords 
+    let lonlat1Maybe = 
+        rasterXYToLonLat
             (rasterSamplePointX + 1, rasterSamplePointY + 1) scaleFactor
-        |> Option.get
 
-    (abs (tx1-tx0), abs (ty1-ty0))
+    match (lonlat0Maybe, lonlat1Maybe) with
+    | (Some (lon0, lat0), Some (lon1, lat1)) ->
+        (abs (lon1-lon0), abs (lat1-lat0))
+    | _ -> (Double.MaxValue, Double.MaxValue)
 
-let calculateSrtmDistanceOfPixels
+let calculateLonLatDeltaOfSamplePoint
     scaleFactor
     (mapRasterBox: Raster.Rect)
     =
-    let rasterSamplePointX = 
-        mapRasterBox.MinX + mapRasterBox.Width / 2
-    let rasterSamplePointY =
-        mapRasterBox.MinY + mapRasterBox.Height / 2
+    let rasterSamplePointX = mapRasterBox.MinX + mapRasterBox.Width / 2
+    let rasterSamplePointY = mapRasterBox.MinY + mapRasterBox.Height / 2
 
-    calculateSrtmDistanceOfSample 
+    calculateLonLatDeltaOfPoint 
         rasterSamplePointX rasterSamplePointY scaleFactor
 
 [<Fact>]
@@ -74,51 +75,50 @@ let ``Can calculate distance between neighborhood rasters pixels in terms of SRT
     let (dx, dy) = 
         scaleFactor 
         |> rasterRectFor
-        |> calculateSrtmDistanceOfPixels scaleFactor
+        |> calculateLonLatDeltaOfSamplePoint scaleFactor
 
-    test <@ abs (dx - 14.35252717) < 0.0001 @>
-    test <@ abs (dy - 9.993502117) < 0.0001 @>
+    test <@ abs (dx - 0.003986813104) < 0.0001 @>
+    test <@ abs (dy - 0.00277597281) < 0.0001 @>
 
     let scaleFactor = { MapScale = 2000000.; Dpi = 1. }.ProjectionScaleFactor
     let (dx, dy) = 
         scaleFactor 
         |> rasterRectFor
-        |> calculateSrtmDistanceOfPixels scaleFactor
+        |> calculateLonLatDeltaOfSamplePoint scaleFactor
 
-    test <@ abs (dx - 28.70505435) < 0.0001 @>
-    test <@ abs (dy - 19.9584096) < 0.0001 @>
+    test <@ abs (dx - 0.007973626208) < 0.0001 @>
+    test <@ abs (dy - 0.005544002665) < 0.0001 @>
 
     let scaleFactor = { MapScale = 1000000.; Dpi = 2. }.ProjectionScaleFactor
     let (dx, dy) = 
         scaleFactor 
         |> rasterRectFor
-        |> calculateSrtmDistanceOfPixels scaleFactor
+        |> calculateLonLatDeltaOfSamplePoint scaleFactor
 
-    test <@ abs (dx - 7.176263587) < 0.0001 @>
-    test <@ abs (dy - 4.986027734) < 0.0001 @>
+    test <@ abs (dx - 0.001993406552) < 0.0001 @>
+    test <@ abs (dy - 0.001385007704) < 0.0001 @>
 
-type SrtmMinCellDeltaState = { RasterX: int; RasterY: int } 
+type private MinLonLatDeltaState = Raster.Point
 
-let srtmMinCellDeltaNeighbor (rasterRect: Raster.Rect) : 
-    NeighborFunc<SrtmMinCellDeltaState> = 
-    fun (state: SrtmMinCellDeltaState) (rnd: Random) ->
+let private srtmMinCellDeltaNeighbor (rasterRect: Raster.Rect) : 
+    NeighborFunc<MinLonLatDeltaState> = 
+    fun ((rasterX, rasterY): MinLonLatDeltaState) (rnd: Random) ->
 
     let rasterDx = rnd.Next(0, 10 + 1) - 5
     let rasterDy = rnd.Next(0, 10 + 1) - 5
 
-    let newRasterX = state.RasterX + rasterDx
-    let newRasterY = state.RasterY + rasterDy
+    let newRasterX = rasterX + rasterDx
+    let newRasterY = rasterY + rasterDy
 
     let newRasterX = min (max newRasterX rasterRect.MinX) rasterRect.MaxX
     let newRasterY = min (max newRasterY rasterRect.MinY) rasterRect.MaxY
 
-    { RasterX = newRasterX; RasterY = newRasterY }
+    (newRasterX, newRasterY)
 
-let srtmMinCellEnergy scaleFactor: EnergyFunc<SrtmMinCellDeltaState> =
-    fun state ->
+let private srtmMinCellEnergy scaleFactor: EnergyFunc<MinLonLatDeltaState> =
+    fun (rasterX, rasterY) ->
         let (dx, dy) = 
-            calculateSrtmDistanceOfSample 
-                state.RasterX state.RasterY scaleFactor
+            calculateLonLatDeltaOfPoint rasterX rasterY scaleFactor
         min dx dy
     
 /// <summary>
@@ -126,12 +126,13 @@ let srtmMinCellEnergy scaleFactor: EnergyFunc<SrtmMinCellDeltaState> =
 /// all raster pixels. This function is used for validating the result of the
 /// simulated annealing.
 /// </summary>
-let calculateMinDeltaUsingBruteForce (rasterRect: Raster.Rect) scaleFactor =
+let private calculateMinDeltaUsingBruteForce 
+    (rasterRect: Raster.Rect) scaleFactor =
     let points = 
         seq {
             for y in rasterRect.MinY .. rasterRect.MaxY do
                 for x in rasterRect.MinX .. rasterRect.MaxX do
-                    yield { RasterX = x; RasterY = y }
+                    yield (x, y)
         }
 
     points 
@@ -143,10 +144,9 @@ let ``Determines the lowest SRTM cell delta using simulated annealing``() =
     let scaleFactor = { MapScale = 1000000.; Dpi = 5. }.ProjectionScaleFactor
     let rasterRect = scaleFactor |> rasterRectFor
 
-    let initialState = { 
-        RasterX = rasterRect.MinX + rasterRect.Width / 2;
-        RasterY = rasterRect.MinY + rasterRect.Height / 2
-        }
+    let initialState = (
+        rasterRect.MinX + rasterRect.Width / 2,
+        rasterRect.MinY + rasterRect.Height / 2 )
 
     let finalMinDeltaPoint = 
         simulatedAnnealing 
