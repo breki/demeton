@@ -3,12 +3,15 @@
 open Demeton.DemTypes
 
 [<StructuredFormatDisplay("{Value}")>]
+[<StructuralEquality>]
+[<StructuralComparison>]
 type SrtmLatitude = { Value: int } with 
     static member fromInt i =
         if i < -90 || i > 90 then invalidArg "i" "Latitude is out of range"
         else { Value = i }
 
 [<StructuredFormatDisplay("{Value}")>]
+[<StructuralEquality>]
 [<StructuralComparison>]
 type SrtmLongitude = { Value: int } with
     static member fromInt i =
@@ -17,6 +20,8 @@ type SrtmLongitude = { Value: int } with
 
 [<StructuredFormatDisplay("SrtmTile ({Level}/{Lon}/{Lat})")>]
 [<Struct>]
+[<StructuralEquality>]
+[<StructuralComparison>]
 type SrtmTileCoords = { Level: int; Lon: SrtmLongitude; Lat: SrtmLatitude }
 
 type SrtmTileFile = { TileCoords: SrtmTileCoords; FileName: string }
