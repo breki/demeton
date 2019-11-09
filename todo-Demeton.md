@@ -1,5 +1,4 @@
 ﻿- implement some kind of search algorithm that identifies the minimum distance between pixels?
-    - simulated annealing?
     - this function can work on lon, lat coordinates, SRTM coords are not needed
     - then, based on that, calculate the level needed
 - implement support for multi-level DEM PNGs

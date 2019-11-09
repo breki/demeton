@@ -1,4 +1,5 @@
-﻿- implement generic simulated annealing algorithm
+﻿## Sun 09.11.
+- Finished implementing simulated annealing algorithm.
 
 ## Fri 08.11.
 - Started working on a simulated annealing algorithm.

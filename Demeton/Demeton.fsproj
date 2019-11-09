@@ -12,6 +12,7 @@
     <WarningsAsErrors />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="SimAnn.fs" />
     <Compile Include="Text.fs" />
     <Compile Include="TextParsers.fs" />
     <Compile Include="CommandLine\Common.fs" />
