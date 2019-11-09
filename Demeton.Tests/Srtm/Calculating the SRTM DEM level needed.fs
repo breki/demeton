@@ -4,6 +4,8 @@ open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Shaders.Types
 open Demeton.Srtm
+open SimAnn
+open System
 
 open Xunit
 open Swensen.Unquote
@@ -63,19 +65,11 @@ let calculateSrtmDistanceOfPixels
     let rasterSamplePointY =
         mapRasterBox.MinY + mapRasterBox.Height / 2
 
-    let (tx0, ty0) = 
-        rasterToSrtmCoords 
-            (rasterSamplePointX, rasterSamplePointY) scaleFactor
-        |> Option.get
-    let (tx1, ty1) = 
-        rasterToSrtmCoords 
-            (rasterSamplePointX + 1, rasterSamplePointY + 1) scaleFactor
-        |> Option.get
-
-    (abs (tx1-tx0), abs (ty1-ty0))
+    calculateSrtmDistanceOfSample 
+        rasterSamplePointX rasterSamplePointY scaleFactor
 
 [<Fact>]
-let ``Can calculate distance between rasters pixels in terms of SRTM DEM cells``() =
+let ``Can calculate distance between neighborhood rasters pixels in terms of SRTM DEM cells``() =
     let scaleFactor = { MapScale = 1000000.; Dpi = 1. }.ProjectionScaleFactor
     let (dx, dy) = 
         scaleFactor 
@@ -103,3 +97,69 @@ let ``Can calculate distance between rasters pixels in terms of SRTM DEM cells``
     test <@ abs (dx - 7.176263587) < 0.0001 @>
     test <@ abs (dy - 4.986027734) < 0.0001 @>
 
+type SrtmMinCellDeltaState = { RasterX: int; RasterY: int } 
+
+let srtmMinCellDeltaNeighbor (rasterRect: Raster.Rect) : 
+    NeighborFunc<SrtmMinCellDeltaState> = 
+    fun (state: SrtmMinCellDeltaState) (rnd: Random) ->
+
+    let rasterDx = rnd.Next(0, 10 + 1) - 5
+    let rasterDy = rnd.Next(0, 10 + 1) - 5
+
+    let newRasterX = state.RasterX + rasterDx
+    let newRasterY = state.RasterY + rasterDy
+
+    let newRasterX = min (max newRasterX rasterRect.MinX) rasterRect.MaxX
+    let newRasterY = min (max newRasterY rasterRect.MinY) rasterRect.MaxY
+
+    { RasterX = newRasterX; RasterY = newRasterY }
+
+let srtmMinCellEnergy scaleFactor: EnergyFunc<SrtmMinCellDeltaState> =
+    fun state ->
+        let (dx, dy) = 
+            calculateSrtmDistanceOfSample 
+                state.RasterX state.RasterY scaleFactor
+        min dx dy
+    
+/// <summary>
+/// Calculates the minimum lon/lat delta using brute force by calculating it for
+/// all raster pixels. This function is used for validating the result of the
+/// simulated annealing.
+/// </summary>
+let calculateMinDeltaUsingBruteForce (rasterRect: Raster.Rect) scaleFactor =
+    let points = 
+        seq {
+            for y in rasterRect.MinY .. rasterRect.MaxY do
+                for x in rasterRect.MinX .. rasterRect.MaxX do
+                    yield { RasterX = x; RasterY = y }
+        }
+
+    points 
+    |> Seq.map (srtmMinCellEnergy scaleFactor)
+    |> Seq.min
+
+[<Fact>]
+let ``Determines the lowest SRTM cell delta using simulated annealing``() =
+    let scaleFactor = { MapScale = 1000000.; Dpi = 5. }.ProjectionScaleFactor
+    let rasterRect = scaleFactor |> rasterRectFor
+
+    let initialState = { 
+        RasterX = rasterRect.MinX + rasterRect.Width / 2;
+        RasterY = rasterRect.MinY + rasterRect.Height / 2
+        }
+
+    let finalMinDeltaPoint = 
+        simulatedAnnealing 
+            (annealingScheduleExponential 100. 0.85) 
+            initialState 
+            (srtmMinCellDeltaNeighbor rasterRect)
+            (srtmMinCellEnergy scaleFactor)
+            kirkpatrickAcceptanceProbability
+            1000 
+
+    let minDelta = calculateMinDeltaUsingBruteForce rasterRect scaleFactor
+
+    printfn "minDelta: %g" minDelta
+
+    test <@ abs ((srtmMinCellEnergy scaleFactor finalMinDeltaPoint) - minDelta) 
+                < 0.001 @>

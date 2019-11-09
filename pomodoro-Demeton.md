@@ -1,4 +1,10 @@
-﻿## Sun 09.11.
+﻿- Implement tests using simulated annealing that search for lowest lon/lat increments.
+    - implement a brute force calculation of min delta so we can compare it with simulated annealing
+    - reuse raster point type for `SrtmMinCellDeltaState`
+    - calculate just lon/lat dx, not SRTM cell dx, dy, because we only really need it once we get the min
+
+## Sun 09.11.
+- Implemented the first version of "min lon/lat delta" algorithm.
 - Finished implementing simulated annealing algorithm.
 
 ## Fri 08.11.
