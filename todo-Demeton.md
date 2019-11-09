@@ -1,8 +1,4 @@
-﻿- implement some kind of search algorithm that identifies the minimum distance between pixels?
-    - this function can work on lon, lat coordinates, SRTM coords are not needed
-    - then, based on that, calculate the level needed
-- implement support for multi-level DEM PNGs
-    - implement a method that calculates the min (dx, dy) for a set of sample points
+﻿- implement support for multi-level DEM PNGs
     - first implement a method that, for a given map scale and dpi, calculates the DEM level needed
     - for the lowest level, detect that DPI is too low 
 
@@ -16,9 +12,6 @@
     - run the command on Alps
 
 - update readme.md docs
-
-- how to generate code docs?
-    - https://fsprojects.github.io/FSharp.Formatting/
 
 - in what format to save the shaded tile PNG metadata?  
     - extra sidecar file?

@@ -50,6 +50,7 @@
     <Compile Include="Srtm\Png.fs" />
     <Compile Include="Projections\Common.fs" />
     <Compile Include="Projections\WebMercator.fs" />
+    <Compile Include="Projections\MinLonLatDelta.fs" />
     <Compile Include="Shaders\Types.fs" />
     <Compile Include="Shaders\ElevationColoring.fs" />
     <Compile Include="Shaders\Hillshading.fs" />
