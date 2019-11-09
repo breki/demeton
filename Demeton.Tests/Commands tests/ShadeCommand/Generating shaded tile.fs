@@ -45,9 +45,9 @@ let ``Tile generator correctly calculates which SRTM tiles it needs``() =
 
         test <@ tilesArray.Length = 9 @>
         test <@ tilesArray.[0] = { 
-            Lon = { Value = 4 }; Lat = { Value = 40 } } @>
+            Level = 0; Lon = { Value = 4 }; Lat = { Value = 40 } } @>
         test <@ tilesArray.[8] = { 
-            Lon = { Value = 6 }; Lat = { Value = 42 } } @>
+            Level = 0; Lon = { Value = 6 }; Lat = { Value = 42 } } @>
 
         someHeightsArray
 

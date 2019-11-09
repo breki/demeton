@@ -87,7 +87,8 @@ let ``Can create heights array from SRTM heights sequence``() =
     use stream = new MemoryStream(byteArray)
 
     let tile = 
-        createSrtmTileFromStream tileSize { 
+        createSrtmTileFromStream tileSize {
+            Level = 0; 
             Lon = SrtmLongitude.fromInt 16; Lat = SrtmLatitude.fromInt 45 } 
             stream
 

@@ -9,25 +9,25 @@ open Swensen.Unquote
 
 [<Fact>]
 let ``Latitude 0 means north``() =
-    { Lon = SrtmLongitude.fromInt 10; Lat = SrtmLatitude.fromInt 0 } 
+    { Level = 0; Lon = SrtmLongitude.fromInt 10; Lat = SrtmLatitude.fromInt 0 } 
     |> Tile.tileId 
     |> should equal "N00E010"
 
 [<Fact>]
 let ``Latitude -1 means south``() =
-    { Lon = SrtmLongitude.fromInt 10; Lat = SrtmLatitude.fromInt -1 } 
+    { Level = 0; Lon = SrtmLongitude.fromInt 10; Lat = SrtmLatitude.fromInt -1 } 
     |> Tile.tileId 
     |> should equal "S01E010"
 
 [<Fact>]
 let ``Longitude 0 means east``() =
-    { Lon = SrtmLongitude.fromInt 0; Lat = SrtmLatitude.fromInt 10 } 
+    { Level = 0; Lon = SrtmLongitude.fromInt 0; Lat = SrtmLatitude.fromInt 10 } 
     |> Tile.tileId 
     |> should equal "N10E000"
 
 [<Fact>]
 let ``Longitude -1 means west``() =
-    { Lon = SrtmLongitude.fromInt -1; Lat = SrtmLatitude.fromInt 10 } 
+    { Level = 0; Lon = SrtmLongitude.fromInt -1; Lat = SrtmLatitude.fromInt 10 } 
     |> Tile.tileId 
     |> should equal "N10W001"
 
@@ -35,7 +35,8 @@ let ``Longitude -1 means west``() =
 let ``Can parse north and west tile IDs``() =
     test <@ 
             Tile.parseTileId "N10W001" = 
-                { Lon = SrtmLongitude.fromInt -1; 
+                { Level = 0; 
+                Lon = SrtmLongitude.fromInt -1; 
                 Lat = SrtmLatitude.fromInt 10 } 
     @>
 
@@ -43,7 +44,8 @@ let ``Can parse north and west tile IDs``() =
 let ``Can parse south and east tile IDs``() =
     test <@ 
             Tile.parseTileId "S22E080" = 
-                { Lon = SrtmLongitude.fromInt 80; 
+                { Level = 0; 
+                Lon = SrtmLongitude.fromInt 80; 
                 Lat = SrtmLatitude.fromInt -22 } 
     @>
 

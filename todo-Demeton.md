@@ -1,6 +1,11 @@
 ﻿- implement support for multi-level DEM PNGs
+    - Tile cache should be organized into level subfolders
+    - When generating tile for a higher level, use lower level tiles + neighborhood buffer
     - first implement a method that, for a given map scale and dpi, calculates the DEM level needed
     - for the lowest level, detect that DPI is too low 
+
+- how to generate code docs?
+    - https://fsprojects.github.io/FSharp.Formatting/commandline.html
 
 - add sample DEM PNGs to the source control
 - add batch script that generates some sample images from these sample DEMs

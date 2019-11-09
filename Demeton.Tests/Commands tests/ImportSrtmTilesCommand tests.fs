@@ -156,8 +156,10 @@ let ``Parses the local cache dir parameter``() =
 [<Fact>]
 let ``Imports all tiles within the specified boundaries``() =
     let tilesCoords = [|
-        { Lon = SrtmLongitude.fromInt 15; Lat = SrtmLatitude.fromInt 45 }
-        { Lon = SrtmLongitude.fromInt 16; Lat = SrtmLatitude.fromInt 46 }
+        { Level = 0; 
+        Lon = SrtmLongitude.fromInt 15; Lat = SrtmLatitude.fromInt 45 }
+        { Level = 0; 
+        Lon = SrtmLongitude.fromInt 16; Lat = SrtmLatitude.fromInt 46 }
     |]
 
     // we use a lock because the import function employs parallelization

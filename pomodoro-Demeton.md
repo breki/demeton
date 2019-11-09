@@ -1,7 +1,6 @@
-﻿- how to generate code docs?
-    - https://fsprojects.github.io/FSharp.Formatting/
-
-## Sun 09.11.
+﻿## Sat 09.11.
+- `boundsToTiles` function now works with tile levels.
+- `SrtmTileCoords` now has `Level` property.
 - Moved the "min lon/lat delta" to a projection module and documented it.
 - Renamed `ShaderOptions` should be to `MapProjectionParameters` and moved to projections module.
 - Implemented the first version of "min lon/lat delta" algorithm.

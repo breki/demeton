@@ -8,21 +8,23 @@ open Demeton.Srtm.Types
 open System
 open System.IO
 
+let boundsToTiles (bounds: LonLatBounds) level: SrtmTileCoords list =
+    let tileFactor = pown 2 level
+    let tileFactorFloat = tileFactor |> float
 
-let boundsToTiles (bounds: LonLatBounds): SrtmTileCoords list =
-    let allLons = 
-        [ floor bounds.MinLon |> int 
-            .. (ceil bounds.MaxLon |> int) - 1]
-    let allLats = 
-        [ floor bounds.MinLat |> int 
-            .. (ceil bounds.MaxLat |> int) - 1]
+    let minLon = (bounds.MinLon / tileFactorFloat) |> int
+    let maxLon = (ceil (bounds.MaxLon / tileFactorFloat) |> int) - 1
+            
+    let minLat = (bounds.MinLat / tileFactorFloat) |> int
+    let maxLat = (ceil (bounds.MaxLat / tileFactorFloat) |> int) - 1
 
     [ 
-        for lat in allLats do
-            for lon in allLons do
+        for lat in [ minLat .. maxLat ] do
+            for lon in [ minLon .. maxLon ] do
                 yield { 
-                        Lon = SrtmLongitude.fromInt lon; 
-                        Lat = SrtmLatitude.fromInt lat; } 
+                        Level = level; 
+                        Lon = SrtmLongitude.fromInt (lon * tileFactor); 
+                        Lat = SrtmLatitude.fromInt (lat * tileFactor) } 
     ]
 
 

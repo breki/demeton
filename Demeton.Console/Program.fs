@@ -18,7 +18,8 @@ let handleUnknownCommand commandName =
 let runImportCommand parsedParameters =
     let options = ImportSrtmTilesCommand.fillOptions parsedParameters
 
-    let tilesCords = boundsToTiles (Option.get options.Bounds) |> Seq.toArray
+    let tilesCords = 
+        boundsToTiles (Option.get options.Bounds) 0 |> Seq.toArray
 
     ImportSrtmTilesCommand.run 
         tilesCords 

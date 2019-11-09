@@ -44,7 +44,7 @@
     <Compile Include="Dem\Working with HeightsArrays.fs" />
     <Compile Include="Dem\Merging DEM data.fs" />
     <Compile Include="Srtm\SRTM tile tests.fs" />
-    <Compile Include="Srtm\Bounds to DEM tiles.fs" />
+    <Compile Include="Srtm\Bounds to SRTM tiles.fs" />
     <Compile Include="Srtm\Reading SRTM HGT files.fs" />
     <Compile Include="Srtm\encodeHeightsArrayIntoPngFile tests.fs" />
     <Compile Include="Srtm\Converting HGT to PNG.fs" />
@@ -96,6 +96,7 @@
     <PackageReference Include="FParsec" Version="1.0.3" />
     <PackageReference Include="fscheck" Version="2.14.0" />
     <PackageReference Include="fscheck.xunit" Version="2.14.0" />
+    <PackageReference Include="FSharp.Formatting.CommandTool" Version="3.1.0" />
     <PackageReference Include="FsUnit.xUnit" Version="3.4.1" />
     <PackageReference Include="SharpZipLib.NETStandard" Version="1.0.7" />
     <PackageReference Include="System.Drawing.Common" Version="4.6.0" />
