@@ -28,9 +28,9 @@ let ``Sane defaults are used for options``() =
     let result = parseArgs [ "10,20,30,40" ]
     let options = isOkWithOptions result
 
-    test <@ options.ShaderOptions.Dpi = 300. @>
+    test <@ options.MapScale.Dpi = 300. @>
     test <@ options.FilePrefix = "shading" @>
-    test <@ options.ShaderOptions.MapScale = 50000. @>
+    test <@ options.MapScale.MapScale = 50000. @>
     test <@ options.OutputDir = "output" @>
     // todo
     //test <@ 
@@ -106,7 +106,7 @@ let ``Accepts a valid map scale value and puts it into the options`` () =
         parseArgs [ "10,20,30,40"; "--map-scale"; "100000" ]
     test <@ result |> isOk @>
     test <@ 
-            (isOkWithOptions result).ShaderOptions.MapScale = 100000. 
+            (isOkWithOptions result).MapScale.MapScale = 100000. 
         @>
 
 [<Fact>]
@@ -135,7 +135,7 @@ let ``Accepts a valid DPI value and puts it into the options`` () =
         parseArgs [ "10,20,30,40"; "--dpi"; "72" ]
     test <@ result |> isOk @>
     test <@ 
-            (isOkWithOptions result).ShaderOptions.Dpi = 72. 
+            (isOkWithOptions result).MapScale.Dpi = 72. 
         @>
 
 [<Fact>]

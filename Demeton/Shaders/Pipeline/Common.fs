@@ -38,7 +38,7 @@ let rec executeShadingStep
     compositingFuncFactory
     heightsArray
     tileRect
-    shaderOptions
+    mapScale
     (step: ShadingStep)
     : RawImageData =
 
@@ -50,7 +50,7 @@ let rec executeShadingStep
                 compositingFuncFactory 
                 heightsArray 
                 tileRect 
-                shaderOptions 
+                mapScale 
                 step1
         let image2 = 
             executeShadingStep 
@@ -58,7 +58,7 @@ let rec executeShadingStep
                 compositingFuncFactory 
                 heightsArray 
                 tileRect 
-                shaderOptions 
+                mapScale 
                 step2
 
         Log.info "Running compositing step '%s'..." compositingFuncId
@@ -86,5 +86,5 @@ let rec executeShadingStep
             Rgba8Bit.createImageData 
                 tileRect.Width tileRect.Height Rgba8Bit.ImageDataZero
 
-        rasterShaderToUse heightsArray tileRect imageData shaderOptions
+        rasterShaderToUse heightsArray tileRect imageData mapScale
         imageData

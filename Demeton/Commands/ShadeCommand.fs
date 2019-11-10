@@ -31,7 +31,7 @@ type Options = {
     SrtmDir: string
     TileSize: int
     RootShadingStep: Pipeline.Common.ShadingStep 
-    ShaderOptions: MapProjectionParameters
+    MapScale: MapScale
 }
 
 [<Literal>]
@@ -192,7 +192,7 @@ let fillOptions parsedParameters =
             SrtmDir = DefaultSrtmDir
             TileSize = DefaultTileSize
             RootShadingStep = shadingPipeline
-            ShaderOptions = { MapScale = DefaultMapScale; Dpi = DefaultDpi }
+            MapScale = { MapScale = DefaultMapScale; Dpi = DefaultDpi }
         }
 
     let processParameter options parameter =
@@ -201,16 +201,14 @@ let fillOptions parsedParameters =
             { options with CoveragePoints = value :?> LonLat list }
         | ParsedOption { Name = DpiParameter; Value = value } ->
             { options with 
-                ShaderOptions = 
-                    { options.ShaderOptions with Dpi = value :?> float } }
+                MapScale = { options.MapScale with Dpi = value :?> float } }
         | ParsedOption { Name = FilePrefixParameter; Value = value } ->
             { options with FilePrefix = value :?> string }
         | ParsedOption { Name = LocalCacheDirParameter; Value = value } ->
             { options with LocalCacheDir = value :?> string }
         | ParsedOption { Name = MapScaleParameter; Value = value } ->
             { options with 
-                ShaderOptions = 
-                    { options.ShaderOptions with MapScale = value :?> float }}
+                MapScale = { options.MapScale with MapScale = value :?> float }}
         | ParsedOption { Name = OutputDirParameter; Value = value } ->
             { options with OutputDir = value :?> string }
         | ParsedOption { Name = ShadingScriptParameter; Value = value } ->
@@ -252,7 +250,7 @@ let generateShadedRasterTile
     : ShadedRasterTileGenerator = 
     fun (tileRect: Raster.Rect) options ->
 
-    let scaleFactor = options.ShaderOptions.ProjectionScaleFactor
+    let scaleFactor = options.MapScale.ProjectionScaleFactor
 
     let buffer = 1
 
@@ -287,7 +285,7 @@ let generateShadedRasterTile
                     Demeton.Shaders.Pipeline.Common.createCompositingFuncById
                     heightsArray 
                     tileRect 
-                    options.ShaderOptions 
+                    options.MapScale 
                     options.RootShadingStep 
             Ok (Some imageData)
         | None -> Ok None
@@ -354,7 +352,7 @@ let run
     let projectionMbr = Bounds.mbrOf projectedPoints
 
     // calculate MBR in terms of pixels
-    let scaleFactor = options.ShaderOptions.ProjectionScaleFactor
+    let scaleFactor = options.MapScale.ProjectionScaleFactor
 
     let rasterMbr = projectionMbr |> Bounds.multiply scaleFactor
 

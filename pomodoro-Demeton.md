@@ -1,7 +1,8 @@
-﻿- this DEM level is then used by `boundsToTiles`
+﻿- this DEM level is then used by `boundsToTiles` in ShadeCommand
 - SRTM tile loader should support higher tiles
 
 ## Sun 10.11.
+- Renamed `MapProjectionParameters` and `ShaderOptions` to `MapScale`.
 - Implemented a method that, for a given min lon/lat delta, calculates the DEM level needed.
 - Introduced helper srtmTileCoords function for tests.
 - Introduced `SrtmLevel`.

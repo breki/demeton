@@ -16,7 +16,7 @@ let mutable shadedImageGenerated = None
 let ShadingFuncIdStupid = "stupid"
 
 let stupidRasterShader: RasterShader = 
-    fun heights rect imageData options -> 
+    fun heights rect imageData mapScale -> 
     shadedImageGenerated <- Some imageData
 
 let createShadingFuncById shadingFuncId =

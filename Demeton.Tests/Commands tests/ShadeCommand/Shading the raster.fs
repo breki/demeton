@@ -11,7 +11,7 @@ open Swensen.Unquote
 open Tests.Shaders
 
 
-let (area, heights, shaderOptions, tileRect) = 
+let (area, heights, mapScale, tileRect) = 
     ShadingSampleGenerator.generateSample()
 
 let coveragePoints = [(area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat)]
@@ -25,7 +25,7 @@ let options: ShadeCommand.Options = {
         TileSize = 1000
         RootShadingStep = Pipeline.Common.ElevationColoring
             { ColorScale = ElevationColoring.colorScaleMaperitive }
-        ShaderOptions = shaderOptions
+        MapScale = mapScale
     }
 
 [<Fact>]
@@ -41,7 +41,7 @@ let ``Elevation colorer colors all of the image``() =
         heights
         tileRect 
         imageData 
-        options.ShaderOptions
+        options.MapScale
 
     let mutable anyNonColoredPixel = false
     for y in 0 .. (imageHeight-1) do

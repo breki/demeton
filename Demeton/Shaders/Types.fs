@@ -5,6 +5,6 @@ open Demeton.DemTypes
 open Demeton.Projections.Common
     
 type RasterShader = 
-    HeightsArray -> Raster.Rect -> RawImageData -> MapProjectionParameters -> unit
+    HeightsArray -> Raster.Rect -> RawImageData -> MapScale -> unit
 
         

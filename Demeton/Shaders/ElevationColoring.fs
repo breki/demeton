@@ -133,10 +133,10 @@ let colorScaleMaperitive =
 let defaultParameters = { ColorScale = colorScaleMaperitive }
 
 let shadeRaster (colorScale: ColorScale): RasterShader = 
-    fun heightsArray tileRect imageData options ->
+    fun heightsArray tileRect imageData mapScale ->
 
     let tileWidth = tileRect.Width
-    let scaleFactor = options.ProjectionScaleFactor
+    let scaleFactor = mapScale.ProjectionScaleFactor
 
     let heightForTilePixel x y =
         let xUnscaled = float x / scaleFactor

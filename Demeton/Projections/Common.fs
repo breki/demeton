@@ -11,7 +11,7 @@ let MetersPerInch = 0.0254
 [<Literal>]
 let InchesPerMeter = 39.3701
 
-type MapProjectionParameters = {
+type MapScale = {
     MapScale: float
     Dpi: float
     }

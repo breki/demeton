@@ -71,9 +71,9 @@ let calculateSlopeAndAspect p q: SlopeAndAspect =
 
 
 let shadeRaster (pixelHillshader: PixelHillshader): RasterShader = 
-    fun heightsArray tileRect imageData options ->
+    fun heightsArray tileRect imageData mapScale ->
 
-    let scaleFactor = options.ProjectionScaleFactor
+    let scaleFactor = mapScale.ProjectionScaleFactor
     let tileWidth = tileRect.Width
 
     let inline lonLatOf x y =

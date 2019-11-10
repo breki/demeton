@@ -23,7 +23,7 @@ let options: ShadeCommand.Options = {
         SrtmDir = "srtm"
         TileSize = 1000
         RootShadingStep = Pipeline.Common.CustomShading ("some shader")
-        ShaderOptions = { Dpi = 300.; MapScale = 5000000. }
+        MapScale = { Dpi = 300.; MapScale = 5000000. }
     }
 
 let tileWidth = 500

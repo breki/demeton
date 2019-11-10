@@ -18,7 +18,7 @@ let options: ShadeCommand.Options = {
         TileSize = 1000
         RootShadingStep = Pipeline.Common.ElevationColoring
             { ColorScale = ElevationColoring.colorScaleMaperitive }
-        ShaderOptions = { Dpi = 300.; MapScale = 5000000. }
+        MapScale = { Dpi = 300.; MapScale = 5000000. }
     }
 
 let mutable generatedTiles = []
