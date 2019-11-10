@@ -1,4 +1,4 @@
-﻿module ``decodeSrtmTileFromPngFile tests``
+﻿module Tests.Srtm.``decodeSrtmTileFromPngFile tests``
 
 open Demeton.Srtm
 open Demeton.Srtm.Png
@@ -45,7 +45,7 @@ let ``Can decode a valid PNG-encoded SRTM tile``() =
             FileSys.openFileToRead
             pngFileName
 
-    let (minx, miny) = Tile.tileCellMinCoords 3600 (Tile.parseTileId tileId)
+    let (minx, miny) = Tile.tileCellMinCoords 3600 (Tile.parseTileId 0 tileId)
 
     let heightsArray = resultValue heightsArrayResult
 

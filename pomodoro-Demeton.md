@@ -1,8 +1,7 @@
 ﻿- SRTM tile loader should support higher tiles
-    - `SrtmHeightsArrayFetcher`
-    - `fetchSrtmTile`: SrtmTileReader
 
 ## Sun 10.11.
+- Started working on fetching SRTM tiles from higher levels.
 - `ShadeCommand.generateShadedRasterTile` now works with SRTM levels.
 - `ShadeCommand.run` now calculates the SRTM level needed and feeds it to the tile generator.
 - `generateSampleWithParameters` now takes into account the SRTM level and generates an appropriate heights array using it.

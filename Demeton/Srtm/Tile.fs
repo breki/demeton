@@ -50,7 +50,7 @@ let tileId (tileCoords: SrtmTileCoords) =
         latSign (abs tileCoords.Lat.Value) lonSign (abs tileCoords.Lon.Value)
 
 
-let parseTileId (tileId: string) =
+let parseTileId level (tileId: string) =
     let latitudeCharSign = tileId.[0]
     let latitudeSign = 
         match latitudeCharSign with
@@ -76,7 +76,7 @@ let parseTileId (tileId: string) =
     let longitudeInt = Int32.Parse longitudeStr * longitudeSign
     let longitude = SrtmLongitude.fromInt longitudeInt
 
-    { Level = SrtmLevel.fromInt 0; Lon = longitude; Lat = latitude }
+    { Level = SrtmLevel.fromInt level; Lon = longitude; Lat = latitude }
 
 
 let tileCellMinCoords tileSize (tileCoords: SrtmTileCoords)

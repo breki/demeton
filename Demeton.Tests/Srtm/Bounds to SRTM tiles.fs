@@ -1,4 +1,4 @@
-﻿module Demeton.Tests.``Bounds to SRTM tiles``
+﻿module Tests.Srtm.``Bounds to SRTM tiles``
 
 open Demeton.Geometry.Common
 open Demeton.Srtm.Types

@@ -1,4 +1,4 @@
-﻿module ``encodeHeightsArrayIntoPngFile tests``
+﻿module Tests.Srtm.``encodeHeightsArrayIntoPngFile tests``
 
 open Demeton.DemTypes
 open Demeton.Srtm.Png
@@ -20,8 +20,8 @@ let ``Creates the necessary directories for the local cache``() =
             test <@ dir = localCacheDirWithLevel @>
             dir)
         (fun _ -> new MemoryStream() :> Stream)
-        heightsArray 
         pngFileName
+        heightsArray 
 
 [<Fact>]
 let ``Writes the encoded PNG image to the specified file``() =
@@ -38,8 +38,9 @@ let ``Writes the encoded PNG image to the specified file``() =
     encodeHeightsArrayIntoPngFile 
         FileSys.ensureDirectoryExists
         FileSys.openFileToWrite
-        heightsArray 
         pngFileName
+        heightsArray 
+    |> ignore
 
     use writtenFileStream = FileSys.openFileToRead pngFileName
     use memoryStream = new MemoryStream()

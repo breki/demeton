@@ -77,14 +77,15 @@ let encodeSrtmHeightsArrayToPng
 
 let encodeHeightsArrayIntoPngFile
     (ensureDirectoryExists: string -> string)
-    (openFile: FileSys.FileOpener)
-    heightsArray 
-    pngFileName =
+    (openFile: FileSys.FileOpener): SrtmPngTileWriter =
+    fun pngFileName heightsArray ->
 
     ensureDirectoryExists (pngFileName |> Pth.directory) |> ignore
 
     use stream = openFile pngFileName
     encodeSrtmHeightsArrayToPng heightsArray stream |> ignore
+
+    heightsArray
 
 
 let decodeSrtmTileFromPngFile
@@ -110,7 +111,7 @@ let decodeSrtmTileFromPngFile
 
     let generateHeightsArray() = 
         let tileId = pngFileName |> Pth.fileNameWithoutExtension
-        let tileCoords = Tile.parseTileId tileId
+        let tileCoords = Tile.parseTileId 0 tileId
         let (minX, minY) = Tile.tileCellMinCoords 3600 tileCoords
 
         let srtmTileInitialize (cells: DemHeight[]) = 
@@ -138,7 +139,7 @@ let decodeSrtmTileFromPngFile
 let convertZippedHgtTileToPng
     (readZipFileEntry: FileSys.ZipFileEntryReader)
     createSrtmTileFromStream
-    encodeTileIntoPngFile
+    (writeTileToPng: SrtmPngTileWriter)
     (zippedHgtFile: SrtmTileFile)
     pngFileName =
     
@@ -156,6 +157,4 @@ let convertZippedHgtTileToPng
 
     Log.debug "Encoding tile %s into PNG..." tileId
 
-    encodeTileIntoPngFile heightsArray pngFileName
-
-    heightsArray
+    writeTileToPng pngFileName heightsArray

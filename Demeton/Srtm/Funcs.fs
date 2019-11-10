@@ -126,6 +126,7 @@ let toLocalCacheTileFile
     }
 
 
+type SrtmPngTileWriter = string -> HeightsArray -> HeightsArray
 type SrtmPngTileReader = string -> Result<HeightsArray, string>
 type SrtmHgtToPngTileConverter = SrtmTileFile -> string -> HeightsArray
 
@@ -146,30 +147,87 @@ let checkSrtmTileCachingStatus
         | false -> Tile.CachingStatus.DoesNotExist
         | true -> Tile.CachingStatus.NotCached
 
-let fetchSrtmTile 
+let private lowerLevelTiles (tileCoords: SrtmTileCoords) =
+    let lowerLevel: SrtmLevel = { Value = tileCoords.Level.Value - 1 }
+    let lon0 = tileCoords.Lon
+    let lat0 = tileCoords.Lat
+    let lon1: SrtmLongitude = { Value = lon0.Value + 1 }
+    let lat1: SrtmLatitude = { Value = lat0.Value + 1 }
+
+    [|
+        { Level = lowerLevel; Lon = lon0; Lat = lat0 }
+        { Level = lowerLevel; Lon = lon1; Lat = lat0 }
+        { Level = lowerLevel; Lon = lon0; Lat = lat1 }
+        { Level = lowerLevel; Lon = lon1; Lat = lat1 }
+    |]
+
+type HeightsArrayResampler = HeightsArray -> HeightsArray
+
+let createHigherLevelTileByResamplingLowerLevelOnes 
+    (resampleHeightsArray: HeightsArrayResampler)
+    (writePngTile: SrtmPngTileWriter)
+    pngTileFileName
+    (heightsArrays: HeightsArray list) =
+
+    Demeton.Dem.merge heightsArrays
+    // resample the merged array
+    |> Option.map resampleHeightsArray
+    // save the resampled array to PNG file
+    |> Option.map (fun x -> x |> writePngTile pngTileFileName)
+
+let rec fetchSrtmTile 
     (srtmDir: string)
     (localCacheDir: string)
     (fileExists: FileSys.FileExistsChecker)
-    (pngTileReader: SrtmPngTileReader)
-    (pngTileConverter: SrtmHgtToPngTileConverter): SrtmTileReader =
+    (readPngTile: SrtmPngTileReader)
+    (writePngTile: SrtmPngTileWriter)
+    (convertTileToPng: SrtmHgtToPngTileConverter)
+    (resampleHeightsArray: HeightsArrayResampler)
+    : SrtmTileReader =
     fun tile ->
     let localTileFile = toLocalCacheTileFile localCacheDir tile
 
     match fileExists localTileFile.FileName with
     | true -> 
-        let loadResult = pngTileReader localTileFile.FileName
+        let loadResult = readPngTile localTileFile.FileName
         match loadResult with
         | Ok heightsArray -> Ok (Some heightsArray)
         | Error message -> Error message
     | false -> 
-        let zippedSrtmTileFile = toZippedSrtmTileFile srtmDir tile
+        match tile.Level.Value with
+        | 0 ->
+            let zippedSrtmTileFile = toZippedSrtmTileFile srtmDir tile
 
-        match fileExists zippedSrtmTileFile.FileName with
-        | false -> Ok None
-        | true -> 
-            Ok (Some (pngTileConverter 
-                zippedSrtmTileFile 
-                localTileFile.FileName))
+            match fileExists zippedSrtmTileFile.FileName with
+            | false -> Ok None
+            | true -> 
+                Ok (Some (convertTileToPng 
+                    zippedSrtmTileFile 
+                    localTileFile.FileName))
+        | _ ->
+            lowerLevelTiles tile
+            |> Array.fold (fun state lowerLevelTile -> 
+                match state with
+                | Ok heightsArrays ->
+                    let heightsArrayResult =
+                        fetchSrtmTile 
+                            srtmDir localCacheDir fileExists 
+                            readPngTile writePngTile 
+                            convertTileToPng resampleHeightsArray
+                            lowerLevelTile
+                    match heightsArrayResult with
+                    | Ok (Some heightsArray) ->
+                        Ok (heightsArray :: heightsArrays)
+                    | Ok None -> Ok heightsArrays
+                    | Error errorMessage -> Error errorMessage
+                | Error errorMessage -> Error errorMessage
+                ) (Ok [])
+            |> Result.map (fun heightsArrays -> 
+                createHigherLevelTileByResamplingLowerLevelOnes
+                    resampleHeightsArray
+                    writePngTile
+                    localTileFile.FileName
+                    heightsArrays)
 
 
 type SrtmHeightsArrayFetcher = SrtmTileCoords seq -> HeightsArrayResult

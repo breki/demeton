@@ -1,4 +1,4 @@
-﻿module Demeton.Tests.``fetchSrtmHeights tests``
+﻿module Tests.Srtm.``fetchSrtmHeights tests``
 
 open FsUnit
 open Xunit

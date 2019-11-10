@@ -1,4 +1,4 @@
-﻿module ``fetchSrtmTile tests``
+﻿module Tests.Srtm.``Fetching SRTM tiles``
 
 open Demeton.DemTypes
 open Demeton.Srtm
@@ -7,6 +7,7 @@ open Demeton.Srtm.Funcs
 
 open Xunit
 open Swensen.Unquote
+open TestHelp
 
 let srtmDir = "some/srtm/dir"
 let localCacheDir = "some/cache"
@@ -18,12 +19,14 @@ let init() =
     zippedTilesInSrtmStorage <- []
     pngFilesInLocalCacheDir <- []
 
-let withPngTilePresentInLocalCache tileId =
+let withPngTilePresentInLocalCache (tileCoords: SrtmTileCoords) =
     let fileContents = 
         HeightsArray(
             10, 20, 5, 5, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
+
+    let tileId = Tile.tileId tileCoords
     let fileInCache = (
-        (localCacheDir |> Pth.combine "0" 
+        (localCacheDir |> Pth.combine (tileCoords.Level.ToString()) 
         |> Pth.combine tileId |> Pth.extension ".png"),
         fileContents)
     pngFilesInLocalCacheDir <- fileInCache :: pngFilesInLocalCacheDir
@@ -68,9 +71,9 @@ let ``If PNG tile is already in local cache, return that one``() =
     init()
 
     let tileId = "N46E015"
-    let tileCoords = Tile.parseTileId tileId
+    let tileCoords = Tile.parseTileId 0 tileId
 
-    let heightsArray = withPngTilePresentInLocalCache tileId
+    let heightsArray = withPngTilePresentInLocalCache tileCoords
 
     let heightsArrayReturned = 
         fetchSrtmTile 
@@ -78,7 +81,9 @@ let ``If PNG tile is already in local cache, return that one``() =
             localCacheDir
             fileExists
             pngFileReader
+            (fun _ _ -> invalidOp "bug")
             pngTileConverter
+            (fun _ -> invalidOp "bug")
             tileCoords
 
     test <@ heightsArrayReturned = Ok (Some heightsArray) @>
@@ -88,7 +93,7 @@ let ``If PNG tile is not in the cache and there is no zipped tile in the SRTM st
     init()
 
     let tileId = "N46E015"
-    let tileCoords = Tile.parseTileId tileId
+    let tileCoords = Tile.parseTileId 0 tileId
 
     let heightsArrayReturned = 
         fetchSrtmTile 
@@ -96,7 +101,9 @@ let ``If PNG tile is not in the cache and there is no zipped tile in the SRTM st
             localCacheDir
             fileExists
             pngFileReader
+            (fun _ _ -> invalidOp "bug")
             pngTileConverter
+            (fun _ -> invalidOp "bug")
             tileCoords
 
     test <@ heightsArrayReturned = Ok None @>
@@ -106,7 +113,7 @@ let ``If PNG tile is not in the cache and there is a zipped tile in the SRTM sto
     init()
 
     let tileId = "N46E015"
-    let tileCoords = Tile.parseTileId tileId
+    let tileCoords = Tile.parseTileId 0 tileId
 
     let heightsArray = withZippedTilePresentInSrtmStorage tileId
 
@@ -116,7 +123,35 @@ let ``If PNG tile is not in the cache and there is a zipped tile in the SRTM sto
             localCacheDir
             fileExists
             pngFileReader
+            (fun _ _ -> invalidOp "bug")
             pngTileConverter
+            (fun _ -> invalidOp "bug")
             tileCoords
 
     test <@ heightsArrayReturned = Ok (Some heightsArray) @>    
+
+[<Fact (Skip="todo")>]
+let ``Creates higher-level PNG tiles from lower level ones by resampling them``() =
+    init()
+
+    let tileId = "N02E008"
+    let tileCoords = Tile.parseTileId 1 tileId
+
+    let lowerTilesIds = [| "N02E008"; "N03E008"; "N02E009"; "N03E009" |]
+    lowerTilesIds
+    |> Array.map (fun x -> Tile.parseTileId 0 x)
+    |> Array.map withPngTilePresentInLocalCache
+    |> ignore
+
+    let heightsArrayReturned = 
+        fetchSrtmTile 
+            srtmDir
+            localCacheDir
+            fileExists
+            pngFileReader
+            (fun _ _ -> invalidOp "bug")
+            pngTileConverter
+            (fun _ -> invalidOp "bug")
+            tileCoords
+
+    test <@ heightsArrayReturned |> isOk @>   

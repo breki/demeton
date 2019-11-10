@@ -1,4 +1,4 @@
-﻿module Srtm.``SRTM tile tests``
+﻿module Tests.Srtm.``SRTM tile tests``
 
 open Demeton.Srtm
 open Demeton.Srtm.Types
@@ -34,11 +34,11 @@ let ``Longitude -1 means west``() =
 
 [<Fact>]
 let ``Can parse north and west tile IDs``() =
-    test <@ Tile.parseTileId "N10W001" = srtmTileCoords 0 -1 10 @>
+    test <@ Tile.parseTileId 0 "N10W001" = srtmTileCoords 0 -1 10 @>
 
 [<Fact>]
 let ``Can parse south and east tile IDs``() =
-    test <@ Tile.parseTileId "S22E080" = srtmTileCoords 0 80 -22 @>
+    test <@ Tile.parseTileId 3 "S22E080" = srtmTileCoords 3 80 -22 @>
 
 [<Literal>]
 let Multiply_90_with_3600_minus_3599 = 320401
@@ -53,7 +53,7 @@ let Multiply_90_plus_22_with_3600_minus_3599 = 399601
 let ``Calculates global coordinates for a given tile ID``
     tileId tileSize expectedMinX expectedMinY =
     test <@ 
-            Tile.parseTileId tileId
+            Tile.parseTileId 0 tileId
             |> Tile.tileCellMinCoords tileSize = (expectedMinX, expectedMinY)
     @>
 

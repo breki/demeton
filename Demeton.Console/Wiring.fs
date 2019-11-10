@@ -12,13 +12,19 @@ let checkCachingStatus srtmDir localCacheDir =
         localCacheDir
         FileSys.fileExists
 
+let writePngTile = 
+    encodeHeightsArrayIntoPngFile
+        FileSys.ensureDirectoryExists
+        FileSys.openFileToWrite
+
 let convertPngTile = 
     convertZippedHgtTileToPng 
         FileSys.openZipFileEntry
         createSrtmTileFromStream
-        (encodeHeightsArrayIntoPngFile
-            FileSys.ensureDirectoryExists
-            FileSys.openFileToWrite)
+        writePngTile
+
+let resampleHeightsArray: HeightsArrayResampler =
+    invalidOp "todo"
 
 let fetchSrtmTile srtmDir localCacheDir = 
     fetchSrtmTile 
@@ -26,7 +32,9 @@ let fetchSrtmTile srtmDir localCacheDir =
         localCacheDir
         FileSys.fileExists
         readPngTile
+        writePngTile
         convertPngTile
+        resampleHeightsArray
 
 let fetchSrtmHeights srtmDir localCacheDir = 
     fetchSrtmHeights (fetchSrtmTile srtmDir localCacheDir)

@@ -1,4 +1,4 @@
-﻿module Demeton.Tests.``Reading SRTM HGT files``
+﻿module Tests.Srtm.``Reading SRTM HGT files``
 
 open Demeton.DemTypes
 open Demeton.Srtm
@@ -101,7 +101,7 @@ let ``Can create heights array from SRTM heights sequence``() =
 [<Trait("Category", "slow")>]
 let ``Can read HGT file``() =
     let hgtFileNameOnly = "N00E031.hgt"
-    let tileCoords = Tile.parseTileId hgtFileNameOnly.[0..6]
+    let tileCoords = Tile.parseTileId 0 hgtFileNameOnly.[0..6]
 
     let assembly = Assembly.GetExecutingAssembly()
     use stream = assembly.GetManifestResourceStream
