@@ -2,6 +2,7 @@
     - tests!
 
 ## Sun 10.11.
+- `ShadeCommand.run` now calculates the SRTM level needed and feeds it to the tile generator.
 - `generateSampleWithParameters` now takes into account the SRTM level and generates an appropriate heights array using it.
 - Fixed tests that use ShadingSampleGenerator now that tile level is taken into account.
 - `RasterShader` now has the SRTM level as a parameter.

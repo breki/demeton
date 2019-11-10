@@ -6,8 +6,13 @@ open Demeton.Shaders
 open Xunit
 open Swensen.Unquote
 open Png
+open Tests.Shaders
 
-let coveragePoints = [(4.262676, 42.90816); (16.962471, 48.502048)]
+let (area, heights, srtmLevel, mapScale, tileRect) = 
+    ShadingSampleGenerator.generateSampleWithParameters
+        10.1 45.5 16.962471 48.502048 5000000. 72.
+
+let coveragePoints = [(area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat)]
 
 let options: ShadeCommand.Options = {
         CoveragePoints = coveragePoints
@@ -15,17 +20,23 @@ let options: ShadeCommand.Options = {
         LocalCacheDir = "cache"
         OutputDir = "output"
         SrtmDir = "srtm"
-        TileSize = 1000
+        TileSize = 250
         RootShadingStep = Pipeline.Common.ElevationColoring
             { ColorScale = ElevationColoring.colorScaleMaperitive }
-        MapScale = { Dpi = 300.; MapScale = 5000000. }
+        MapScale = mapScale
     }
 
 let mutable generatedTiles = []
 let mutable savedTiles = []
 
-let tileGenerator 
-    (rasterTileCoords: Raster.Rect) _ =
+let tileGeneratorNeedsSrtmLevel
+    : ShadeCommand.ShadedRasterTileGenerator =
+    fun providedSrtmLevel _ _ ->
+    test <@ srtmLevel = providedSrtmLevel @>
+    Ok (Some (Rgba8Bit.createImageData 10 10 Rgba8Bit.ImageDataZero))
+
+let tileGenerator: ShadeCommand.ShadedRasterTileGenerator =
+    fun _ rasterTileCoords _ ->
     generatedTiles <- rasterTileCoords :: generatedTiles
     Ok (Some (Rgba8Bit.createImageData 10 10 Rgba8Bit.ImageDataZero))
 
@@ -39,20 +50,24 @@ let initialize() =
     savedTiles <- []
 
 [<Fact>]
+let ``Correctly calculates the SRTM level needed``() =
+    initialize()
+
+    ShadeCommand.run options tileGeneratorNeedsSrtmLevel tileSaver |> ignore
+
+
+[<Fact>]
 let ``Correctly splits the raster into multiple tiles``() =
     initialize()
 
     ShadeCommand.run options tileGenerator tileSaver |> ignore
 
-    generatedTiles <- generatedTiles |> List.rev
-
-    test <@ generatedTiles.Length = 12 @>
-    test <@ generatedTiles.[0] 
-        = { MinX = 1119; MinY = -14608; Width = 1000; Height = 1000 } @>
-    test <@ generatedTiles.[1] 
-        = { MinX = 2119; MinY = -14608; Width = 1000; Height = 1000 } @>
-    test <@ generatedTiles.[11] 
-        = { MinX = 4119; MinY = -12608; Width = 337; Height = 108 } @>
+    test <@ generatedTiles = [
+        { MinX = 886; MinY = -3256; Width = 184; Height = 28 }
+        { MinX = 636; MinY = -3256; Width = 250; Height = 28 }
+        { MinX = 886; MinY = -3506; Width = 184; Height = 250 }
+        { MinX = 636; MinY = -3506; Width = 250; Height = 250 }
+    ] @>
 
 [<Fact>]
 let ``Saves the generated tile images to files``() =
@@ -62,20 +77,21 @@ let ``Saves the generated tile images to files``() =
 
     savedTiles <- savedTiles |> List.rev
 
-    test <@ savedTiles.Length = 12 @>
+    test <@ savedTiles.Length = 4 @>
     test <@ savedTiles.[0] = "0-0" @>
     test <@ savedTiles.[1] = "1-0" @>
-    test <@ savedTiles.[11] = "3-2" @>
+    test <@ savedTiles.[2] = "0-1" @>
+    test <@ savedTiles.[3] = "1-1" @>
 
 [<Fact>]
 let ``If generation of a tile fails it records it in the result``() =
     initialize()
     
-    let tileGenerator _ _ =
+    let tileGenerator _ _ _ =
         Error "some error"
 
     let results = ShadeCommand.run options tileGenerator tileSaver
-    test <@ results.Length = 12 @>
+    test <@ results.Length = 4 @>
     test <@ 
             results 
             |> List.exists (fun x -> x <> Error "some error") 
@@ -87,13 +103,13 @@ let ``If tile generator returns None, we skip that in the results``() =
     initialize()
     
     let mutable counter = 0
-    let tileGeneratorWithNones rasterTile options =
+    let tileGeneratorWithNones srtmLevel rasterTile options =
         counter <- counter + 1
         if counter % 2 = 0 then
             Ok None
         else
-            tileGenerator rasterTile options
+            tileGenerator srtmLevel rasterTile options
 
     let results = 
         ShadeCommand.run options tileGeneratorWithNones tileSaver
-    test <@ results.Length = 6 @>
+    test <@ results.Length = 2 @>

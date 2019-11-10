@@ -8,6 +8,7 @@ open Demeton.Geometry
 open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
+open Demeton.Projections.MinLonLatDelta
 open Demeton.Shaders
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
@@ -242,13 +243,13 @@ let splitIntoIntervals minValue maxValue intervalSize =
         )
 
 type ShadedRasterTileGenerator = 
-    Raster.Rect -> Options -> Result<RawImageData option, string>
+    SrtmLevel -> Raster.Rect -> Options -> Result<RawImageData option, string>
 
 let generateShadedRasterTile 
     (fetchHeightsArray: SrtmHeightsArrayFetcher)
     (createShaderFunction: Demeton.Shaders.Pipeline.Common.ShadingFuncFactory)
     : ShadedRasterTileGenerator = 
-    fun (tileRect: Raster.Rect) options ->
+    fun srtmLevel (tileRect: Raster.Rect) options ->
 
     let scaleFactor = options.MapScale.ProjectionScaleFactor
 
@@ -270,10 +271,7 @@ let generateShadedRasterTile
             MaxLat = radToDeg (max lat1Rad lat2Rad)
         }
 
-    // todo: calculate SRTM level needed
-    let srtmLevelNeeded = SrtmLevel.fromInt 0
-    let srtmTilesNeeded = boundsToTiles lonLatBounds srtmLevelNeeded
-
+    let srtmTilesNeeded = boundsToTiles lonLatBounds srtmLevel
     let heightsArrayResult = fetchHeightsArray srtmTilesNeeded
 
     match heightsArrayResult with
@@ -286,7 +284,7 @@ let generateShadedRasterTile
                     createShaderFunction
                     Demeton.Shaders.Pipeline.Common.createCompositingFuncById
                     heightsArray 
-                    srtmLevelNeeded
+                    srtmLevel
                     tileRect 
                     options.MapScale 
                     options.RootShadingStep 
@@ -367,6 +365,11 @@ let run
             (int (ceil rasterMbr.MaxX))
             (int (ceil rasterMbr.MaxY))
 
+    // calculate SRTM level needed
+    let srtmLevel = 
+        minLonLatDelta rasterMbrRounded scaleFactor
+        |> lonLatDeltaToSrtmLevel 3600
+
     // then split it up into tiles
     let tileSize = options.TileSize
 
@@ -392,7 +395,7 @@ let run
     |> List.choose (fun (xIndex, yIndex, tileBounds) ->
         Log.info "Generating a shade tile %d/%d..." xIndex yIndex
 
-        let tileGenerationResult = generateTile tileBounds options
+        let tileGenerationResult = generateTile srtmLevel tileBounds options
 
         match tileGenerationResult with
         | Error errorMessage -> Some (Error errorMessage)

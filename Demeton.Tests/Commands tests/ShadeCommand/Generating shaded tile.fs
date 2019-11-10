@@ -13,7 +13,7 @@ open Tests.Shaders
 
 let (area, heights, srtmLevel, mapScale, tileRect) = 
     ShadingSampleGenerator.generateSampleWithParameters
-        4.262676 42.90816 16.962471 48.502048 10000000. 72.
+        4.262676 42.90816 16.962471 48.502048 20000000. 72.
 
 let coveragePoints = [(area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat)]
 
@@ -46,6 +46,7 @@ let ``Tile generator correctly calculates which SRTM tiles it needs``() =
     ShadeCommand.generateShadedRasterTile 
         correctSrtmTilesWereRequested
         (fun _ -> mockRasterShader)
+        (SrtmLevel.fromInt 0)
         tileRect 
         options 
     |> ignore
@@ -61,6 +62,7 @@ let ``When heights array fetcher returns None, tile generator does nothing and r
         ShadeCommand.generateShadedRasterTile 
             returnNoneForHeightsArray
             (fun _ -> mockRasterShader)
+            (SrtmLevel.fromInt 0)
             tileRect 
             options 
 
@@ -76,6 +78,7 @@ let ``When heights array fetcher returns an error, tile generator returns an err
         ShadeCommand.generateShadedRasterTile 
             returnErrorInsteadOfHeightsArray
             (fun _ -> mockRasterShader)
+            (SrtmLevel.fromInt 0)
             tileRect 
             options 
 
@@ -97,6 +100,7 @@ let ``Tile generator prepares the tile image data and returns it``() =
         ShadeCommand.generateShadedRasterTile 
             fetchSomeHeights
             (fun _ -> shadeRasterReceivesTileRectAndImageData)
+            (SrtmLevel.fromInt 0)
             tileRect 
             { options with 
                 RootShadingStep 
