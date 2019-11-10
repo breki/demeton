@@ -13,7 +13,7 @@ open Tests.Shaders
 
 let (area, heights, srtmLevel, mapScale, tileRect) = 
     ShadingSampleGenerator.generateSampleWithParameters
-        4.262676 42.90816 16.962471 48.502048 20000000. 72.
+        4.262676 42.90816 16.962471 48.502048 5000000. 100.
 
 let coveragePoints = [(area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat)]
 
@@ -30,30 +30,32 @@ let options: ShadeCommand.Options = {
         MapScale = mapScale
     }
    
-//[<Fact>]
-[<Fact (Skip="todo")>]
+[<Fact>]
 let ``Tile generator correctly calculates which SRTM tiles it needs``() =
 
     let correctSrtmTilesWereRequested (tiles: SrtmTileCoords seq) =
         let tilesArray = tiles |> Seq.toArray
 
-        test <@ tilesArray.Length = 9 @>
-        test <@ tilesArray.[0] = srtmTileCoords 0 4 40 @>
-        test <@ tilesArray.[8] = srtmTileCoords 0 6 42 @>
+        test <@ tilesArray = [|
+            srtmTileCoords 4 0 32
+            srtmTileCoords 4 16 32
+            srtmTileCoords 4 0 48
+            srtmTileCoords 4 16 48
+            |] @>
 
         heights |> Some |> Ok
 
     ShadeCommand.generateShadedRasterTile 
         correctSrtmTilesWereRequested
         (fun _ -> mockRasterShader)
-        (SrtmLevel.fromInt 0)
+        srtmLevel
         tileRect 
         options 
     |> ignore
 
     test <@ true @>
 
-[<Fact(Skip="todo")>]
+[<Fact>]
 let ``When heights array fetcher returns None, tile generator does nothing and returns None``() =
 
     let returnNoneForHeightsArray _ = Ok None
@@ -62,14 +64,14 @@ let ``When heights array fetcher returns None, tile generator does nothing and r
         ShadeCommand.generateShadedRasterTile 
             returnNoneForHeightsArray
             (fun _ -> mockRasterShader)
-            (SrtmLevel.fromInt 0)
+            srtmLevel
             tileRect 
             options 
 
     test <@ isOk shadeTileResult @>
     test <@ shadeTileResult |> isOkValue None @>
 
-[<Fact(Skip="todo")>]
+[<Fact>]
 let ``When heights array fetcher returns an error, tile generator returns an error, too``() =
 
     let returnErrorInsteadOfHeightsArray _ = Error "something is wrong"
@@ -78,13 +80,13 @@ let ``When heights array fetcher returns an error, tile generator returns an err
         ShadeCommand.generateShadedRasterTile 
             returnErrorInsteadOfHeightsArray
             (fun _ -> mockRasterShader)
-            (SrtmLevel.fromInt 0)
+            srtmLevel
             tileRect 
             options 
 
     test <@ isError shadeTileResult @>
 
-[<Fact(Skip="todo")>]
+[<Fact>]
 let ``Tile generator prepares the tile image data and returns it``() =
     let fetchSomeHeights _ = heights |> Some |> Ok
 
@@ -100,7 +102,7 @@ let ``Tile generator prepares the tile image data and returns it``() =
         ShadeCommand.generateShadedRasterTile 
             fetchSomeHeights
             (fun _ -> shadeRasterReceivesTileRectAndImageData)
-            (SrtmLevel.fromInt 0)
+            srtmLevel
             tileRect 
             { options with 
                 RootShadingStep 
