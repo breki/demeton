@@ -1,4 +1,6 @@
-﻿- implement support for multi-level DEM PNGs
+﻿- SRTM tile loader should support higher tiles
+
+- implement support for multi-level DEM PNGs
     - When generating tile for a higher level, use lower level tiles + neighborhood buffer
     - for the lowest level, detect that DPI is too low 
 

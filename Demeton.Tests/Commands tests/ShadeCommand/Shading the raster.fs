@@ -1,4 +1,4 @@
-﻿module ``Commands tests``.``ShadeCommand``.``Shading the raster``
+﻿module Tests.``Commands tests``.``ShadeCommand``.``Shading the raster``
 
 open Demeton.Commands
 open Demeton.Geometry.Common
@@ -9,7 +9,6 @@ open Png
 open Xunit
 open Swensen.Unquote
 open Tests.Shaders
-
 
 let (area, heights, mapScale, tileRect) = 
     ShadingSampleGenerator.generateSample()

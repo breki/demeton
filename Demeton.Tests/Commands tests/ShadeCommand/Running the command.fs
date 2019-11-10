@@ -1,4 +1,4 @@
-﻿module ``Commands tests``.``ShadeCommand``.``Running the command``
+﻿module Tests.``Commands tests``.``ShadeCommand``.``Running the command``
 
 open Demeton.Commands
 open Demeton.Shaders

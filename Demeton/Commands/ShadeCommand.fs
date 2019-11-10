@@ -270,7 +270,9 @@ let generateShadedRasterTile
             MaxLat = radToDeg (max lat1Rad lat2Rad)
         }
 
-    let srtmTilesNeeded = boundsToTiles lonLatBounds (SrtmLevel.fromInt 0)
+    // todo: calculate SRTM level needed
+    let srtmLevelNeeded = SrtmLevel.fromInt 0
+    let srtmTilesNeeded = boundsToTiles lonLatBounds srtmLevelNeeded
 
     let heightsArrayResult = fetchHeightsArray srtmTilesNeeded
 

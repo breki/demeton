@@ -5,6 +5,7 @@ open Demeton.DemTypes
 open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
+open Demeton.Projections.MinLonLatDelta
 open Demeton.Srtm
 open Xunit
 open Swensen.Unquote
@@ -14,12 +15,13 @@ open Swensen.Unquote
 /// (filled with dummy height values) and calculates the raster rectangle needed
 /// to cover the area. This function is used for shader tests.
 /// </summary>
-let generateSample() =
+let generateSampleWithParameters 
+    minLon minLat maxLon maxLat mapScale dpi =
     let area = 
-        { MinLon = 15.331473; MinLat = 46.45726; 
-        MaxLon = 15.465991; MaxLat = 46.539525 }
+        { MinLon = minLon; MinLat = minLat; MaxLon = maxLon; MaxLat = maxLat }
 
-    let shaderOptions = { MapScale = 100000.; Dpi = 1. }
+    let mapScale = { MapScale = mapScale; Dpi = dpi }
+    let scaleFactor = mapScale.ProjectionScaleFactor
 
     let minCornerX, minCornerY = 
         WebMercator.proj (area.MinLon |> degToRad) (area.MaxLat |> degToRad)
@@ -30,20 +32,24 @@ let generateSample() =
 
     let rasterRect = 
         Raster.Rect.asMinMax
-            (int (floor (minCornerX * shaderOptions.ProjectionScaleFactor)))
-            -(int (floor (minCornerY * shaderOptions.ProjectionScaleFactor)))
-            (int (ceil (maxCornerX * shaderOptions.ProjectionScaleFactor)))
-            -(int (ceil (maxCornerY * shaderOptions.ProjectionScaleFactor)))
+            (int (floor (minCornerX * scaleFactor)))
+            -(int (floor (minCornerY * scaleFactor)))
+            (int (ceil (maxCornerX * scaleFactor)))
+            -(int (ceil (maxCornerY * scaleFactor)))
+
+    let srtmLevelNeeded =
+        minLonLatDelta rasterRect scaleFactor
+        |> lonLatDeltaToSrtmLevel 3600
 
     let (minLonNeeded, minLatNeeded) = 
         WebMercator.inverse 
-            ((rasterRect.MinX - 1 |> float) / shaderOptions.ProjectionScaleFactor)
-            -((rasterRect.MinY - 1 |> float) / shaderOptions.ProjectionScaleFactor)
+            ((rasterRect.MinX - 1 |> float) / scaleFactor)
+            -((rasterRect.MinY - 1 |> float) / scaleFactor)
         |> Option.get
     let (maxLonNeeded, maxLatNeeded) = 
         WebMercator.inverse 
-            ((rasterRect.MaxX + 1 |> float) / shaderOptions.ProjectionScaleFactor)
-            -((rasterRect.MaxY + 1 |> float) / shaderOptions.ProjectionScaleFactor)
+            ((rasterRect.MaxX + 1 |> float) / scaleFactor)
+            -((rasterRect.MaxY + 1 |> float) / scaleFactor)
         |> Option.get
 
     let minLonNeededDeg = radToDeg minLonNeeded 
@@ -62,7 +68,16 @@ let generateSample() =
             maxSrtmX - minSrtmX + 1, maxSrtmY - minSrtmY + 1, 
             HeightsArrayInitializer1D(fun _ -> DemHeight 1000))
 
-    (area, heights, shaderOptions, rasterRect)
+    (area, heights, mapScale, rasterRect)
+
+/// <summary>
+/// Generates a sample geographic area bounds, its corresponding heights array
+/// (filled with dummy height values) and calculates the raster rectangle needed
+/// to cover the area. This function is used for shader tests.
+/// </summary>
+let generateSample() =
+    generateSampleWithParameters 
+        15.331473 46.45726 15.465991 46.539525 100000. 1.
 
 [<Fact>]
 let ``Sample data is valid and sane``() =

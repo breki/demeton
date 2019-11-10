@@ -1,7 +1,9 @@
-﻿- this DEM level is then used by `boundsToTiles` in ShadeCommand
-- SRTM tile loader should support higher tiles
+﻿- `generateSampleWithParameters` needs to take into account the SRTM level and generate an appropriate heights array using it
+- this DEM level is then used by `boundsToTiles` in ShadeCommand
+    - tests!
 
 ## Sun 10.11.
+- Level needed was wrongly calculated, it did not convert the delta into SRTM cell delta first.
 - Renamed `MapProjectionParameters` and `ShaderOptions` to `MapScale`.
 - Implemented a method that, for a given min lon/lat delta, calculates the DEM level needed.
 - Introduced helper srtmTileCoords function for tests.

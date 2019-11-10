@@ -1,4 +1,4 @@
-﻿module ``Commands tests``.``ShadeCommand``.``Splitting into intervals``
+﻿module Tests.``Commands tests``.``ShadeCommand``.``Splitting into intervals``
 
 open Demeton.Commands
 

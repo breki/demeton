@@ -106,4 +106,9 @@ let ``Determines the min lon/lat delta using simulated annealing``() =
 let ``Calculates the SRTM level needed from the lon/lat delta``
     (delta, expectedLevel) =
 
-    test <@ (lonLatDeltaToSrtmLevel delta).Value = expectedLevel @>
+    let tileSize = 3600
+    let actualRadDelta = 
+        1. / (float tileSize) * delta |> Demeton.Geometry.Common.degToRad
+
+    test <@ (lonLatDeltaToSrtmLevel tileSize actualRadDelta).Value = 
+                expectedLevel @>

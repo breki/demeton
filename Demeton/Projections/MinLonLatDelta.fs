@@ -95,6 +95,14 @@ let minLonLatDelta (rasterRect: Raster.Rect) scaleFactor: LonLatDelta =
 /// <summary>
 /// Calculates the required SRTM level for a given lon/lat delta.
 /// </summary>
-let lonLatDeltaToSrtmLevel (lonLatDelta: LonLatDelta): SrtmLevel = 
-    min MaxSrtmLevel (max 0 (Math.Log2 lonLatDelta |> int)) 
+let lonLatDeltaToSrtmLevel tileSize (lonLatDelta: LonLatDelta): SrtmLevel = 
+    let lonLatDeltaDeg = Demeton.Geometry.Common.radToDeg lonLatDelta
+
+    // size of an SRTM cell (in degrees)
+    let srtmCellSizeDeg = 1.0 / (float tileSize)
+
+    // resolution is in terms of SRTM cells
+    let resolutionNeeded = lonLatDeltaDeg / srtmCellSizeDeg
+
+    min MaxSrtmLevel (max 0 (Math.Log2 resolutionNeeded |> int)) 
     |> SrtmLevel.fromInt

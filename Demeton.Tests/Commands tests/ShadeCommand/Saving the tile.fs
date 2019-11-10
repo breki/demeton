@@ -1,4 +1,4 @@
-﻿module ``Commands tests``.``ShadeCommand``.``Saving the tile``
+﻿module Tests.``Commands tests``.``ShadeCommand``.``Saving the tile``
 
 open Demeton.Commands
 open Demeton.Shaders
