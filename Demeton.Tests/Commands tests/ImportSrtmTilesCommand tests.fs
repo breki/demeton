@@ -9,6 +9,7 @@ open Demeton.DemTypes
 open Xunit
 open Swensen.Unquote
 open TestHelp
+open Tests.Srtm.SrtmHelper
 
 let parseArgs args = 
     let result = 
@@ -155,11 +156,9 @@ let ``Parses the local cache dir parameter``() =
 
 [<Fact>]
 let ``Imports all tiles within the specified boundaries``() =
-    let tilesCoords = [|
-        { Level = 0; 
-        Lon = SrtmLongitude.fromInt 15; Lat = SrtmLatitude.fromInt 45 }
-        { Level = 0; 
-        Lon = SrtmLongitude.fromInt 16; Lat = SrtmLatitude.fromInt 46 }
+    let tilesCoords = [| 
+        srtmTileCoords 0 15 45
+        srtmTileCoords 0 16 46
     |]
 
     // we use a lock because the import function employs parallelization

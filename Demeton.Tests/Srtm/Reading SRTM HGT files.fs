@@ -2,7 +2,6 @@
 
 open Demeton.DemTypes
 open Demeton.Srtm
-open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 
 open System
@@ -12,6 +11,7 @@ open System.Reflection
 open FsUnit
 open Xunit
 open Swensen.Unquote
+open Tests.Srtm.SrtmHelper
 
 [<Fact>]
 let ``Can read SRTM heights``() =
@@ -87,9 +87,7 @@ let ``Can create heights array from SRTM heights sequence``() =
     use stream = new MemoryStream(byteArray)
 
     let tile = 
-        createSrtmTileFromStream tileSize {
-            Level = 0; 
-            Lon = SrtmLongitude.fromInt 16; Lat = SrtmLatitude.fromInt 45 } 
+        createSrtmTileFromStream tileSize (srtmTileCoords 0 16 45) 
             stream
 
     test <@ tile.Width = tileSize @>

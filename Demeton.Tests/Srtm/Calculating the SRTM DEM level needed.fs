@@ -4,6 +4,7 @@ open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Projections.MinLonLatDelta
+open System
 
 open Xunit
 open Swensen.Unquote
@@ -82,7 +83,7 @@ let private calculateMinDeltaUsingBruteForce
     |> Seq.min
 
 [<Fact>]
-let ``Determines the lowest SRTM cell delta using simulated annealing``() =
+let ``Determines the min lon/lat delta using simulated annealing``() =
     let scaleFactor = { MapScale = 1000000.; Dpi = 5. }.ProjectionScaleFactor
     let rasterRect = scaleFactor |> rasterRectFor
 
@@ -91,6 +92,18 @@ let ``Determines the lowest SRTM cell delta using simulated annealing``() =
     let minDeltaUsingBruteForce = 
         calculateMinDeltaUsingBruteForce rasterRect scaleFactor
 
-    printfn "minDelta: %g" minDeltaUsingSimAnn
-
     test <@ abs (minDeltaUsingSimAnn - minDeltaUsingBruteForce) < 0.001 @>
+
+[<Theory>]
+[<InlineData(0.1, 0)>]
+[<InlineData(1, 0)>]
+[<InlineData(1.5, 0)>]
+[<InlineData(2, 1)>]
+[<InlineData(2.1, 1)>]
+[<InlineData(3.5, 1)>]
+[<InlineData(4.5, 2)>]
+[<InlineData(2000, 6)>]
+let ``Calculates the SRTM level needed from the lon/lat delta``
+    (delta, expectedLevel) =
+
+    test <@ (lonLatDeltaToSrtmLevel delta).Value = expectedLevel @>

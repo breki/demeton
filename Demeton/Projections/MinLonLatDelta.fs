@@ -10,9 +10,12 @@
 /// </remarks>
 module Demeton.Projections.MinLonLatDelta
 
+open Demeton.Srtm.Types
 open Demeton.Projections
 open SimAnn
 open System
+
+type LonLatDelta = float
 
 /// <summary>
 /// Type containing the state for the simulated annealing. Basically just a 
@@ -73,7 +76,7 @@ let private srtmMinCellDeltaNeighbor (rasterRect: Raster.Rect) :
 /// Currently it only supports Web Mercator projection, but this will be fixed
 /// once we start supporting custom map projections.
 /// </summary>
-let minLonLatDelta (rasterRect: Raster.Rect) scaleFactor =
+let minLonLatDelta (rasterRect: Raster.Rect) scaleFactor: LonLatDelta =
     let initialState = (
         rasterRect.MinX + rasterRect.Width / 2,
         rasterRect.MinY + rasterRect.Height / 2 )
@@ -88,3 +91,10 @@ let minLonLatDelta (rasterRect: Raster.Rect) scaleFactor =
             1000 
     
     srtmMinCellEnergy scaleFactor finalMinDeltaPoint
+
+/// <summary>
+/// Calculates the required SRTM level for a given lon/lat delta.
+/// </summary>
+let lonLatDeltaToSrtmLevel (lonLatDelta: LonLatDelta): SrtmLevel = 
+    min MaxSrtmLevel (max 0 (Math.Log2 lonLatDelta |> int)) 
+    |> SrtmLevel.fromInt

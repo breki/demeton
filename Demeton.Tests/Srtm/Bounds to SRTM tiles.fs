@@ -7,44 +7,38 @@ open Demeton.Srtm.Funcs
 open FsUnit
 open Xunit
 open Swensen.Unquote
+open Tests.Srtm.SrtmHelper
 
 [<Fact>]
 let ``Two tiles are equal``() =
-    { Level = 0; Lon = SrtmLongitude.fromInt 10; Lat = SrtmLatitude.fromInt 20 } 
-    |> should equal { 
-        Level = 0; 
-        Lon = SrtmLongitude.fromInt 10; Lat = SrtmLatitude.fromInt 20 }
+    srtmTileCoords 0 10 20
+    |> should equal (srtmTileCoords 0 10 20)
 
 [<Fact>]
 let ``When bounds cover just a single tile``() =
     let bounds = { 
         MinLon = 10.1; MinLat = 20.1; MaxLon = 10.2; MaxLat = 20.2 }
-    let tiles = boundsToTiles bounds 0
-    tiles |> should equal [ 
-        { Level = 0; 
-        Lon = SrtmLongitude.fromInt 10; Lat = SrtmLatitude.fromInt 20 } ]
+    let tiles = boundsToTiles bounds (SrtmLevel.fromInt 0)
+    tiles |> should equal [ srtmTileCoords 0 10 20 ]
 
 [<Fact>]
 let ``When bounds cover multiple tiles``() =
     let bounds = { 
         MinLon = 10.1; MinLat = 20.1; MaxLon = 11.2; MaxLat = 21.2 }
-    let tiles = boundsToTiles bounds 0
+    let tiles = boundsToTiles bounds (SrtmLevel.fromInt 0)
     tiles |> should equal [ 
-        { Level = 0; 
-        Lon = SrtmLongitude.fromInt 10; Lat = SrtmLatitude.fromInt 20 } 
-        { Level = 0; Lon = SrtmLongitude.fromInt 11; Lat = SrtmLatitude.fromInt 20 } 
-        { Level = 0; Lon = SrtmLongitude.fromInt 10; Lat = SrtmLatitude.fromInt 21 } 
-        { Level = 0; Lon = SrtmLongitude.fromInt 11; Lat = SrtmLatitude.fromInt 21 } 
+        srtmTileCoords 0 10 20
+        srtmTileCoords 0 11 20
+        srtmTileCoords 0 10 21
+        srtmTileCoords 0 11 21
     ]
 
 [<Fact>]
 let ``Supports calculating needed tiles when level higher than 0 is needed``() =
     let bounds = { 
         MinLon = 10.1; MinLat = 19.1; MaxLon = 11.2; MaxLat = 21.2 }
-    let tiles = boundsToTiles bounds 2
+    let tiles = boundsToTiles bounds (SrtmLevel.fromInt 2)
     test <@ tiles = [ 
-            { Level = 2; 
-            Lon = SrtmLongitude.fromInt 8; Lat = SrtmLatitude.fromInt 16 } 
-            { Level = 2; 
-            Lon = SrtmLongitude.fromInt 8; Lat = SrtmLatitude.fromInt 20 } 
+        srtmTileCoords 2 8 16
+        srtmTileCoords 2 8 20
         ] @>

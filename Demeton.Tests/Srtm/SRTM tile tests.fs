@@ -6,48 +6,39 @@ open Demeton.Srtm.Types
 open FsUnit
 open Xunit
 open Swensen.Unquote
+open Tests.Srtm.SrtmHelper
 
 [<Fact>]
 let ``Latitude 0 means north``() =
-    { Level = 0; Lon = SrtmLongitude.fromInt 10; Lat = SrtmLatitude.fromInt 0 } 
+    srtmTileCoords 0 10 0
     |> Tile.tileId 
     |> should equal "N00E010"
 
 [<Fact>]
 let ``Latitude -1 means south``() =
-    { Level = 0; Lon = SrtmLongitude.fromInt 10; Lat = SrtmLatitude.fromInt -1 } 
+    srtmTileCoords 0 10 -1
     |> Tile.tileId 
     |> should equal "S01E010"
 
 [<Fact>]
 let ``Longitude 0 means east``() =
-    { Level = 0; Lon = SrtmLongitude.fromInt 0; Lat = SrtmLatitude.fromInt 10 } 
+    srtmTileCoords 0 0 10
     |> Tile.tileId 
     |> should equal "N10E000"
 
 [<Fact>]
 let ``Longitude -1 means west``() =
-    { Level = 0; Lon = SrtmLongitude.fromInt -1; Lat = SrtmLatitude.fromInt 10 } 
+    srtmTileCoords 0 -1 10
     |> Tile.tileId 
     |> should equal "N10W001"
 
 [<Fact>]
 let ``Can parse north and west tile IDs``() =
-    test <@ 
-            Tile.parseTileId "N10W001" = 
-                { Level = 0; 
-                Lon = SrtmLongitude.fromInt -1; 
-                Lat = SrtmLatitude.fromInt 10 } 
-    @>
+    test <@ Tile.parseTileId "N10W001" = srtmTileCoords 0 -1 10 @>
 
 [<Fact>]
 let ``Can parse south and east tile IDs``() =
-    test <@ 
-            Tile.parseTileId "S22E080" = 
-                { Level = 0; 
-                Lon = SrtmLongitude.fromInt 80; 
-                Lat = SrtmLatitude.fromInt -22 } 
-    @>
+    test <@ Tile.parseTileId "S22E080" = srtmTileCoords 0 80 -22 @>
 
 [<Literal>]
 let Multiply_90_with_3600_minus_3599 = 320401

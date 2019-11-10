@@ -8,8 +8,9 @@ open Demeton.Srtm.Types
 open System
 open System.IO
 
-let boundsToTiles (bounds: LonLatBounds) level: SrtmTileCoords list =
-    let tileFactor = pown 2 level
+let boundsToTiles (bounds: LonLatBounds) (level: SrtmLevel)
+    : SrtmTileCoords list =
+    let tileFactor = pown 2 level.Value
     let tileFactorFloat = tileFactor |> float
 
     let minLon = (bounds.MinLon / tileFactorFloat) |> int
@@ -113,7 +114,7 @@ let toLocalCacheTileFile
     (tileCoords: SrtmTileCoords) : SrtmTileFile =
     let tilePngFileName = sprintf "%s.png" (Tile.tileId tileCoords)
     let levelDirName = 
-        tileCoords.Level.ToString(
+        tileCoords.Level.Value.ToString(
             System.Globalization.CultureInfo.InvariantCulture)
 
     { 

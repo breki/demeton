@@ -18,9 +18,9 @@ open Demeton.Shaders.Pipeline.BuildingIgorHillshading
 open Demeton.Shaders.Pipeline.BuildingSlopeShader
 open Demeton.Srtm
 open Demeton.Srtm.Funcs
+open Demeton.Srtm.Types
 open Png.Types
 open Text
-
 open System
 
 type Options = {
@@ -272,7 +272,7 @@ let generateShadedRasterTile
             MaxLat = radToDeg (max lat1Rad lat2Rad)
         }
 
-    let srtmTilesNeeded = boundsToTiles lonLatBounds 0
+    let srtmTilesNeeded = boundsToTiles lonLatBounds (SrtmLevel.fromInt 0)
 
     let heightsArrayResult = fetchHeightsArray srtmTilesNeeded
 

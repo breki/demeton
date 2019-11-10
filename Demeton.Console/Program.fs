@@ -1,8 +1,9 @@
 ﻿open CommandLine
 open CommandLine.Common
-open Demeton.Srtm.Funcs
 open Demeton.Commands
 open Demeton.Console
+open Demeton.Srtm.Funcs
+open Demeton.Srtm.Types
 open Text
 
 let displayHelp exitCode = 
@@ -19,7 +20,8 @@ let runImportCommand parsedParameters =
     let options = ImportSrtmTilesCommand.fillOptions parsedParameters
 
     let tilesCords = 
-        boundsToTiles (Option.get options.Bounds) 0 |> Seq.toArray
+        boundsToTiles (Option.get options.Bounds) (SrtmLevel.fromInt 0) 
+        |> Seq.toArray
 
     ImportSrtmTilesCommand.run 
         tilesCords 

@@ -9,6 +9,7 @@ open Demeton.Srtm.Types
 open Xunit
 open Swensen.Unquote
 open TestHelp
+open Tests.Srtm.SrtmHelper
 
 let coveragePoints = [(4.262676, 42.90816); (16.962471, 48.502048)]
 
@@ -44,10 +45,8 @@ let ``Tile generator correctly calculates which SRTM tiles it needs``() =
         let tilesArray = tiles |> Seq.toArray
 
         test <@ tilesArray.Length = 9 @>
-        test <@ tilesArray.[0] = { 
-            Level = 0; Lon = { Value = 4 }; Lat = { Value = 40 } } @>
-        test <@ tilesArray.[8] = { 
-            Level = 0; Lon = { Value = 6 }; Lat = { Value = 42 } } @>
+        test <@ tilesArray.[0] = srtmTileCoords 0 4 40 @>
+        test <@ tilesArray.[8] = srtmTileCoords 0 6 42 @>
 
         someHeightsArray
 
