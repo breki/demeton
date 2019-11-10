@@ -10,8 +10,9 @@ open Xunit
 open Swensen.Unquote
 open Tests.Shaders
 
-let (area, heights, mapScale, tileRect) = 
-    ShadingSampleGenerator.generateSample()
+let (area, heights, srtmLevel, mapScale, tileRect) = 
+    ShadingSampleGenerator.generateSampleWithParameters 
+        15.331473 46.45726 15.465991 46.539525 10000. 1.
 
 let coveragePoints = [(area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat)]
 
@@ -38,6 +39,7 @@ let ``Elevation colorer colors all of the image``() =
     ElevationColoring.shadeRaster 
         ElevationColoring.colorScaleMaperitive
         heights
+        srtmLevel
         tileRect 
         imageData 
         options.MapScale

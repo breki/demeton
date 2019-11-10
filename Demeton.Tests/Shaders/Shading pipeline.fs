@@ -1,14 +1,12 @@
 ﻿module Tests.Shaders.``Shading pipeline``
 
 open Demeton.Shaders.Pipeline.Common
-open Raster
 open Demeton.Shaders
 open Demeton.Shaders.Types
 open Png
 
 open Xunit
 open Swensen.Unquote
-open Demeton.DemTypes
 
 let mutable shadedImageGenerated = None
 
@@ -16,7 +14,7 @@ let mutable shadedImageGenerated = None
 let ShadingFuncIdStupid = "stupid"
 
 let stupidRasterShader: RasterShader = 
-    fun heights rect imageData mapScale -> 
+    fun heights srtmLevel rect imageData mapScale -> 
     shadedImageGenerated <- Some imageData
 
 let createShadingFuncById shadingFuncId =
@@ -44,7 +42,7 @@ let createCompositingFuncById compositingFuncId =
     | CompositingFuncIdStupid -> stupidCompositing
     | _ -> invalidOp "Unknown compositing function."
 
-let (area, heights, shaderOptions, tileRect) = 
+let (area, heights, srtmLevel, shaderOptions, tileRect) = 
     ShadingSampleGenerator.generateSample()
 
 [<Fact>]
@@ -55,7 +53,7 @@ let ``Supports running a simple, single-step pipeline``() =
         executeShadingStep 
             createShadingFuncById
             createCompositingFuncById 
-            heights tileRect shaderOptions step
+            heights srtmLevel tileRect shaderOptions step
     test <@ Some resultingImageData = shadedImageGenerated @>
 
 [<Fact>]
@@ -70,6 +68,7 @@ let ``Supports compositing of images``() =
             createShadingFuncById
             createCompositingFuncById 
             heights 
+            srtmLevel
             tileRect 
             shaderOptions 
             compositingStep
@@ -82,6 +81,7 @@ let ``Supports elevation coloring``() =
         createShadingFuncById
         createCompositingFuncById 
         heights 
+        srtmLevel
         tileRect 
         shaderOptions 
         step |> ignore
@@ -93,6 +93,7 @@ let ``Supports aspect shading``() =
         createShadingFuncById
         createCompositingFuncById 
         heights 
+        srtmLevel
         tileRect 
         shaderOptions 
         step |> ignore
@@ -104,6 +105,7 @@ let ``Supports slope shading``() =
         createShadingFuncById
         createCompositingFuncById 
         heights 
+        srtmLevel
         tileRect 
         shaderOptions 
         step |> ignore
@@ -115,6 +117,7 @@ let ``Supports igor shading``() =
         createShadingFuncById
         createCompositingFuncById 
         heights 
+        srtmLevel
         tileRect 
         shaderOptions 
         step |> ignore

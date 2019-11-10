@@ -9,6 +9,7 @@ open Demeton.Projections.MinLonLatDelta
 open Demeton.Srtm
 open Xunit
 open Swensen.Unquote
+open Demeton.Srtm.Types
 
 /// <summary>
 /// Generates a sample geographic area bounds, its corresponding heights array
@@ -57,10 +58,18 @@ let generateSampleWithParameters
     let maxLonNeededDeg = radToDeg maxLonNeeded 
     let maxLatNeededDeg = radToDeg maxLatNeeded 
 
-    let minSrtmX = Tile.longitudeToGlobalX minLonNeededDeg 3600 |> floor |> int
-    let minSrtmY = Tile.latitudeToGlobalY minLatNeededDeg 3600 |> floor |> int
-    let maxSrtmX = Tile.longitudeToGlobalX maxLonNeededDeg 3600 |> floor |> int
-    let maxSrtmY = Tile.latitudeToGlobalY maxLatNeededDeg 3600 |> floor |> int
+    let minSrtmX = 
+        Tile.longitudeToGlobalX minLonNeededDeg srtmLevelNeeded 3600 
+        |> floor |> int
+    let minSrtmY = 
+        Tile.latitudeToGlobalY minLatNeededDeg srtmLevelNeeded 3600 
+        |> floor |> int
+    let maxSrtmX = 
+        Tile.longitudeToGlobalX maxLonNeededDeg srtmLevelNeeded 3600 
+        |> floor |> int
+    let maxSrtmY = 
+        Tile.latitudeToGlobalY maxLatNeededDeg srtmLevelNeeded 3600 
+        |> floor |> int
 
     let heights = 
         HeightsArray
@@ -68,7 +77,7 @@ let generateSampleWithParameters
             maxSrtmX - minSrtmX + 1, maxSrtmY - minSrtmY + 1, 
             HeightsArrayInitializer1D(fun _ -> DemHeight 1000))
 
-    (area, heights, mapScale, rasterRect)
+    (area, heights, srtmLevelNeeded, mapScale, rasterRect)
 
 /// <summary>
 /// Generates a sample geographic area bounds, its corresponding heights array
@@ -77,13 +86,14 @@ let generateSampleWithParameters
 /// </summary>
 let generateSample() =
     generateSampleWithParameters 
-        15.331473 46.45726 15.465991 46.539525 100000. 1.
+        15.331473 46.45726 15.465991 46.539525 10000. 1.
 
 [<Fact>]
 let ``Sample data is valid and sane``() =
-    let (_, heights, _, rasterRect) = generateSample()
+    let (_, heights, srtmLevel, _, rasterRect) = generateSample()
 
-    test <@ heights.Width = 741 @>
-    test <@ heights.Height = 340 @>
-    test <@ rasterRect.Width = 7 @>
-    test <@ rasterRect.Height = 4 @>
+    test <@ srtmLevel = SrtmLevel.fromInt 2 @>
+    test <@ heights.Width = 129 @>
+    test <@ heights.Height = 76 @>
+    test <@ rasterRect.Width = 60 @>
+    test <@ rasterRect.Height = 51 @>

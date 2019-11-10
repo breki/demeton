@@ -11,13 +11,13 @@ open TestHelp
 open Tests.Srtm.SrtmHelper
 open Tests.Shaders
 
-let (area, heights, mapScale, tileRect) = 
+let (area, heights, srtmLevel, mapScale, tileRect) = 
     ShadingSampleGenerator.generateSampleWithParameters
-        4.262676 42.90816 16.962471 48.502048 1000000. 72.
+        4.262676 42.90816 16.962471 48.502048 10000000. 72.
 
 let coveragePoints = [(area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat)]
 
-let mockRasterShader _ _ _ _ = ()
+let mockRasterShader _ _ _ _ _ = ()
 
 let options: ShadeCommand.Options = {
         CoveragePoints = coveragePoints
@@ -30,6 +30,7 @@ let options: ShadeCommand.Options = {
         MapScale = mapScale
     }
    
+//[<Fact>]
 [<Fact (Skip="todo")>]
 let ``Tile generator correctly calculates which SRTM tiles it needs``() =
 
@@ -86,7 +87,7 @@ let ``Tile generator prepares the tile image data and returns it``() =
 
     let mutable imageDataReceived = None
     let shadeRasterReceivesTileRectAndImageData 
-        _ tileRectReceived (imageData: RawImageData) _ = 
+        _ _ tileRectReceived (imageData: RawImageData) _ = 
         imageDataReceived <- Some imageData
         test <@ imageData.Length = 
             tileRect.Width * tileRect.Height * Png.Rgba8Bit.BytesPerPixel @>

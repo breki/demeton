@@ -95,8 +95,10 @@ let tileCellMinCoords tileSize (tileCoords: SrtmTileCoords)
 /// (non-fractional) coordinate, so each cell stretches from -0.5 to 0.5 value 
 /// of X.
 /// </remarks>
-let longitudeToGlobalX (longitude: float) (tileSize: int): float =
-    (longitude + 179.) * float tileSize
+let longitudeToGlobalX 
+    (longitude: float) (level: SrtmLevel) (tileSize: int): float =
+    let levelFactor = pown 2 level.Value
+    (longitude + 179.) / (float levelFactor) * float tileSize
 
 /// <summary>
 /// Calculates the global fractional cell Y coordinate for the specified
@@ -107,7 +109,9 @@ let longitudeToGlobalX (longitude: float) (tileSize: int): float =
 /// (non-fractional) coordinate, so each cell stretches from -0.5 to 0.5 value 
 /// of Y.
 /// </remarks>
-let latitudeToGlobalY (latitude: float) (tileSize: int): float =
-    (90. - latitude) * float tileSize
+let latitudeToGlobalY 
+    (latitude: float) (level: SrtmLevel) (tileSize: int): float =
+    let levelFactor = pown 2 level.Value
+    (90. - latitude) / (float levelFactor) * float tileSize
 
 

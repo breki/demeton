@@ -37,6 +37,7 @@ let rec executeShadingStep
     shadingFuncFactory
     compositingFuncFactory
     heightsArray
+    srtmLevel
     tileRect
     mapScale
     (step: ShadingStep)
@@ -49,6 +50,7 @@ let rec executeShadingStep
                 shadingFuncFactory
                 compositingFuncFactory 
                 heightsArray 
+                srtmLevel
                 tileRect 
                 mapScale 
                 step1
@@ -57,6 +59,7 @@ let rec executeShadingStep
                 shadingFuncFactory
                 compositingFuncFactory 
                 heightsArray 
+                srtmLevel
                 tileRect 
                 mapScale 
                 step2
@@ -86,5 +89,5 @@ let rec executeShadingStep
             Rgba8Bit.createImageData 
                 tileRect.Width tileRect.Height Rgba8Bit.ImageDataZero
 
-        rasterShaderToUse heightsArray tileRect imageData mapScale
+        rasterShaderToUse heightsArray srtmLevel tileRect imageData mapScale
         imageData

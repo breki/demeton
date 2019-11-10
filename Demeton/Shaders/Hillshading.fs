@@ -10,6 +10,7 @@ open Png
 
 open System
 open System.Threading.Tasks
+open Demeton.Srtm.Types
 
 type PixelHillshader = float -> float -> float -> Rgba8Bit.RgbaColor
 
@@ -71,7 +72,7 @@ let calculateSlopeAndAspect p q: SlopeAndAspect =
 
 
 let shadeRaster (pixelHillshader: PixelHillshader): RasterShader = 
-    fun heightsArray tileRect imageData mapScale ->
+    fun heightsArray srtmLevel tileRect imageData mapScale ->
 
     let scaleFactor = mapScale.ProjectionScaleFactor
     let tileWidth = tileRect.Width
@@ -85,8 +86,8 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
         let lonDeg = radToDeg lonRad
         let latDeg = radToDeg latRad
 
-        let globalSrtmX = Tile.longitudeToGlobalX lonDeg 3600
-        let globalSrtmY = Tile.latitudeToGlobalY latDeg 3600
+        let globalSrtmX = Tile.longitudeToGlobalX lonDeg srtmLevel 3600
+        let globalSrtmY = Tile.latitudeToGlobalY latDeg srtmLevel 3600
         heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
 
     let neighborHeights neighborCoords: float option[] option =

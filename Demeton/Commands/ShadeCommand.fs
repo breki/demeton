@@ -286,6 +286,7 @@ let generateShadedRasterTile
                     createShaderFunction
                     Demeton.Shaders.Pipeline.Common.createCompositingFuncById
                     heightsArray 
+                    srtmLevelNeeded
                     tileRect 
                     options.MapScale 
                     options.RootShadingStep 

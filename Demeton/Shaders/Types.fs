@@ -3,8 +3,9 @@
 open Raster
 open Demeton.DemTypes
 open Demeton.Projections.Common
+open Demeton.Srtm.Types
     
 type RasterShader = 
-    HeightsArray -> Raster.Rect -> RawImageData -> MapScale -> unit
+    HeightsArray -> SrtmLevel -> Raster.Rect -> RawImageData -> MapScale -> unit
 
         

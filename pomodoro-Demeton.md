@@ -1,8 +1,11 @@
-﻿- `generateSampleWithParameters` needs to take into account the SRTM level and generate an appropriate heights array using it
-- this DEM level is then used by `boundsToTiles` in ShadeCommand
+﻿- this DEM level is then used by `boundsToTiles` in ShadeCommand
     - tests!
 
 ## Sun 10.11.
+- `generateSampleWithParameters` now takes into account the SRTM level and generates an appropriate heights array using it.
+- Fixed tests that use ShadingSampleGenerator now that tile level is taken into account.
+- `RasterShader` now has the SRTM level as a parameter.
+- `longitudeToGlobalX` and `latitudeToGlobalY` now take SRTM level into account.
 - Level needed was wrongly calculated, it did not convert the delta into SRTM cell delta first.
 - Renamed `MapProjectionParameters` and `ShaderOptions` to `MapScale`.
 - Implemented a method that, for a given min lon/lat delta, calculates the DEM level needed.
