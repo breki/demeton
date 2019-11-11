@@ -31,8 +31,6 @@ type SrtmLongitude = { Value: int } with
 type SrtmTileCoords = 
     { Level: SrtmLevel; Lon: SrtmLongitude; Lat: SrtmLatitude }
 
-type SrtmTileFile = { TileCoords: SrtmTileCoords; FileName: string }
-
 type SrtmTileReader = SrtmTileCoords -> HeightsArrayResult
 
 

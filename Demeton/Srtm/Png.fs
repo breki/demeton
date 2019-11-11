@@ -139,21 +139,19 @@ let decodeSrtmTileFromPngFile
 let convertZippedHgtTileToPng
     (readZipFileEntry: FileSys.ZipFileEntryReader)
     createSrtmTileFromStream
-    (writeTileToPng: SrtmPngTileWriter)
-    (zippedHgtFile: SrtmTileFile)
-    pngFileName =
+    (writeTileToPng: SrtmPngTileWriter): SrtmHgtToPngTileConverter =
+    fun tileCoords zippedHgtFileName pngFileName ->
     
-    let tileId = Tile.tileId zippedHgtFile.TileCoords
+    let tileId = Tile.tileId tileCoords
     let zippedEntryName = tileId + ".hgt"
 
     let zipEntryStream = 
-        readZipFileEntry zippedHgtFile.FileName zippedEntryName
+        readZipFileEntry zippedHgtFileName zippedEntryName
 
     Log.debug "Reading tile %s..." zippedEntryName
 
     let heightsArray =
-        createSrtmTileFromStream 
-            3600 zippedHgtFile.TileCoords zipEntryStream
+        createSrtmTileFromStream 3600 tileCoords zipEntryStream
 
     Log.debug "Encoding tile %s into PNG..." tileId
 

@@ -97,38 +97,29 @@ let createSrtmTileFromStream tileSize tileCoords stream =
         HeightsArrayDirectImport srtmHeights)
 
 
-let toZippedSrtmTileFile
+let toZippedSrtmTileFileName
     (srtmDir: string) 
-    (tileCoords: SrtmTileCoords) : SrtmTileFile =
-    let zippedTileFileName = 
-        sprintf "%s.SRTMGL1.hgt.zip" (Tile.tileId tileCoords)
+    (tileCoords: SrtmTileCoords) =
+    srtmDir
+    |> Pth.combine (sprintf "%s.SRTMGL1.hgt.zip" (Tile.tileId tileCoords))
 
-    { 
-        TileCoords = tileCoords; 
-        FileName = srtmDir |> Pth.combine zippedTileFileName
-    }
-
-
-let toLocalCacheTileFile 
+let toLocalCacheTileFileName 
     (localCacheDir: string) 
-    (tileCoords: SrtmTileCoords) : SrtmTileFile =
+    (tileCoords: SrtmTileCoords) =
     let tilePngFileName = sprintf "%s.png" (Tile.tileId tileCoords)
     let levelDirName = 
         tileCoords.Level.Value.ToString(
             System.Globalization.CultureInfo.InvariantCulture)
 
-    { 
-        TileCoords = tileCoords;
-        FileName = 
-            localCacheDir 
-            |> Pth.combine levelDirName 
-            |> Pth.combine tilePngFileName 
-    }
+    localCacheDir 
+    |> Pth.combine levelDirName 
+    |> Pth.combine tilePngFileName 
 
 
 type SrtmPngTileWriter = string -> HeightsArray -> HeightsArray
 type SrtmPngTileReader = string -> Result<HeightsArray, string>
-type SrtmHgtToPngTileConverter = SrtmTileFile -> string -> HeightsArray
+type SrtmHgtToPngTileConverter = 
+    SrtmTileCoords -> string -> string -> HeightsArray
 
 let checkSrtmTileCachingStatus
     (srtmDir: string)
@@ -136,14 +127,14 @@ let checkSrtmTileCachingStatus
     (fileExists: FileSys.FileExistsChecker)
     (tile: SrtmTileCoords)
     = 
-    let localTileFile = toLocalCacheTileFile localCacheDir tile
-
-    match fileExists localTileFile.FileName with
+    toLocalCacheTileFileName localCacheDir tile
+    |> fileExists
+    |> function
     | true -> Tile.CachingStatus.Cached
     | false -> 
-        let zippedSrtmTileFile = toZippedSrtmTileFile srtmDir tile
-
-        match fileExists zippedSrtmTileFile.FileName with
+        toZippedSrtmTileFileName srtmDir tile
+        |> fileExists
+        |> function
         | false -> Tile.CachingStatus.DoesNotExist
         | true -> Tile.CachingStatus.NotCached
 
@@ -186,21 +177,22 @@ let rec fetchSrtmTile
     (resampleHeightsArray: HeightsArrayResampler)
     : SrtmTileReader =
     fun tile ->
-    let localTileFile = toLocalCacheTileFile localCacheDir tile
 
-    match fileExists localTileFile.FileName with
+    let localTileFileName = toLocalCacheTileFileName localCacheDir tile
+
+    localTileFileName |> fileExists |> function
     | true -> 
-        readPngTile localTileFile.FileName
+        readPngTile localTileFileName
         |> Result.map (fun heightsArray -> Some heightsArray)
     | false -> 
         match tile.Level.Value with
         | 0 ->
-            let zippedSrtmTileFile = toZippedSrtmTileFile srtmDir tile
+            let zippedSrtmTileFileName = toZippedSrtmTileFileName srtmDir tile
 
-            match fileExists zippedSrtmTileFile.FileName with
+            zippedSrtmTileFileName |> fileExists |> function
             | false -> Ok None
             | true -> 
-                convertTileToPng zippedSrtmTileFile localTileFile.FileName
+                convertTileToPng tile zippedSrtmTileFileName localTileFileName
                 |> Some |> Ok
         | _ ->
             lowerLevelTiles tile
@@ -224,7 +216,7 @@ let rec fetchSrtmTile
                 createHigherLevelTileByResamplingLowerLevelOnes
                     resampleHeightsArray
                     writePngTile
-                    localTileFile.FileName
+                    localTileFileName
                     heightsArrays)
 
 

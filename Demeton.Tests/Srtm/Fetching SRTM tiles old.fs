@@ -61,11 +61,10 @@ let pngFileReader fileNameToFind =
         |> List.find (fun (fileName, _) -> fileName = fileNameToFind)
     Ok contents
 
-let pngTileConverter (zippedTileFile: SrtmTileFile) _ =
+let pngTileConverter _ zippedTileFileName _ =
     let (_, contents) =
         zippedTilesInSrtmStorage
-        |> List.find (fun (fileName, _) -> 
-            fileName = zippedTileFile.FileName)
+        |> List.find (fun (fileName, _) -> fileName = zippedTileFileName)
     contents
 
 [<Fact>]

@@ -9,12 +9,7 @@ open Tests.Srtm.SrtmHelper
 
 let localCacheDir = "somecache"
 
-type SrtmDirTileChecker = SrtmLongitude -> SrtmLatitude -> bool
 type LocalCacheTileChecker = SrtmTileCoords -> bool
-
-let srtmExistsInSrtmDir: SrtmDirTileChecker = 
-    fun lon lat ->
-    invalidOp "todo"
 
 type LocalCacheTileStatus =
     | NotCached
@@ -30,7 +25,7 @@ let checkLocalCacheTileStatus
     (localCacheDir: string) (fileExists: FileSys.FileExistsChecker)
     : LocalCacheTileStatusChecker =
     fun tile -> 
-        let tileFileName = (toLocalCacheTileFile localCacheDir tile).FileName
+        let tileFileName = toLocalCacheTileFileName localCacheDir tile
         match fileExists tileFileName with
         | true -> Cached
         | false -> 

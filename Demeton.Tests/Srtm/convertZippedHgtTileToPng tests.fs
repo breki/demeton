@@ -65,7 +65,8 @@ let ``Opens HGT file entry in the zip file``() =
         (expectToReadZipFileEntry zipFileName entryName entryStream)
         readHeightsArrayFromStream
         (fun _ heightsArray -> heightsArray)
-        { TileCoords = tileCoords; FileName = zipFileName }
+        tileCoords 
+        zipFileName
         pngFileName
 
 [<Fact>]
@@ -85,7 +86,8 @@ let ``Reads the zipped HGT tile as heights array``() =
         (readZipFileEntry entryStream)
         (expectToCreateSrtmTileFromStream tileCoords entryStream heightsArray)
         (fun _ heightsArray -> heightsArray)
-        { TileCoords = tileCoords; FileName = zipFileName }
+        tileCoords
+        zipFileName
         pngFileName
 
 [<Fact>]
@@ -106,7 +108,8 @@ let ``Encodes the read SRTM heights array into PNG file``() =
         (fun _ _ _ -> heightsArray)
         (fun a b -> expectHeightsArrayToBeEncodedIntoPngFile 
                         heightsArray pngFileName a b)
-        { TileCoords = tileCoords; FileName = zipFileName }
+        tileCoords 
+        zipFileName
         pngFileName
 
 [<Fact>]
@@ -127,7 +130,8 @@ let ``Returns the read heights array``() =
             (readZipFileEntry entryStream)
             (fun _ _ _ -> heightsArray)
             (fun _ heightsArray -> heightsArray)
-            { TileCoords = tileCoords; FileName = zipFileName }
+            tileCoords
+            zipFileName 
             pngFileName
 
     test <@ returnedHeightsArray = heightsArray @>    

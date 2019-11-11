@@ -5,6 +5,8 @@
 - implement a proper resampler
 
 ## Mon 11.11.
+- Removed `SrtmTileFile` record because it was just a design obstacle.
+- Started working on a new implementaton ofr `fetchSrtmTile` code because the old one was just too unwieldly to support levels.  
 
 ## Sun 10.11.
 - Started working on fetching SRTM tiles from higher levels.
