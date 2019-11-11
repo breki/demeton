@@ -1,4 +1,10 @@
-﻿- SRTM tile loader should support higher tiles
+﻿- write new, cleaner and less coupled version of `fetchSrtmTile`
+- simplify/clean `fetchSrtmTile` code somehow
+- SRTM tile loader should support higher tiles
+    - also test negative scenarios and None heights arrays
+- implement a proper resampler
+
+## Mon 11.11.
 
 ## Sun 10.11.
 - Started working on fetching SRTM tiles from higher levels.

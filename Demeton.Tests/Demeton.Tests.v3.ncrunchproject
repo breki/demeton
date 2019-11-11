@@ -28,6 +28,18 @@
       <NamedTestSelector>
         <TestName>decodeSrtmTileFromPngFile tests.Throws an exception if PNG image size is not of a SRTM tile</TestName>
       </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Tests.Srtm.Converting HGT to PNG.Can convert a HGT file into PNG image</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Tests.Srtm.Reading SRTM HGT files.Can read HGT file</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Tests.Srtm.decodeSrtmTileFromPngFile tests.Can decode a valid PNG-encoded SRTM tile</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Tests.Srtm.decodeSrtmTileFromPngFile tests.Throws an exception if PNG image size is not of a SRTM tile</TestName>
+      </NamedTestSelector>
     </IgnoredTests>
   </Settings>
 </ProjectConfiguration>

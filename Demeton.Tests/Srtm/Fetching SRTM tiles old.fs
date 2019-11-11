@@ -1,10 +1,11 @@
-﻿module Tests.Srtm.``Fetching SRTM tiles``
+﻿module Tests.Srtm.``Fetching SRTM tiles old``
 
 open Demeton.DemTypes
 open Demeton.Srtm
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 
+open FsUnit
 open Xunit
 open Swensen.Unquote
 open TestHelp
@@ -15,14 +16,17 @@ let localCacheDir = "some/cache"
 let mutable zippedTilesInSrtmStorage: (string * HeightsArray) list = []
 let mutable pngFilesInLocalCacheDir: (string * HeightsArray) list = []
 
+let someHeightsArray minX minY width height =
+    HeightsArray(
+        minX, minY, width, height, 
+        HeightsArrayInitializer1D (fun _ -> DemHeightNone))
+
 let init() =
     zippedTilesInSrtmStorage <- []
     pngFilesInLocalCacheDir <- []
 
 let withPngTilePresentInLocalCache (tileCoords: SrtmTileCoords) =
-    let fileContents = 
-        HeightsArray(
-            10, 20, 5, 5, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
+    let fileContents = someHeightsArray 10 20 5 5
 
     let tileId = Tile.tileId tileCoords
     let fileInCache = (
@@ -33,9 +37,7 @@ let withPngTilePresentInLocalCache (tileCoords: SrtmTileCoords) =
     fileContents
 
 let withZippedTilePresentInSrtmStorage tileId =
-    let fileContents = 
-        HeightsArray(
-            10, 20, 5, 5, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
+    let fileContents = someHeightsArray 10 20 5 5
     let fileInCache = (
         (srtmDir |> Pth.combine (sprintf "%s.SRTMGL1.hgt.zip" tileId)),
         fileContents)
@@ -130,12 +132,30 @@ let ``If PNG tile is not in the cache and there is a zipped tile in the SRTM sto
 
     test <@ heightsArrayReturned = Ok (Some heightsArray) @>    
 
-[<Fact (Skip="todo")>]
+[<Fact>]
 let ``Creates higher-level PNG tiles from lower level ones by resampling them``() =
+    let srtmLevel = 1
+    let tileId = "N02E008"
+
+    let mutable resampledHeightsArrayProduced = None
+
+    let resamplerWasCalled: HeightsArrayResampler = fun heightsArray ->
+        let resampledHeightsArray = someHeightsArray 30 20 5 5
+        resampledHeightsArrayProduced <- Some resampledHeightsArray
+        resampledHeightsArray
+
+    let pngWriterWasCalled: SrtmPngTileWriter = 
+        fun fileName heightsArray ->
+        test <@ fileName = 
+                    (localCacheDir 
+                    |> Pth.combine "1" |> Pth.combine "N02E008.png") @>
+
+        Some heightsArray |> should equal resampledHeightsArrayProduced
+        heightsArray
+
     init()
 
-    let tileId = "N02E008"
-    let tileCoords = Tile.parseTileId 1 tileId
+    let tileCoords = Tile.parseTileId srtmLevel tileId
 
     let lowerTilesIds = [| "N02E008"; "N03E008"; "N02E009"; "N03E009" |]
     lowerTilesIds
@@ -149,9 +169,9 @@ let ``Creates higher-level PNG tiles from lower level ones by resampling them``(
             localCacheDir
             fileExists
             pngFileReader
-            (fun _ _ -> invalidOp "bug")
+            pngWriterWasCalled
             pngTileConverter
-            (fun _ -> invalidOp "bug")
+            resamplerWasCalled
             tileCoords
 
-    test <@ heightsArrayReturned |> isOk @>   
+    test <@ heightsArrayReturned |> isOkValue resampledHeightsArrayProduced @>   

@@ -1,8 +1,7 @@
-﻿- extend `decodeSrtmTileFromPngFile` to support levels
+﻿- redesign `fetchSrtmHeights` as a fold
+- implement mechanism that fetches the wider heights array for resampling
 
-- implement support for multi-level DEM PNGs
-    - When generating tile for a higher level, use lower level tiles + neighborhood buffer
-    - for the lowest level, detect that DPI is too low 
+- extend `decodeSrtmTileFromPngFile` to support levels
 
 - how to generate code docs?
     - https://fsprojects.github.io/FSharp.Formatting/commandline.html

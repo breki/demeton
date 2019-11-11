@@ -51,7 +51,8 @@
     <Compile Include="Srtm\Converting HGT to PNG.fs" />
     <Compile Include="Srtm\convertZippedHgtTileToPng tests.fs" />
     <Compile Include="Srtm\decodeSrtmTileFromPngFile tests.fs" />
-    <Compile Include="Srtm\Fetching SRTM tiles.fs" />
+    <Compile Include="Srtm\Fetching SRTM tiles old.fs" />
+    <Compile Include="Srtm\Fetching SRTM tiles\Checking local cache status.fs" />
     <Compile Include="Srtm\fetchSrtmHeights tests.fs" />
     <Compile Include="Srtm\Calculating the SRTM DEM level needed.fs" />
     <Compile Include="SimAnn\Simulated annealing.fs" />

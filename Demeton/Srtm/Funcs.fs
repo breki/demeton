@@ -163,6 +163,7 @@ let private lowerLevelTiles (tileCoords: SrtmTileCoords) =
 
 type HeightsArrayResampler = HeightsArray -> HeightsArray
 
+
 let createHigherLevelTileByResamplingLowerLevelOnes 
     (resampleHeightsArray: HeightsArrayResampler)
     (writePngTile: SrtmPngTileWriter)
@@ -189,10 +190,8 @@ let rec fetchSrtmTile
 
     match fileExists localTileFile.FileName with
     | true -> 
-        let loadResult = readPngTile localTileFile.FileName
-        match loadResult with
-        | Ok heightsArray -> Ok (Some heightsArray)
-        | Error message -> Error message
+        readPngTile localTileFile.FileName
+        |> Result.map (fun heightsArray -> Some heightsArray)
     | false -> 
         match tile.Level.Value with
         | 0 ->
@@ -201,9 +200,8 @@ let rec fetchSrtmTile
             match fileExists zippedSrtmTileFile.FileName with
             | false -> Ok None
             | true -> 
-                Ok (Some (convertTileToPng 
-                    zippedSrtmTileFile 
-                    localTileFile.FileName))
+                convertTileToPng zippedSrtmTileFile localTileFile.FileName
+                |> Some |> Ok
         | _ ->
             lowerLevelTiles tile
             |> Array.fold (fun state lowerLevelTile -> 
