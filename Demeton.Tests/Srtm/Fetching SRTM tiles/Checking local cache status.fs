@@ -1,59 +1,63 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Checking local cache status``
 
+open Demeton.Srtm.Types
 open Demeton.Srtm.Fetch
 
 open Xunit
 open Swensen.Unquote
 open Tests.Srtm.SrtmHelper
 
-let localCacheDir = "somecache"
+let doNotCallMe = 
+    Lazy<bool>(fun () -> invalidOp "should not be called")
 
-let whenFileExists fileNameThatExists: FileSys.FileExistsChecker 
-    = fun fileNameToCheck -> fileNameToCheck = fileNameThatExists
+let pngNotInCache = false
+let pngInCache = true
+
+let noneFileInCache = Lazy<bool>(fun () -> true)
+let noneFileNotInCache = Lazy<bool>(fun () -> false)
 
 [<Fact>]
-let ``If PNG file of level > 0 is not in the cache, it is marked as not cached``() =
-    let tile = srtmTileCoords 4 10 20
-
+let ``If PNG file of level > 0 is not in the cache, and '.none' is also not, it is marked as not cached``() =
     test <@ 
-            checkLocalCacheTileStatus 
-                localCacheDir
-                (fun _ -> false)
-                tile = LocalCacheTileStatus.NotCached @>
+            determineLocalCacheTileStatus
+                (SrtmLevel.fromInt 4)
+                pngNotInCache
+                noneFileNotInCache
+                = LocalCacheTileStatus.NotCached @>
+
+[<Fact>]
+let ``If PNG file of level > 0 is not in the cache, and '.none' exists, it is marked as not existing``() =
+    test <@ 
+            determineLocalCacheTileStatus
+                (SrtmLevel.fromInt 4)
+                pngNotInCache
+                noneFileInCache
+                = LocalCacheTileStatus.HigherLevelDoesNotExist @>
 
 [<Fact>]
 let ``If PNG file of level > 0 is in the cache, it is marked as cached``() =
-    let tile = srtmTileCoords 4 10 20
-
     test <@ 
-            checkLocalCacheTileStatus 
-                localCacheDir
-                (whenFileExists 
-                    (localCacheDir 
-                    |> Pth.combine "4" |> Pth.combine "N20E010.png"))
-                tile = LocalCacheTileStatus.Cached @>
+            determineLocalCacheTileStatus 
+                (SrtmLevel.fromInt 4)
+                pngInCache
+                doNotCallMe
+                = LocalCacheTileStatus.Cached @>
 
 [<Fact>]
 let ``If PNG file of level 0 is not in the cache, it is marked as not existing``() =
-    let tile = srtmTileCoords 0 10 20
-
     test <@ 
-            checkLocalCacheTileStatus 
-                localCacheDir
-                (whenFileExists 
-                    (localCacheDir 
-                    |> Pth.combine "0" |> Pth.combine "N20E010.none"))
-                tile = LocalCacheTileStatus.NotCached @>
+            determineLocalCacheTileStatus 
+                (SrtmLevel.fromInt 0)
+                pngNotInCache
+                doNotCallMe
+                = LocalCacheTileStatus.NotCached @>
 
 [<Fact>]
-let ``If PNG file of level > 0 is not in the cache, but '.none' is, it is marked as not existing``() =
-    let tile = srtmTileCoords 4 10 20
-
+let ``If PNG file of level 0 is in the cache, it is marked as cached``() =
     test <@ 
-            checkLocalCacheTileStatus 
-                localCacheDir
-                (whenFileExists 
-                    (localCacheDir 
-                    |> Pth.combine "4" |> Pth.combine "N20E010.none"))
-                tile = LocalCacheTileStatus.HigherLevelDoesNotExist @>
+            determineLocalCacheTileStatus 
+                (SrtmLevel.fromInt 0)
+                pngInCache
+                doNotCallMe
+                = LocalCacheTileStatus.Cached @>
 

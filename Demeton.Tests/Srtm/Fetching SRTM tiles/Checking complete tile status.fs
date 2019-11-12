@@ -1,52 +1,58 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Checking complete tile status``
 
+open Demeton.Srtm.Types
 open Demeton.Srtm.Fetch
 
 open Xunit
 open Swensen.Unquote
-open Tests.Srtm.SrtmHelper
 
-let doNotCallMe: SrtmDirTileStatusChecker = 
-    (fun _ _ -> invalidOp "should not be called")
+let tileIsNotInSrtmDir = 
+    Lazy<SrtmDirTileStatus>(fun () -> SrtmDirTileStatus.DoesNotExist)
+
+let tileIsInSrtmDir = 
+    Lazy<SrtmDirTileStatus>(fun () -> SrtmDirTileStatus.Exists)
+
+let doNotCallMe = 
+    Lazy<SrtmDirTileStatus>(fun () -> invalidOp "should not be called")
 
 [<Fact>]
 let ``When level 0 tile neither exists in the cache nor in the store``() =
-    let tile = srtmTileCoords 0 10 20
-    test <@ checkSrtmTileStatus 
-                (fun _ _ -> SrtmDirTileStatus.DoesNotExist)
-                tile LocalCacheTileStatus.NotCached = NotExists @>
+    test <@ decideSrtmTileStatus 
+                (SrtmLevel.fromInt 0) 
+                LocalCacheTileStatus.NotCached tileIsNotInSrtmDir 
+                = NotExists @>
 
 [<Fact>]
 let ``When level 0 tile is not cached but it exists in SRTM dir``() = 
-    let tile = srtmTileCoords 0 10 20
-    test <@ checkSrtmTileStatus 
-                (fun _ _ -> SrtmDirTileStatus.Exists)
-                tile LocalCacheTileStatus.NotCached = NotCached @>
+    test <@ decideSrtmTileStatus 
+                (SrtmLevel.fromInt 0) 
+                LocalCacheTileStatus.NotCached tileIsInSrtmDir 
+                = NotCached @>
 
 [<Fact>]
 let ``When level 0 tile exists in the local cache``() = 
-    let tile = srtmTileCoords 0 10 20
-    test <@ checkSrtmTileStatus 
-                doNotCallMe
-                tile LocalCacheTileStatus.Cached = Cached @>
+    test <@ decideSrtmTileStatus 
+                (SrtmLevel.fromInt 0)
+                LocalCacheTileStatus.Cached doNotCallMe 
+                = Cached @>
 
 [<Fact>]
 let ``When higher level tile is not in the cache``() =
-    let tile = srtmTileCoords 4 10 20
-    test <@ checkSrtmTileStatus 
-                doNotCallMe
-                tile LocalCacheTileStatus.NotCached = NotCached @>
+    test <@ decideSrtmTileStatus 
+                (SrtmLevel.fromInt 4) 
+                LocalCacheTileStatus.NotCached doNotCallMe
+                = NotCached @>
 
 [<Fact>]
 let ``When higher level tile is marked as not existing``() =
-    let tile = srtmTileCoords 4 10 20
-    test <@ checkSrtmTileStatus 
-                doNotCallMe
-                tile LocalCacheTileStatus.HigherLevelDoesNotExist = NotExists @>
+    test <@ decideSrtmTileStatus 
+                (SrtmLevel.fromInt 4)
+                LocalCacheTileStatus.HigherLevelDoesNotExist doNotCallMe 
+                = NotExists @>
 
 [<Fact>]
 let ``When higher level tile is exists in the cache``() =
-    let tile = srtmTileCoords 4 10 20
-    test <@ checkSrtmTileStatus 
-                doNotCallMe
-                tile LocalCacheTileStatus.Cached = Cached @>
+    test <@ decideSrtmTileStatus 
+                (SrtmLevel.fromInt 4)
+                LocalCacheTileStatus.Cached doNotCallMe 
+                = Cached @>

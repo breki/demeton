@@ -5,6 +5,7 @@
 - implement a proper resampler
 
 ## Tue 12.11.
+- Trying out a new, more functional approach on checking the tile status.
 - Finished implementing the new functions for checking the caching status of the tile.
 
 ## Mon 11.11.
