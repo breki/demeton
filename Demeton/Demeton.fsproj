@@ -48,6 +48,7 @@
     <Compile Include="Srtm\Tile.fs" />
     <Compile Include="Srtm\Funcs.fs" />
     <Compile Include="Srtm\Png.fs" />
+    <Compile Include="Srtm\Fetch.fs" />
     <Compile Include="Projections\Common.fs" />
     <Compile Include="Projections\WebMercator.fs" />
     <Compile Include="Projections\MinLonLatDelta.fs" />

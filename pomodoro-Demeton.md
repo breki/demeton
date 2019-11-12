@@ -4,6 +4,9 @@
     - also test negative scenarios and None heights arrays
 - implement a proper resampler
 
+## Tue 12.11.
+- Finished implementing the new functions for checking the caching status of the tile.
+
 ## Mon 11.11.
 - Removed `SrtmTileFile` record because it was just a design obstacle.
 - Started working on a new implementaton ofr `fetchSrtmTile` code because the old one was just too unwieldly to support levels.  

@@ -1,30 +1,12 @@
-﻿module Tests.Srtm.``Fetching SRTM tiles``.``Checking_SRTM_dir_tile_status``
+﻿module Tests.Srtm.``Fetching SRTM tiles``.``Checking SRTM dir tile status``
 
 open Demeton.Srtm.Types
-open Demeton.Srtm.Funcs
+open Demeton.Srtm.Fetch
 
 open Xunit
 open Swensen.Unquote
-open Tests.Srtm.SrtmHelper
 
 let srtmDir = "somesrtm"
-
-type SrtmDirTileStatus =
-    | DoesNotExist
-    | Exists
-
-type SrtmDirTileStatusChecker = 
-    SrtmLongitude -> SrtmLatitude -> SrtmDirTileStatus
-
-let checkSrtmDirTileStatus srtmDir (fileExists: FileSys.FileExistsChecker)
-    : SrtmDirTileStatusChecker = 
-    fun lon lat ->
-    { Level = SrtmLevel.fromInt 0; Lon = lon; Lat = lat }
-    |> toZippedSrtmTileFileName srtmDir
-    |> fileExists
-    |> function
-    | true -> Exists
-    | false -> DoesNotExist
 
 let whenFileExists fileNameThatExists: FileSys.FileExistsChecker 
     = fun fileNameToCheck -> fileNameToCheck = fileNameThatExists
