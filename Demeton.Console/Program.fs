@@ -93,9 +93,11 @@ let helpCommand = {
 let main args =
     let commandResult = 
         Shell.parseAndExecuteCommandLine 
-            System.Console.Out.Write "demeton" args supportedCommands
+            System.Console.Out.Write 
+            System.Console.Error.Write 
+            "demeton" args supportedCommands
 
     match commandResult with
     | CommandExecuted -> 0
     | ParsingFailed -> 1
-    | CommandNotFound -> 2
+    | UnregnizedCommand -> 2

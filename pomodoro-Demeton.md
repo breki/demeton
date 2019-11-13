@@ -1,6 +1,8 @@
-﻿- "shade" command returns no error output
+﻿- console returns no error output
+- help with unknown command is not finished yet
 
 ## Wed 13.11.
+- Fixed: the console returns no error output.
 - Fixed: the console reports an error when no command is specified.
 - Improved build scripts, added steps to publish Demeton console to the `builds` directory.
 - Implemented tail-recursive `processCommandStack` command.

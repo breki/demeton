@@ -5,6 +5,7 @@ open CommandLine.Common
 
 let parseAndExecuteCommandLine 
     writeHelpOutput
+    (writeErrorOutput: string -> unit)
     executableName
     (args: string[]) 
     supportedCommands = 
@@ -30,5 +31,14 @@ let parseAndExecuteCommandLine
         let parsingResult = parseParameters commandArgs command.Parameters
         match parsingResult with
         | Ok parsedParameters -> command.Runner parsedParameters
-        | Error _ -> ParsingFailed
-    | None -> CommandNotFound
+        | Error message -> 
+            writeErrorOutput message
+            ParsingFailed
+
+    | None -> 
+        let message = 
+            sprintf 
+                "Unrecognized command '%s'. Please use 'help' command to list all available commands."
+                commandName
+        writeErrorOutput message
+        UnregnizedCommand

@@ -72,7 +72,7 @@ type ParsingResult = Result<ParsedParameters, string>
 type CommandResult = 
     | CommandExecuted
     | ParsingFailed
-    | CommandNotFound
+    | UnregnizedCommand
 
 type CommandRunner = ParsedParameters -> CommandResult
 

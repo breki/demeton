@@ -2,13 +2,28 @@
 
 open CommandLine
 open CommandLine.Common
+open Text
+
+open System.Text
 
 open Xunit
 open Swensen.Unquote
 
+let mutable errorOutputBuilder = StringBuilder()
+
+let initErrorOutput() = errorOutputBuilder <- StringBuilder()
+
+let writeErrorOutput text =
+    errorOutputBuilder |> append text |> ignore
+
+let errorOutput() = errorOutputBuilder.ToString()
+
 let parseAndExecuteCommandLine args supportedCommands = 
+    initErrorOutput()
+
     Shell.parseAndExecuteCommandLine 
         (fun _ -> ())
+        writeErrorOutput
         ""
         args 
         supportedCommands 
@@ -50,18 +65,26 @@ let ``Parses a whole command from the command line and executes is successfully`
     test <@ result = CommandExecuted @>
     test <@ command1Executed @>
 
+// Command parsing failure results in its own result code and some error
+// message.
 [<Fact>]
-let ``Command parsing failure results in its own result code``() =
+let ``Command parsing failure``() =
     let args = [| "cmd1"; "--par2" |]
 
     let result = parseAndExecuteCommandLine args supportedCommands 
     test <@ result = ParsingFailed @>
     test <@ not command1Executed @>
+    test <@ errorOutput() = "Unrecognized parameter 'par2'." @>
 
+// When command was not found this results in its own result code and some error
+// message.
 [<Fact>]
-let ``When command was not found this results in its own result code``() =
+let ``When command was not found``() =
     let args = [| "cmdX" |]
 
     let result = parseAndExecuteCommandLine args supportedCommands 
-    test <@ result = CommandNotFound @>
+    test <@ result = UnregnizedCommand @>
+    test <@ errorOutput() = 
+                "Unrecognized command 'cmdX'. Please use 'help' command "+
+                "to list all available commands." @>
     
