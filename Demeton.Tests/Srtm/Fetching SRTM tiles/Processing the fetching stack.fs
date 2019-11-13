@@ -53,7 +53,7 @@ let processNextCommand
     ((commandStack, tilesStack): TileFetchingState)
     : TileFetchingState =
     match commandStack with
-    | [] -> invalidOp "todo"
+    | [] -> ([], tilesStack)
 
     | DetermineStatus tile :: remainingCommands -> 
         match determineTileStatus tile with
@@ -109,6 +109,17 @@ let initialState = (initialCommands, initialStackedTiles)
 let dontCareStatus _ = invalidOp "should not be called"
 let dontCallConvert _ = invalidOp "should not be called"
 let dontCallCreate _ _ = invalidOp "should not be called"
+
+[<Fact>]
+let ``Calling processNextCommand on an empty command stack returns the same state``() =
+    let initialState = 
+        (([]: TileProcessingCommand list), initialStackedTiles)
+
+    let resultingState = 
+        initialState
+        |> processNextCommand dontCareStatus dontCallConvert dontCallCreate
+
+    test <@ resultingState = initialState @>
 
 [<Fact>]
 let ``When a tile does not exist, puts None in the tiles stack``() =
@@ -222,3 +233,43 @@ let ``When create from lower tiles command is received``() =
                 (initialCommands,
                 Some tile :: initialStackedTiles) @>
     test <@ createWasCalled @>
+
+let rec processCommandStack 
+    determineTileStatus convertFromHgt createFromLowerTiles
+    state
+    : TileFetchingState =
+    match processNextCommand
+        determineTileStatus convertFromHgt createFromLowerTiles
+        state with
+    | ([], tiles) -> ([], tiles)
+    | updatedState -> 
+        processCommandStack 
+            determineTileStatus convertFromHgt createFromLowerTiles
+            updatedState
+
+[<Fact>]
+let ``Testing the tail recursion``() =
+    // we add sufficiently large number of commands into the command stack so
+    // we can be sure it will fail if the function is not tail-recursive
+    let someTiles = [| for _ in 0 .. 10000 -> srtmTileCoords 0 1 2 |]
+
+    // push these tiles into the command stack
+    let initialState =
+        someTiles
+        |> Array.rev
+        |> Array.fold (fun status tile -> status |> newTileToProcess tile) 
+            ([], [])
+
+    // run the processing of the stack recursively
+    let (finalCommandStack, finalTilesStack) = 
+        processCommandStack
+            // all of the tiles are marked as cached
+            (fun _ -> Cached) (fun _ -> ignore) dontCallCreate
+            initialState
+
+    // there should be no more commands in the stack
+    test <@ finalCommandStack = [] @>
+    // ensure all of the tiles are in the tiles stack
+    test <@ finalTilesStack = 
+                (someTiles |> Array.rev 
+                |> Array.map Option.Some |> Array.toList) @>
