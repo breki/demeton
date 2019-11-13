@@ -24,12 +24,16 @@ type SrtmLongitude = { Value: int } with
         if i < -179 || i > 180 then invalidArg "i" "Longitude is out of range"
         else { Value = i }
 
-[<StructuredFormatDisplay("SrtmTile ({Level}/{Lon}/{Lat})")>]
+[<StructuredFormatDisplay("{IdString}")>]
 [<Struct>]
 [<StructuralEquality>]
 [<StructuralComparison>]
 type SrtmTileCoords = 
     { Level: SrtmLevel; Lon: SrtmLongitude; Lat: SrtmLatitude }
+    with
+    member this.IdString = 
+        sprintf "SrtmTile (%d/%d/%d)" 
+            this.Level.Value this.Lon.Value this.Lat.Value
 
 type SrtmTileReader = SrtmTileCoords -> HeightsArrayResult
 

@@ -57,4 +57,4 @@ let decideSrtmTileStatus
     | (level, LocalCacheTileStatus.NotCached) when level > 0 -> NotCached
     | (level, LocalCacheTileStatus.HigherLevelDoesNotExist) when level > 0 -> 
         NotExists
-    | _ -> invalidOp "bug: this case should not never happen"
+    | _ -> invalidOp "bug: this should never happen"
