@@ -1,8 +1,7 @@
-﻿- write new, cleaner and less coupled version of `fetchSrtmTile`
-- simplify/clean `fetchSrtmTile` code somehow
-- SRTM tile loader should support higher tiles
-    - also test negative scenarios and None heights arrays
-- implement a proper resampler
+﻿- how do we finish calling of the processNextCommand function loop?
+
+## Wed 13.11.
+- Finished implementing the first version of `processNextCommand` function for fetching SRTM tiles.
 
 ## Tue 12.11.
 - Trying out a new, more functional approach on checking the tile status.

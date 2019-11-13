@@ -53,19 +53,24 @@ let ``For higher level tile that is not already cached, try to create it from lo
  
 type SrtmTile = { Coords: SrtmTileCoords; Data: HeightsArray }
 
-type CollectLowerTilesCommand = { 
+type CreateFromLowerTiles = { 
     Parent: SrtmTileCoords; Children: SrtmTileCoords[] }
 
-type TileProcessingStatus =
+type TileProcessingCommand =
     | DetermineStatus of SrtmTileCoords
-    | NoTile of SrtmTileCoords
-    | Tile of SrtmTile
     | ConvertTileFromHgt of SrtmTileCoords 
-    | ReadCachedTile of SrtmTileCoords
-    | CollectLowerTiles of CollectLowerTilesCommand
+    | CreateFromLowerTiles of CreateFromLowerTiles
 
-let pushNewTile tile stack =
-    (DetermineStatus tile) :: stack
+type TileProcessingCommandStack = TileProcessingCommand list
+
+type TileInStack = SrtmTileCoords option
+type TilesStack = TileInStack list
+
+type TileFetchingState = (TileProcessingCommandStack * TilesStack)
+
+let newTileToProcess tile ((stack, tilesBuffer): TileFetchingState):
+    TileFetchingState =
+    ((DetermineStatus tile) :: stack, tilesBuffer)
 
 // todo tests for listChildrenTiles that check edge cases
 let listChildrenTiles tile =
@@ -85,71 +90,120 @@ let listChildrenTiles tile =
                         (childLat0 + (lat - 1) * childLonLatDelta) }
     |]
 
-let processNextItem 
+let fetchFirstNOfTiles tilesCount = List.splitAt tilesCount
+
+let processNextCommand 
     determineTileStatus
-    stack =
-    match stack with
+    convertFromHgt
+    createFromLowerTiles
+    ((commandStack, tilesStack): TileFetchingState)
+    : TileFetchingState =
+    match commandStack with
     | [] -> invalidOp "todo"
 
-    | (DetermineStatus tile) :: rest -> 
+    | DetermineStatus tile :: remainingCommands -> 
         match determineTileStatus tile with
-        | NotExists -> (NoTile tile) :: rest
-        | Cached -> (ReadCachedTile tile) :: rest
+        | NotExists -> (remainingCommands, None :: tilesStack)
+        | Cached -> (remainingCommands, Some tile :: tilesStack)
         | NotCached when tile.Level.Value = 0 -> 
-            (ConvertTileFromHgt tile) :: rest
+            ((ConvertTileFromHgt tile) :: remainingCommands, tilesStack)
         | NotCached ->
             let childrenTiles = listChildrenTiles tile
             let cmd = { Parent = tile; Children = childrenTiles }
-            let childrenItems = 
+            let childrenCommands = 
                 childrenTiles |> Array.map DetermineStatus |> Array.toList
-            List.append 
-                childrenItems 
-                ((CollectLowerTiles cmd) :: rest)
+            let updatedStack = 
+                List.append 
+                    childrenCommands 
+                    ((CreateFromLowerTiles cmd) :: remainingCommands)
+            (updatedStack, tilesStack)
 
-    | _ -> invalidOp "todo"
+    | ConvertTileFromHgt tile :: remainingCommands ->
+        convertFromHgt tile |> ignore
+        (remainingCommands, Some tile :: tilesStack)
+
+    | CreateFromLowerTiles parameters :: remainingCommands ->
+        let tile = parameters.Parent
+       
+        // fetch the required number of tiles from the tiles stack
+        let lowerTilesNumber = parameters.Children.Length
+        let (lowerTiles, remainingTilesInStack) = 
+            tilesStack |> fetchFirstNOfTiles lowerTilesNumber
+
+        let lowerTilesWithoutNone =
+            lowerTiles
+            |> List.filter Option.isSome
+            |> List.map Option.get
+
+        createFromLowerTiles tile lowerTilesWithoutNone |> ignore
+        (remainingCommands, Some tile :: remainingTilesInStack)
+
+
+// some random commands in the initial state just so we can assert they are
+// still there after processing
+let initialCommands = [ 
+    DetermineStatus (srtmTileCoords 0 10 20)
+    ConvertTileFromHgt (srtmTileCoords 0 10 20)
+]
+
+// some random tiles in the initial state just so we can assert they are
+// still there after processing
+let initialStackedTiles = [ Some (srtmTileCoords 0 10 20); None ]
+
+let initialState = (initialCommands, initialStackedTiles)
+
+let dontCareStatus _ = invalidOp "should not be called"
+let dontCallConvert _ = invalidOp "should not be called"
+let dontCallCreate _ _ = invalidOp "should not be called"
 
 [<Fact>]
-let ``When a tile does not exist, put NoTile``() =
+let ``When a tile does not exist, puts None in the tiles stack``() =
     let tile = srtmTileCoords 0 10 20
 
-    let resultingStack =
-        [] 
-        |> pushNewTile tile
-        |> processNextItem (fun _ -> NotExists)
+    let resultingState =
+        initialState 
+        |> newTileToProcess tile
+        |> processNextCommand 
+            (fun _ -> NotExists) dontCallConvert dontCallCreate
 
-
-    test <@ resultingStack = [ NoTile tile ] @>
+    test <@ resultingState = (initialCommands, None :: initialStackedTiles) @>
 
 [<Fact>]
-let ``When a tile is cached, put ReadCachedTile``() =
+let ``When a tile is cached, puts it into the tiles stack``() =
     let tile = srtmTileCoords 0 10 20
 
-    let resultingStack =
-        [] 
-        |> pushNewTile tile
-        |> processNextItem (fun _ -> Cached)
+    let resultingState =
+        initialState 
+        |> newTileToProcess tile
+        |> processNextCommand 
+            (fun _ -> Cached) dontCallConvert dontCallCreate
 
-    test <@ resultingStack = [ ReadCachedTile tile ] @>
+    test <@ resultingState = 
+                (initialCommands, Some tile :: initialStackedTiles) @>
 
 [<Fact>]
-let ``When a level 0 tile is not cached, put ConvertTileFromHgt``() =
+let ``When a level 0 tile is not cached, puts ConvertTileFromHgt command``() =
     let tile = srtmTileCoords 0 10 20
 
-    let resultingStack =
-        [] 
-        |> pushNewTile tile
-        |> processNextItem (fun _ -> NotCached)
+    let resultingState =
+        initialState 
+        |> newTileToProcess tile
+        |> processNextCommand 
+            (fun _ -> NotCached) dontCallConvert dontCallCreate
 
-    test <@ resultingStack = [ ConvertTileFromHgt tile ] @>
+    test <@ resultingState = 
+                (ConvertTileFromHgt tile :: initialCommands, 
+                initialStackedTiles) @>
 
 [<Fact>]
-let ``When a level > 0 tile is not cached, fill the stack with children tiles and put CreateFromLowerTiles after it``() =
+let ``When a level > 0 tile is not cached, fills the command stack with children tiles and puts CreateFromLowerTiles after it``() =
     let tile = srtmTileCoords 2 4 8
 
-    let resultingStack =
-        [] 
-        |> pushNewTile tile
-        |> processNextItem (fun _ -> NotCached)
+    let resultingState =
+        initialState 
+        |> newTileToProcess tile
+        |> processNextCommand 
+            (fun _ -> NotCached) dontCallConvert dontCallCreate
 
     let childTiles = 
         [| 
@@ -162,10 +216,55 @@ let ``When a level > 0 tile is not cached, fill the stack with children tiles an
 
     let childItems =
         childTiles |> Array.map (fun tile -> DetermineStatus tile)
-    let expectedStack = 
+    let expectedCommands = 
         Array.append 
             childItems 
-            [| CollectLowerTiles { Parent = tile; Children = childTiles } |]
+            [| CreateFromLowerTiles { Parent = tile; Children = childTiles } |]
         |> Array.toList
 
-    test <@ resultingStack = expectedStack @>
+    test <@ resultingState = 
+                (expectedCommands @ initialCommands, initialStackedTiles) @>
+
+// When convert from HGT command is received, calls the converter and puts 
+// the result in the tiles stack.
+[<Fact>]
+let ``When convert from HGT command is received``() =
+    let tile = srtmTileCoords 2 4 8
+
+    let mutable convertWasCalled = false
+    let callConvert _ = convertWasCalled <- true
+
+    let resultingState =
+        (ConvertTileFromHgt tile :: initialCommands, initialStackedTiles) 
+        |> processNextCommand dontCareStatus callConvert dontCallCreate
+    test <@ resultingState = 
+                (initialCommands, 
+                Some tile :: initialStackedTiles) @>
+    test <@ convertWasCalled @>
+
+// When create from lower tiles command is received, collect the specified 
+// number of tiles (or None) from the stack and call the provided method.
+// Put the resulting tile into the tiles stack.
+[<Fact>]
+let ``When create from lower tiles command is received``() =
+    let tile = srtmTileCoords 2 4 8
+    
+    let createFromLowerTilesCmd = 
+        { Parent = tile; 
+            Children = [| srtmTileCoords 1 4 8; srtmTileCoords 1 4 9 |] }
+        |> CreateFromLowerTiles
+
+    let tilesStack = 
+        [ Some (srtmTileCoords 1 4 8); None ] @ initialStackedTiles
+
+    let mutable createWasCalled = false
+    let callCreate _ _ = createWasCalled <- true
+
+    let resultingState =
+        (createFromLowerTilesCmd :: initialCommands, tilesStack) 
+        |> processNextCommand dontCareStatus dontCallConvert callCreate
+
+    test <@ resultingState =
+                (initialCommands,
+                Some tile :: initialStackedTiles) @>
+    test <@ createWasCalled @>

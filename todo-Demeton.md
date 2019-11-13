@@ -1,5 +1,13 @@
-﻿- redesign `fetchSrtmHeights` as a fold
+﻿- implement convertFromHgt function
+- implement createFromLowerTiles function
+- how do we handle errors?
+- how do we test this in integration?
+
+- redesign `fetchSrtmHeights` as a fold
 - implement mechanism that fetches the wider heights array for resampling
+- SRTM tile loader should support higher tiles
+    - also test negative scenarios and None heights arrays
+- implement a proper resampler
 
 - extend `decodeSrtmTileFromPngFile` to support levels
 
