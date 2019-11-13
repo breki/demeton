@@ -2,7 +2,7 @@
   "profiles": {
     "Demeton.Console": {
       "commandName": "Project",
-      "commandLineArgs": "sdsdsd"
+      "commandLineArgs": "import 13,46,14,47 --local-cache-dir \\samples\\cache --srtm-dir \\\\hobbit\\SRTM"
     }
   }
 }

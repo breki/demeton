@@ -24,7 +24,7 @@ let convertPngTile =
         writePngTile
 
 let resampleHeightsArray: HeightsArrayResampler =
-    invalidOp "todo"
+    fun _ -> invalidOp "todo resampleHeightsArray"
 
 let fetchSrtmTile srtmDir localCacheDir = 
     fetchSrtmTile 

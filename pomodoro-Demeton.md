@@ -1,7 +1,5 @@
-﻿- we need to add sample PNGs first
-    - write a batch script for caching it   
-
-## Wed 13.11.
+﻿## Wed 13.11.
+- Added `test-data.bat` script to import tiles for the sample area.
 - Fixed: help with unknown command is not finished yet.
 - Fixed: the console returns no error output.
 - Fixed: the console reports an error when no command is specified.

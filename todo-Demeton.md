@@ -1,5 +1,4 @@
-﻿
-- how do we test this in integration?
+﻿- how do we test this in integration?
     - an acceptance test that actually fetches a sample level tile
 
 - implement determineTileStatus
