@@ -189,30 +189,45 @@ let runCommandFromOptions
     (executableName: string) 
     supportedCommands 
     writeHelpOutput 
+    (writeErrorOutput: string -> unit)
     =
     let supportedCommandsIncludingHelp = 
         Array.append supportedCommands [| helpCommandTemplateDef |]
 
-    let helpOutput = 
+    let (helpOutput, errorOutput, commandResult) = 
         match options.Command with
-        | None -> helpMainHelp executableName supportedCommandsIncludingHelp
+        | None -> 
+            (helpMainHelp executableName supportedCommandsIncludingHelp, 
+                "", CommandExecuted)
         | Some commandName -> 
             let commandMaybe = 
                 supportedCommandsIncludingHelp 
                 |> tryFindCommand commandName
             match commandMaybe with
-            | Some command -> commandDescription command
-            | None -> invalidOp "todo"
+            | Some command -> 
+                (commandDescription command, "", CommandExecuted)
+            | None -> 
+                ("",
+                    sprintf 
+                        "Unrecognized command '%s'. Please use 'help' command without arguments to list all available commands."
+                        commandName,
+                    UnregnizedCommand)
 
-    writeHelpOutput helpOutput
-
-    CommandExecuted
+    match helpOutput, errorOutput, commandResult with
+    | _, "", _ -> 
+        writeHelpOutput helpOutput
+        commandResult
+    | "", _, _ ->
+        writeErrorOutput errorOutput
+        commandResult
+    | _ -> commandResult
 
 let run 
     executableName 
     supportedCommands 
     writeHelpOutput
+    (writeErrorOutput: string -> unit)
     parsedParameters =
     let options = fillOptions parsedParameters
     runCommandFromOptions
-        options executableName supportedCommands writeHelpOutput
+        options executableName supportedCommands writeHelpOutput writeErrorOutput

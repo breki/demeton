@@ -13,7 +13,9 @@ let parseAndExecuteCommandLine
         { 
             HelpCommand.helpCommandTemplateDef 
                 with Runner = HelpCommand.run 
-                    executableName supportedCommands writeHelpOutput };
+                    executableName supportedCommands 
+                    writeHelpOutput writeErrorOutput
+        };
 
     let supportedCommandsIncludingHelp =
         Array.append supportedCommands [| helpCommand |]
@@ -36,9 +38,8 @@ let parseAndExecuteCommandLine
             ParsingFailed
 
     | None -> 
-        let message = 
-            sprintf 
-                "Unrecognized command '%s'. Please use 'help' command to list all available commands."
-                commandName
-        writeErrorOutput message
+        sprintf 
+            "Unrecognized command '%s'. Please use 'help' command to list all available commands."
+            commandName
+        |> writeErrorOutput
         UnregnizedCommand

@@ -86,7 +86,8 @@ let helpCommand = {
         "Displays the help information about the command line interface."
     Parameters = [| |]
     Runner = HelpCommand.run 
-        "demeton" supportedCommands System.Console.Out.Write }
+        "demeton" supportedCommands 
+        System.Console.Out.Write System.Console.Error.Write }
 
 
 [<EntryPoint>]

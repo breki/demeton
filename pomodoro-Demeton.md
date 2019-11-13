@@ -1,7 +1,8 @@
-﻿- console returns no error output
-- help with unknown command is not finished yet
+﻿- we need to add sample PNGs first
+    - write a batch script for caching it   
 
 ## Wed 13.11.
+- Fixed: help with unknown command is not finished yet.
 - Fixed: the console returns no error output.
 - Fixed: the console reports an error when no command is specified.
 - Improved build scripts, added steps to publish Demeton console to the `builds` directory.

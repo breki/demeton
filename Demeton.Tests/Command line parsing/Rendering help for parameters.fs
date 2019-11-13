@@ -1,7 +1,6 @@
 ﻿module Tests.``Command line parsing``.``Rendering help for parameters``
 
 open CommandLine
-open CommandLine.Common
 
 open Xunit
 open Swensen.Unquote
