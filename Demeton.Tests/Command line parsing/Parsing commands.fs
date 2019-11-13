@@ -35,6 +35,14 @@ let supportedCommands: Command[] = [|
 |]
 
 [<Fact>]
+let ``If no command is specified, run help command``() =
+    let args = [||]
+
+    let result = parseAndExecuteCommandLine args supportedCommands 
+    test <@ result = CommandExecuted @>
+    test <@ not command1Executed @>
+
+[<Fact>]
 let ``Parses a whole command from the command line and executes is successfully``() =
     let args = [| "cmd1"; "--par1" |]
 

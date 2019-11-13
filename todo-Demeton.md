@@ -1,4 +1,11 @@
-﻿- implement convertFromHgt function
+﻿- we need to add sample PNGs first
+    - write a batch script for caching it   
+
+- how do we test this in integration?
+    - an acceptance test that actually fetches a sample level tile
+
+- implement determineTileStatus
+- implement convertFromHgt function
 - implement createFromLowerTiles function
 - how do we handle errors?
 
@@ -8,10 +15,11 @@
 
 - extend `decodeSrtmTileFromPngFile` to support levels
 
+- generate GitHub releases: https://developer.github.com/v3/repos/releases/#create-a-release
+
 - how to generate code docs?
     - https://fsprojects.github.io/FSharp.Formatting/commandline.html
 
-- add sample DEM PNGs to the source control
 - add batch script that generates some sample images from these sample DEMs
 
 - investigate possible filters

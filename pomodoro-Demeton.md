@@ -1,13 +1,7 @@
-﻿- we need to add sample PNGs first
-    - the console reports an error when no arguments are specified - fix this
-    - write a batch script for caching it   
-
-- how do we test this in integration?
-    - an acceptance test that actually fetches a sample level tile
-
-- implement determineTileStatus
+﻿- "shade" command returns no error output
 
 ## Wed 13.11.
+- Fixed: the console reports an error when no command is specified.
 - Improved build scripts, added steps to publish Demeton console to the `builds` directory.
 - Implemented tail-recursive `processCommandStack` command.
 - Finished implementing the first version of `processNextCommand` function for fetching SRTM tiles.

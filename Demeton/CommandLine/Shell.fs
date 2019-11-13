@@ -17,14 +17,16 @@ let parseAndExecuteCommandLine
     let supportedCommandsIncludingHelp =
         Array.append supportedCommands [| helpCommand |]
 
-    let commandName = args.[0]
+    let (commandName, commandArgs) =
+        match args |> Array.toList with
+        | [] -> ("help", [])
+        | commandName :: commandArgs -> (commandName, commandArgs)
+
     let commandMaybe = 
         supportedCommandsIncludingHelp |> tryFindCommand commandName
 
     match commandMaybe with
     | Some command -> 
-        let commandArgs = args |> Array.tail |> Array.toList
-
         let parsingResult = parseParameters commandArgs command.Parameters
         match parsingResult with
         | Ok parsedParameters -> command.Runner parsedParameters
