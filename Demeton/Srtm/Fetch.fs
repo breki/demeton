@@ -2,6 +2,7 @@
 
 open Types
 open Funcs
+open Png
 open Demeton.DemTypes
 
 type LocalCacheTileStatus =
@@ -80,6 +81,37 @@ let newTileToProcess tile ((stack, tilesBuffer): TileFetchingState):
     TileFetchingState =
     ((DetermineStatus tile) :: stack, tilesBuffer)
 
+let determineTileStatus
+    srtmDir
+    localCacheDir
+    (fileExists: FileSys.FileExistsChecker)
+    (tile: SrtmTileCoords) = 
+
+    let tilePngExistsInLocalCache tile = 
+        tile
+        |> toLocalCacheTileFileName localCacheDir
+        |> fileExists
+    
+    let tileNoneFileExistsInLocalCache tile = 
+        tile
+        |> toLocalCacheTileFileName localCacheDir
+        |> Pth.extension ".none"
+        |> fileExists
+
+    let checkSrtmDirTileStatus() =
+        checkSrtmDirTileStatus srtmDir fileExists tile.Lon tile.Lat
+
+    let localCacheStatus =
+        determineLocalCacheTileStatus 
+            tile.Level
+            (tilePngExistsInLocalCache tile)
+            (Lazy<bool>(fun () -> tileNoneFileExistsInLocalCache tile))
+
+    decideSrtmTileStatus
+        tile.Level
+        localCacheStatus
+        (Lazy<SrtmDirTileStatus>(fun () -> checkSrtmDirTileStatus()))
+
 // todo tests for listChildrenTiles that check edge cases
 let listChildrenTiles tile =
     let childLevel = tile.Level.Value - 1
@@ -97,6 +129,42 @@ let listChildrenTiles tile =
                     Lat = SrtmLatitude.fromInt 
                         (childLat0 + (lat - 1) * childLonLatDelta) }
     |]
+
+let convertFromHgt tile = invalidOp "todo"
+
+let readPngTile localCacheDir openFileToRead tile =
+    tile 
+    |> toLocalCacheTileFileName localCacheDir
+    |> decodeSrtmTileFromPngFile openFileToRead
+
+let readPngTilesBatch 
+    localCacheDir 
+    openFileToRead 
+    (tiles: SrtmTileCoords list)
+    : Result<HeightsArray list, string> =
+     
+    let readPngTile readingState tile =
+        match readingState with
+        | Ok heightsArrays ->
+            match readPngTile localCacheDir openFileToRead tile with
+            | Ok heightsArray -> Ok (heightsArray :: heightsArrays)
+            | Error message -> Error message
+        | Error message -> Error message
+
+    tiles |> List.fold readPngTile (Ok [])
+
+let createFromLowerTiles 
+    localCacheDir openFileToRead parentTile children = 
+   
+    let lowerTilesReadResult = 
+        children |> readPngTilesBatch localCacheDir openFileToRead
+
+    match lowerTilesReadResult with
+    | Ok lowerTilesHeightsArrays ->
+        let mergedHeightsArrayMaybe =
+            lowerTilesHeightsArrays |> Demeton.Dem.merge
+        mergedHeightsArrayMaybe |> Ok
+    | Error message -> Error message
 
 let fetchFirstNOfTiles tilesCount = List.splitAt tilesCount
 

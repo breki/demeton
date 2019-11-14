@@ -1,9 +1,7 @@
-﻿- fix failing tests on GitHub
-    - do not run acceptance tests there
-- move to the production module and simplify its dependencies
-- write unit tests for finalizeFetchSrtmTileProcessing
+﻿- write unit tests for finalizeFetchSrtmTileProcessing
 
 ## Thu 14.11.
+- Moved functions from integration tests to the `Fetch` module.
 - Decomposed new `fetchSrtmTile` function.
 - `processCommandStack` now handles the `Failure` command indicator.
 - "Convert from PNG" function now supports Result.
