@@ -5,7 +5,6 @@ open Demeton.Srtm.Fetch
 
 open Xunit
 open Swensen.Unquote
-open Tests.Srtm.SrtmHelper
 
 let doNotCallMe = 
     Lazy<bool>(fun () -> invalidOp "should not be called")
