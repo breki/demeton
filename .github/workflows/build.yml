@@ -14,4 +14,4 @@ jobs:
       with:
         dotnet-version: 3.0.100
     - name: Build with dotnet
-      run: dotnet test --configuration Release --filter Category!=acceptance --verbosity minimal
+      run: dotnet test --configuration Release --verbosity minimal
