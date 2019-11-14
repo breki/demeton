@@ -2,6 +2,7 @@
 
 open Types
 open Funcs
+open Demeton.DemTypes
 
 type LocalCacheTileStatus =
     | NotCached
@@ -66,6 +67,7 @@ type TileProcessingCommand =
     | DetermineStatus of SrtmTileCoords
     | ConvertTileFromHgt of SrtmTileCoords 
     | CreateFromLowerTiles of CreateFromLowerTiles
+    | Failure of string
 
 type TileProcessingCommandStack = TileProcessingCommand list
 
@@ -100,7 +102,7 @@ let fetchFirstNOfTiles tilesCount = List.splitAt tilesCount
 
 let processNextCommand 
     determineTileStatus
-    convertFromHgt
+    (convertFromHgt: SrtmTileCoords -> Result<unit, string>)
     createFromLowerTiles
     ((commandStack, tilesStack): TileFetchingState)
     : TileFetchingState =
@@ -125,8 +127,9 @@ let processNextCommand
             (updatedStack, tilesStack)
 
     | ConvertTileFromHgt tile :: remainingCommands ->
-        convertFromHgt tile |> ignore
-        (remainingCommands, Some tile :: tilesStack)
+        match convertFromHgt tile with
+        | Ok() -> (remainingCommands, Some tile :: tilesStack)
+        | Error message -> (Failure message :: remainingCommands, tilesStack)
 
     | CreateFromLowerTiles parameters :: remainingCommands ->
         let tile = parameters.Parent
@@ -144,16 +147,41 @@ let processNextCommand
         createFromLowerTiles tile lowerTilesWithoutNone |> ignore
         (remainingCommands, Some tile :: remainingTilesInStack)
 
+    | Failure _ :: _ -> (commandStack, tilesStack)
+
 
 let rec processCommandStack 
     determineTileStatus convertFromHgt createFromLowerTiles
     state
     : TileFetchingState =
-    match processNextCommand
-        determineTileStatus convertFromHgt createFromLowerTiles
-        state with
+    let updatedState = 
+        processNextCommand
+            determineTileStatus convertFromHgt createFromLowerTiles state
+
+    match updatedState with
+    // when there are no more commands to process, stop the tail recursion
     | ([], tiles) -> ([], tiles)
+    // when there is an error indicator in the command stack, stop
+    | (Failure _ :: _, _) -> updatedState
+    // otherwise, process the next command in the stack
     | updatedState -> 
         processCommandStack 
             determineTileStatus convertFromHgt createFromLowerTiles
             updatedState
+
+let initializeProcessingState tile =
+    ([], [])
+    |>
+    newTileToProcess tile
+
+let finalizeFetchSrtmTileProcessing 
+    (readPngTile: SrtmTileCoords -> Result<HeightsArray, string>) 
+    (finalState: TileFetchingState) =
+    match finalState with
+    | ([], [ Some tile ]) -> 
+        match readPngTile tile with
+        | Ok heightsArray -> Some heightsArray |> Ok
+        | Error message -> Error message
+    | (Failure message :: _, _) -> Error message
+    | _ -> 
+        invalidOp "bug: the command stack is neither empty nor it indicates an error"

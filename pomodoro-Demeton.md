@@ -1,7 +1,12 @@
-﻿- allow the subfunctions to return errors
-- write unit tests for subfunctions
+﻿- fix failing tests on GitHub
+    - do not run acceptance tests there
+- move to the production module and simplify its dependencies
+- write unit tests for finalizeFetchSrtmTileProcessing
 
 ## Thu 14.11.
+- Decomposed new `fetchSrtmTile` function.
+- `processCommandStack` now handles the `Failure` command indicator.
+- "Convert from PNG" function now supports Result.
 - Added some integration tests for fetching SRTM tiles.
 - Moved the tile fetching logic from the test assembly to the production module.
 - Implemented the basics of the first acceptance test that calls the console, but it's not finished since levels support is not done.

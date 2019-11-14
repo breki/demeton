@@ -1,5 +1,6 @@
 SET CONFIG=Release
 SET BUILD_DIR=builds\Demeton.Console
+SET SRTM_CACHE="%cd%\samples\cache"
 
 rm -r "%BUILD_DIR%"
 
