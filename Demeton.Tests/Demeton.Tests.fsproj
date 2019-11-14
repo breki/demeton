@@ -82,6 +82,7 @@
     <Compile Include="Commands tests\ShadeCommand\Saving the tile.fs" />
     <Compile Include="Commands tests\Command line parameters parsing.fs" />
     <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs" />
+    <Compile Include="Acceptance tests\Generating hillshading rasters.fs" />
     <Compile Include="FParsec exploratory tests.fs" />
     <Compile Include="Benchmarks\PngFilterBenchmarks.fs" />
     <Compile Include="Benchmarks\CrcBenchmarks.fs" />

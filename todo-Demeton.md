@@ -1,7 +1,4 @@
-﻿- how do we test this in integration?
-    - an acceptance test that actually fetches a sample level tile
-
-- implement determineTileStatus
+﻿- implement determineTileStatus
 - implement convertFromHgt function
 - implement createFromLowerTiles function
 - how do we handle errors?

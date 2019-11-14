@@ -5,5 +5,6 @@ rm -r "%BUILD_DIR%"
 
 rem dotnet clean --configuration %CONFIG%
 dotnet build --configuration %CONFIG% --verbosity minimal --no-incremental
-dotnet test --configuration %CONFIG% --verbosity minimal
+dotnet test --configuration %CONFIG% --verbosity minimal ^
+	--filter Category!=acceptance
 dotnet publish Demeton.Console -c %CONFIG% --output "%cd%\%BUILD_DIR%"

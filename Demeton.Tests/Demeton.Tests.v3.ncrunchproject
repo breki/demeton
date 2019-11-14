@@ -40,6 +40,9 @@
       <NamedTestSelector>
         <TestName>Tests.Srtm.decodeSrtmTileFromPngFile tests.Throws an exception if PNG image size is not of a SRTM tile</TestName>
       </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Tests.Acceptance tests.Generating hillshading rasters.Generate hillshade raster that requires SRTM level 1</TestName>
+      </NamedTestSelector>
     </IgnoredTests>
   </Settings>
 </ProjectConfiguration>

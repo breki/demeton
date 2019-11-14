@@ -1,4 +1,7 @@
-﻿## Wed 13.11.
+﻿## Thu 14.11.
+- Implemented the basics of the first acceptance test that calls the console, but it's not finished since levels support is not done.
+
+## Wed 13.11.
 - Added `test-data.bat` script to import tiles for the sample area.
 - Fixed: help with unknown command is not finished yet.
 - Fixed: the console returns no error output.
