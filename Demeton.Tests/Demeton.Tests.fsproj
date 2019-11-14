@@ -55,6 +55,7 @@
     <Compile Include="Srtm\Fetching SRTM tiles\Checking local cache status.fs" />
     <Compile Include="Srtm\Fetching SRTM tiles\Checking SRTM dir tile status.fs" />
     <Compile Include="Srtm\Fetching SRTM tiles\Checking complete tile status.fs" />
+    <Compile Include="Srtm\Fetching SRTM tiles\Creating higher level tiles.fs" />
     <Compile Include="Srtm\Fetching SRTM tiles\Processing the fetching stack.fs" />
     <Compile Include="Srtm\Fetching SRTM tiles\Finalizing fetch SRTM tile processing.fs" />
     <Compile Include="Srtm\Fetching SRTM tiles\Integration tests.fs" />

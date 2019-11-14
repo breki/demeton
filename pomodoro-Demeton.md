@@ -1,5 +1,5 @@
-﻿- write unit tests for:
-    - createFromLowerTiles (and implement resampling)
+﻿- implement naive version of resampling
+    - add it to the production code and test through the console
 
 ## Thu 14.11.
 - Finished implementing `finalizeFetchSrtmTileProcessing` function.

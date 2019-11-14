@@ -1,10 +1,16 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Processing the fetching stack``
 
 open Demeton.Srtm.Fetch
+open Demeton.DemTypes
 
 open Xunit
 open Swensen.Unquote
 open Tests.Srtm.SrtmHelper
+
+let localCacheDir = "somecache"
+
+let someTileHeights = 
+    HeightsArray(1, 2, 3, 4, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
 
 // some random commands in the initial state just so we can assert they are
 // still there after processing
@@ -21,7 +27,7 @@ let initialState = (initialCommands, initialStackedTiles)
 
 let dontCareStatus _ = invalidOp "should not be called"
 let dontCallConvert _ = invalidOp "should not be called"
-let dontCallCreate _ _ = invalidOp "should not be called"
+let dontCallReadPng _ = invalidOp "should not be called"
 
 [<Fact>]
 let ``Calling processNextCommand on an empty command stack returns the same state``() =
@@ -30,7 +36,9 @@ let ``Calling processNextCommand on an empty command stack returns the same stat
 
     let resultingState = 
         initialState
-        |> processNextCommand dontCareStatus dontCallConvert dontCallCreate
+        |> processNextCommand 
+            localCacheDir
+            dontCareStatus dontCallConvert dontCallReadPng
 
     test <@ resultingState = initialState @>
 
@@ -42,7 +50,8 @@ let ``When a tile does not exist, puts None in the tiles stack``() =
         initialState 
         |> newTileToProcess tile
         |> processNextCommand 
-            (fun _ -> NotExists) dontCallConvert dontCallCreate
+            localCacheDir
+            (fun _ -> NotExists) dontCallConvert dontCallReadPng
 
     test <@ resultingState = (initialCommands, None :: initialStackedTiles) @>
 
@@ -54,7 +63,8 @@ let ``When a tile is cached, puts it into the tiles stack``() =
         initialState 
         |> newTileToProcess tile
         |> processNextCommand 
-            (fun _ -> Cached) dontCallConvert dontCallCreate
+            localCacheDir
+            (fun _ -> Cached) dontCallConvert dontCallReadPng
 
     test <@ resultingState = 
                 (initialCommands, Some tile :: initialStackedTiles) @>
@@ -67,7 +77,8 @@ let ``When a level 0 tile is not cached, puts ConvertTileFromHgt command``() =
         initialState 
         |> newTileToProcess tile
         |> processNextCommand 
-            (fun _ -> NotCached) dontCallConvert dontCallCreate
+            localCacheDir
+            (fun _ -> NotCached) dontCallConvert dontCallReadPng
 
     test <@ resultingState = 
                 (ConvertTileFromHgt tile :: initialCommands, 
@@ -81,7 +92,8 @@ let ``When a level > 0 tile is not cached, fills the command stack with children
         initialState 
         |> newTileToProcess tile
         |> processNextCommand 
-            (fun _ -> NotCached) dontCallConvert dontCallCreate
+            localCacheDir
+            (fun _ -> NotCached) dontCallConvert dontCallReadPng
 
     let childTiles = 
         [| 
@@ -116,7 +128,8 @@ let ``When convert from HGT command is received``() =
 
     let resultingState =
         (ConvertTileFromHgt tile :: initialCommands, initialStackedTiles) 
-        |> processNextCommand dontCareStatus callConvert dontCallCreate
+        |> processNextCommand 
+            localCacheDir dontCareStatus callConvert dontCallReadPng
     test <@ resultingState = 
                 (initialCommands, 
                 Some tile :: initialStackedTiles) @>
@@ -133,7 +146,8 @@ let ``Convert to PNG can fail``() =
 
     let resultingState =
         (ConvertTileFromHgt tile :: initialCommands, initialStackedTiles) 
-        |> processNextCommand dontCareStatus convertThatFails dontCallCreate
+        |> processNextCommand 
+            localCacheDir dontCareStatus convertThatFails dontCallReadPng
 
     let expectedResultingState =
         (Failure errorMessage :: initialCommands, initialStackedTiles)
@@ -155,17 +169,16 @@ let ``When create from lower tiles command is received``() =
     let tilesStack = 
         [ Some (srtmTileCoords 1 4 8); None ] @ initialStackedTiles
 
-    let mutable createWasCalled = false
-    let callCreate _ _ = createWasCalled <- true
+    let readPng _ = Ok someTileHeights
 
     let resultingState =
         (createFromLowerTilesCmd :: initialCommands, tilesStack) 
-        |> processNextCommand dontCareStatus dontCallConvert callCreate
+        |> processNextCommand 
+            localCacheDir dontCareStatus dontCallConvert readPng
 
     test <@ resultingState =
                 (initialCommands,
                 Some tile :: initialStackedTiles) @>
-    test <@ createWasCalled @>
 
 [<Fact>]
 let ``Testing the tail recursion``() =
@@ -183,8 +196,9 @@ let ``Testing the tail recursion``() =
     // run the processing of the stack recursively
     let (finalCommandStack, finalTilesStack) = 
         processCommandStack
+            localCacheDir
             // all of the tiles are marked as cached
-            (fun _ -> Cached) (fun _ -> Ok()) dontCallCreate
+            (fun _ -> Cached) (fun _ -> Ok()) dontCallReadPng
             initialState
 
     // there should be no more commands in the stack
@@ -217,9 +231,10 @@ let ``Command stack processor should stop on failure and return the error``() =
     // 
     let (finalCommandStack, _) = 
         processCommandStack
+            localCacheDir
             (fun _ -> NotCached) 
             (convertFailsOnSomeCall 4)
-            dontCallCreate
+            dontCallReadPng
             initialState
 
     // there should be an error indicator next in the command stack

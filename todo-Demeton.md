@@ -1,8 +1,4 @@
-﻿
-- clean up error processing in fetching using `Result.map`
-- allow subfunctions to return errors
-- implement convertFromHgt function
-- write .none file to the cache if merging returns None
+﻿- write .none file to the cache if merging returns None
 
 - SRTM tile loader should support higher tiles
     - also test negative scenarios and None heights arrays

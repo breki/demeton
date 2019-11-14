@@ -2,8 +2,8 @@
 
 open Types
 open Funcs
-open Png
 open Demeton.DemTypes
+open System
 
 type LocalCacheTileStatus =
     | NotCached
@@ -132,46 +132,34 @@ let listChildrenTiles tile =
 
 let convertFromHgt tile = invalidOp "todo"
 
-let readPngTile localCacheDir openFileToRead tile =
+let readPngTile 
+    localCacheDir (decodeSrtmTileFromPngFile: SrtmPngTileReader) tile =
     tile 
     |> toLocalCacheTileFileName localCacheDir
-    |> decodeSrtmTileFromPngFile openFileToRead
+    |> decodeSrtmTileFromPngFile
 
 let readPngTilesBatch 
     localCacheDir 
-    openFileToRead 
+    decodeSrtmTileFromPngFile 
     (tiles: SrtmTileCoords list)
     : Result<HeightsArray list, string> =
      
     let readPngTile readingState tile =
         match readingState with
         | Ok heightsArrays ->
-            match readPngTile localCacheDir openFileToRead tile with
-            | Ok heightsArray -> Ok (heightsArray :: heightsArrays)
-            | Error message -> Error message
+            readPngTile localCacheDir decodeSrtmTileFromPngFile tile
+            |> Result.map (fun heightsArray -> heightsArray :: heightsArrays)
         | Error message -> Error message
 
     tiles |> List.fold readPngTile (Ok [])
 
-let createFromLowerTiles 
-    localCacheDir openFileToRead parentTile children = 
-   
-    let lowerTilesReadResult = 
-        children |> readPngTilesBatch localCacheDir openFileToRead
-
-    match lowerTilesReadResult with
-    | Ok lowerTilesHeightsArrays ->
-        let mergedHeightsArrayMaybe =
-            lowerTilesHeightsArrays |> Demeton.Dem.merge
-        mergedHeightsArrayMaybe |> Ok
-    | Error message -> Error message
-
 let fetchFirstNOfTiles tilesCount = List.splitAt tilesCount
 
 let processNextCommand 
+    localCacheDir
     determineTileStatus
     (convertFromHgt: SrtmTileCoords -> Result<unit, string>)
-    createFromLowerTiles
+    readTilePngFile
     ((commandStack, tilesStack): TileFetchingState)
     : TileFetchingState =
     match commandStack with
@@ -212,19 +200,26 @@ let processNextCommand
             |> List.filter Option.isSome
             |> List.map Option.get
 
-        createFromLowerTiles tile lowerTilesWithoutNone |> ignore
+        lowerTilesWithoutNone
+        |> readPngTilesBatch localCacheDir readTilePngFile
+        |> Result.map Demeton.Dem.merge
+        // after merging the tiles, make a parent tile by resampling
+        |> ignore
+
         (remainingCommands, Some tile :: remainingTilesInStack)
 
     | Failure _ :: _ -> (commandStack, tilesStack)
 
 
 let rec processCommandStack 
-    determineTileStatus convertFromHgt createFromLowerTiles
+    localCacheDir
+    determineTileStatus convertFromHgt readTilePngFile
     state
     : TileFetchingState =
     let updatedState = 
         processNextCommand
-            determineTileStatus convertFromHgt createFromLowerTiles state
+            localCacheDir
+            determineTileStatus convertFromHgt readTilePngFile state
 
     match updatedState with
     // when there are no more commands to process, stop the tail recursion
@@ -234,7 +229,8 @@ let rec processCommandStack
     // otherwise, process the next command in the stack
     | updatedState -> 
         processCommandStack 
-            determineTileStatus convertFromHgt createFromLowerTiles
+            localCacheDir
+            determineTileStatus convertFromHgt readTilePngFile
             updatedState
 
 let initializeProcessingState tile =

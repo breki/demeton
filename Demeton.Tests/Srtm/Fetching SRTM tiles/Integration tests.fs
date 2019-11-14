@@ -1,6 +1,8 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Integration tests``
 
 open Demeton.Srtm.Fetch
+open Demeton.Srtm.Funcs
+open Demeton.Srtm.Png
 
 open System
 
@@ -12,6 +14,8 @@ open Tests.Srtm.SrtmHelper
 let srtmDir = "srtm"
 let cacheDir = Environment.GetEnvironmentVariable("SRTM_CACHE")
 
+let decodePngTile: SrtmPngTileReader = fun fileName ->
+    decodeSrtmTileFromPngFile FileSys.openFileToRead fileName
 
 [<Fact(Skip="todo currently not working")>]
 [<Trait("Category","slow")>]
@@ -19,13 +23,14 @@ let ``Supports fetching already cached tile``() =
     let finalState =
         initializeProcessingState (srtmTileCoords 0 15 46)
         |> processCommandStack 
+            cacheDir
             (determineTileStatus srtmDir cacheDir FileSys.fileExists) 
             convertFromHgt
-            (createFromLowerTiles cacheDir FileSys.openFileToRead)
+            decodePngTile
     let result = 
         finalState 
         |> (finalizeFetchSrtmTileProcessing 
-                (readPngTile cacheDir FileSys.openFileToRead))
+                (readPngTile cacheDir decodePngTile))
     test <@ result |> isOk @>
 
 [<Fact(Skip="todo currently not working")>]
@@ -34,12 +39,13 @@ let ``Supports fetching higher level tile by creating it from lower level ones``
     let finalState =
         initializeProcessingState (srtmTileCoords 1 14 46)
         |> processCommandStack 
+            cacheDir
             (determineTileStatus srtmDir cacheDir FileSys.fileExists) 
             convertFromHgt
-            (createFromLowerTiles cacheDir FileSys.openFileToRead)
+            decodePngTile
     let result = 
         finalState
         |> (finalizeFetchSrtmTileProcessing 
-                (readPngTile cacheDir FileSys.openFileToRead))
+                (readPngTile cacheDir decodePngTile))
     test <@ result |> isOk @>
 
