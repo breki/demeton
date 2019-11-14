@@ -1,10 +1,7 @@
-﻿- clean up error processing in fetching using Option.map
+﻿
+- clean up error processing in fetching using `Result.map`
 - allow subfunctions to return errors
-- write unit tests for subfunctions
-- implement determineTileStatus
 - implement convertFromHgt function
-- implement createFromLowerTiles function
-- how do we handle errors?
 - write .none file to the cache if merging returns None
 
 - SRTM tile loader should support higher tiles

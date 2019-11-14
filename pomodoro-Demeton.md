@@ -1,6 +1,8 @@
-﻿- write unit tests for finalizeFetchSrtmTileProcessing
+﻿- write unit tests for:
+    - createFromLowerTiles (and implement resampling)
 
 ## Thu 14.11.
+- Finished implementing `finalizeFetchSrtmTileProcessing` function.
 - Moved functions from integration tests to the `Fetch` module.
 - Decomposed new `fetchSrtmTile` function.
 - `processCommandStack` now handles the `Failure` command indicator.

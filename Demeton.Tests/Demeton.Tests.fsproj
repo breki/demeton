@@ -56,6 +56,7 @@
     <Compile Include="Srtm\Fetching SRTM tiles\Checking SRTM dir tile status.fs" />
     <Compile Include="Srtm\Fetching SRTM tiles\Checking complete tile status.fs" />
     <Compile Include="Srtm\Fetching SRTM tiles\Processing the fetching stack.fs" />
+    <Compile Include="Srtm\Fetching SRTM tiles\Finalizing fetch SRTM tile processing.fs" />
     <Compile Include="Srtm\Fetching SRTM tiles\Integration tests.fs" />
     <Compile Include="Srtm\fetchSrtmHeights tests.fs" />
     <Compile Include="Srtm\Calculating the SRTM DEM level needed.fs" />

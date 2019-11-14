@@ -242,14 +242,20 @@ let initializeProcessingState tile =
     |>
     newTileToProcess tile
 
+/// <summary>
+/// After the fetch tile processing stack has finished, this function checks
+/// the final state and based on it, decides whether to load a PNG tile,
+/// returns None (if the tile does not exist), or return an error (if the 
+/// final state contains error information).
+/// </summary>
 let finalizeFetchSrtmTileProcessing 
     (readPngTile: SrtmTileCoords -> Result<HeightsArray, string>) 
     (finalState: TileFetchingState) =
     match finalState with
     | ([], [ Some tile ]) -> 
-        match readPngTile tile with
-        | Ok heightsArray -> Some heightsArray |> Ok
-        | Error message -> Error message
+        readPngTile tile
+        |> Result.map (fun heightsArray -> Some heightsArray)
+    | ([], [ None ]) -> Ok None
     | (Failure message :: _, _) -> Error message
     | _ -> 
         invalidOp "bug: the command stack is neither empty nor it indicates an error"

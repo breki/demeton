@@ -13,8 +13,6 @@ let srtmDir = "srtm"
 let cacheDir = Environment.GetEnvironmentVariable("SRTM_CACHE")
 
 
-let convertFromHgt tile = invalidOp "todo"
-
 [<Fact(Skip="todo currently not working")>]
 [<Trait("Category","slow")>]
 let ``Supports fetching already cached tile``() =
