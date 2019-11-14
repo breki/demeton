@@ -1,4 +1,7 @@
-﻿## Thu 14.11.
+﻿- integration tests for fetching level > 0 SRTM tile
+
+## Thu 14.11.
+- Moved the tile fetching logic from the test assembly to the production module.
 - Implemented the basics of the first acceptance test that calls the console, but it's not finished since levels support is not done.
 
 ## Wed 13.11.
