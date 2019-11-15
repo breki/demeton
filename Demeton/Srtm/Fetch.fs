@@ -133,7 +133,7 @@ let listChildrenTiles tile =
 
 let readPngTilesBatch 
     localCacheDir 
-    decodeSrtmTileFromPngFile 
+    (readPngTile: SrtmPngTileReader) 
     (tiles: SrtmTileCoords list)
     : Result<HeightsArray list, string> =
      
@@ -142,7 +142,7 @@ let readPngTilesBatch
         | Ok heightsArrays ->
             tile 
             |> toLocalCacheTileFileName localCacheDir
-            |> decodeSrtmTileFromPngFile
+            |> readPngTile tile
             |> Result.map (fun heightsArray -> heightsArray :: heightsArrays)
         | Error message -> Error message
 
@@ -305,7 +305,7 @@ let finalizeFetchSrtmTileProcessing
     match finalState with
     | ([], [ Some tile ]) -> 
         tile |> toLocalCacheTileFileName localCacheDir
-        |> readPngTile
+        |> readPngTile tile
         |> Result.map (fun heightsArray -> Some heightsArray)
     | ([], [ None ]) -> Ok None
     | (Failure message :: _, _) -> Error message

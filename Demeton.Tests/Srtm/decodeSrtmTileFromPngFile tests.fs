@@ -39,13 +39,13 @@ let ``Can decode a valid PNG-encoded SRTM tile``() =
 
         pngFilename
 
+    let tileCoords = Tile.parseTileId 0 tileId
     let pngFileName = prepareSamplePngTile()
     let heightsArrayResult =
         decodeSrtmTileFromPngFile
-            FileSys.openFileToRead
-            pngFileName
+            FileSys.openFileToRead tileCoords pngFileName
 
-    let (minx, miny) = Tile.tileCellMinCoords 3600 (Tile.parseTileId 0 tileId)
+    let (minx, miny) = Tile.tileCellMinCoords 3600 tileCoords
 
     let heightsArray = resultValue heightsArrayResult
 
@@ -87,6 +87,7 @@ let ``Throws an exception if PNG image size is not of a SRTM tile``() =
         |> ignore
 
     let tileId = "N46E017"
+    let tileCoords = Tile.parseTileId 0 tileId
     let pngFileName = sprintf "%s.png" tileId
     
     writeSampleGrayscale16BitImage pngFileName
@@ -94,5 +95,6 @@ let ``Throws an exception if PNG image size is not of a SRTM tile``() =
     test <@ 
             isErrorData 
                 "The image size of this PNG does not correspond to the SRTM tile."
-                (decodeSrtmTileFromPngFile FileSys.openFileToRead pngFileName)
+                (decodeSrtmTileFromPngFile
+                        FileSys.openFileToRead tileCoords pngFileName)
     @>

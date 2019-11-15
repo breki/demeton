@@ -13,8 +13,8 @@ let cacheDir = "somecache"
 let tileHeights = 
     HeightsArray(1, 2, 3, 4, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
 
-let readPngTileSuccessfully _ = Ok tileHeights
-let readingPngTileFails errorMessage _ = Error errorMessage
+let readPngTileSuccessfully _ _ = Ok tileHeights
+let readingPngTileFails errorMessage _ _ = Error errorMessage
 
 // Reads PNG tile if the final tiles stack has only a single tile and the final 
 // command stack is empty.

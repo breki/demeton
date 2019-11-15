@@ -121,7 +121,9 @@ let toLocalCacheTileFileName
 
 type HeightsArrayPngWriter = FileSys.FileName -> HeightsArray -> HeightsArray
 
-type SrtmPngTileReader = string -> Result<HeightsArray, string>
+type SrtmPngTileReader =
+    SrtmTileCoords -> FileSys.FileName -> Result<HeightsArray, string>
+    
 type SrtmHgtToPngTileConverter = 
     SrtmTileCoords -> string -> string -> Result<HeightsArray, string>
 

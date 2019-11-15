@@ -1,11 +1,12 @@
-﻿- looks like something is wrong with the tiles level > 0 coords calculation
-- merging is too slow
+﻿- merging is too slow
+    - can we parallelize it?
     - can we first reduce the surrounding tiles?
 - handle CreateFromLowerTiles errors in `processNextCommand`
 
 - test downsampling through the console
 
 ## Fri 15.11.
+- Extended `decodeSrtmTileFromPngFile` to support levels.
 - A level 1 tile is finally generated, yay!
 - Implemented `writeSrtmTileToLocalCache` function.
 - Extracted the higher tile-creating logic from  `processNextCommand` into a separate method to be more testable.

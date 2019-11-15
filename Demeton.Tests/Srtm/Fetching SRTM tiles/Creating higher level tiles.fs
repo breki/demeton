@@ -15,11 +15,11 @@ let cacheDir = "somecache"
 let tileHeights = 
     HeightsArray(1, 2, 3, 4, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
 
-let decodePng: SrtmPngTileReader = fun _ -> Ok tileHeights
+let decodePng: SrtmPngTileReader = fun _ _ -> Ok tileHeights
 
 // fails only on certain tiles
 let decodePngWithFailure: SrtmPngTileReader = 
-    fun tileFileName ->
+    fun tileCoords tileFileName ->
         match tileFileName.Contains("E003") with
         | false -> Ok tileHeights
         | true -> Error "some error"

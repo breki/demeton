@@ -119,7 +119,7 @@ let writeSrtmTileToLocalCache
 
 let decodeSrtmTileFromPngFile
     (openFile: FileSys.FileOpener): SrtmPngTileReader =
-    fun pngFileName ->
+    fun tileCoords pngFileName ->
     Log.info "Loading PNG SRTM tile '%s'..." pngFileName
 
     use stream = openFile pngFileName
@@ -139,8 +139,6 @@ let decodeSrtmTileFromPngFile
             Error "The color type of this PNG does not correspond to the SRTM tile."
 
     let generateHeightsArray() = 
-        let tileId = pngFileName |> Pth.fileNameWithoutExtension
-        let tileCoords = Tile.parseTileId 0 tileId
         let (minX, minY) = Tile.tileCellMinCoords 3600 tileCoords
 
         let srtmTileInitialize (cells: DemHeight[]) = 
