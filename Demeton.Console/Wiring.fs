@@ -26,18 +26,20 @@ let convertPngTile =
         createSrtmTileFromStream
         writePngTile
 
-let resampleHeightsArray: HeightsArrayResampler =
-    fun _ -> invalidOp "todo resampleHeightsArray"
-
 let fetchSrtmTile srtmDir localCacheDir
     : SrtmTileReader = fun tile ->
 
     let determineTileStatus = 
         determineTileStatus srtmDir localCacheDir FileSys.fileExists
 
+    let constructHigherLevelTile =
+        constructHigherLevelTileHeightsArray 
+            3600 localCacheDir readPngTile
+
     initializeProcessingState tile
     |> processCommandStack 
-        localCacheDir srtmDir determineTileStatus convertPngTile readPngTile
+        localCacheDir srtmDir 
+        determineTileStatus convertPngTile constructHigherLevelTile
     |> finalizeFetchSrtmTileProcessing localCacheDir readPngTile
 
 let fetchSrtmHeights srtmDir localCacheDir = 

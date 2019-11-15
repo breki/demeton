@@ -5,6 +5,11 @@ open System
 let fail errorMessage =
     raise (Xunit.Sdk.XunitException errorMessage)
 
+let noCall _ = invalidOp "bug: should not be called"
+let noCall2 _ _ = invalidOp "bug: should not be called"
+let noCall3 _ _ _ = invalidOp "bug: should not be called"
+let noCall4 _ _ _ _ = invalidOp "bug: should not be called"
+
 let isOk result =
     match result with
     | Ok _ -> true

@@ -45,7 +45,7 @@ let ``Reading of some children tiles have failed``() =
     test <@ result |> isError @>
 
 [<Fact>]
-let ``Creates the parent tile by resampling children heights``() =
+let ``Creates the parent tile heights array by downsampling children heights``() =
     let tileSize = 36
     let tile = srtmTileCoords 2 4 4
 
@@ -60,12 +60,15 @@ let ``Creates the parent tile by resampling children heights``() =
             maxChildX - minChildX, maxChildY - minChildY,
             HeightsArrayInitializer1D (fun _ -> DemHeight 100))
 
-    let parentTileHeightsArray = 
-        createParentTileByResampling tileSize tile childrenHeightsArray
+    let parentHeightsMaybe = 
+        downsampleTileHeightsArray tileSize tile (Some childrenHeightsArray)
 
     let (expectedParentTileX, expectedParentTileY)
         = tile |> Tile.tileCellMinCoords tileSize
-    test <@ parentTileHeightsArray.MinX = expectedParentTileX @>
-    test <@ parentTileHeightsArray.MinY = expectedParentTileY @>
-    test <@ parentTileHeightsArray.Width = tileSize @>
-    test <@ parentTileHeightsArray.Height = tileSize @>
+    test <@ parentHeightsMaybe |> Option.isSome @>
+
+    let parentHeights = Option.get parentHeightsMaybe
+    test <@ parentHeights.MinX = expectedParentTileX @>
+    test <@ parentHeights.MinY = expectedParentTileY @>
+    test <@ parentHeights.Width = tileSize @>
+    test <@ parentHeights.Height = tileSize @>

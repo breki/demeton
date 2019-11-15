@@ -14,7 +14,7 @@ open Tests.Srtm.SrtmHelper
 let srtmDir = "srtm"
 let cacheDir = Environment.GetEnvironmentVariable("SRTM_CACHE")
 
-let decodePngTile: SrtmPngTileReader = fun fileName ->
+let readPngTile: SrtmPngTileReader = fun fileName ->
     decodeSrtmTileFromPngFile FileSys.openFileToRead fileName
 
 let determineTileStatus = 
@@ -31,19 +31,23 @@ let convertToPng =
         createSrtmTileFromStream 
         writeTileToPng
 
+let constructHigherLevelTile =
+    constructHigherLevelTileHeightsArray 3600 cacheDir readPngTile
+
 [<Fact(Skip="todo currently not working")>]
 [<Trait("Category","slow")>]
 let ``Supports fetching already cached tile``() =
     let finalState =
         initializeProcessingState (srtmTileCoords 0 15 46)
         |> processCommandStack 
-            cacheDir srtmDir
+            cacheDir
+            srtmDir
             determineTileStatus
             convertToPng
-            decodePngTile
+            constructHigherLevelTile
     let result = 
-        finalState 
-        |> finalizeFetchSrtmTileProcessing cacheDir decodePngTile
+        finalState
+        |> finalizeFetchSrtmTileProcessing cacheDir readPngTile
     test <@ result |> isOk @>
 
 [<Fact(Skip="todo currently not working")>]
@@ -52,12 +56,13 @@ let ``Supports fetching higher level tile by creating it from lower level ones``
     let finalState =
         initializeProcessingState (srtmTileCoords 1 14 46)
         |> processCommandStack 
-            cacheDir srtmDir
+            cacheDir
+            srtmDir
             determineTileStatus
             convertToPng
-            decodePngTile
+            constructHigherLevelTile
     let result = 
         finalState
-        |> finalizeFetchSrtmTileProcessing cacheDir decodePngTile
+        |> finalizeFetchSrtmTileProcessing cacheDir readPngTile
     test <@ result |> isOk @>
 

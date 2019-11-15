@@ -1,9 +1,10 @@
-﻿- add the actual resampling and saving to `processNextCommand`
-- log merging and resampling
+﻿- extract (or refactor) a method for saving PNG files that accepts optional HeightsArray and saves `.none` file if None and level > 0
+- add the actual downsampling and saving to `processNextCommand`
 
-- test resampling through the console
+- test downsampling through the console
 
 ## Fri 15.11.
+- Extracted the higher tile-creating logic from  `processNextCommand` into a separate method to be more testable.
 - A lot of wiring and refactoring.
 
 ## Thu 14.11.

@@ -155,21 +155,6 @@ let private lowerLevelTiles (tileCoords: SrtmTileCoords) =
         { Level = lowerLevel; Lon = lon1; Lat = lat1 }
     |]
 
-type HeightsArrayResampler = HeightsArray -> HeightsArray
-
-
-let createHigherLevelTileByResamplingLowerLevelOnes 
-    (resampleHeightsArray: HeightsArrayResampler)
-    (writePngTile: SrtmPngTileWriter)
-    pngTileFileName
-    (heightsArrays: HeightsArray list) =
-
-    Demeton.Dem.merge heightsArrays
-    // resample the merged array
-    |> Option.map resampleHeightsArray
-    // save the resampled array to PNG file
-    |> Option.map (fun x -> x |> writePngTile pngTileFileName)
-
 
 type SrtmHeightsArrayFetcher = SrtmTileCoords seq -> HeightsArrayResult
 

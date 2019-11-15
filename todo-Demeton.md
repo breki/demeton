@@ -1,5 +1,6 @@
-﻿- implement a proper resampling algorithm
+﻿- implement a proper downsampling algorithm
     - can we parallelize it?
+    - https://en.wikipedia.org/wiki/Image_scaling
 - extend `decodeSrtmTileFromPngFile` to support levels
 
 - add batch script that generates some sample images from these sample DEMs

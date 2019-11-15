@@ -152,19 +152,46 @@ let readPngTilesBatch
     tiles |> List.fold readPngTile (Ok [])
 
 
-let resamplePoint (source: HeightsArray) x y = 
+let downsamplePoint (source: HeightsArray) x y = 
     let childX = x <<< 1
     let childY = y <<< 1
 
     source.heightAt (childX, childY)
 
-let createParentTileByResampling tileSize tile heightsArray: HeightsArray =
+let downsampleTileHeightsArray 
+    tileSize tile (heightsArrayMaybe: HeightsArray option)
+    : HeightsArray option =
     let (tileMinX, tileMinY)
         = tile |> Tile.tileCellMinCoords tileSize
 
-    HeightsArray(tileMinX, tileMinY, tileSize, tileSize, 
-        HeightsArrayInitializer2D (fun (x, y) -> 
-            resamplePoint heightsArray x y))
+    heightsArrayMaybe
+    |> Option.map (fun heightsArray -> 
+        HeightsArray(tileMinX, tileMinY, tileSize, tileSize, 
+            HeightsArrayInitializer2D (fun (x, y) -> 
+                downsamplePoint heightsArray x y)))
+
+type HigherLevelTileConstructor = 
+    SrtmTileCoords -> SrtmTileCoords list -> Result<HeightsArray option, string>
+
+/// <summary>
+/// Constructs a heights array for a higher-level tile from the list of 
+/// child, lower-level tiles.
+/// </summary>
+let constructHigherLevelTileHeightsArray 
+    tileSize
+    localCacheDir 
+    (readTilePngFile: SrtmPngTileReader): HigherLevelTileConstructor =
+    fun (tile: SrtmTileCoords) (childrenTiles: SrtmTileCoords list) ->
+
+    readPngTilesBatch localCacheDir readTilePngFile childrenTiles
+    |> Result.map (fun heightsArrays -> 
+        Log.info "Merging all the read tiles into a single array..."
+        heightsArrays |> Demeton.Dem.merge)
+    // after merging the tiles, make a parent tile by downsampling
+    |> Result.map (fun heightsArray -> 
+        Log.info "Creating the higher-level tile by downsampling..."
+        heightsArray 
+        |> downsampleTileHeightsArray tileSize tile)
 
 let fetchFirstNOfTiles tilesCount = List.splitAt tilesCount
 
@@ -173,7 +200,7 @@ let processNextCommand
     srtmDir
     determineTileStatus
     (convertFromHgt: SrtmHgtToPngTileConverter)
-    readTilePngFile
+    (constructHigherLevelTile: HigherLevelTileConstructor)
     ((commandStack, tilesStack): TileFetchingState)
     : TileFetchingState =
     match commandStack with
@@ -212,17 +239,16 @@ let processNextCommand
         let (lowerTiles, remainingTilesInStack) = 
             tilesStack |> fetchFirstNOfTiles lowerTilesNumber
 
-        let lowerTilesWithoutNone =
+        let childrenTiles =
             lowerTiles
             |> List.filter Option.isSome
             |> List.map Option.get
 
-        lowerTilesWithoutNone
-        |> readPngTilesBatch localCacheDir readTilePngFile
-        |> Result.map (fun heightsArray -> 
-            Log.info "Merging all the read tiles into a single array..."
-            Demeton.Dem.merge heightsArray)
-        // after merging the tiles, make a parent tile by resampling
+        constructHigherLevelTile tile childrenTiles
+        |> Result.map (fun heightsArrayMaybe -> 
+            // todo: call PNG heights array writer
+            ignore())
+        // handle errors
         |> ignore
 
         (remainingCommands, Some tile :: remainingTilesInStack)
@@ -233,13 +259,15 @@ let processNextCommand
 let rec processCommandStack 
     localCacheDir
     srtmDir
-    determineTileStatus convertFromHgt readTilePngFile
+    determineTileStatus convertFromHgt 
+    (constructHigherLevelTile: HigherLevelTileConstructor)
     state
     : TileFetchingState =
     let updatedState = 
         processNextCommand
             localCacheDir srtmDir
-            determineTileStatus convertFromHgt readTilePngFile state
+            determineTileStatus convertFromHgt constructHigherLevelTile 
+            state
 
     match updatedState with
     // when there are no more commands to process, stop the tail recursion
@@ -250,7 +278,7 @@ let rec processCommandStack
     | updatedState -> 
         processCommandStack 
             localCacheDir srtmDir
-            determineTileStatus convertFromHgt readTilePngFile
+            determineTileStatus convertFromHgt constructHigherLevelTile
             updatedState
 
 let initializeProcessingState tile =
