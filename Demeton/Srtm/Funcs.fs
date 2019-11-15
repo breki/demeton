@@ -84,7 +84,10 @@ let readSrtmHeightsFromStream tileSize (stream: Stream): DemHeight[] =
 
     heightsArray
     
-let createSrtmTileFromStream tileSize tileCoords stream =
+type ZippedSrtmTileReader = int -> SrtmTileCoords -> Stream -> HeightsArray
+
+let createSrtmTileFromStream: ZippedSrtmTileReader = 
+    fun tileSize tileCoords stream ->
     let srtmHeights = readSrtmHeightsFromStream tileSize stream
 
     let (tileMinX, tileMinY) = Tile.tileCellMinCoords tileSize tileCoords
@@ -119,7 +122,7 @@ let toLocalCacheTileFileName
 type SrtmPngTileWriter = string -> HeightsArray -> HeightsArray
 type SrtmPngTileReader = string -> Result<HeightsArray, string>
 type SrtmHgtToPngTileConverter = 
-    SrtmTileCoords -> string -> string -> HeightsArray
+    SrtmTileCoords -> string -> string -> Result<HeightsArray, string>
 
 let checkSrtmTileCachingStatus
     (srtmDir: string)
@@ -166,58 +169,6 @@ let createHigherLevelTileByResamplingLowerLevelOnes
     |> Option.map resampleHeightsArray
     // save the resampled array to PNG file
     |> Option.map (fun x -> x |> writePngTile pngTileFileName)
-
-let rec fetchSrtmTile 
-    (srtmDir: string)
-    (localCacheDir: string)
-    (fileExists: FileSys.FileExistsChecker)
-    (readPngTile: SrtmPngTileReader)
-    (writePngTile: SrtmPngTileWriter)
-    (convertTileToPng: SrtmHgtToPngTileConverter)
-    (resampleHeightsArray: HeightsArrayResampler)
-    : SrtmTileReader =
-    fun tile ->
-
-    let localTileFileName = toLocalCacheTileFileName localCacheDir tile
-
-    localTileFileName |> fileExists |> function
-    | true -> 
-        readPngTile localTileFileName
-        |> Result.map (fun heightsArray -> Some heightsArray)
-    | false -> 
-        match tile.Level.Value with
-        | 0 ->
-            let zippedSrtmTileFileName = toZippedSrtmTileFileName srtmDir tile
-
-            zippedSrtmTileFileName |> fileExists |> function
-            | false -> Ok None
-            | true -> 
-                convertTileToPng tile zippedSrtmTileFileName localTileFileName
-                |> Some |> Ok
-        | _ ->
-            lowerLevelTiles tile
-            |> Array.fold (fun state lowerLevelTile -> 
-                match state with
-                | Ok heightsArrays ->
-                    let heightsArrayResult =
-                        fetchSrtmTile 
-                            srtmDir localCacheDir fileExists 
-                            readPngTile writePngTile 
-                            convertTileToPng resampleHeightsArray
-                            lowerLevelTile
-                    match heightsArrayResult with
-                    | Ok (Some heightsArray) ->
-                        Ok (heightsArray :: heightsArrays)
-                    | Ok None -> Ok heightsArrays
-                    | Error errorMessage -> Error errorMessage
-                | Error errorMessage -> Error errorMessage
-                ) (Ok [])
-            |> Result.map (fun heightsArrays -> 
-                createHigherLevelTileByResamplingLowerLevelOnes
-                    resampleHeightsArray
-                    writePngTile
-                    localTileFileName
-                    heightsArrays)
 
 
 type SrtmHeightsArrayFetcher = SrtmTileCoords seq -> HeightsArrayResult

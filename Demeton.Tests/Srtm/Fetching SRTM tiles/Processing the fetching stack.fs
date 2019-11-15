@@ -8,6 +8,7 @@ open Swensen.Unquote
 open Tests.Srtm.SrtmHelper
 
 let localCacheDir = "somecache"
+let srtmDir = "somesrtm"
 
 let someTileHeights = 
     HeightsArray(1, 2, 3, 4, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
@@ -37,7 +38,7 @@ let ``Calling processNextCommand on an empty command stack returns the same stat
     let resultingState = 
         initialState
         |> processNextCommand 
-            localCacheDir
+            localCacheDir srtmDir
             dontCareStatus dontCallConvert dontCallReadPng
 
     test <@ resultingState = initialState @>
@@ -50,7 +51,7 @@ let ``When a tile does not exist, puts None in the tiles stack``() =
         initialState 
         |> newTileToProcess tile
         |> processNextCommand 
-            localCacheDir
+            localCacheDir srtmDir
             (fun _ -> NotExists) dontCallConvert dontCallReadPng
 
     test <@ resultingState = (initialCommands, None :: initialStackedTiles) @>
@@ -63,7 +64,7 @@ let ``When a tile is cached, puts it into the tiles stack``() =
         initialState 
         |> newTileToProcess tile
         |> processNextCommand 
-            localCacheDir
+            localCacheDir srtmDir
             (fun _ -> Cached) dontCallConvert dontCallReadPng
 
     test <@ resultingState = 
@@ -77,7 +78,7 @@ let ``When a level 0 tile is not cached, puts ConvertTileFromHgt command``() =
         initialState 
         |> newTileToProcess tile
         |> processNextCommand 
-            localCacheDir
+            localCacheDir srtmDir
             (fun _ -> NotCached) dontCallConvert dontCallReadPng
 
     test <@ resultingState = 
@@ -92,7 +93,7 @@ let ``When a level > 0 tile is not cached, fills the command stack with children
         initialState 
         |> newTileToProcess tile
         |> processNextCommand 
-            localCacheDir
+            localCacheDir srtmDir
             (fun _ -> NotCached) dontCallConvert dontCallReadPng
 
     let childTiles = 
@@ -122,14 +123,14 @@ let ``When convert from HGT command is received``() =
     let tile = srtmTileCoords 0 4 8
 
     let mutable convertWasCalled = false
-    let callConvert _ = 
+    let callConvert _ _ _ = 
         convertWasCalled <- true
-        Ok()
+        Ok someTileHeights
 
     let resultingState =
         (ConvertTileFromHgt tile :: initialCommands, initialStackedTiles) 
         |> processNextCommand 
-            localCacheDir dontCareStatus callConvert dontCallReadPng
+            localCacheDir srtmDir dontCareStatus callConvert dontCallReadPng
     test <@ resultingState = 
                 (initialCommands, 
                 Some tile :: initialStackedTiles) @>
@@ -142,12 +143,13 @@ let ``Convert to PNG can fail``() =
     let tile = srtmTileCoords 0 4 8
     let errorMessage = "some failure"
 
-    let convertThatFails _ = Error errorMessage
+    let convertThatFails _ _ _ =  Error errorMessage
 
     let resultingState =
         (ConvertTileFromHgt tile :: initialCommands, initialStackedTiles) 
         |> processNextCommand 
-            localCacheDir dontCareStatus convertThatFails dontCallReadPng
+            localCacheDir srtmDir 
+            dontCareStatus convertThatFails dontCallReadPng
 
     let expectedResultingState =
         (Failure errorMessage :: initialCommands, initialStackedTiles)
@@ -174,7 +176,7 @@ let ``When create from lower tiles command is received``() =
     let resultingState =
         (createFromLowerTilesCmd :: initialCommands, tilesStack) 
         |> processNextCommand 
-            localCacheDir dontCareStatus dontCallConvert readPng
+            localCacheDir srtmDir dontCareStatus dontCallConvert readPng
 
     test <@ resultingState =
                 (initialCommands,
@@ -196,9 +198,9 @@ let ``Testing the tail recursion``() =
     // run the processing of the stack recursively
     let (finalCommandStack, finalTilesStack) = 
         processCommandStack
-            localCacheDir
+            localCacheDir srtmDir
             // all of the tiles are marked as cached
-            (fun _ -> Cached) (fun _ -> Ok()) dontCallReadPng
+            (fun _ -> Cached) (fun _ _ _ -> Ok someTileHeights) dontCallReadPng
             initialState
 
     // there should be no more commands in the stack
@@ -222,16 +224,16 @@ let ``Command stack processor should stop on failure and return the error``() =
     // convert call will fail once
     let mutable convertCallsCount = 0
     let errorMessage = "some error"
-    let convertFailsOnSomeCall onCallCount tile =
+    let convertFailsOnSomeCall onCallCount _ _ _ =
         convertCallsCount <- convertCallsCount + 1
         match convertCallsCount = onCallCount + 1 with
         | true -> Error errorMessage
-        | false -> Ok()
+        | false -> Ok someTileHeights
 
     // 
     let (finalCommandStack, _) = 
         processCommandStack
-            localCacheDir
+            localCacheDir srtmDir
             (fun _ -> NotCached) 
             (convertFailsOnSomeCall 4)
             dontCallReadPng

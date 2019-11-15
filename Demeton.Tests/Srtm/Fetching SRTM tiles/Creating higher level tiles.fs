@@ -1,5 +1,6 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Creating higher level tiles``
 
+open Demeton.Srtm
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Fetch
 open Demeton.DemTypes
@@ -43,3 +44,28 @@ let ``Reading of some children tiles have failed``() =
     let result = readPngTilesBatch cacheDir decodePngWithFailure tiles
     test <@ result |> isError @>
 
+[<Fact>]
+let ``Creates the parent tile by resampling children heights``() =
+    let tileSize = 36
+    let tile = srtmTileCoords 2 4 4
+
+    let (minChildX, minChildY) = 
+        srtmTileCoords 1 2 8
+        |> Tile.tileCellMinCoords tileSize
+    let (maxChildX, maxChildY) = 
+        srtmTileCoords 1 10 0
+        |> Tile.tileCellMinCoords tileSize
+    let childrenHeightsArray = 
+        HeightsArray(minChildX, minChildY, 
+            maxChildX - minChildX, maxChildY - minChildY,
+            HeightsArrayInitializer1D (fun _ -> DemHeight 100))
+
+    let parentTileHeightsArray = 
+        createParentTileByResampling tileSize tile childrenHeightsArray
+
+    let (expectedParentTileX, expectedParentTileY)
+        = tile |> Tile.tileCellMinCoords tileSize
+    test <@ parentTileHeightsArray.MinX = expectedParentTileX @>
+    test <@ parentTileHeightsArray.MinY = expectedParentTileY @>
+    test <@ parentTileHeightsArray.Width = tileSize @>
+    test <@ parentTileHeightsArray.Height = tileSize @>

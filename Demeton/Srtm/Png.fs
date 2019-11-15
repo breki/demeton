@@ -76,12 +76,12 @@ let encodeSrtmHeightsArrayToPng
 
 let encodeHeightsArrayIntoPngFile
     (ensureDirectoryExists: string -> string)
-    (openFile: FileSys.FileOpener): SrtmPngTileWriter =
+    (openFileToWrite: FileSys.FileOpener): SrtmPngTileWriter =
     fun pngFileName heightsArray ->
 
     ensureDirectoryExists (pngFileName |> Pth.directory) |> ignore
 
-    use stream = openFile pngFileName
+    use stream = openFileToWrite pngFileName
     encodeSrtmHeightsArrayToPng heightsArray stream |> ignore
 
     heightsArray
@@ -134,10 +134,16 @@ let decodeSrtmTileFromPngFile
     | Ok _ -> generateHeightsArray()
     | Error errors -> Error (errors |> String.concat " ")
 
-
+/// <summary>
+/// Reads a SRTM tile from the zipped HGT file and saves it into a PNG file.
+/// </summary>
+/// <remarks>
+/// Note that, although the function nominally returns a Result, it currently
+/// does not handle any errors/exceptions by itself, so it always returns Ok.
+/// </remarks>
 let convertZippedHgtTileToPng
     (readZipFileEntry: FileSys.ZipFileEntryReader)
-    createSrtmTileFromStream
+    (createSrtmTileFromStream: ZippedSrtmTileReader)
     (writeTileToPng: SrtmPngTileWriter): SrtmHgtToPngTileConverter =
     fun tileCoords zippedHgtFileName pngFileName ->
     
@@ -154,4 +160,4 @@ let convertZippedHgtTileToPng
 
     Log.debug "Encoding tile %s into PNG..." tileId
 
-    writeTileToPng pngFileName heightsArray
+    writeTileToPng pngFileName heightsArray |> Ok

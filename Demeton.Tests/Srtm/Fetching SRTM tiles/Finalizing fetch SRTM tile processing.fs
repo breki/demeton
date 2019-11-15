@@ -8,6 +8,8 @@ open Swensen.Unquote
 open TestHelp
 open Tests.Srtm.SrtmHelper
 
+let cacheDir = "somecache"
+
 let tileHeights = 
     HeightsArray(1, 2, 3, 4, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
 
@@ -22,7 +24,7 @@ let ``Successful fetching of a tile``() =
 
     let result = 
         finalState
-        |> finalizeFetchSrtmTileProcessing readPngTileSuccessfully
+        |> finalizeFetchSrtmTileProcessing cacheDir readPngTileSuccessfully
     test <@ result |> isOkValue (Some tileHeights) @>
 
 // When reading of PNG tile fails, the error is forwarded.
@@ -33,7 +35,8 @@ let ``Handles the error when reading the PNG tile``() =
 
     let result = 
         finalState
-        |> finalizeFetchSrtmTileProcessing (readingPngTileFails errorMessage)
+        |> finalizeFetchSrtmTileProcessing 
+            cacheDir (readingPngTileFails errorMessage)
     test <@ result |> isErrorData errorMessage @>
 
 // Returns None if the final tiles stack has only a single None item for a tile
@@ -44,7 +47,7 @@ let ``Returns None for non-existing tile``() =
 
     let result = 
         finalState
-        |> finalizeFetchSrtmTileProcessing readPngTileSuccessfully
+        |> finalizeFetchSrtmTileProcessing cacheDir readPngTileSuccessfully
     test <@ result |> isOkValue None @>
 
 // When the final state contains error indicator, the function returns it as an
@@ -56,7 +59,7 @@ let ``Handles the error indicator from the final state``() =
 
     let result = 
         finalState
-        |> finalizeFetchSrtmTileProcessing 
+        |> finalizeFetchSrtmTileProcessing cacheDir 
             (fun _ -> invalidOp "should not be called")
     test <@ result |> isErrorData errorMessage @>
 

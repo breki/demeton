@@ -1,33 +1,27 @@
-﻿- write .none file to the cache if merging returns None
-
-- SRTM tile loader should support higher tiles
-    - also test negative scenarios and None heights arrays
-- implement a proper resampler
-
+﻿- implement a proper resampling algorithm
+    - can we parallelize it?
 - extend `decodeSrtmTileFromPngFile` to support levels
+
+- add batch script that generates some sample images from these sample DEMs
+
+- write .none file to the cache if merging returns None
+
+- hillshading
+    - run the command on Alps
 
 - generate GitHub releases: https://developer.github.com/v3/repos/releases/#create-a-release
 
 - how to generate code docs?
     - https://fsprojects.github.io/FSharp.Formatting/commandline.html
 
-- add batch script that generates some sample images from these sample DEMs
-
 - investigate possible filters
     - use Paint.NET as a start
     
-- hillshading
-    - run the command on Alps
-
 - update readme.md docs
 
 - in what format to save the shaded tile PNG metadata?  
     - extra sidecar file?
     - extra PNG chunk?
-
-- we need one additional row of SRTM cells on each side to be able to calculate things for hillshading
-
-- https://fsprojects.github.io/FSharp.Formatting/metadata.html
 
 - proj4 links
     - https://en.wikibooks.org/wiki/PROJ.4

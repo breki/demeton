@@ -134,4 +134,4 @@ let ``Returns the read heights array``() =
             zipFileName 
             pngFileName
 
-    test <@ returnedHeightsArray = heightsArray @>    
+    test <@ returnedHeightsArray = Ok heightsArray @>    

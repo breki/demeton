@@ -1,10 +1,13 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Console.Wiring
 
+open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
+open Demeton.Srtm.Fetch
 
-let readPngTile = decodeSrtmTileFromPngFile FileSys.openFileToRead
+let readPngTile: SrtmPngTileReader = 
+    decodeSrtmTileFromPngFile FileSys.openFileToRead
 
 let checkCachingStatus srtmDir localCacheDir =
     checkSrtmTileCachingStatus
@@ -26,15 +29,16 @@ let convertPngTile =
 let resampleHeightsArray: HeightsArrayResampler =
     fun _ -> invalidOp "todo resampleHeightsArray"
 
-let fetchSrtmTile srtmDir localCacheDir = 
-    fetchSrtmTile 
-        srtmDir
-        localCacheDir
-        FileSys.fileExists
-        readPngTile
-        writePngTile
-        convertPngTile
-        resampleHeightsArray
+let fetchSrtmTile srtmDir localCacheDir
+    : SrtmTileReader = fun tile ->
+
+    let determineTileStatus = 
+        determineTileStatus srtmDir localCacheDir FileSys.fileExists
+
+    initializeProcessingState tile
+    |> processCommandStack 
+        localCacheDir srtmDir determineTileStatus convertPngTile readPngTile
+    |> finalizeFetchSrtmTileProcessing localCacheDir readPngTile
 
 let fetchSrtmHeights srtmDir localCacheDir = 
     fetchSrtmHeights (fetchSrtmTile srtmDir localCacheDir)

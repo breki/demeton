@@ -2,6 +2,7 @@
 
 open Types
 open Funcs
+open Png
 open Demeton.DemTypes
 open System
 
@@ -130,13 +131,8 @@ let listChildrenTiles tile =
                         (childLat0 + (lat - 1) * childLonLatDelta) }
     |]
 
-let convertFromHgt tile = invalidOp "todo"
-
-let readPngTile 
-    localCacheDir (decodeSrtmTileFromPngFile: SrtmPngTileReader) tile =
-    tile 
-    |> toLocalCacheTileFileName localCacheDir
-    |> decodeSrtmTileFromPngFile
+let convertFromHgt tile = 
+    convertZippedHgtTileToPng 
 
 let readPngTilesBatch 
     localCacheDir 
@@ -147,18 +143,36 @@ let readPngTilesBatch
     let readPngTile readingState tile =
         match readingState with
         | Ok heightsArrays ->
-            readPngTile localCacheDir decodeSrtmTileFromPngFile tile
+            tile 
+            |> toLocalCacheTileFileName localCacheDir
+            |> decodeSrtmTileFromPngFile
             |> Result.map (fun heightsArray -> heightsArray :: heightsArrays)
         | Error message -> Error message
 
     tiles |> List.fold readPngTile (Ok [])
 
+
+let resamplePoint (source: HeightsArray) x y = 
+    let childX = x <<< 1
+    let childY = y <<< 1
+
+    source.heightAt (childX, childY)
+
+let createParentTileByResampling tileSize tile heightsArray: HeightsArray =
+    let (tileMinX, tileMinY)
+        = tile |> Tile.tileCellMinCoords tileSize
+
+    HeightsArray(tileMinX, tileMinY, tileSize, tileSize, 
+        HeightsArrayInitializer2D (fun (x, y) -> 
+            resamplePoint heightsArray x y))
+
 let fetchFirstNOfTiles tilesCount = List.splitAt tilesCount
 
 let processNextCommand 
     localCacheDir
+    srtmDir
     determineTileStatus
-    (convertFromHgt: SrtmTileCoords -> Result<unit, string>)
+    (convertFromHgt: SrtmHgtToPngTileConverter)
     readTilePngFile
     ((commandStack, tilesStack): TileFetchingState)
     : TileFetchingState =
@@ -183,8 +197,11 @@ let processNextCommand
             (updatedStack, tilesStack)
 
     | ConvertTileFromHgt tile :: remainingCommands ->
-        match convertFromHgt tile with
-        | Ok() -> (remainingCommands, Some tile :: tilesStack)
+        let zippedHgtFileName = tile |> toZippedSrtmTileFileName srtmDir
+        let pngFileName = tile |> toLocalCacheTileFileName localCacheDir
+
+        match convertFromHgt tile zippedHgtFileName pngFileName with
+        | Ok _ -> (remainingCommands, Some tile :: tilesStack)
         | Error message -> (Failure message :: remainingCommands, tilesStack)
 
     | CreateFromLowerTiles parameters :: remainingCommands ->
@@ -202,7 +219,9 @@ let processNextCommand
 
         lowerTilesWithoutNone
         |> readPngTilesBatch localCacheDir readTilePngFile
-        |> Result.map Demeton.Dem.merge
+        |> Result.map (fun heightsArray -> 
+            Log.info "Merging all the read tiles into a single array..."
+            Demeton.Dem.merge heightsArray)
         // after merging the tiles, make a parent tile by resampling
         |> ignore
 
@@ -213,12 +232,13 @@ let processNextCommand
 
 let rec processCommandStack 
     localCacheDir
+    srtmDir
     determineTileStatus convertFromHgt readTilePngFile
     state
     : TileFetchingState =
     let updatedState = 
         processNextCommand
-            localCacheDir
+            localCacheDir srtmDir
             determineTileStatus convertFromHgt readTilePngFile state
 
     match updatedState with
@@ -229,7 +249,7 @@ let rec processCommandStack
     // otherwise, process the next command in the stack
     | updatedState -> 
         processCommandStack 
-            localCacheDir
+            localCacheDir srtmDir
             determineTileStatus convertFromHgt readTilePngFile
             updatedState
 
@@ -245,11 +265,13 @@ let initializeProcessingState tile =
 /// final state contains error information).
 /// </summary>
 let finalizeFetchSrtmTileProcessing 
-    (readPngTile: SrtmTileCoords -> Result<HeightsArray, string>) 
+    localCacheDir
+    (readPngTile: SrtmPngTileReader) 
     (finalState: TileFetchingState) =
     match finalState with
     | ([], [ Some tile ]) -> 
-        readPngTile tile
+        tile |> toLocalCacheTileFileName localCacheDir
+        |> readPngTile
         |> Result.map (fun heightsArray -> Some heightsArray)
     | ([], [ None ]) -> Ok None
     | (Failure message :: _, _) -> Error message

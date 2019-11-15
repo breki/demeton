@@ -67,7 +67,7 @@ let openFileToWrite: FileOpener =
 /// <summary>
 /// Open a reading stream to a file entry inside a ZIP package.
 /// </summary>
-let openZipFileEntry zipFileName entryName =
+let openZipFileEntry: ZipFileEntryReader = fun zipFileName entryName ->
     let zipArchive = ZipFile.OpenRead(zipFileName)
     let entry = zipArchive.GetEntry(entryName)
     entry.Open()

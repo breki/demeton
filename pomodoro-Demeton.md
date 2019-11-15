@@ -1,5 +1,10 @@
-﻿- implement naive version of resampling
-    - add it to the production code and test through the console
+﻿- add the actual resampling and saving to `processNextCommand`
+- log merging and resampling
+
+- test resampling through the console
+
+## Fri 15.11.
+- A lot of wiring and refactoring.
 
 ## Thu 14.11.
 - Finished implementing `finalizeFetchSrtmTileProcessing` function.

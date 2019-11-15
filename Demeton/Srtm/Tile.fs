@@ -81,9 +81,10 @@ let parseTileId level (tileId: string) =
 
 let tileCellMinCoords tileSize (tileCoords: SrtmTileCoords)
     : GlobalCellCoords =
+    let level = tileCoords.Level.Value
     (
-        (tileCoords.Lon.Value + 179) * tileSize, 
-        (90 - tileCoords.Lat.Value) * tileSize - (tileSize - 1)
+        ((tileCoords.Lon.Value + 179) * tileSize) >>> level, 
+        ((90 - tileCoords.Lat.Value) * tileSize - (tileSize - 1)) >>> level
     )
 
 /// <summary>
