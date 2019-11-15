@@ -1,9 +1,13 @@
-﻿- extract (or refactor) a method for saving PNG files that accepts optional HeightsArray and saves `.none` file if None and level > 0
-- add the actual downsampling and saving to `processNextCommand`
+﻿- looks like something is wrong with the tiles level > 0 coords calculation
+- merging is too slow
+    - can we first reduce the surrounding tiles?
+- handle CreateFromLowerTiles errors in `processNextCommand`
 
 - test downsampling through the console
 
 ## Fri 15.11.
+- A level 1 tile is finally generated, yay!
+- Implemented `writeSrtmTileToLocalCache` function.
 - Extracted the higher tile-creating logic from  `processNextCommand` into a separate method to be more testable.
 - A lot of wiring and refactoring.
 

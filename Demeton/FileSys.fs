@@ -8,6 +8,9 @@ module FileSys
 open System.IO
 open System.IO.Compression
 
+type FileName = string
+type DirectoryName = string
+
 /// <summary>
 /// A function providing the ability open a reading stream to a file entry 
 /// inside a ZIP package.

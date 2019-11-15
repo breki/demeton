@@ -35,7 +35,7 @@ let ``Calling processNextCommand on an empty command stack returns the same stat
     let resultingState = 
         initialState
         |> processNextCommand 
-            localCacheDir srtmDir noCall noCall noCall2
+            localCacheDir srtmDir _noCall _noCall _noCall2 _noCall2
 
     test <@ resultingState = initialState @>
 
@@ -48,7 +48,7 @@ let ``When a tile does not exist, puts None in the tiles stack``() =
         |> newTileToProcess tile
         |> processNextCommand 
             localCacheDir srtmDir
-            (fun _ -> NotExists) noCall noCall2
+            (fun _ -> NotExists) _noCall _noCall2 _noCall2
 
     test <@ resultingState = (initialCommands, None :: initialStackedTiles) @>
 
@@ -61,7 +61,7 @@ let ``When a tile is cached, puts it into the tiles stack``() =
         |> newTileToProcess tile
         |> processNextCommand 
             localCacheDir srtmDir
-            (fun _ -> Cached) noCall noCall2
+            (fun _ -> Cached) _noCall _noCall2 _noCall2
 
     test <@ resultingState = 
                 (initialCommands, Some tile :: initialStackedTiles) @>
@@ -75,7 +75,7 @@ let ``When a level 0 tile is not cached, puts ConvertTileFromHgt command``() =
         |> newTileToProcess tile
         |> processNextCommand 
             localCacheDir srtmDir
-            (fun _ -> NotCached) noCall noCall2
+            (fun _ -> NotCached) _noCall _noCall2 _noCall2
 
     test <@ resultingState = 
                 (ConvertTileFromHgt tile :: initialCommands, 
@@ -90,7 +90,7 @@ let ``When a level > 0 tile is not cached, fills the command stack with children
         |> newTileToProcess tile
         |> processNextCommand 
             localCacheDir srtmDir
-            (fun _ -> NotCached) noCall noCall2
+            (fun _ -> NotCached) _noCall _noCall2 _noCall2
 
     let childTiles = 
         [| 
@@ -126,7 +126,7 @@ let ``When convert from HGT command is received``() =
     let resultingState =
         (ConvertTileFromHgt tile :: initialCommands, initialStackedTiles) 
         |> processNextCommand 
-            localCacheDir srtmDir noCall callConvert noCall2
+            localCacheDir srtmDir _noCall callConvert _noCall2 _noCall2
     test <@ resultingState = 
                 (initialCommands, 
                 Some tile :: initialStackedTiles) @>
@@ -145,7 +145,7 @@ let ``Convert to PNG can fail``() =
         (ConvertTileFromHgt tile :: initialCommands, initialStackedTiles) 
         |> processNextCommand 
             localCacheDir srtmDir 
-            noCall convertThatFails noCall2
+            _noCall convertThatFails _noCall2 _noCall2
 
     let expectedResultingState =
         (Failure errorMessage :: initialCommands, initialStackedTiles)
@@ -170,16 +170,22 @@ let ``When create from lower tiles command is received``() =
 
     let constructParentTile _ _ = Ok (Some someTileHeights)
 
+    let mutable tilePngWasCreated = false
+    let writeTileToCache _ _ = 
+        tilePngWasCreated <- true
+
     let resultingState =
         (createFromLowerTilesCmd :: initialCommands, tilesStack) 
         |> processNextCommand 
-            localCacheDir srtmDir noCall noCall constructParentTile
-
-    // todo: verif that the tile was saved (a function was called)
+            localCacheDir srtmDir _noCall _noCall 
+            constructParentTile writeTileToCache
 
     test <@ resultingState =
                 (initialCommands,
                 Some tile :: initialStackedTiles) @>
+
+    // assert that the tile was saved
+    test <@ tilePngWasCreated @>
 
 [<Fact>]
 let ``Testing the tail recursion``() =
@@ -199,7 +205,8 @@ let ``Testing the tail recursion``() =
         processCommandStack
             localCacheDir srtmDir
             // all of the tiles are marked as cached
-            (fun _ -> Cached) (fun _ _ _ -> Ok someTileHeights) noCall2
+            (fun _ -> Cached) (fun _ _ _ -> Ok someTileHeights) 
+            _noCall2 _noCall2
             initialState
 
     // there should be no more commands in the stack
@@ -235,7 +242,7 @@ let ``Command stack processor should stop on failure and return the error``() =
             localCacheDir srtmDir
             (fun _ -> NotCached) 
             (convertFailsOnSomeCall 4)
-            noCall2
+            _noCall2 _noCall2
             initialState
 
     // there should be an error indicator next in the command stack

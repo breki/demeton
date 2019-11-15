@@ -131,9 +131,6 @@ let listChildrenTiles tile =
                         (childLat0 + (lat - 1) * childLonLatDelta) }
     |]
 
-let convertFromHgt tile = 
-    convertZippedHgtTileToPng 
-
 let readPngTilesBatch 
     localCacheDir 
     decodeSrtmTileFromPngFile 
@@ -152,7 +149,7 @@ let readPngTilesBatch
     tiles |> List.fold readPngTile (Ok [])
 
 
-let downsamplePoint (source: HeightsArray) x y = 
+let downsampleHeightPoint (source: HeightsArray) x y = 
     let childX = x <<< 1
     let childY = y <<< 1
 
@@ -168,18 +165,22 @@ let downsampleTileHeightsArray
     |> Option.map (fun heightsArray -> 
         HeightsArray(tileMinX, tileMinY, tileSize, tileSize, 
             HeightsArrayInitializer2D (fun (x, y) -> 
-                downsamplePoint heightsArray x y)))
+                downsampleHeightPoint heightsArray x y)))
 
+/// <summary>
+/// Constructs a heights array for a higher-level tile from the list of 
+/// children lower-level tiles.
+/// </summary>
 type HigherLevelTileConstructor = 
     SrtmTileCoords -> SrtmTileCoords list -> Result<HeightsArray option, string>
 
 /// <summary>
 /// Constructs a heights array for a higher-level tile from the list of 
-/// child, lower-level tiles.
+/// children lower-level tiles.
 /// </summary>
 let constructHigherLevelTileHeightsArray 
-    tileSize
-    localCacheDir 
+    (tileSize: int)
+    (localCacheDir: FileSys.DirectoryName)
     (readTilePngFile: SrtmPngTileReader): HigherLevelTileConstructor =
     fun (tile: SrtmTileCoords) (childrenTiles: SrtmTileCoords list) ->
 
@@ -196,11 +197,12 @@ let constructHigherLevelTileHeightsArray
 let fetchFirstNOfTiles tilesCount = List.splitAt tilesCount
 
 let processNextCommand 
-    localCacheDir
-    srtmDir
+    (localCacheDir: FileSys.DirectoryName)
+    (srtmDir: FileSys.DirectoryName)
     determineTileStatus
     (convertFromHgt: SrtmHgtToPngTileConverter)
     (constructHigherLevelTile: HigherLevelTileConstructor)
+    (writeTileToCache: SrtmTileCacheWriter)
     ((commandStack, tilesStack): TileFetchingState)
     : TileFetchingState =
     match commandStack with
@@ -245,10 +247,8 @@ let processNextCommand
             |> List.map Option.get
 
         constructHigherLevelTile tile childrenTiles
-        |> Result.map (fun heightsArrayMaybe -> 
-            // todo: call PNG heights array writer
-            ignore())
-        // handle errors
+        |> Result.map (writeTileToCache tile)
+        // todo: handle errors
         |> ignore
 
         (remainingCommands, Some tile :: remainingTilesInStack)
@@ -257,16 +257,20 @@ let processNextCommand
 
 
 let rec processCommandStack 
-    localCacheDir
-    srtmDir
+    (localCacheDir: FileSys.DirectoryName)
+    (srtmDir: FileSys.DirectoryName)
     determineTileStatus convertFromHgt 
     (constructHigherLevelTile: HigherLevelTileConstructor)
+    (writeTileToCache: SrtmTileCacheWriter)
     state
     : TileFetchingState =
+
     let updatedState = 
         processNextCommand
             localCacheDir srtmDir
-            determineTileStatus convertFromHgt constructHigherLevelTile 
+            determineTileStatus 
+            convertFromHgt 
+            constructHigherLevelTile writeTileToCache
             state
 
     match updatedState with
@@ -278,7 +282,9 @@ let rec processCommandStack
     | updatedState -> 
         processCommandStack 
             localCacheDir srtmDir
-            determineTileStatus convertFromHgt constructHigherLevelTile
+            determineTileStatus 
+            convertFromHgt 
+            constructHigherLevelTile writeTileToCache
             updatedState
 
 let initializeProcessingState tile =

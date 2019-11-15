@@ -50,6 +50,7 @@
     <Compile Include="Srtm\encodeHeightsArrayIntoPngFile tests.fs" />
     <Compile Include="Srtm\Converting HGT to PNG.fs" />
     <Compile Include="Srtm\convertZippedHgtTileToPng tests.fs" />
+    <Compile Include="Srtm\Saving SRTM tiles to cache.fs" />
     <Compile Include="Srtm\decodeSrtmTileFromPngFile tests.fs" />
     <Compile Include="Srtm\Fetching SRTM tiles\Checking local cache status.fs" />
     <Compile Include="Srtm\Fetching SRTM tiles\Checking SRTM dir tile status.fs" />

@@ -7,6 +7,7 @@ open Png.Types
 open Png.File
 open Demeton.Srtm.Funcs
 open System.IO
+open Types
 
 [<Literal>]
 let MissingHeightAsUint16 = 0us
@@ -74,9 +75,9 @@ let encodeSrtmHeightsArrayToPng
     |> savePngToStream ihdr imageData
 
 
-let encodeHeightsArrayIntoPngFile
+let writeHeightsArrayIntoPngFile
     (ensureDirectoryExists: string -> string)
-    (openFileToWrite: FileSys.FileOpener): SrtmPngTileWriter =
+    (openFileToWrite: FileSys.FileOpener): HeightsArrayPngWriter =
     fun pngFileName heightsArray ->
 
     ensureDirectoryExists (pngFileName |> Pth.directory) |> ignore
@@ -86,6 +87,35 @@ let encodeHeightsArrayIntoPngFile
 
     heightsArray
 
+/// <summary>
+/// Writes a tile into a local cache as a PNG file.
+/// </summary>
+type SrtmTileCacheWriter = SrtmTileCoords -> HeightsArray option -> unit
+
+/// <summary>
+/// Writes a tile into a local cache as a PNG file. If the supplied 
+/// height array is None and the tile level is above 0, writes a ".none" file
+/// instead.
+/// </summary>
+let writeSrtmTileToLocalCache
+    (localCacheDir: FileSys.DirectoryName)
+    (writeHeightsArrayToFile: HeightsArrayPngWriter)
+    (openFileToWrite: FileSys.FileOpener)
+    : SrtmTileCacheWriter =
+    fun (tile: SrtmTileCoords)
+        (heightsArrayMaybe: HeightsArray option) -> 
+    match (heightsArrayMaybe, tile.Level.Value) with
+    | (Some heightsArray, _) ->
+        let pngFileName = tile |> toLocalCacheTileFileName localCacheDir
+        writeHeightsArrayToFile pngFileName heightsArray |> ignore
+    | (None, 0) -> ignore()
+    | (None, _) -> 
+        let noneFileName = 
+            tile |> toLocalCacheTileFileName localCacheDir
+            |> Pth.extension ".none"
+        let stream = openFileToWrite noneFileName
+        stream.Close()
+        ignore()
 
 let decodeSrtmTileFromPngFile
     (openFile: FileSys.FileOpener): SrtmPngTileReader =
@@ -144,7 +174,8 @@ let decodeSrtmTileFromPngFile
 let convertZippedHgtTileToPng
     (readZipFileEntry: FileSys.ZipFileEntryReader)
     (createSrtmTileFromStream: ZippedSrtmTileReader)
-    (writeTileToPng: SrtmPngTileWriter): SrtmHgtToPngTileConverter =
+    (writeHeightsArrayIntoPng: HeightsArrayPngWriter)
+    : SrtmHgtToPngTileConverter =
     fun tileCoords zippedHgtFileName pngFileName ->
     
     let tileId = Tile.tileId tileCoords
@@ -160,4 +191,4 @@ let convertZippedHgtTileToPng
 
     Log.debug "Encoding tile %s into PNG..." tileId
 
-    writeTileToPng pngFileName heightsArray |> Ok
+    writeHeightsArrayIntoPng pngFileName heightsArray |> Ok

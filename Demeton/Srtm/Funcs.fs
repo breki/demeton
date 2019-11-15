@@ -107,8 +107,8 @@ let toZippedSrtmTileFileName
     |> Pth.combine (sprintf "%s.SRTMGL1.hgt.zip" (Tile.tileId tileCoords))
 
 let toLocalCacheTileFileName 
-    (localCacheDir: string) 
-    (tileCoords: SrtmTileCoords) =
+    (localCacheDir: FileSys.DirectoryName) 
+    (tileCoords: SrtmTileCoords): FileSys.FileName =
     let tilePngFileName = sprintf "%s.png" (Tile.tileId tileCoords)
     let levelDirName = 
         tileCoords.Level.Value.ToString(
@@ -119,7 +119,8 @@ let toLocalCacheTileFileName
     |> Pth.combine tilePngFileName 
 
 
-type SrtmPngTileWriter = string -> HeightsArray -> HeightsArray
+type HeightsArrayPngWriter = FileSys.FileName -> HeightsArray -> HeightsArray
+
 type SrtmPngTileReader = string -> Result<HeightsArray, string>
 type SrtmHgtToPngTileConverter = 
     SrtmTileCoords -> string -> string -> Result<HeightsArray, string>

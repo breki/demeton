@@ -16,7 +16,7 @@ let checkCachingStatus srtmDir localCacheDir =
         FileSys.fileExists
 
 let writePngTile = 
-    encodeHeightsArrayIntoPngFile
+    writeHeightsArrayIntoPngFile
         FileSys.ensureDirectoryExists
         FileSys.openFileToWrite
 
@@ -36,10 +36,22 @@ let fetchSrtmTile srtmDir localCacheDir
         constructHigherLevelTileHeightsArray 
             3600 localCacheDir readPngTile
 
+    let heightsArrayToPng =
+        writeHeightsArrayIntoPngFile
+            FileSys.ensureDirectoryExists
+            FileSys.openFileToWrite
+
+    let writeTileToCache = 
+        writeSrtmTileToLocalCache 
+            localCacheDir
+            heightsArrayToPng
+            FileSys.openFileToWrite
+
     initializeProcessingState tile
     |> processCommandStack 
         localCacheDir srtmDir 
-        determineTileStatus convertPngTile constructHigherLevelTile
+        determineTileStatus convertPngTile 
+        constructHigherLevelTile writeTileToCache
     |> finalizeFetchSrtmTileProcessing localCacheDir readPngTile
 
 let fetchSrtmHeights srtmDir localCacheDir = 

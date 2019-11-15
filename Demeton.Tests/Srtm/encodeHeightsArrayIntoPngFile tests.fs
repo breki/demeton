@@ -15,7 +15,7 @@ let ``Creates the necessary directories for the local cache``() =
     let localCacheDirWithLevel = localCacheDir |> Pth.combine "0"
     let pngFileName = localCacheDirWithLevel |> Pth.combine "file.png"
 
-    encodeHeightsArrayIntoPngFile 
+    writeHeightsArrayIntoPngFile 
         (fun dir -> 
             test <@ dir = localCacheDirWithLevel @>
             dir)
@@ -35,7 +35,7 @@ let ``Writes the encoded PNG image to the specified file``() =
     let pngFileName = 
         localCacheDir |> Pth.combine "0" |> Pth.combine "file.png"
 
-    encodeHeightsArrayIntoPngFile 
+    writeHeightsArrayIntoPngFile 
         FileSys.ensureDirectoryExists
         FileSys.openFileToWrite
         pngFileName

@@ -20,8 +20,8 @@ let readPngTile: SrtmPngTileReader = fun fileName ->
 let determineTileStatus = 
     determineTileStatus srtmDir cacheDir FileSys.fileExists
 
-let writeTileToPng =
-    encodeHeightsArrayIntoPngFile
+let writeHeightsArrayToPng =
+    writeHeightsArrayIntoPngFile
         FileSys.ensureDirectoryExists
         FileSys.openFileToWrite
 
@@ -29,10 +29,21 @@ let convertToPng =
     convertZippedHgtTileToPng 
         FileSys.openZipFileEntry 
         createSrtmTileFromStream 
-        writeTileToPng
+        writeHeightsArrayToPng
 
 let constructHigherLevelTile =
     constructHigherLevelTileHeightsArray 3600 cacheDir readPngTile
+
+let heightsArrayToPng =
+    writeHeightsArrayIntoPngFile
+        FileSys.ensureDirectoryExists
+        FileSys.openFileToWrite
+
+let writeTileToCache = 
+    writeSrtmTileToLocalCache 
+        cacheDir
+        heightsArrayToPng
+        FileSys.openFileToWrite
 
 [<Fact(Skip="todo currently not working")>]
 [<Trait("Category","slow")>]
@@ -45,6 +56,7 @@ let ``Supports fetching already cached tile``() =
             determineTileStatus
             convertToPng
             constructHigherLevelTile
+            writeTileToCache
     let result = 
         finalState
         |> finalizeFetchSrtmTileProcessing cacheDir readPngTile
@@ -61,6 +73,7 @@ let ``Supports fetching higher level tile by creating it from lower level ones``
             determineTileStatus
             convertToPng
             constructHigherLevelTile
+            writeTileToCache
     let result = 
         finalState
         |> finalizeFetchSrtmTileProcessing cacheDir readPngTile
