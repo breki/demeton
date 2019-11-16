@@ -1,4 +1,9 @@
-﻿- something is wrong with lon lat coords calculation
+﻿- move the new tile coordinate code to production assembly
+- introduce it into the code
+
+- rename `Tile.parseTileId` to something else and always returning level 0
+
+- something is wrong with lon lat coords calculation
     - write property tests?
 - reduce the array to be merged to the size of the destination tile + buffer
 

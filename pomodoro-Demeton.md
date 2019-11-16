@@ -1,7 +1,9 @@
 ﻿- implement tile ids generation and parsing
-    - l2e03n05
+    - 
+l2e03n05
 
 ## Sat 16.11.
+- Implemented generating and parsing tile names.
 - Started working on a new tile coordinate system.
 
 ## Fri 15.11.
