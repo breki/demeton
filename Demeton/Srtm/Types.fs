@@ -28,7 +28,7 @@ type SrtmLongitude = { Value: int } with
 [<Struct>]
 [<StructuralEquality>]
 [<StructuralComparison>]
-type SrtmTileCoords = 
+type SrtmTileCoordsX = 
     { Level: SrtmLevel; Lon: SrtmLongitude; Lat: SrtmLatitude }
     with
     member this.IdString = 
@@ -39,6 +39,6 @@ type SrtmTileId = { Level: SrtmLevel; TileX: int; TileY: int }
 type SrtmTileCellCoordsInt = (int * int)
 type SrtmTileCellCoordsFloat = (float * float)
 
-type SrtmTileReader = SrtmTileCoords -> HeightsArrayResult
+type SrtmTileReader = SrtmTileId -> HeightsArrayResult
 
 

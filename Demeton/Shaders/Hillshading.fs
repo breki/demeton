@@ -6,11 +6,11 @@ open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Geometry.Common
 open Demeton.Srtm
+open Demeton.Srtm.Funcs
 open Png
 
 open System
 open System.Threading.Tasks
-open Demeton.Srtm.Types
 
 type PixelHillshader = float -> float -> float -> Rgba8Bit.RgbaColor
 
@@ -86,8 +86,8 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
         let lonDeg = radToDeg lonRad
         let latDeg = radToDeg latRad
 
-        let globalSrtmX = Tile.longitudeToGlobalX lonDeg srtmLevel 3600
-        let globalSrtmY = Tile.latitudeToGlobalY latDeg srtmLevel 3600
+        let globalSrtmX = lonDeg |> longitudeToCellX 3600 srtmLevel 
+        let globalSrtmY = latDeg |> latitudeToCellY 3600 srtmLevel 
         heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
 
     let neighborHeights neighborCoords: float option[] option =

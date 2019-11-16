@@ -90,7 +90,7 @@ let writeHeightsArrayIntoPngFile
 /// <summary>
 /// Writes a tile into a local cache as a PNG file.
 /// </summary>
-type SrtmTileCacheWriter = SrtmTileCoords -> HeightsArray option -> unit
+type SrtmTileCacheWriter = SrtmTileId -> HeightsArray option -> unit
 
 /// <summary>
 /// Writes a tile into a local cache as a PNG file. If the supplied 
@@ -102,7 +102,7 @@ let writeSrtmTileToLocalCache
     (writeHeightsArrayToFile: HeightsArrayPngWriter)
     (openFileToWrite: FileSys.FileOpener)
     : SrtmTileCacheWriter =
-    fun (tile: SrtmTileCoords)
+    fun (tile: SrtmTileId)
         (heightsArrayMaybe: HeightsArray option) -> 
     match (heightsArrayMaybe, tile.Level.Value) with
     | (Some heightsArray, _) ->
@@ -119,7 +119,7 @@ let writeSrtmTileToLocalCache
 
 let decodeSrtmTileFromPngFile
     (openFile: FileSys.FileOpener): SrtmPngTileReader =
-    fun tileCoords pngFileName ->
+    fun tileId pngFileName ->
     Log.info "Loading PNG SRTM tile '%s'..." pngFileName
 
     use stream = openFile pngFileName
@@ -139,7 +139,7 @@ let decodeSrtmTileFromPngFile
             Error "The color type of this PNG does not correspond to the SRTM tile."
 
     let generateHeightsArray() = 
-        let (minX, minY) = Tile.tileCellMinCoords 3600 tileCoords
+        let (minX, minY) = newTileCellMinCoords 3600 tileId
 
         let srtmTileInitialize (cells: DemHeight[]) = 
             let mutable byteIndex = 0
@@ -174,10 +174,10 @@ let convertZippedHgtTileToPng
     (createSrtmTileFromStream: ZippedSrtmTileReader)
     (writeHeightsArrayIntoPng: HeightsArrayPngWriter)
     : SrtmHgtToPngTileConverter =
-    fun tileCoords zippedHgtFileName pngFileName ->
+    fun tileId zippedHgtFileName pngFileName ->
     
-    let tileId = Tile.tileId tileCoords
-    let zippedEntryName = tileId + ".hgt"
+    let tileName = toTileName tileId
+    let zippedEntryName = tileName + ".hgt"
 
     let zipEntryStream = 
         readZipFileEntry zippedHgtFileName zippedEntryName
@@ -185,8 +185,8 @@ let convertZippedHgtTileToPng
     Log.debug "Reading tile %s..." zippedEntryName
 
     let heightsArray =
-        createSrtmTileFromStream 3600 tileCoords zipEntryStream
+        createSrtmTileFromStream 3600 tileId zipEntryStream
 
-    Log.debug "Encoding tile %s into PNG..." tileId
+    Log.debug "Encoding tile %s into PNG..." tileName
 
     writeHeightsArrayIntoPng pngFileName heightsArray |> Ok

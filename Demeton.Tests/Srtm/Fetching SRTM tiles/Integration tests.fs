@@ -49,7 +49,7 @@ let writeTileToCache =
 [<Trait("Category","slow")>]
 let ``Supports fetching already cached tile``() =
     let finalState =
-        initializeProcessingState (srtmTileCoords 0 15 46)
+        initializeProcessingState (srtmTileId 0 15 -46)
         |> processCommandStack 
             cacheDir
             srtmDir
@@ -66,7 +66,7 @@ let ``Supports fetching already cached tile``() =
 [<Trait("Category","slow")>]
 let ``Supports fetching higher level tile by creating it from lower level ones``() =
     let finalState =
-        initializeProcessingState (srtmTileCoords 1 14 46)
+        initializeProcessingState (srtmTileId 1 14 -46)
         |> processCommandStack 
             cacheDir
             srtmDir

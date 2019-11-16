@@ -20,7 +20,8 @@ let runImportCommand parsedParameters =
     let options = ImportSrtmTilesCommand.fillOptions parsedParameters
 
     let tilesCords = 
-        boundsToTiles (Option.get options.Bounds) (SrtmLevel.fromInt 0) 
+        boundsToTiles 
+            3600 (SrtmLevel.fromInt 0) (Option.get options.Bounds) 
         |> Seq.toArray
 
     ImportSrtmTilesCommand.run 

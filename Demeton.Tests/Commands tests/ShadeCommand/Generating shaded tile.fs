@@ -4,11 +4,11 @@ open Raster
 open Demeton.Commands
 open Demeton.Shaders
 open Demeton.Srtm.Types
+open Demeton.Srtm.Funcs
 
 open Xunit
 open Swensen.Unquote
 open TestHelp
-open Tests.Srtm.SrtmHelper
 open Tests.Shaders
 
 let (area, heights, srtmLevel, mapScale, tileRect) = 
@@ -33,14 +33,12 @@ let options: ShadeCommand.Options = {
 [<Fact>]
 let ``Tile generator correctly calculates which SRTM tiles it needs``() =
 
-    let correctSrtmTilesWereRequested (tiles: SrtmTileCoords seq) =
+    let correctSrtmTilesWereRequested (tiles: SrtmTileId seq) =
         let tilesArray = tiles |> Seq.toArray
 
         test <@ tilesArray = [|
-            srtmTileCoords 4 0 32
-            srtmTileCoords 4 16 32
-            srtmTileCoords 4 0 48
-            srtmTileCoords 4 16 48
+            srtmTileId 4 0 -4; srtmTileId 4 1 -4
+            srtmTileId 4 0 -3; srtmTileId 4 1 -3
             |] @>
 
         heights |> Some |> Ok

@@ -27,7 +27,7 @@ type CachingStatus =
 /// <summary>
 /// A function that returns the caching status of a specified SRTM tile.
 /// </summary>
-type CachingStatusChecker = SrtmTileCoords -> CachingStatus
+type CachingStatusChecker = SrtmTileId -> CachingStatus
 
 let latitudeCharSign (latitude: SrtmLatitude) =
     match latitude with
@@ -41,7 +41,7 @@ let longitudeCharSign (longitude: SrtmLongitude) =
     | _ -> 'W'
 
 
-let tileId (tileCoords: SrtmTileCoords) =
+let tileId (tileCoords: SrtmTileCoordsX) =
     let latSign = latitudeCharSign tileCoords.Lat
     let lonSign = longitudeCharSign tileCoords.Lon
 
@@ -77,40 +77,3 @@ let parseTileId level (tileId: string) =
     let longitude = SrtmLongitude.fromInt longitudeInt
 
     { Level = SrtmLevel.fromInt level; Lon = longitude; Lat = latitude }
-
-
-let tileCellMinCoords tileSize (tileCoords: SrtmTileCoords)
-    : GlobalCellCoords =
-    let level = tileCoords.Level.Value
-    (
-        ((tileCoords.Lon.Value + 179) * tileSize) >>> level, 
-        ((90 - tileCoords.Lat.Value) * tileSize - (tileSize - 1)) >>> level
-    )
-
-/// <summary>
-/// Calculates the global fractional cell X coordinate for the specified
-/// longitude.
-/// </summary>
-/// <remarks>
-/// Note that the function uses the cell's center as the rounded 
-/// (non-fractional) coordinate, so each cell stretches from -0.5 to 0.5 value 
-/// of X.
-/// </remarks>
-let longitudeToGlobalX 
-    (longitude: float) (level: SrtmLevel) (tileSize: int): float =
-    let levelFactor = pown 2 level.Value
-    (longitude + 179.) / (float levelFactor) * float tileSize
-
-/// <summary>
-/// Calculates the global fractional cell Y coordinate for the specified
-/// latitude.
-/// </summary>
-/// <remarks>
-/// Note that the function uses the cell's center as the rounded 
-/// (non-fractional) coordinate, so each cell stretches from -0.5 to 0.5 value 
-/// of Y.
-/// </remarks>
-let latitudeToGlobalY 
-    (latitude: float) (level: SrtmLevel) (tileSize: int): float =
-    let levelFactor = pown 2 level.Value
-    (90. - latitude) / (float levelFactor) * float tileSize

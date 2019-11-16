@@ -7,6 +7,7 @@ open Swensen.Unquote
 open System.IO
 open Demeton.DemTypes
 open Demeton.Srtm
+open Demeton.Srtm.Funcs
 
 let withZipFileEntry(): Stream =
     new MemoryStream() :> Stream
@@ -53,8 +54,8 @@ let expectHeightsArrayToBeEncodedIntoPngFile
 
 [<Fact>]
 let ``Opens HGT file entry in the zip file``() =
-    let tileId = "N00E031"
-    let tileCoords = Tile.parseTileId 0 tileId
+    let tileName = "N00E031"
+    let tileId = parseTileName tileName
     let zipFileName = "some/dir/N00E031.SRTMGL1.hgt.zip"
     let entryName = "N00E031.hgt"
     let pngFileName = "some/other/N00E031.png"
@@ -65,14 +66,14 @@ let ``Opens HGT file entry in the zip file``() =
         (expectToReadZipFileEntry zipFileName entryName entryStream)
         readHeightsArrayFromStream
         (fun _ heightsArray -> heightsArray)
-        tileCoords 
+        tileId 
         zipFileName
         pngFileName
 
 [<Fact>]
 let ``Reads the zipped HGT tile as heights array``() =
-    let tileId = "N00E031"
-    let tileCoords = Tile.parseTileId 0 tileId
+    let tileName = "N00E031"
+    let tileId = parseTileName tileName
     let zipFileName = "some/dir/N00E031.SRTMGL1.hgt.zip"
     let pngFileName = "some/other/N00E031.png"
 
@@ -84,16 +85,16 @@ let ``Reads the zipped HGT tile as heights array``() =
 
     convertZippedHgtTileToPng
         (readZipFileEntry entryStream)
-        (expectToCreateSrtmTileFromStream tileCoords entryStream heightsArray)
+        (expectToCreateSrtmTileFromStream tileId entryStream heightsArray)
         (fun _ heightsArray -> heightsArray)
-        tileCoords
+        tileId
         zipFileName
         pngFileName
 
 [<Fact>]
 let ``Encodes the read SRTM heights array into PNG file``() =
-    let tileId = "N00E031"
-    let tileCoords = Tile.parseTileId 0 tileId
+    let tileName = "N00E031"
+    let tileId = parseTileName tileName
     let zipFileName = "some/dir/N00E031.SRTMGL1.hgt.zip"
     let pngFileName = "some/other/N00E031.png"
 
@@ -108,14 +109,14 @@ let ``Encodes the read SRTM heights array into PNG file``() =
         (fun _ _ _ -> heightsArray)
         (fun a b -> expectHeightsArrayToBeEncodedIntoPngFile 
                         heightsArray pngFileName a b)
-        tileCoords 
+        tileId 
         zipFileName
         pngFileName
 
 [<Fact>]
 let ``Returns the read heights array``() =
-    let tileId = "N00E031"
-    let tileCoords = Tile.parseTileId 0 tileId
+    let tileName = "N00E031"
+    let tileId = parseTileName tileName
     let zipFileName = "some/dir/N00E031.SRTMGL1.hgt.zip"
     let pngFileName = "some/other/N00E031.png"
 
@@ -130,7 +131,7 @@ let ``Returns the read heights array``() =
             (readZipFileEntry entryStream)
             (fun _ _ _ -> heightsArray)
             (fun _ heightsArray -> heightsArray)
-            tileCoords
+            tileId
             zipFileName 
             pngFileName
 

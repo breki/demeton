@@ -32,9 +32,9 @@ type SrtmDirTileStatus =
 
 let checkSrtmDirTileStatus 
     srtmDir (fileExists: FileSys.FileExistsChecker)
-    lon lat =
+    srtmTileCoords =
 
-    { Level = SrtmLevel.fromInt 0; Lon = lon; Lat = lat }
+    srtmTileCoords
     |> toZippedSrtmTileFileName srtmDir
     |> fileExists
     |> function
@@ -62,18 +62,17 @@ let decideSrtmTileStatus
         NotExists
     | _ -> invalidOp "bug: this should never happen"
 
-type CreateFromLowerTiles = { 
-    Parent: SrtmTileCoords; Children: SrtmTileCoords[] }
+type CreateFromLowerTiles = { Parent: SrtmTileId; Children: SrtmTileId[] }
 
 type TileProcessingCommand =
-    | DetermineStatus of SrtmTileCoords
-    | ConvertTileFromHgt of SrtmTileCoords 
+    | DetermineStatus of SrtmTileId
+    | ConvertTileFromHgt of SrtmTileId 
     | CreateFromLowerTiles of CreateFromLowerTiles
     | Failure of string
 
 type TileProcessingCommandStack = TileProcessingCommand list
 
-type TileInStack = SrtmTileCoords option
+type TileInStack = SrtmTileId option
 type TilesStack = TileInStack list
 
 type TileFetchingState = (TileProcessingCommandStack * TilesStack)
@@ -86,7 +85,7 @@ let determineTileStatus
     srtmDir
     localCacheDir
     (fileExists: FileSys.FileExistsChecker)
-    (tile: SrtmTileCoords) = 
+    (tile: SrtmTileId) = 
 
     let tilePngExistsInLocalCache tile = 
         tile
@@ -100,7 +99,8 @@ let determineTileStatus
         |> fileExists
 
     let checkSrtmDirTileStatus() =
-        checkSrtmDirTileStatus srtmDir fileExists tile.Lon tile.Lat
+        checkSrtmDirTileStatus 
+            srtmDir fileExists (tile |> toSrtmTileCoords)
 
     let localCacheStatus =
         determineLocalCacheTileStatus 
@@ -114,27 +114,24 @@ let determineTileStatus
         (Lazy<SrtmDirTileStatus>(fun () -> checkSrtmDirTileStatus()))
 
 // todo tests for listChildrenTiles that check edge cases
-let listChildrenTiles (tile: SrtmTileCoords) =
+let listChildrenTiles (tile: SrtmTileId) =
     let childLevel = tile.Level.Value - 1
-    let childLonLatDelta = pown 2 childLevel
-    let childLon0 = tile.Lon.Value - childLonLatDelta
-    let childLat0 = tile.Lat.Value - childLonLatDelta
+    let childTileX0 = tile.TileX * 2 - 1
+    let childTileY0 = tile.TileY * 2 - 1
 
     [|
-        for lat in 1 .. 4 do
-            for lon in 1 .. 4 do
+        for dy in 1 .. 4 do
+            for dx in 1 .. 4 do
                 yield { 
                     Level = SrtmLevel.fromInt childLevel; 
-                    Lon = SrtmLongitude.fromInt 
-                        (childLon0 + (lon - 1) * childLonLatDelta)
-                    Lat = SrtmLatitude.fromInt 
-                        (childLat0 + (lat - 1) * childLonLatDelta) }
+                    TileX = childTileX0 + dx - 1;
+                    TileY = childTileY0 + dy - 1 }
     |]
 
 let readPngTilesBatch 
     localCacheDir 
     (readPngTile: SrtmPngTileReader) 
-    (tiles: SrtmTileCoords list)
+    (tiles: SrtmTileId list)
     : Result<HeightsArray list, string> =
      
     let readPngTile readingState tile =
@@ -159,7 +156,7 @@ let downsampleTileHeightsArray
     tileSize tile (heightsArrayMaybe: HeightsArray option)
     : HeightsArray option =
     let (tileMinX, tileMinY)
-        = tile |> Tile.tileCellMinCoords tileSize
+        = tile |> newTileCellMinCoords tileSize
 
     heightsArrayMaybe
     |> Option.map (fun heightsArray -> 
@@ -172,7 +169,7 @@ let downsampleTileHeightsArray
 /// children lower-level tiles.
 /// </summary>
 type HigherLevelTileConstructor = 
-    SrtmTileCoords -> SrtmTileCoords list -> Result<HeightsArray option, string>
+    SrtmTileId -> SrtmTileId list -> Result<HeightsArray option, string>
 
 /// <summary>
 /// Constructs a heights array for a higher-level tile from the list of 
@@ -182,7 +179,7 @@ let constructHigherLevelTileHeightsArray
     (tileSize: int)
     (localCacheDir: FileSys.DirectoryName)
     (readTilePngFile: SrtmPngTileReader): HigherLevelTileConstructor =
-    fun (tile: SrtmTileCoords) (childrenTiles: SrtmTileCoords list) ->
+    fun (tile: SrtmTileId) (childrenTiles: SrtmTileId list) ->
 
     readPngTilesBatch localCacheDir readTilePngFile childrenTiles
     |> Result.map (fun heightsArrays -> 
@@ -226,7 +223,10 @@ let processNextCommand
             (updatedStack, tilesStack)
 
     | ConvertTileFromHgt tile :: remainingCommands ->
-        let zippedHgtFileName = tile |> toZippedSrtmTileFileName srtmDir
+        let zippedHgtFileName = 
+            tile 
+            |> toSrtmTileCoords
+            |> toZippedSrtmTileFileName srtmDir
         let pngFileName = tile |> toLocalCacheTileFileName localCacheDir
 
         match convertFromHgt tile zippedHgtFileName pngFileName with

@@ -1,6 +1,7 @@
 ﻿module Tests.Srtm.``decodeSrtmTileFromPngFile tests``
 
 open Demeton.Srtm
+open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 open Png
 open Png.Types
@@ -17,10 +18,10 @@ open System.Reflection
 [<Fact>]
 [<Trait("Category", "slow")>]
 let ``Can decode a valid PNG-encoded SRTM tile``() =
-    let tileId = "N46E015"
+    let tileName = "N46E015"
     
     let prepareSamplePngTile() =
-        let pngFilename = sprintf "%s.png" tileId
+        let pngFilename = sprintf "%s.png" tileName
 
         let assembly = Assembly.GetExecutingAssembly()
         use resourceStream = 
@@ -39,13 +40,13 @@ let ``Can decode a valid PNG-encoded SRTM tile``() =
 
         pngFilename
 
-    let tileCoords = Tile.parseTileId 0 tileId
+    let tileId = parseTileName tileName
     let pngFileName = prepareSamplePngTile()
     let heightsArrayResult =
         decodeSrtmTileFromPngFile
-            FileSys.openFileToRead tileCoords pngFileName
+            FileSys.openFileToRead tileId pngFileName
 
-    let (minx, miny) = Tile.tileCellMinCoords 3600 tileCoords
+    let (minx, miny) = tileId |> newTileCellMinCoords 3600
 
     let heightsArray = resultValue heightsArrayResult
 
@@ -86,9 +87,9 @@ let ``Throws an exception if PNG image size is not of a SRTM tile``() =
         |> savePngToStream ihdr imageData
         |> ignore
 
-    let tileId = "N46E017"
-    let tileCoords = Tile.parseTileId 0 tileId
-    let pngFileName = sprintf "%s.png" tileId
+    let tileName = "N46E017"
+    let tileId = parseTileName tileName
+    let pngFileName = sprintf "%s.png" tileName
     
     writeSampleGrayscale16BitImage pngFileName
 
@@ -96,5 +97,5 @@ let ``Throws an exception if PNG image size is not of a SRTM tile``() =
             isErrorData 
                 "The image size of this PNG does not correspond to the SRTM tile."
                 (decodeSrtmTileFromPngFile
-                        FileSys.openFileToRead tileCoords pngFileName)
+                        FileSys.openFileToRead tileId pngFileName)
     @>

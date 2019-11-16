@@ -71,7 +71,7 @@ let ``Can convert HeightsArray to 16-bit grayscale``() =
 let ``Can convert a HGT file into PNG image``() =
     let srtmTileId = "N46E015"
     let hgtFileNameOnly = srtmTileId + ".hgt"
-    let tileCoords = Tile.parseTileId 0 hgtFileNameOnly.[0..6]
+    let tileId = parseTileName hgtFileNameOnly.[0..6]
 
     let assembly = Assembly.GetExecutingAssembly()
     use hgtStream = assembly.GetManifestResourceStream
@@ -82,7 +82,7 @@ let ``Can convert a HGT file into PNG image``() =
 
     printfn ("Reading the heights array...")
     
-    let heightsArray = createSrtmTileFromStream 3600 tileCoords hgtStream
+    let heightsArray = createSrtmTileFromStream 3600 tileId hgtStream
 
     printfn "%d Encoding heights into the PNG..." clock.ElapsedMilliseconds
 

@@ -56,11 +56,11 @@ let cellYToLatitude tileSize (level: SrtmLevel) cellY =
     -cellY / cellsPerDegree tileSize level
 
 let srtmTileId level tileX tileY = 
-    { Level = level; TileX = tileX; TileY = tileY }
+    { Level = SrtmLevel.fromInt level; TileX = tileX; TileY = tileY }
 
 type SrtmTileName = string
 
-let toTileName tileSize (tileId: SrtmTileId): SrtmTileName =
+let toTileName (tileId: SrtmTileId): SrtmTileName =
     let lonSign tileX = if tileX >= 0 then 'e' else 'w'
 
     let latSign tileY = if tileY >= 0 then 's' else 'n'
@@ -106,24 +106,38 @@ let parseTileName (tileName: SrtmTileName): SrtmTileId =
             TileX = tileCoords.Lon.Value; 
             TileY = -tileCoords.Lat.Value }
 
-let boundsToTiles (bounds: LonLatBounds) (level: SrtmLevel)
-    : SrtmTileCoords list =
-    let tileFactor = pown 2 level.Value
-    let tileFactorFloat = tileFactor |> float
+let toSrtmTileCoords (tileId: SrtmTileId): SrtmTileCoordsX =
+    { Level = tileId.Level; 
+        Lon = SrtmLongitude.fromInt tileId.TileX; 
+        Lat = SrtmLatitude.fromInt -tileId.TileY
+    }
 
-    let minLon = (bounds.MinLon / tileFactorFloat) |> int
-    let maxLon = (ceil (bounds.MaxLon / tileFactorFloat) |> int) - 1
-            
-    let minLat = (bounds.MinLat / tileFactorFloat) |> int
-    let maxLat = (ceil (bounds.MaxLat / tileFactorFloat) |> int) - 1
+let boundsToTiles 
+    tileSize (level: SrtmLevel) (bounds: LonLatBounds) : SrtmTileId list =
+    let minTileX = 
+        bounds.MinLon 
+        |> longitudeToCellX tileSize level
+        |> cellXToTileX tileSize |> floor |> int
+
+    let minTileY = 
+        bounds.MaxLat 
+        |> latitudeToCellY tileSize level
+        |> cellYToTileY tileSize |> floor |> int
+
+    let maxTileX = 
+        bounds.MaxLon
+        |> longitudeToCellX tileSize level
+        |> cellXToTileX tileSize |> int
+
+    let maxTileY = 
+        (bounds.MinLat
+        |> latitudeToCellY tileSize level
+        |> cellYToTileY tileSize |> ceil |> int) - 1
 
     [ 
-        for lat in [ minLat .. maxLat ] do
-            for lon in [ minLon .. maxLon ] do
-                yield { 
-                        Level = level; 
-                        Lon = SrtmLongitude.fromInt (lon * tileFactor); 
-                        Lat = SrtmLatitude.fromInt (lat * tileFactor) } 
+        for tileY in [ minTileY .. maxTileY ] do
+            for tileX in [ minTileX .. maxTileX ] do
+                yield { Level = level; TileX = tileX; TileY = tileY } 
     ]
 
 
@@ -182,17 +196,17 @@ let readSrtmHeightsFromStream tileSize (stream: Stream): DemHeight[] =
 
     heightsArray
     
-type ZippedSrtmTileReader = int -> SrtmTileCoords -> Stream -> HeightsArray
+type ZippedSrtmTileReader = int -> SrtmTileId -> Stream -> HeightsArray
 
 let createSrtmTileFromStream: ZippedSrtmTileReader = 
-    fun tileSize tileCoords stream ->
+    fun tileSize tileId stream ->
     let srtmHeights = readSrtmHeightsFromStream tileSize stream
 
-    let (tileMinX, tileMinY) = Tile.tileCellMinCoords tileSize tileCoords
+    let (cellMinX, cellMinY) = newTileCellMinCoords tileSize tileId
         
     HeightsArray(
-        tileMinX, 
-        tileMinY, 
+        cellMinX, 
+        cellMinY, 
         tileSize, 
         tileSize, 
         HeightsArrayDirectImport srtmHeights)
@@ -200,16 +214,16 @@ let createSrtmTileFromStream: ZippedSrtmTileReader =
 
 let toZippedSrtmTileFileName
     (srtmDir: string) 
-    (tileCoords: SrtmTileCoords) =
+    (tileCoords: SrtmTileCoordsX) =
     srtmDir
     |> Pth.combine (sprintf "%s.SRTMGL1.hgt.zip" (Tile.tileId tileCoords))
 
 let toLocalCacheTileFileName 
     (localCacheDir: FileSys.DirectoryName) 
-    (tileCoords: SrtmTileCoords): FileSys.FileName =
-    let tilePngFileName = sprintf "%s.png" (Tile.tileId tileCoords)
+    (tileId: SrtmTileId): FileSys.FileName =
+    let tilePngFileName = sprintf "%s.png" (toTileName tileId)
     let levelDirName = 
-        tileCoords.Level.Value.ToString(
+        tileId.Level.Value.ToString(
             System.Globalization.CultureInfo.InvariantCulture)
 
     localCacheDir 
@@ -220,44 +234,46 @@ let toLocalCacheTileFileName
 type HeightsArrayPngWriter = FileSys.FileName -> HeightsArray -> HeightsArray
 
 type SrtmPngTileReader =
-    SrtmTileCoords -> FileSys.FileName -> Result<HeightsArray, string>
+    SrtmTileId -> FileSys.FileName -> Result<HeightsArray, string>
     
 type SrtmHgtToPngTileConverter = 
-    SrtmTileCoords -> string -> string -> Result<HeightsArray, string>
+    SrtmTileId -> string -> string -> Result<HeightsArray, string>
 
 let checkSrtmTileCachingStatus
     (srtmDir: string)
     (localCacheDir: string)
     (fileExists: FileSys.FileExistsChecker)
-    (tile: SrtmTileCoords)
+    (tile: SrtmTileId)
     = 
-    toLocalCacheTileFileName localCacheDir tile
-    |> fileExists
-    |> function
-    | true -> Tile.CachingStatus.Cached
-    | false -> 
-        toZippedSrtmTileFileName srtmDir tile
-        |> fileExists
-        |> function
-        | false -> Tile.CachingStatus.DoesNotExist
-        | true -> Tile.CachingStatus.NotCached
+    invalidOp "todo this method should be obsoleted and the one from Fetch module used"
+    //toLocalCacheTileFileName localCacheDir tile
+    //|> fileExists
+    //|> function
+    //| true -> Tile.CachingStatus.Cached
+    //| false -> 
+    //    toZippedSrtmTileFileName srtmDir tile
+    //    |> fileExists
+    //    |> function
+    //    | false -> Tile.CachingStatus.DoesNotExist
+    //    | true -> Tile.CachingStatus.NotCached
 
-let private lowerLevelTiles (tileCoords: SrtmTileCoords) =
-    let lowerLevel: SrtmLevel = { Value = tileCoords.Level.Value - 1 }
-    let lon0 = tileCoords.Lon
-    let lat0 = tileCoords.Lat
-    let lon1: SrtmLongitude = { Value = lon0.Value + 1 }
-    let lat1: SrtmLatitude = { Value = lat0.Value + 1 }
+let private lowerLevelTiles (tileId: SrtmTileId) =
+    invalidOp "todo"
+    //let lowerLevel: SrtmLevel = { Value = tileId.Level.Value - 1 }
+    //let lon0 = tileCoords.Lon
+    //let lat0 = tileCoords.Lat
+    //let lon1: SrtmLongitude = { Value = lon0.Value + 1 }
+    //let lat1: SrtmLatitude = { Value = lat0.Value + 1 }
 
-    [|
-        { Level = lowerLevel; Lon = lon0; Lat = lat0 }
-        { Level = lowerLevel; Lon = lon1; Lat = lat0 }
-        { Level = lowerLevel; Lon = lon0; Lat = lat1 }
-        { Level = lowerLevel; Lon = lon1; Lat = lat1 }
-    |]
+    //[|
+    //    { Level = lowerLevel; Lon = lon0; Lat = lat0 }
+    //    { Level = lowerLevel; Lon = lon1; Lat = lat0 }
+    //    { Level = lowerLevel; Lon = lon0; Lat = lat1 }
+    //    { Level = lowerLevel; Lon = lon1; Lat = lat1 }
+    //|]
 
 
-type SrtmHeightsArrayFetcher = SrtmTileCoords seq -> HeightsArrayResult
+type SrtmHeightsArrayFetcher = SrtmTileId seq -> HeightsArrayResult
 
 let fetchSrtmHeights 
     (readSrtmTile: SrtmTileReader): SrtmHeightsArrayFetcher =

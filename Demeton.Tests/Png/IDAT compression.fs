@@ -41,7 +41,7 @@ let ``Inflating a deflated data returns the original data``
 let ``Determining the compression rate``() =
     let srtmTileId = "N46E015"
     let hgtFileNameOnly = srtmTileId + ".hgt"
-    let tileCoords = Tile.parseTileId 0 hgtFileNameOnly.[0..6]
+    let tileId = parseTileName hgtFileNameOnly.[0..6]
 
     let assembly = Assembly.GetExecutingAssembly()
     use hgtStream = assembly.GetManifestResourceStream
@@ -52,7 +52,7 @@ let ``Determining the compression rate``() =
 
     printfn ("Reading the heights array...")
     
-    let heightsArray = createSrtmTileFromStream 3600 tileCoords hgtStream
+    let heightsArray = createSrtmTileFromStream 3600 tileId hgtStream
 
     printfn 
         "%d Encoding heights into a raw image data..." clock.ElapsedMilliseconds

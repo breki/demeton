@@ -1,6 +1,8 @@
-﻿- introduce it into the code
-
+﻿- remove srtmTileCoords helper method
 - rename `Tile.parseTileId` to something else and always returning level 0
+- rename tileId func to something else
+- how do we structure the new code?
+- remove the old code
 
 - something is wrong with lon lat coords calculation
     - write property tests?

@@ -87,13 +87,13 @@ let ``Can create heights array from SRTM heights sequence``() =
     use stream = new MemoryStream(byteArray)
 
     let tile = 
-        createSrtmTileFromStream tileSize (srtmTileCoords 0 16 45) 
+        createSrtmTileFromStream tileSize (srtmTileId 0 16 -45) 
             stream
 
     test <@ tile.Width = tileSize @>
     test <@ tile.Height = tileSize @>
-    test <@ tile.MinX = (16 + 179) * tileSize @>
-    test <@ tile.MinY = (90 - 45) * tileSize - (tileSize - 1) @>
+    test <@ tile.MinX = 16 * tileSize @>
+    test <@ tile.MinY = -45 * tileSize - (tileSize - 1) @>
     test <@ tile.Cells.[0] = sampleHeight1 @>
     test <@ tile.Cells.[tileSize] = sampleHeight2 @>
 
@@ -101,7 +101,7 @@ let ``Can create heights array from SRTM heights sequence``() =
 [<Trait("Category", "slow")>]
 let ``Can read HGT file``() =
     let hgtFileNameOnly = "N00E031.hgt"
-    let tileCoords = Tile.parseTileId 0 hgtFileNameOnly.[0..6]
+    let tileId = parseTileName hgtFileNameOnly.[0..6]
 
     let assembly = Assembly.GetExecutingAssembly()
     use stream = assembly.GetManifestResourceStream
@@ -109,5 +109,5 @@ let ``Can read HGT file``() =
 
     test <@ stream <> null @>
 
-    createSrtmTileFromStream 3600 tileCoords stream
+    createSrtmTileFromStream 3600 tileId stream
 

@@ -18,7 +18,7 @@ let ``Returns None if there are no tiles to fetch``() =
 
 [<Fact>]
 let ``Returns HeightArray when at least one tile was found``() =
-    let tilesToUse = [ srtmTileCoords 0 1 1 ]
+    let tilesToUse = [ srtmTileId 0 1 1 ]
     let srtmHeights = 
         fetchSrtmHeights 
             (fun x -> Ok (Some (returnSomeHeightArray x)))

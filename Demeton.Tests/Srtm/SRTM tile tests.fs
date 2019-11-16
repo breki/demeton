@@ -42,46 +42,44 @@ let ``Can parse south and east tile IDs``() =
     test <@ Tile.parseTileId 3 "S22E080" = srtmTileCoords 3 80 -22 @>
 
 [<Literal>]
-let Multiply_90_with_3600_minus_3599 = 320401
+let Multiply_minus_179_with_3600 = -644400
 [<Literal>]
-let Multiply_90_plus_22_with_3600_minus_3599 = 399601
+let Multiply_80_with_3600 = 288000
 
 [<Theory>]
-[<InlineData("N90W179", 1, 0, 0)>]
-[<InlineData("N00W179", 1, 0, 90)>]
-[<InlineData("N00W179", 3600, 0, Multiply_90_with_3600_minus_3599)>]
-[<InlineData("S22E080", 3600, 932400, Multiply_90_plus_22_with_3600_minus_3599)>]
+[<InlineData("N90W179", 1, -179, -90)>]
+[<InlineData("N00W179", 1, -179, 0)>]
+[<InlineData("N00W179", 3600, Multiply_minus_179_with_3600, -3599)>]
+[<InlineData("S22E080", 3600, Multiply_80_with_3600, 75601)>]
 let ``Calculates global coordinates for a given tile ID``
-    tileId tileSize expectedMinX expectedMinY =
+    tileName tileSize expectedMinX expectedMinY =
     test <@ 
-            Tile.parseTileId 0 tileId
-            |> Tile.tileCellMinCoords tileSize = (expectedMinX, expectedMinY)
+            parseTileName tileName
+            |> newTileCellMinCoords tileSize = (expectedMinX, expectedMinY)
     @>
 
 [<Theory>]
-[<InlineData(0, 0., 90., 1, 179., 0.)>]
-[<InlineData(0, 0., 0., 1, 179., 90.)>]
-[<InlineData(0, 1., -1., 1, 180., 91.)>]
-[<InlineData(0, 0.5, 0.5, 1, 179.5, 89.5)>]
-[<InlineData(0, 0., 0., 3600, 644400., 324000.)>]
-[<InlineData(0, 46.557611, 15.6455, 3600, 812007.3996, 267676.2)>]
-[<InlineData(1, 0., 90., 1, 89.5, 0.)>]
-[<InlineData(1, 1., -1., 1, 90., 45.5)>]
-[<InlineData(2, 1., -1., 1, 45., 22.75)>]
+[<InlineData(0, 0., 90., 1, 0., -90.)>]
+[<InlineData(0, 0., 0., 1, 0., 0.)>]
+[<InlineData(0, 1., -1., 1, 1., 1.)>]
+[<InlineData(0, 0.5, 0.5, 1, 0.5, -0.5)>]
+[<InlineData(0, 0., 0., 3600, 0., 0.)>]
+[<InlineData(0, 46.557611, 15.6455, 3600, 167607.3996, -56323.8)>]
+[<InlineData(1, 0., 90., 1, 0., -45.)>]
+[<InlineData(1, 1., -1., 1, 0.5, 0.5)>]
+[<InlineData(2, 1., -1., 1, 0.25, 0.25)>]
 let ``Calculates fractional global coordinates for given longitude and latitude``
     level longitude latitude tileSize expectedGlobalX expectedGlobalY =
 
     let srtmLevel = SrtmLevel.fromInt level
 
-    test <@ Tile.longitudeToGlobalX longitude srtmLevel tileSize 
+    test <@ longitude |> longitudeToCellX tileSize srtmLevel 
                 = expectedGlobalX @>
-    test <@ Tile.latitudeToGlobalY latitude srtmLevel tileSize 
-                = expectedGlobalY @>
+    test <@ latitude |> latitudeToCellY tileSize srtmLevel = expectedGlobalY @>
+
 
 open FsCheck
 open PropertiesHelp
-open System
-
 
 
 let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
@@ -162,8 +160,9 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
 
     let tileNames _ =
         let tileId = 
-            srtmTileId level (tileX |> floor |> int) (tileY |> floor |> int)
-        let tileName = toTileName tileSize tileId
+            srtmTileId level.Value
+                (tileX |> floor |> int) (tileY |> floor |> int)
+        let tileName = toTileName tileId
         let tileId' = parseTileName tileName
 
         tileId' = tileId

@@ -4,12 +4,12 @@ open CommandLine.Common
 open Demeton.Commands
 open Demeton.Srtm
 open Demeton.Srtm.Types
+open Demeton.Srtm.Funcs
 open Demeton.DemTypes
 
 open Xunit
 open Swensen.Unquote
 open TestHelp
-open Tests.Srtm.SrtmHelper
 
 let parseArgs args = 
     let result = 
@@ -156,9 +156,9 @@ let ``Parses the local cache dir parameter``() =
 
 [<Fact>]
 let ``Imports all tiles within the specified boundaries``() =
-    let tilesCoords = [| 
-        srtmTileCoords 0 15 45
-        srtmTileCoords 0 16 46
+    let tiles = [| 
+        srtmTileId 0 15 45
+        srtmTileId 0 16 46
     |]
 
     // we use a lock because the import function employs parallelization
@@ -166,11 +166,11 @@ let ``Imports all tiles within the specified boundaries``() =
     let mutable tilesRead = []
     let mutable heightsArraysProduced: HeightsArray list = []
 
-    let checkCachingStatus (tilesCoords: SrtmTileCoords) = 
+    let checkCachingStatus (tile: SrtmTileId) = 
         Tile.CachingStatus.NotCached
 
-    let readTile (tilesCoords: SrtmTileCoords): HeightsArrayResult =
-        lock threadsLock (fun () -> tilesRead <- tilesCoords :: tilesRead)
+    let readTile (tile: SrtmTileId): HeightsArrayResult =
+        lock threadsLock (fun () -> tilesRead <- tiles :: tilesRead)
         let heightsArray = 
             HeightsArray (
                 0, 0, 10, 10, HeightsArrayInitializer1D (
@@ -180,6 +180,6 @@ let ``Imports all tiles within the specified boundaries``() =
                 heightsArraysProduced <- heightsArray :: heightsArraysProduced)
         Ok (Some heightsArray)
 
-    ImportSrtmTilesCommand.run tilesCoords checkCachingStatus readTile
+    ImportSrtmTilesCommand.run tiles checkCachingStatus readTile
 
-    test <@ heightsArraysProduced.Length = tilesCoords.Length @>
+    test <@ heightsArraysProduced.Length = tiles.Length @>

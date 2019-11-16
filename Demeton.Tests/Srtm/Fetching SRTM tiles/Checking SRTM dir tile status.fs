@@ -17,8 +17,9 @@ let ``If tile is not in the SRTM storage, it is marked as not existing``() =
             checkSrtmDirTileStatus 
                 srtmDir
                 (fun _ -> false)
-                (SrtmLongitude.fromInt 10) 
-                (SrtmLatitude.fromInt 20) = DoesNotExist @>
+                { Level = SrtmLevel.fromInt 0;
+                   Lon = SrtmLongitude.fromInt 10;
+                   Lat = SrtmLatitude.fromInt 20 } = DoesNotExist @>
 
 
 [<Fact>]
@@ -28,7 +29,8 @@ let ``If tile is in the SRTM storage, it is marked as existing``() =
                 srtmDir
                 (whenFileExists 
                     (srtmDir |> Pth.combine "N20E010.SRTMGL1.hgt.zip"))
-                (SrtmLongitude.fromInt 10) 
-                (SrtmLatitude.fromInt 20) = Exists @>
+                { Level = SrtmLevel.fromInt 0;
+                Lon = SrtmLongitude.fromInt 10;
+                Lat = SrtmLatitude.fromInt 20 } = Exists @>
 
 

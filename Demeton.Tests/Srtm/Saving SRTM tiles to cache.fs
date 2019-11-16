@@ -35,7 +35,7 @@ let writeAsNoneFile: FileSys.FileOpener =
 // in the cache, as a PNG file.
 [<Fact>]
 let ``Saves the tile into the cache directory``() =
-    let tile = srtmTileCoords 0 10 20
+    let tile = srtmTileId 0 10 -20
 
     let expectedFileName = tile |> toLocalCacheTileFileName cacheDir
 
@@ -51,7 +51,7 @@ let ``Saves the tile into the cache directory``() =
 // ignore it and do nothing.
 [<Fact>]
 let ``Ignores the non-existing tile leve 0``() =
-    let tile = srtmTileCoords 0 10 20
+    let tile = srtmTileId 0 10 -20
 
     writeSrtmTileToLocalCache 
         cacheDir
@@ -67,7 +67,7 @@ let ``Ignores the non-existing tile leve 0``() =
 // tiles mechanism.
 [<Fact>]
 let ``Saves the non-existing tile info into the cache directory``() =
-    let tile = srtmTileCoords 2 10 20
+    let tile = srtmTileId 2 10 -20
 
     let expectedFileName = 
         tile |> toLocalCacheTileFileName cacheDir

@@ -7,6 +7,7 @@ open Demeton.DemTypes
 open Demeton.Geometry.Common
 open Demeton.Srtm
 open Demeton.Srtm.Types
+open Demeton.Srtm.Funcs
 
 open System.IO
 
@@ -101,26 +102,26 @@ type SrtmToPngEncoder = HeightsArray -> Stream -> unit
 /// writes it into the provides stream.
 /// </param>
 let run 
-    (tiles: SrtmTileCoords[])
+    (tiles: SrtmTileId[])
     (checkCaching: Tile.CachingStatusChecker)
     (readTile: SrtmTileReader)
     : unit = 
 
-    tiles |> Array.Parallel.iter (fun tileCoords ->
-        let cachingStatus = checkCaching tileCoords
+    tiles |> Array.Parallel.iter (fun tileId ->
+        let cachingStatus = checkCaching tileId
 
         match cachingStatus with
         | Tile.CachingStatus.NotCached ->
-            let tileId = (Tile.tileId tileCoords)
-            Log.info "Importing SRTM tile %s... " tileId
-            let heightsArrayOption = readTile tileCoords
+            let tileName = tileId |> toTileName
+            Log.info "Importing SRTM tile %s... " tileName
+            let heightsArrayOption = readTile tileId
             match heightsArrayOption with
             | Ok None -> 
                 Log.info 
-                    "Tile %s does not exist, moving to the next one." tileId
-            | Ok _ -> Log.info "Tile %s imported." tileId
+                    "Tile %s does not exist, moving to the next one." tileName
+            | Ok _ -> Log.info "Tile %s imported." tileName
             | Error msg -> 
-                Log.error "Tile %s could not be imported: %s." tileId msg
+                Log.error "Tile %s could not be imported: %s." tileName msg
         | _ -> ignore()
 
         )

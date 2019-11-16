@@ -1,5 +1,6 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Processing the fetching stack``
 
+open Demeton.Srtm.Funcs
 open Demeton.Srtm.Fetch
 open Demeton.DemTypes
 
@@ -17,13 +18,13 @@ let someTileHeights =
 // some random commands in the initial state just so we can assert they are
 // still there after processing
 let initialCommands = [ 
-    DetermineStatus (srtmTileCoords 0 10 20)
-    ConvertTileFromHgt (srtmTileCoords 0 10 20)
+    DetermineStatus (srtmTileId 0 10 20)
+    ConvertTileFromHgt (srtmTileId 0 10 20)
 ]
 
 // some random tiles in the initial state just so we can assert they are
 // still there after processing
-let initialStackedTiles = [ Some (srtmTileCoords 0 10 20); None ]
+let initialStackedTiles = [ Some (srtmTileId 0 10 20); None ]
 
 let initialState = (initialCommands, initialStackedTiles)
 
@@ -41,7 +42,7 @@ let ``Calling processNextCommand on an empty command stack returns the same stat
 
 [<Fact>]
 let ``When a tile does not exist, puts None in the tiles stack``() =
-    let tile = srtmTileCoords 0 10 20
+    let tile = srtmTileId 0 10 20
 
     let resultingState =
         initialState 
@@ -54,7 +55,7 @@ let ``When a tile does not exist, puts None in the tiles stack``() =
 
 [<Fact>]
 let ``When a tile is cached, puts it into the tiles stack``() =
-    let tile = srtmTileCoords 0 10 20
+    let tile = srtmTileId 0 10 20
 
     let resultingState =
         initialState 
@@ -68,7 +69,7 @@ let ``When a tile is cached, puts it into the tiles stack``() =
 
 [<Fact>]
 let ``When a level 0 tile is not cached, puts ConvertTileFromHgt command``() =
-    let tile = srtmTileCoords 0 10 20
+    let tile = srtmTileId 0 10 20
 
     let resultingState =
         initialState 
@@ -83,7 +84,7 @@ let ``When a level 0 tile is not cached, puts ConvertTileFromHgt command``() =
 
 [<Fact>]
 let ``When a level > 0 tile is not cached, fills the command stack with children tiles and puts CreateFromLowerTiles after it``() =
-    let tile = srtmTileCoords 2 4 8
+    let tile = srtmTileId 2 4 8
 
     let resultingState =
         initialState 
@@ -94,12 +95,12 @@ let ``When a level > 0 tile is not cached, fills the command stack with children
 
     let childTiles = 
         [| 
-            (2, 6); (4, 6); (6, 6); (8, 6) 
-            (2, 8); (4, 8); (6, 8); (8, 8) 
-            (2, 10); (4, 10); (6, 10); (8, 10) 
-            (2, 12); (4, 12); (6, 12); (8, 12) 
+            (7, 15); (8, 15); (9, 15); (10, 15) 
+            (7, 16); (8, 16); (9, 16); (10, 16) 
+            (7, 17); (8, 17); (9, 17); (10, 17) 
+            (7, 18); (8, 18); (9, 18); (10, 18) 
         |] 
-        |> Array.map (fun (lon, lat) -> srtmTileCoords 1 lon lat)
+        |> Array.map (fun (x, y) -> srtmTileId 1 x y)
 
     let childItems =
         childTiles |> Array.map (fun tile -> DetermineStatus tile)
@@ -116,7 +117,7 @@ let ``When a level > 0 tile is not cached, fills the command stack with children
 // the result in the tiles stack.
 [<Fact>]
 let ``When convert from HGT command is received``() =
-    let tile = srtmTileCoords 0 4 8
+    let tile = srtmTileId 0 4 8
 
     let mutable convertWasCalled = false
     let callConvert _ _ _ = 
@@ -136,7 +137,7 @@ let ``When convert from HGT command is received``() =
 // error and return it as the next command in the stack.
 [<Fact>]
 let ``Convert to PNG can fail``() =
-    let tile = srtmTileCoords 0 4 8
+    let tile = srtmTileId 0 4 8
     let errorMessage = "some failure"
 
     let convertThatFails _ _ _ =  Error errorMessage
@@ -158,15 +159,15 @@ let ``Convert to PNG can fail``() =
 // Put the resulting tile into the tiles stack.
 [<Fact>]
 let ``When create from lower tiles command is received``() =
-    let tile = srtmTileCoords 2 4 8
+    let tile = srtmTileId 2 4 8
     
     let createFromLowerTilesCmd = 
         { Parent = tile; 
-            Children = [| srtmTileCoords 1 4 8; srtmTileCoords 1 4 9 |] }
+            Children = [| srtmTileId 1 4 8; srtmTileId 1 4 9 |] }
         |> CreateFromLowerTiles
 
     let tilesStack = 
-        [ Some (srtmTileCoords 1 4 8); None ] @ initialStackedTiles
+        [ Some (srtmTileId 1 4 8); None ] @ initialStackedTiles
 
     let constructParentTile _ _ = Ok (Some someTileHeights)
 
@@ -191,7 +192,7 @@ let ``When create from lower tiles command is received``() =
 let ``Testing the tail recursion``() =
     // we add sufficiently large number of commands into the command stack so
     // we can be sure it will fail if the function is not tail-recursive
-    let someTiles = [| for _ in 0 .. 10000 -> srtmTileCoords 0 1 2 |]
+    let someTiles = [| for _ in 0 .. 10000 -> srtmTileId 0 1 2 |]
 
     // push these tiles into the command stack
     let initialState =
@@ -218,7 +219,7 @@ let ``Testing the tail recursion``() =
 
 [<Fact>]
 let ``Command stack processor should stop on failure and return the error``() =
-    let someTiles = [| for _ in 0 .. 10 -> srtmTileCoords 0 1 2 |]
+    let someTiles = [| for _ in 0 .. 10 -> srtmTileId 0 1 2 |]
 
     // push these tiles into the command stack
     let initialState =

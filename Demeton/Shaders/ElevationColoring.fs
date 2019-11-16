@@ -12,6 +12,7 @@ open Png
 open System.Threading.Tasks
 open Text
 open Demeton.Srtm.Types
+open Demeton.Srtm.Funcs
 
 type ColorScaleMark = (DemHeight * Rgba8Bit.RgbaColor)
 
@@ -150,8 +151,8 @@ let shadeRaster (colorScale: ColorScale): RasterShader =
             let lonDeg = radToDeg lonRad
             let latDeg = radToDeg latRad
 
-            let globalSrtmX = Tile.longitudeToGlobalX lonDeg srtmLevel 3600
-            let globalSrtmY = Tile.latitudeToGlobalY latDeg srtmLevel 3600
+            let globalSrtmX = lonDeg |> longitudeToCellX 3600 srtmLevel 
+            let globalSrtmY = latDeg |> latitudeToCellY 3600 srtmLevel 
             heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
 
     let processRasterLine y =

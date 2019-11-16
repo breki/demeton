@@ -1,5 +1,6 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Finalizing fetch SRTM tile processing``
 
+open Demeton.Srtm.Funcs
 open Demeton.Srtm.Fetch
 open Demeton.DemTypes
 
@@ -20,7 +21,7 @@ let readingPngTileFails errorMessage _ _ = Error errorMessage
 // command stack is empty.
 [<Fact>]
 let ``Successful fetching of a tile``() =
-    let finalState = ([], [ Some (srtmTileCoords 0 1 2)])
+    let finalState = ([], [ Some (srtmTileId 0 1 2)])
 
     let result = 
         finalState
@@ -31,7 +32,7 @@ let ``Successful fetching of a tile``() =
 [<Fact>]
 let ``Handles the error when reading the PNG tile``() =
     let errorMessage = "some error"
-    let finalState = ([], [ Some (srtmTileCoords 0 1 2)])
+    let finalState = ([], [ Some (srtmTileId 0 1 2)])
 
     let result = 
         finalState
@@ -55,7 +56,7 @@ let ``Returns None for non-existing tile``() =
 [<Fact>]
 let ``Handles the error indicator from the final state``() =
     let errorMessage = "some error"
-    let finalState = ([ Failure errorMessage ], [ Some (srtmTileCoords 0 1 2)])
+    let finalState = ([ Failure errorMessage ], [ Some (srtmTileId 0 1 2)])
 
     let result = 
         finalState
