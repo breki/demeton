@@ -1,5 +1,4 @@
-﻿- move the new tile coordinate code to production assembly
-- introduce it into the code
+﻿- introduce it into the code
 
 - rename `Tile.parseTileId` to something else and always returning level 0
 

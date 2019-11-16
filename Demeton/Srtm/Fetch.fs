@@ -114,7 +114,7 @@ let determineTileStatus
         (Lazy<SrtmDirTileStatus>(fun () -> checkSrtmDirTileStatus()))
 
 // todo tests for listChildrenTiles that check edge cases
-let listChildrenTiles tile =
+let listChildrenTiles (tile: SrtmTileCoords) =
     let childLevel = tile.Level.Value - 1
     let childLonLatDelta = pown 2 childLevel
     let childLon0 = tile.Lon.Value - childLonLatDelta

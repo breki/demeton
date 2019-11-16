@@ -1,8 +1,6 @@
-﻿- implement tile ids generation and parsing
-    - 
-l2e03n05
-
+﻿
 ## Sat 16.11.
+- Moved the new tile coordinate code to production assembly.
 - Implemented generating and parsing tile names.
 - Started working on a new tile coordinate system.
 

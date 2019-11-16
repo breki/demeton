@@ -2,7 +2,7 @@
 
 open Demeton.Srtm
 open Demeton.Srtm.Types
-open Demeton.DemTypes
+open Demeton.Srtm.Funcs
 
 open FsUnit
 open Xunit
@@ -82,110 +82,7 @@ open FsCheck
 open PropertiesHelp
 open System
 
-type SrtmTileId = { Level: SrtmLevel; TileX: int; TileY: int }
-type SrtmTileCellCoordsInt = (int * int)
-type SrtmTileCellCoordsFloat = (float * float)
 
-let levelFactor (level: SrtmLevel) =
-    1 <<< level.Value
-
-let levelFactorFloat (level: SrtmLevel) =
-    1 <<< level.Value |> float
-
-let tileXToCellX (tileSize: int) (tileX: float) =
-    tileX * (tileSize |> float)
-
-let tileYToCellY (tileSize: int) (tileY: float) =
-    tileY * (tileSize |> float)
-
-let cellXToTileX (tileSize: int) (cellX: float) =
-    cellX / (tileSize |> float)
-
-let cellYToTileY (tileSize: int) (cellY: float) =
-    cellY / (tileSize |> float)
-
-let newTileCellMinCoords (tileSize: int) (tileId: SrtmTileId)
-    : SrtmTileCellCoordsInt =
-    let cellX =
-        tileXToCellX tileSize (tileId.TileX |> float)
-    let cellY =
-        tileYToCellY tileSize (tileId.TileY |> float)
-    
-    (cellX |> System.Math.Round |> int,
-     (cellY |> System.Math.Round |> int) - (tileSize - 1))
-
-let findTileFromGlobalCoordinates 
-    tileSize (level: SrtmLevel) (x, y): SrtmTileId =
-    let tileX = cellXToTileX tileSize x |> floor |> int
-    let tileY = cellYToTileY tileSize y |> floor |> int
-       
-    { Level = level; TileX = tileX; TileY = tileY }
-
-let private cellsPerDegree tileSize (level: SrtmLevel) 
-    = (float tileSize) / levelFactorFloat level
-
-let longitudeToCellX tileSize (level: SrtmLevel) (lon: float) =
-    lon * cellsPerDegree tileSize level
-
-let latitudeToCellY tileSize (level: SrtmLevel) (lat: float) =
-    -lat * cellsPerDegree tileSize level
-
-let cellXToLongitude tileSize (level: SrtmLevel) cellX =
-    cellX / cellsPerDegree tileSize level
-
-let cellYToLatitude tileSize (level: SrtmLevel) cellY =
-    -cellY / cellsPerDegree tileSize level
-
-let srtmTileId level tileX tileY = 
-    { Level = level; TileX = tileX; TileY = tileY }
-
-type SrtmTileName = string
-
-let toTileName tileSize (tileId: SrtmTileId): SrtmTileName =
-    let lonSign tileX = if tileX >= 0 then 'e' else 'w'
-
-    let latSign tileY = if tileY >= 0 then 's' else 'n'
-
-    match tileId.Level.Value with
-    | 0 -> 
-        let lon = tileId.TileX |> SrtmLongitude.fromInt
-        let lat = -tileId.TileY |> SrtmLatitude.fromInt
-        let tileCoords = { Level = tileId.Level; Lon = lon; Lat = lat }
-        Tile.tileId tileCoords
-    | _ -> 
-        sprintf 
-            "l%01d%c%02d%c%02d" 
-            tileId.Level.Value
-            (lonSign tileId.TileX) (abs tileId.TileX)
-            (latSign tileId.TileY) (abs tileId.TileY) 
-
-let parseTileName (tileName: SrtmTileName): SrtmTileId =
-    match tileName.[0] with
-    | 'l' -> 
-        let level = tileName.[1..1] |> Int32.Parse |> SrtmLevel.fromInt
-        let longitudeSign =
-            match tileName.[2..2] with
-            | "w" -> -1
-            | "e" -> 1
-            | _ -> invalidOp "Invalid longitude sign"
-
-        let x = (tileName.[3..4] |> Int32.Parse) * longitudeSign
-
-        let latitudeSign = 
-            match tileName.[5..5] with
-            | "n" -> -1
-            | "s" -> 1
-            | _ -> invalidOp "Invalid latitude sign"
-
-        let y = (tileName.[6..7] |> Int32.Parse) * latitudeSign
-
-        { Level = level; TileX = x; TileY = y }
-
-    | _ -> 
-        let tileCoords = Tile.parseTileId 0 tileName
-        { Level = tileCoords.Level;
-            TileX = tileCoords.Lon.Value; 
-            TileY = -tileCoords.Lat.Value }
 
 let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
     let isApproxEqual b a = abs (a-b) < 0.0001
