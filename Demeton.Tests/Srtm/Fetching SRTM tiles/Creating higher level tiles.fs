@@ -44,22 +44,37 @@ let ``Reading of some children tiles have failed``() =
     let result = readPngTilesBatch cacheDir decodePngWithFailure tiles
     test <@ result |> isError @>
 
-[<Fact>]
+[<Fact(Skip="todo: implement a new tile coordinate sytem")>]
 let ``Creates the parent tile heights array by downsampling children heights``() =
     let tileSize = 36
     let tile = srtmTileCoords 2 4 4
+    let bufferAroundTile = 1
 
     let (minChildX, minChildY) = 
-        srtmTileCoords 1 2 8
-        |> Tile.tileCellMinCoords tileSize
+        srtmTileCoords 1 4 6  |> Tile.tileCellMinCoords tileSize
     let (maxChildX, maxChildY) = 
-        srtmTileCoords 1 10 0
-        |> Tile.tileCellMinCoords tileSize
+        srtmTileCoords 1 8 2 |> Tile.tileCellMinCoords tileSize
     let childrenHeightsArray = 
-        HeightsArray(minChildX, minChildY, 
-            maxChildX - minChildX, maxChildY - minChildY,
+        HeightsArray(
+            minChildX - bufferAroundTile,
+            minChildY - bufferAroundTile, 
+            maxChildX - minChildX + bufferAroundTile * 2,
+            maxChildY - minChildY + bufferAroundTile * 2,
             HeightsArrayInitializer1D (fun _ -> DemHeight 100))
 
+    let (minParentX, minParentY) =
+        tile |> Tile.tileCellMinCoords tileSize
+    let maxParentX = minParentX + tileSize
+    let maxParentY = minParentY + tileSize
+    
+    test <@ minParentX * 2 = minChildX @>
+    test <@ minParentY * 2 = minChildY @>
+    test <@ maxParentX * 2 = maxChildX @>
+    test <@ maxParentY * 2 = maxChildY @>
+    
+    test <@ childrenHeightsArray.Width = (tileSize + bufferAroundTile) * 2 @>
+    test <@ childrenHeightsArray.Height = (tileSize + bufferAroundTile) * 2 @>
+    
     let parentHeightsMaybe = 
         downsampleTileHeightsArray tileSize tile (Some childrenHeightsArray)
 

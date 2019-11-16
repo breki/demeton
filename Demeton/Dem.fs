@@ -22,19 +22,17 @@ let merge (heightArrays: HeightsArray list): HeightsArray option =
         (cellCoords: GlobalCellCoords) (arrayMaybe: HeightsArray option)
         : DemHeight =
         match arrayMaybe with
-        | Some array -> 
-            let height = array.heightAt cellCoords
-            height
+        | Some array -> array.heightAt cellCoords
         | None -> DemHeightNone
 
     match heightArrays with
     | [] -> None
     | [ array ] -> Some array
     | _ -> 
-        let minX = heightArrays |> List.map (fun d -> d.MinX) |> List.min
-        let minY = heightArrays |> List.map (fun d -> d.MinY) |> List.min
-        let maxX = heightArrays |> List.map (fun d -> d.MaxX) |> List.max
-        let maxY = heightArrays |> List.map (fun d -> d.MaxY) |> List.max
+        let minX = (heightArrays |> List.minBy (fun d -> d.MinX)).MinX
+        let minY = (heightArrays |> List.minBy (fun d -> d.MinY)).MinY
+        let maxX = (heightArrays |> List.maxBy (fun d -> d.MaxX)).MaxX
+        let maxY = (heightArrays |> List.maxBy (fun d -> d.MaxY)).MaxY
         let width = maxX - minX + 1
         let height = maxY - minY + 1
 
@@ -44,4 +42,5 @@ let merge (heightArrays: HeightsArray list): HeightsArray option =
                 |> findArrayOfCell coords 
                 |> findHeightOfCell coords)
 
-        Some (HeightsArray(minX, minY, width, height, heightOfCellInArrays))
+        HeightsArray(minX, minY, width, height, heightOfCellInArrays)
+        |> Some

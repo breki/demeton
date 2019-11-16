@@ -114,5 +114,3 @@ let latitudeToGlobalY
     (latitude: float) (level: SrtmLevel) (tileSize: int): float =
     let levelFactor = pown 2 level.Value
     (90. - latitude) / (float levelFactor) * float tileSize
-
-
