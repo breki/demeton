@@ -81,126 +81,152 @@ let ``Calculates fractional global coordinates for given longitude and latitude`
 open FsCheck
 open PropertiesHelp
 
+type SrtmTileId = { Level: SrtmLevel; TileX: int; TileY: int }
+type SrtmTileCellCoordsInt = (int * int)
+type SrtmTileCellCoordsFloat = (float * float)
+
 let levelFactor (level: SrtmLevel) =
     1 <<< level.Value
 
 let levelFactorFloat (level: SrtmLevel) =
     1 <<< level.Value |> float
 
-let newLongitudeToGlobalX (tileSize: int) (level: SrtmLevel) (lon: float) =
-    let tileColumn = lon / levelFactorFloat level
-    tileColumn * (tileSize |> float)
+let tileXToCellX (tileSize: int) (level: SrtmLevel) (tileX: float) =
+    tileX * (tileSize |> float)
 
-let newLatitudeToGlobalY (tileSize: int) (level: SrtmLevel) (lat: float) =
-    let tileRow = -lat / levelFactorFloat level
-    tileRow * (tileSize |> float)
+let tileYToCellY (tileSize: int) (level: SrtmLevel) (tileY: float) =
+    tileY * (tileSize |> float)
 
-let newGlobalXToLongitude (tileSize: int) (level: SrtmLevel) (x: float) =
-    let levelFactor = levelFactorFloat level
-    x / (tileSize |> float) * levelFactor 
+let cellXToTileX (tileSize: int) (level: SrtmLevel) (cellX: float) =
+    cellX / (tileSize |> float)
 
-let newGlobalYToLatitude (tileSize: int) (level: SrtmLevel) (y: float) =
-    let levelFactor = levelFactorFloat level
-    -y / (tileSize |> float) * levelFactor 
+let cellYToTileY (tileSize: int) (level: SrtmLevel) (cellY: float) =
+    cellY / (tileSize |> float)
 
-let newTileCellMinCoords (tileSize: int) (tileCoords: SrtmTileCoords)
-    : GlobalCellCoords =
-    let x =
-        newLongitudeToGlobalX tileSize tileCoords.Level
-            (tileCoords.Lon.Value |> float)
-    let y =
-        newLatitudeToGlobalY tileSize tileCoords.Level
-            (tileCoords.Lat.Value |> float)
+let newTileCellMinCoords (tileSize: int) (tileId: SrtmTileId)
+    : SrtmTileCellCoordsInt =
+    let cellX =
+        tileXToCellX tileSize tileId.Level (tileId.TileX |> float)
+    let cellY =
+        tileYToCellY tileSize tileId.Level (tileId.TileY |> float)
     
-    (x |> System.Math.Round |> int,
-     (y |> System.Math.Round |> int) - (tileSize - 1))
+    (cellX |> System.Math.Round |> int,
+     (cellY |> System.Math.Round |> int) - (tileSize - 1))
 
-let findTileFromGlobalCoordinates tileSize (level: SrtmLevel) x y =
-    let lon = newGlobalXToLongitude tileSize level x
-    let lat = newGlobalYToLatitude tileSize level y
-    
-    let levelFactor = levelFactor level
-    let levelFactorFloat = levelFactorFloat level
-    let tileLon = (lon |> int) / levelFactor * levelFactor
-    let tileLat = ((lat / levelFactorFloat) |> floor |> int) * levelFactor
-    
-    { Level = level;
-      Lon = SrtmLongitude.fromInt tileLon;
-      Lat = SrtmLatitude.fromInt tileLat }
+let findTileFromGlobalCoordinates 
+    tileSize (level: SrtmLevel) (x, y): SrtmTileId =
+    let tileX = cellXToTileX tileSize level x |> floor |> int
+    let tileY = cellYToTileY tileSize level y |> floor |> int
+       
+    { Level = level; TileX = tileX; TileY = tileY }
 
-let srtmTileCoordsFromFloat level lon lat = 
-    { Level = level;
-      Lon = SrtmLongitude.fromInt (lon |> int)
-      Lat = SrtmLatitude.fromInt (lat |> int) }
+let private cellsPerDegree tileSize (level: SrtmLevel) 
+    = (float tileSize) / levelFactorFloat level
 
-let ``Tile coordinates properties``(level, (lon, lat), tileSize) =
+let longitudeToCellX tileSize (level: SrtmLevel) (lon: float) =
+    lon * cellsPerDegree tileSize level
+
+let latitudeToCellY tileSize (level: SrtmLevel) (lat: float) =
+    -lat * cellsPerDegree tileSize level
+
+let cellXToLongitude tileSize (level: SrtmLevel) cellX =
+    cellX / cellsPerDegree tileSize level
+
+let cellYToLatitude tileSize (level: SrtmLevel) cellY =
+    -cellY / cellsPerDegree tileSize level
+
+let srtmTileId level tileX tileY = 
+    { Level = level; TileX = tileX; TileY = tileY }
+
+let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
+    let isApproxEqual b a = abs (a-b) < 0.0001
+
     // get the global coordinates
-    let x = newLongitudeToGlobalX tileSize level (float lon)
-    let y = newLatitudeToGlobalY tileSize level (float lat) 
+    let cellX = longitudeToCellX tileSize level (float lon)
+    let cellY = latitudeToCellY tileSize level (float lat) 
+    let tileX = cellXToTileX tileSize level cellX
+    let tileY = cellYToTileY tileSize level cellY
+
+    let inversibility1 _ = 
+        let lon' = cellXToLongitude tileSize level cellX
+        let lat' = cellYToLatitude tileSize level cellY
+
+        (lon' |> isApproxEqual lon && lat' |> isApproxEqual lat)
+        |> Prop.label 
+            "longitudeToCellX and cellXToLongitude are inverse operations"
+        |@ sprintf "%f <> %f or %f <> %f" lon lon' lat lat'
     
-//    let inversibility =
-//        (newGlobalXToLongitude x = float lon)
+    let inversibility2 _ = 
+        let cellX' = tileXToCellX tileSize level tileX
+        let cellY' = tileYToCellY tileSize level tileY
+
+        (cellX' |> isApproxEqual cellX && cellY' |> isApproxEqual cellY)
+        |> Prop.label "tileXToCellX and cellXToTileX are inverse operations"
+        |@ sprintf "%f <> %f or %f <> %f" cellX cellX' cellY cellY'
     
-    let prop2 _ =
+    let parentCellCoordsAreHalf _ =
         match level.Value with
         | 0 -> true |> Prop.classify true "level 0"
 
         | childLevel ->
             let parentLevel = childLevel + 1 |> SrtmLevel.fromInt
-            let parentX =
-                newLongitudeToGlobalX tileSize parentLevel (float lon)  
-            let parentY =
-                newLatitudeToGlobalY tileSize parentLevel (float lat)
-            let halfChildX = x / 2.
-            let halfChildY = y / 2.
-            (halfChildX = parentX && halfChildY = parentY)
+            let parentCellX = longitudeToCellX tileSize parentLevel (float lon)  
+            let parentCellY = latitudeToCellY tileSize parentLevel (float lat)
+            let halfChildX = cellX / 2.
+            let halfChildY = cellY / 2.
+            (halfChildX = parentCellX && halfChildY = parentCellY)
             |> Prop.classify true "level > 0"
             |> Prop.label
-                   "higher level global coordinates are 1/2 of child level ones"
+                   "higher level cell coordinates are 1/2 of child level ones"
             |@ sprintf
-                    "%g <> %g or %g <> %g" halfChildX parentX halfChildY parentY
+                    "%g <> %g or %g <> %g" 
+                    halfChildX parentCellX halfChildY parentCellY
     
-    let containingTile = 
-        findTileFromGlobalCoordinates tileSize level x y
-    let tileLon = containingTile.Lon.Value
-    let tileLat = containingTile.Lat.Value
-    
-    let propTileCoordsAreEven _ =
+    let parentTileCoordsAreHalf _ =
         match level.Value with
         | 0 -> true |> Prop.classify true "level 0"
-        | _ ->
-            (tileLon % 2 = 0 && tileLat % 2 = 0)
-            |> Prop.label "tile lon/lat values are even (level > 0)"
-    
-    let prop3 _ =
-        (tileLon >= -179 && tileLon <= 180 && tileLat >= -90 && tileLat <= 90)
-        |> Prop.label "tile lon/lat are within valid range"
-        
-    let tileCoords = srtmTileCoordsFromFloat level tileLon tileLat
-    let (tileMinX, tileMinY) = newTileCellMinCoords tileSize tileCoords
 
-    let tileContainingMinCoords =
-        findTileFromGlobalCoordinates
-            tileSize level (float tileMinX) (float tileMinY)
+        | childLevel ->
+            let parentLevel = childLevel + 1 |> SrtmLevel.fromInt
+            let parentTileX = 
+                longitudeToCellX tileSize parentLevel (float lon)  
+                |> cellXToTileX tileSize parentLevel 
+            let parentTileY = 
+                latitudeToCellY tileSize parentLevel (float lat)
+                |> cellYToTileY tileSize parentLevel
+            let halfChildX = tileX / 2.
+            let halfChildY = tileY / 2.
+            (halfChildX = parentTileX && halfChildY = parentTileY)
+            |> Prop.classify true "level > 0"
+            |> Prop.label
+                   "higher level tile coordinates are 1/2 of child level ones"
+            |@ sprintf
+                    "%g <> %g or %g <> %g" 
+                    halfChildX parentTileX halfChildY parentTileY
+           
+    let cellsToTilesRelation _ =
+        let tileX' = cellXToTileX tileSize level (cellX + (float tileSize))
+        let tileY' = cellYToTileY tileSize level (cellY + (float tileSize))
 
-    let prop4 _ =
-        (tileContainingMinCoords = tileCoords)
-        |> Prop.label "tile min global coordinates are calculated correctly"
-        |@ sprintf "%A <> %A" tileContainingMinCoords tileCoords
-                
-                
-    propTileCoordsAreEven .&. prop2 .&. prop3 .&. prop4
+        ((tileX' |> isApproxEqual (tileX + 1.))
+            && (tileY' |> isApproxEqual (tileY + 1.)))
+        |> Prop.label "Moving by tileSize cells moves by 1 tile"
+        |@ sprintf 
+            "%g <> %g or %g <> %g" (tileX + 1.) tileX' (tileY + 1.) tileY'
+
+    inversibility1 .&. inversibility2 .&. parentCellCoordsAreHalf
+        .&. parentTileCoordsAreHalf .&. cellsToTilesRelation
     
-[<Fact(Skip="todo: implement a new tile coordinate sytem")>]
+[<Fact>]
 let ``Tile coordinates testing``() =
     let genTileSize = Gen.choose(1, 100)
     let genLevel = Gen.choose(0, 5) |> Gen.map SrtmLevel.fromInt
-    let genLon = Gen.choose(-179, 180)
-    let genLat = Gen.choose(-90, 90)
+    let genLon = floatInRange -179 180
+    let genLat = floatInRange -90 90
     let genPos = Gen.zip genLon genLat
     
     Gen.zip3 genLevel genPos genTileSize
     |> Arb.fromGen
     |> Prop.forAll <| ``Tile coordinates properties``
-//    |> Check.QuickThrowOnFailure
-    |> replayPropertyCheck (1800278843,296670464)
+    |> Check.QuickThrowOnFailure
+    //|> replayPropertyCheck (1800278843,296670464)

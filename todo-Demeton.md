@@ -1,4 +1,15 @@
-﻿- implement a proper downsampling algorithm
+﻿- something is wrong with lon lat coords calculation
+    - write property tests?
+- reduce the array to be merged to the size of the destination tile + buffer
+
+- merging is too slow
+    - different implementation of merging: instead of, for each cell, looking which array (if any) covers it, copy the contents of each array into the merged array
+    - can we parallelize it?
+- handle CreateFromLowerTiles errors in `processNextCommand`
+
+- test downsampling through the console
+
+- implement a proper downsampling algorithm
     - can we parallelize it?
     - https://en.wikipedia.org/wiki/Image_scaling
 

@@ -1,13 +1,8 @@
-﻿- something is wrong with lon lat coords calculation
-    - write property tests?
-- reduce the array to be merged to the size of the destination tile + buffer
+﻿- implement tile ids generation and parsing
+    - l2e03n05
 
-- merging is too slow
-    - different implementation of merging: instead of, for each cell, looking which array (if any) covers it, copy the contents of each array into the merged array
-    - can we parallelize it?
-- handle CreateFromLowerTiles errors in `processNextCommand`
-
-- test downsampling through the console
+## Sat 16.11.
+- Started working on a new tile coordinate system.
 
 ## Fri 15.11.
 - Extended `decodeSrtmTileFromPngFile` to support levels.
