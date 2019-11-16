@@ -19,12 +19,10 @@ let decodePng: SrtmPngTileReader = fun _ _ -> Ok tileHeights
 
 // fails only on certain tiles
 let decodePngWithFailure: SrtmPngTileReader = 
-    fun tileId tileFileName ->
+    fun tileId _ ->
         match tileId.TileX = 3 with
         | false -> Ok tileHeights
         | true -> Error "some error"
-
-let parentTile = srtmTileCoords 0 2 4
 
 [<Fact>]
 let ``All children tiles have been read successfully``() =

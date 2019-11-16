@@ -11,35 +11,31 @@ open Tests.Srtm.SrtmHelper
 
 [<Fact>]
 let ``Latitude 0 means north``() =
-    srtmTileCoords 0 10 0
-    |> Tile.tileId 
+    srtmTileCoords 10 0 |> toHgtTileName 
     |> should equal "N00E010"
 
 [<Fact>]
 let ``Latitude -1 means south``() =
-    srtmTileCoords 0 10 -1
-    |> Tile.tileId 
+    srtmTileCoords 10 -1 |> toHgtTileName 
     |> should equal "S01E010"
 
 [<Fact>]
 let ``Longitude 0 means east``() =
-    srtmTileCoords 0 0 10
-    |> Tile.tileId 
+    srtmTileCoords 0 10 |> toHgtTileName 
     |> should equal "N10E000"
 
 [<Fact>]
 let ``Longitude -1 means west``() =
-    srtmTileCoords 0 -1 10
-    |> Tile.tileId 
+    srtmTileCoords -1 10 |> toHgtTileName 
     |> should equal "N10W001"
 
 [<Fact>]
 let ``Can parse north and west tile IDs``() =
-    test <@ Tile.parseTileId 0 "N10W001" = srtmTileCoords 0 -1 10 @>
+    test <@ parseHgtTileName "N10W001" = srtmTileCoords -1 10 @>
 
 [<Fact>]
 let ``Can parse south and east tile IDs``() =
-    test <@ Tile.parseTileId 3 "S22E080" = srtmTileCoords 3 80 -22 @>
+    test <@ parseHgtTileName "S22E080" = srtmTileCoords 80 -22 @>
 
 [<Literal>]
 let Multiply_minus_179_with_3600 = -644400

@@ -1,7 +1,5 @@
-﻿- rename SrtmTileCoordsX back to the original
-- SrtmTileCoords should no longer have level
-
-## Sat 16.11.
+﻿## Sat 16.11.
+- Renaming and moving some old `Tile` functions.
 - Started introducing the new tiles coordinate system into the code.
 - Moved the new tile coordinate code to production assembly.
 - Implemented generating and parsing tile names.

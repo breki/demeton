@@ -2,7 +2,6 @@
 
 open Demeton.Srtm.Types
 
-let srtmTileCoords level lon lat =
-    { Level = SrtmLevel.fromInt level; 
-    Lon = SrtmLongitude.fromInt lon; 
+let srtmTileCoords lon lat =
+    { Lon = SrtmLongitude.fromInt lon; 
     Lat = SrtmLatitude.fromInt lat } 

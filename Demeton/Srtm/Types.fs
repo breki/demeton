@@ -28,12 +28,11 @@ type SrtmLongitude = { Value: int } with
 [<Struct>]
 [<StructuralEquality>]
 [<StructuralComparison>]
-type SrtmTileCoordsX = 
-    { Level: SrtmLevel; Lon: SrtmLongitude; Lat: SrtmLatitude }
+type SrtmTileCoords = 
+    { Lon: SrtmLongitude; Lat: SrtmLatitude }
     with
     member this.IdString = 
-        sprintf "SrtmTile (%d/%d/%d)" 
-            this.Level.Value this.Lon.Value this.Lat.Value
+        sprintf "SrtmTile (%d/%d)" this.Lon.Value this.Lat.Value
 
 type SrtmTileId = { Level: SrtmLevel; TileX: int; TileY: int }
 type SrtmTileCellCoordsInt = (int * int)

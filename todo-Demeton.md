@@ -1,6 +1,5 @@
-﻿- remove srtmTileCoords helper method
-- rename `Tile.parseTileId` to something else and always returning level 0
-- rename tileId func to something else
+﻿- remove obsolete cache checking code
+- remove Tile module and move the remaining code somewhere else
 - how do we structure the new code?
 - remove the old code
 

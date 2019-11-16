@@ -11,8 +11,7 @@ open Tests.Srtm.SrtmHelper
 
 [<Fact>]
 let ``Two tiles are equal``() =
-    srtmTileCoords 0 10 20
-    |> should equal (srtmTileCoords 0 10 20)
+    srtmTileCoords 10 20 |> should equal (srtmTileCoords 10 20)
 
 [<Fact>]
 let ``When bounds cover just a single tile``() =

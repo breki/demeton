@@ -60,6 +60,24 @@ let srtmTileId level tileX tileY =
 
 type SrtmTileName = string
 
+let toHgtTileName (tileCoords: SrtmTileCoords) =
+    let latitudeCharSign (latitude: SrtmLatitude) =
+        match latitude with
+        | x when x.Value >= 0 -> 'N'
+        | _ -> 'S'
+    
+    let longitudeCharSign (longitude: SrtmLongitude) =
+        match longitude with
+        | x when x.Value >= 0 -> 'E'
+        | _ -> 'W'
+
+    let latSign = latitudeCharSign tileCoords.Lat
+    let lonSign = longitudeCharSign tileCoords.Lon
+
+    sprintf 
+        "%c%02d%c%03d" 
+        latSign (abs tileCoords.Lat.Value) lonSign (abs tileCoords.Lon.Value)
+
 let toTileName (tileId: SrtmTileId): SrtmTileName =
     let lonSign tileX = if tileX >= 0 then 'e' else 'w'
 
@@ -69,14 +87,42 @@ let toTileName (tileId: SrtmTileId): SrtmTileName =
     | 0 -> 
         let lon = tileId.TileX |> SrtmLongitude.fromInt
         let lat = -tileId.TileY |> SrtmLatitude.fromInt
-        let tileCoords = { Level = tileId.Level; Lon = lon; Lat = lat }
-        Tile.tileId tileCoords
+        let tileCoords = { Lon = lon; Lat = lat }
+        toHgtTileName tileCoords
     | _ -> 
         sprintf 
             "l%01d%c%02d%c%02d" 
             tileId.Level.Value
             (lonSign tileId.TileX) (abs tileId.TileX)
             (latSign tileId.TileY) (abs tileId.TileY) 
+
+let parseHgtTileName (tileId: string) =
+    let latitudeCharSign = tileId.[0]
+    let latitudeSign = 
+        match latitudeCharSign with
+        | 'N' -> 1
+        | 'S' -> -1
+        | _ -> raise(InvalidOperationException
+                (sprintf "Invalid SRTM tile ID: '%s'" tileId))
+
+    let longitudeCharSign = tileId.[3]
+
+    let longitudeSign = 
+        match longitudeCharSign with
+        | 'W' -> -1
+        | 'E' -> 1
+        | _ -> raise(InvalidOperationException
+                (sprintf "Invalid SRTM tile ID: '%s'" tileId))
+
+    let latitudeStr = tileId.[1..2]
+    let latitudeInt = Int32.Parse latitudeStr * latitudeSign
+    let latitude = SrtmLatitude.fromInt latitudeInt
+
+    let longitudeStr = tileId.[4..6]
+    let longitudeInt = Int32.Parse longitudeStr * longitudeSign
+    let longitude = SrtmLongitude.fromInt longitudeInt
+
+    { Lon = longitude; Lat = latitude }
 
 let parseTileName (tileName: SrtmTileName): SrtmTileId =
     match tileName.[0] with
@@ -101,16 +147,14 @@ let parseTileName (tileName: SrtmTileName): SrtmTileId =
         { Level = level; TileX = x; TileY = y }
 
     | _ -> 
-        let tileCoords = Tile.parseTileId 0 tileName
-        { Level = tileCoords.Level;
+        let tileCoords = parseHgtTileName tileName
+        { Level = SrtmLevel.fromInt 0;
             TileX = tileCoords.Lon.Value; 
             TileY = -tileCoords.Lat.Value }
 
-let toSrtmTileCoords (tileId: SrtmTileId): SrtmTileCoordsX =
-    { Level = tileId.Level; 
-        Lon = SrtmLongitude.fromInt tileId.TileX; 
-        Lat = SrtmLatitude.fromInt -tileId.TileY
-    }
+let toSrtmTileCoords (tileId: SrtmTileId): SrtmTileCoords =
+    { Lon = SrtmLongitude.fromInt tileId.TileX; 
+        Lat = SrtmLatitude.fromInt -tileId.TileY }
 
 let boundsToTiles 
     tileSize (level: SrtmLevel) (bounds: LonLatBounds) : SrtmTileId list =
@@ -214,9 +258,10 @@ let createSrtmTileFromStream: ZippedSrtmTileReader =
 
 let toZippedSrtmTileFileName
     (srtmDir: string) 
-    (tileCoords: SrtmTileCoordsX) =
+    (tileCoords: SrtmTileCoords) =
     srtmDir
-    |> Pth.combine (sprintf "%s.SRTMGL1.hgt.zip" (Tile.tileId tileCoords))
+    |> Pth.combine 
+        (sprintf "%s.SRTMGL1.hgt.zip" (toHgtTileName tileCoords))
 
 let toLocalCacheTileFileName 
     (localCacheDir: FileSys.DirectoryName) 
