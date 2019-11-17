@@ -184,8 +184,16 @@ let constructHigherLevelTileHeightsArray
     readPngTilesBatch localCacheDir readTilePngFile childrenTiles
     |> Result.map (fun heightsArrays -> 
         Log.info "Merging all the read tiles into a single array..."
-        let mergedHeightsArrayRect = 
-            heightsArrays |> Demeton.Dem.mbrOfHeightsArrays
+        
+        let (tileMinX, tileMinY) = tile |> tileMinCell tileSize
+        let buffer = 1
+        let childrenMinX = tileMinX * 2 - buffer
+        let childrenMinY = tileMinY * 2 - buffer
+        let childrenSize = tileSize * 2 + buffer * 2
+         
+        let mergedHeightsArrayRect: Raster.Rect =
+            { MinX = childrenMinX; MinY = childrenMinY; 
+            Width = childrenSize; Height = childrenSize } 
         heightsArrays |> Demeton.Dem.merge mergedHeightsArrayRect)
     // after merging the tiles, make a parent tile by downsampling
     |> Result.map (fun heightsArray -> 

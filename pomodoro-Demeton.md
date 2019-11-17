@@ -1,7 +1,9 @@
-﻿- reduce the array to be merged to the size of the destination tile + buffer
-    - `constructHigherLevelTileHeightsArray`
+﻿- implement a proper downsampling algorithm
+    - can we parallelize it?
+    - https://en.wikipedia.org/wiki/Image_scaling
 
 ## Sun 17.11.
+- `merge` function has now been redesigned to be much faster.
 - Redesigning the `HeightsArray` `merge` function and writing property tests for it.
 - Fixing various bugs/issues with tile coordinate system.
 

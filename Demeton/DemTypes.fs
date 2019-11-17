@@ -25,7 +25,8 @@ type GlobalCellCoordsFractional = (float * float)
 type HeightCell = { Coords: GlobalCellCoords; Height : DemHeight }
 
 type HeightsArrayInitializer =
-    HeightsArrayDirectImport of (DemHeight[])
+    EmptyHeightsArray
+    | HeightsArrayDirectImport of (DemHeight[])
     | HeightsArrayInitializer1D of (int -> DemHeight)
     | HeightsArrayInitializer2D of (GlobalCellCoords -> DemHeight)
     | HeightsArrayCustomInitializer of (DemHeight[] -> unit)
@@ -41,6 +42,8 @@ type HeightsArray
         let arraySize = width*height
 
         match initializer with
+        | EmptyHeightsArray ->
+            Array.init<DemHeight> arraySize (fun _ -> DemHeightNone)
         | HeightsArrayDirectImport arrayToImport ->
             if arrayToImport.Length <> arraySize then
                 invalidOp "The imported heights array is of incompatible size."

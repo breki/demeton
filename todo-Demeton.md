@@ -1,13 +1,4 @@
-﻿- merging is too slow
-    - different implementation of merging: instead of, for each cell, looking which array (if any) covers it, copy the contents of each array into the merged array
-    - can we parallelize it?
-- handle CreateFromLowerTiles errors in `processNextCommand`
-
-- test downsampling through the console
-
-- implement a proper downsampling algorithm
-    - can we parallelize it?
-    - https://en.wikipedia.org/wiki/Image_scaling
+﻿ handle CreateFromLowerTiles errors in `processNextCommand`
 
 - add batch script that generates some sample images from these sample DEMs
 

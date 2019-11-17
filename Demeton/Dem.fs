@@ -18,43 +18,30 @@ let merge
     (mergedArrayBounds: Raster.Rect)
     (heightArrays: HeightsArray list)
     : HeightsArray option =
-    let isCellWithinArray (array: HeightsArray) ((cx, cy): GlobalCellCoords) =
-        cx >= array.MinX && cx <= array.MaxX 
-            && cy >= array.MinY && cy <= array.MaxY
 
-    let findArrayOfCell 
-        (cellCoords: GlobalCellCoords)
-        (arrays: HeightsArray list) =
-        arrays 
-        |> List.tryFind (fun array -> isCellWithinArray array cellCoords)
-
-    /// <summary>
-    /// Looks for the height of the specific cell in the 
-    /// <see cref="HeightArray"/>. Returns the height value or <c>None</c>
-    /// if there is no height information for that cell.
-    /// </summary>
-    let findHeightOfCell 
-        (cellCoords: GlobalCellCoords) (arrayMaybe: HeightsArray option)
-        : DemHeight =
-        match arrayMaybe with
-        | Some array -> array.heightAt cellCoords
-        | None -> DemHeightNone
-
+    let copyHeightsArray (source: HeightsArray) (dest: HeightsArray): unit =
+        let copyMinX = max source.MinX dest.MinX
+        let copyMinY = max source.MinY dest.MinY
+        let copyMaxX = min source.MaxX dest.MaxX
+        let copyMaxY = min source.MaxY dest.MaxY
+        
+        for y in copyMinY .. copyMaxY do
+            for x in copyMinX .. copyMaxX do
+                source.heightAt (x, y) |> dest.setHeightAt (x, y) 
+    
     match (heightArrays, mergedArrayBounds.Width, mergedArrayBounds.Height) with
     | (_, 0, _) -> None
     | (_, _, 0) -> None
     | ([], _, _) -> None
     | _ -> 
-        let heightOfCellInArrays = 
-            HeightsArrayInitializer2D(fun coords -> 
-                heightArrays 
-                |> findArrayOfCell coords 
-                |> findHeightOfCell coords)
-
-        HeightsArray
-            (mergedArrayBounds.MinX,
-             mergedArrayBounds.MinY,
-             mergedArrayBounds.Width,
-             mergedArrayBounds.Height,
-             heightOfCellInArrays)
-        |> Some
+        let merged =
+            HeightsArray
+                (mergedArrayBounds.MinX,
+                 mergedArrayBounds.MinY,
+                 mergedArrayBounds.Width,
+                 mergedArrayBounds.Height,
+                 EmptyHeightsArray)
+        
+        heightArrays |> List.iter (fun x -> copyHeightsArray x merged) 
+        
+        Some merged
