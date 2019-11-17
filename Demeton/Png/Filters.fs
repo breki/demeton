@@ -131,7 +131,6 @@ let filteredScanlineWithMinSumOfAbsDiffs
 
     filteredScanlinesBuffer.[minIndex]
 
-// todo doc
 let filterFirstScanline
     imageData
     (bytesPP: int) 

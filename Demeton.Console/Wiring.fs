@@ -9,11 +9,8 @@ open Demeton.Srtm.Fetch
 let readPngTile: SrtmPngTileReader = 
     decodeSrtmTileFromPngFile FileSys.openFileToRead
 
-let checkCachingStatus srtmDir localCacheDir =
-    checkSrtmTileCachingStatus
-        srtmDir
-        localCacheDir
-        FileSys.fileExists
+let determineTileStatus srtmDir localCacheDir =
+    determineTileStatus srtmDir localCacheDir FileSys.fileExists
 
 let writePngTile = 
     writeHeightsArrayIntoPngFile
@@ -28,9 +25,6 @@ let convertPngTile =
 
 let fetchSrtmTile srtmDir localCacheDir
     : SrtmTileReader = fun tile ->
-
-    let determineTileStatus = 
-        determineTileStatus srtmDir localCacheDir FileSys.fileExists
 
     let constructHigherLevelTile =
         constructHigherLevelTileHeightsArray 
@@ -50,7 +44,8 @@ let fetchSrtmTile srtmDir localCacheDir
     initializeProcessingState tile
     |> processCommandStack 
         localCacheDir srtmDir 
-        determineTileStatus convertPngTile 
+        (determineTileStatus srtmDir localCacheDir)
+        convertPngTile 
         constructHigherLevelTile writeTileToCache
     |> finalizeFetchSrtmTileProcessing localCacheDir readPngTile
 

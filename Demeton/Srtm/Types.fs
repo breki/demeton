@@ -34,7 +34,13 @@ type SrtmTileCoords =
     member this.IdString = 
         sprintf "SrtmTile (%d/%d)" this.Lon.Value this.Lat.Value
 
+[<StructuredFormatDisplay("{IdString}")>]
 type SrtmTileId = { Level: SrtmLevel; TileX: int; TileY: int }
+    with
+    member this.IdString = 
+        sprintf "%d/%d/%d" this.Level.Value this.TileX this.TileY
+
+
 type SrtmTileCellCoordsInt = (int * int)
 type SrtmTileCellCoordsFloat = (float * float)
 

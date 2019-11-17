@@ -5,9 +5,9 @@ open CommandLine
 open CommandLine.Common
 open Demeton.DemTypes
 open Demeton.Geometry.Common
-open Demeton.Srtm
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
+open Demeton.Srtm.Fetch
 
 open System.IO
 
@@ -93,28 +93,18 @@ type SrtmToPngEncoder = HeightsArray -> Stream -> unit
 /// This typically means the function should download the zipped HGT file,
 /// unzip it and read it as <see cref="HeightsArray" /> instance.
 /// </param>
-/// <param name="createPngTileFile">
-/// A function that creates a new PNG file for the given SRTM tile ID and
-/// provides a writable stream to it.
-/// </param>
-/// <param name="encodeSrtmTileToPng">
-/// A function that encodes the <see cref="HeightsArray" /> as a PNG image and
-/// writes it into the provides stream.
-/// </param>
 let run 
     (tiles: SrtmTileId[])
-    (checkCaching: Tile.CachingStatusChecker)
+    determineTileStatus
     (readTile: SrtmTileReader)
     : unit = 
 
-    tiles |> Array.Parallel.iter (fun tileId ->
-        let cachingStatus = checkCaching tileId
-
-        match cachingStatus with
-        | Tile.CachingStatus.NotCached ->
-            let tileName = tileId |> toTileName
+    tiles |> Array.Parallel.iter (fun tile ->
+        match determineTileStatus tile with
+        | SrtmTileStatus.NotCached ->
+            let tileName = tile |> toTileName
             Log.info "Importing SRTM tile %s... " tileName
-            let heightsArrayOption = readTile tileId
+            let heightsArrayOption = readTile tile
             match heightsArrayOption with
             | Ok None -> 
                 Log.info 

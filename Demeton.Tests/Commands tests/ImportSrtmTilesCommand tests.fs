@@ -2,9 +2,9 @@
 
 open CommandLine.Common
 open Demeton.Commands
-open Demeton.Srtm
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
+open Demeton.Srtm.Fetch
 open Demeton.DemTypes
 
 open Xunit
@@ -166,8 +166,7 @@ let ``Imports all tiles within the specified boundaries``() =
     let mutable tilesRead = []
     let mutable heightsArraysProduced: HeightsArray list = []
 
-    let checkCachingStatus (tile: SrtmTileId) = 
-        Tile.CachingStatus.NotCached
+    let determineTileStatus (tile: SrtmTileId) = SrtmTileStatus.NotCached
 
     let readTile (tile: SrtmTileId): HeightsArrayResult =
         lock threadsLock (fun () -> tilesRead <- tiles :: tilesRead)
@@ -180,6 +179,6 @@ let ``Imports all tiles within the specified boundaries``() =
                 heightsArraysProduced <- heightsArray :: heightsArraysProduced)
         Ok (Some heightsArray)
 
-    ImportSrtmTilesCommand.run tiles checkCachingStatus readTile
+    ImportSrtmTilesCommand.run tiles determineTileStatus readTile
 
     test <@ heightsArraysProduced.Length = tiles.Length @>

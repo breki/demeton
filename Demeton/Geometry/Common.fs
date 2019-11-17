@@ -40,6 +40,15 @@ type LonLatBounds = {
     MaxLat: float
     }
 
+let mergeLonLatBounds (bounds1: LonLatBounds) (bounds2: LonLatBounds)
+    :LonLatBounds =
+    { 
+        MinLon = min bounds1.MinLon bounds2.MinLon;
+        MinLat = min bounds1.MinLat bounds2.MinLat;
+        MaxLon = max bounds1.MaxLon bounds2.MaxLon;
+        MaxLat = max bounds1.MaxLat bounds2.MaxLat;
+    }
+
 /// <summary>
 /// Splits a flat list of x and y coordinates into two separate lists, one for
 /// x coordinates and the other for y coordinates.
@@ -125,7 +134,6 @@ let meanOfAngles tolerance angles =
             if Math.Abs(meanAngle) < tolerance then 0.
             else meanAngle
 
-// todo doc
 let inline degToRad deg = deg * Math.PI / 180.
 let inline radToDeg rad = rad * 180. / Math.PI
 

@@ -1,4 +1,11 @@
-﻿## Sat 16.11.
+﻿- remove old tile calculation functions, rename "new*"
+- remove the old code
+
+## Sun 17.11.
+- Fixing various bugs/issues with tile coordinate system.
+
+## Sat 16.11.
+- Remove obsolete tile cache status checking code.
 - Renaming and moving some old `Tile` functions.
 - Started introducing the new tiles coordinate system into the code.
 - Moved the new tile coordinate code to production assembly.

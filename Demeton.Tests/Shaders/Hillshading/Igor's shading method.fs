@@ -24,28 +24,6 @@ let ``Igor shading properties``
         (Rgba8Bit.a colorOfFlatFace = 0uy)
         |> Prop.label "flat face has minimum darkness"
 
-    let colorOfFaceOrientedTowardsSun = 
-        IgorHillshader.shadePixel  parameters 0. sunAltitude sunAzimuth
-
-    // todo: remove these unused properties
-    let prop2 =
-        let darkness = darkness colorOfFaceOrientedTowardsSun
-        (darkness = 0uy)
-        |> Prop.label 
-            "face totally oriented towards the sun has minimum darkness"
-        |@ sprintf "Actual darkness: %d" darkness
-
-    let colorOfFaceOrientedOppositeSun = 
-        IgorHillshader.shadePixel 
-            parameters 0. sunAltitude (sunAzimuth + Math.PI)
-
-    let prop3 =
-        let darkness = darkness colorOfFaceOrientedOppositeSun
-        (darkness = 255uy)
-        |> Prop.label 
-            "face totally oriented opposite the sun has maximum darkness"
-        |@ sprintf "Actual darkness: %d" darkness
-
     let aspect1Darkness = 
         IgorHillshader.shadePixel parameters 0. slope45 aspect1 
         |> darkness

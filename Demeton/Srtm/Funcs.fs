@@ -30,8 +30,7 @@ let newTileCellMinCoords (tileSize: int) (tileId: SrtmTileId)
     let cellY =
         tileYToCellY tileSize (tileId.TileY |> float)
     
-    (cellX |> System.Math.Round |> int,
-     (cellY |> System.Math.Round |> int) - (tileSize - 1))
+    (cellX |> System.Math.Round |> int, cellY |> System.Math.Round |> int)
 
 let findTileFromGlobalCoordinates 
     tileSize (level: SrtmLevel) (x, y): SrtmTileId =
@@ -57,6 +56,16 @@ let cellYToLatitude tileSize (level: SrtmLevel) cellY =
 
 let srtmTileId level tileX tileY = 
     { Level = SrtmLevel.fromInt level; TileX = tileX; TileY = tileY }
+
+let toSrtmTileCoords (tileId: SrtmTileId): SrtmTileCoords =
+    match tileId.Level.Value with
+    | 0 -> 
+        let lon = tileId.TileX |> SrtmLongitude.fromInt
+        let lat = -(tileId.TileY + 1) |> SrtmLatitude.fromInt
+        { Lon = lon; Lat = lat }
+    | _ ->
+        invalidOp 
+            "Cannot convert SRTM tile ID with level > 0 to SRTM tile coords."
 
 type SrtmTileName = string
 
@@ -84,11 +93,7 @@ let toTileName (tileId: SrtmTileId): SrtmTileName =
     let latSign tileY = if tileY >= 0 then 's' else 'n'
 
     match tileId.Level.Value with
-    | 0 -> 
-        let lon = tileId.TileX |> SrtmLongitude.fromInt
-        let lat = -tileId.TileY |> SrtmLatitude.fromInt
-        let tileCoords = { Lon = lon; Lat = lat }
-        toHgtTileName tileCoords
+    | 0 -> tileId |> toSrtmTileCoords |> toHgtTileName
     | _ -> 
         sprintf 
             "l%01d%c%02d%c%02d" 
@@ -150,11 +155,19 @@ let parseTileName (tileName: SrtmTileName): SrtmTileId =
         let tileCoords = parseHgtTileName tileName
         { Level = SrtmLevel.fromInt 0;
             TileX = tileCoords.Lon.Value; 
-            TileY = -tileCoords.Lat.Value }
+            TileY = -(tileCoords.Lat.Value + 1) }
 
-let toSrtmTileCoords (tileId: SrtmTileId): SrtmTileCoords =
-    { Lon = SrtmLongitude.fromInt tileId.TileX; 
-        Lat = SrtmLatitude.fromInt -tileId.TileY }
+let tileLonLatBounds tileSize (tile: SrtmTileId): LonLatBounds =
+    let level = tile.Level
+    let (minCellX, minCellY) = tile |> newTileCellMinCoords tileSize
+    let minLon = minCellX |> float |> cellXToLongitude tileSize level
+    let maxLat = minCellY |> float |> cellYToLatitude tileSize level
+    let maxLon = 
+        (minCellX + tileSize) |> float |> cellXToLongitude tileSize level
+    let minLat = 
+        (minCellY + tileSize) |> float |> cellYToLatitude tileSize level
+
+    { MinLon = minLon; MinLat = minLat; MaxLon = maxLon; MaxLat = maxLat }
 
 let boundsToTiles 
     tileSize (level: SrtmLevel) (bounds: LonLatBounds) : SrtmTileId list =
@@ -169,9 +182,9 @@ let boundsToTiles
         |> cellYToTileY tileSize |> floor |> int
 
     let maxTileX = 
-        bounds.MaxLon
+        (bounds.MaxLon
         |> longitudeToCellX tileSize level
-        |> cellXToTileX tileSize |> int
+        |> cellXToTileX tileSize |> ceil |> int) - 1
 
     let maxTileY = 
         (bounds.MinLat
@@ -283,24 +296,6 @@ type SrtmPngTileReader =
     
 type SrtmHgtToPngTileConverter = 
     SrtmTileId -> string -> string -> Result<HeightsArray, string>
-
-let checkSrtmTileCachingStatus
-    (srtmDir: string)
-    (localCacheDir: string)
-    (fileExists: FileSys.FileExistsChecker)
-    (tile: SrtmTileId)
-    = 
-    invalidOp "todo this method should be obsoleted and the one from Fetch module used"
-    //toLocalCacheTileFileName localCacheDir tile
-    //|> fileExists
-    //|> function
-    //| true -> Tile.CachingStatus.Cached
-    //| false -> 
-    //    toZippedSrtmTileFileName srtmDir tile
-    //    |> fileExists
-    //    |> function
-    //    | false -> Tile.CachingStatus.DoesNotExist
-    //    | true -> Tile.CachingStatus.NotCached
 
 let private lowerLevelTiles (tileId: SrtmTileId) =
     invalidOp "todo"

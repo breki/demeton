@@ -15,6 +15,7 @@ StyleCop.Cache
 *.FxCopReport.xml
 **/CustomDictionary.xml
 Builds/
+samples/cache/1
 *.BuildNumber.txt
 *.crunchsolution.cache
 $RECYCLE.BIN/*

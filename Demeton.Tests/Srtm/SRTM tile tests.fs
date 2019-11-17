@@ -1,6 +1,6 @@
 ﻿module Tests.Srtm.``SRTM tile tests``
 
-open Demeton.Srtm
+open Demeton.Geometry.Common
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 
@@ -43,10 +43,10 @@ let Multiply_minus_179_with_3600 = -644400
 let Multiply_80_with_3600 = 288000
 
 [<Theory>]
-[<InlineData("N90W179", 1, -179, -90)>]
-[<InlineData("N00W179", 1, -179, 0)>]
-[<InlineData("N00W179", 3600, Multiply_minus_179_with_3600, -3599)>]
-[<InlineData("S22E080", 3600, Multiply_80_with_3600, 75601)>]
+[<InlineData("N90W179", 1, -179, -91)>]
+[<InlineData("N00W179", 1, -179, -1)>]
+[<InlineData("N00W179", 3600, Multiply_minus_179_with_3600, -3600)>]
+[<InlineData("S22E080", 3600, Multiply_80_with_3600, 75600)>]
 let ``Calculates global coordinates for a given tile ID``
     tileName tileSize expectedMinX expectedMinY =
     test <@ 
@@ -164,9 +164,36 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
         tileId' = tileId
         |> Prop.label "Tile names are properly generated and parsed"
 
+    let conversionToTileCoords _ =
+        match level.Value with
+        | 0 ->
+            let lonMin = lon |> floor
+            let latMin = lat |> floor
+
+            let tileBounds = 
+                { 
+                    MinLon = lonMin; MinLat = latMin; 
+                    MaxLon = lonMin + 1.; MaxLat = latMin + 1.
+                }
+
+            let tiles = tileBounds |> boundsToTiles tileSize level
+            match tiles with
+            | [ tile ] -> 
+                let actualCoords = tile |> toSrtmTileCoords
+                let expectedCoords = { 
+                    Lon = SrtmLongitude.fromInt (lonMin |> int);
+                    Lat = SrtmLatitude.fromInt (latMin |> int) }
+
+                actualCoords = expectedCoords
+                |> Prop.label "conversion to SRTM HGT coordinates works"
+                |@ sprintf "%A <> %A" actualCoords expectedCoords
+            | _ -> invalidOp "bug"
+
+        | _ -> true |> Prop.classify true "level > 0"
+
     inversibility1 .&. inversibility2 .&. parentCellCoordsAreHalf
         .&. parentTileCoordsAreHalf .&. cellsToTilesRelation
-        .&. tileNames
+        .&. tileNames .&. conversionToTileCoords
     
 [<Fact>]
 let ``Tile coordinates testing``() =

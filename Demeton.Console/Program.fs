@@ -26,7 +26,7 @@ let runImportCommand parsedParameters =
 
     ImportSrtmTilesCommand.run 
         tilesCords 
-        (Wiring.checkCachingStatus
+        (Wiring.determineTileStatus
             options.SrtmDir
             options.LocalCacheDir)
         (Wiring.fetchSrtmTile options.SrtmDir options.LocalCacheDir)

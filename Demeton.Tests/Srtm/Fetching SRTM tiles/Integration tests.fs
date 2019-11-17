@@ -9,7 +9,6 @@ open System
 open Xunit
 open Swensen.Unquote
 open TestHelp
-open Tests.Srtm.SrtmHelper
 
 let srtmDir = "srtm"
 let cacheDir = Environment.GetEnvironmentVariable("SRTM_CACHE")
@@ -45,7 +44,7 @@ let writeTileToCache =
         heightsArrayToPng
         FileSys.openFileToWrite
 
-[<Fact(Skip="todo currently not working")>]
+[<Fact>]
 [<Trait("Category","slow")>]
 let ``Supports fetching already cached tile``() =
     let finalState =

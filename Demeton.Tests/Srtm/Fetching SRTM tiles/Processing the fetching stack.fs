@@ -7,7 +7,6 @@ open Demeton.DemTypes
 open Xunit
 open Swensen.Unquote
 open TestHelp
-open Tests.Srtm.SrtmHelper
 
 let localCacheDir = "somecache"
 let srtmDir = "somesrtm"

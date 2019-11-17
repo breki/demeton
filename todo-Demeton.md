@@ -1,10 +1,6 @@
-﻿- remove obsolete cache checking code
-- remove Tile module and move the remaining code somewhere else
+﻿- implement `lowerLevelTiles`
 - how do we structure the new code?
-- remove the old code
 
-- something is wrong with lon lat coords calculation
-    - write property tests?
 - reduce the array to be merged to the size of the destination tile + buffer
 
 - merging is too slow
