@@ -139,7 +139,7 @@ let decodeSrtmTileFromPngFile
             Error "The color type of this PNG does not correspond to the SRTM tile."
 
     let generateHeightsArray() = 
-        let (minX, minY) = newTileCellMinCoords 3600 tileId
+        let (minX, minY) = tileMinCell 3600 tileId
 
         let srtmTileInitialize (cells: DemHeight[]) = 
             let mutable byteIndex = 0

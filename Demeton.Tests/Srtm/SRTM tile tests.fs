@@ -51,7 +51,7 @@ let ``Calculates global coordinates for a given tile ID``
     tileName tileSize expectedMinX expectedMinY =
     test <@ 
             parseTileName tileName
-            |> newTileCellMinCoords tileSize = (expectedMinX, expectedMinY)
+            |> tileMinCell tileSize = (expectedMinX, expectedMinY)
     @>
 
 [<Theory>]

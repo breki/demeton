@@ -156,7 +156,7 @@ let downsampleTileHeightsArray
     tileSize tile (heightsArrayMaybe: HeightsArray option)
     : HeightsArray option =
     let (tileMinX, tileMinY)
-        = tile |> newTileCellMinCoords tileSize
+        = tile |> tileMinCell tileSize
 
     heightsArrayMaybe
     |> Option.map (fun heightsArray -> 
@@ -184,7 +184,9 @@ let constructHigherLevelTileHeightsArray
     readPngTilesBatch localCacheDir readTilePngFile childrenTiles
     |> Result.map (fun heightsArrays -> 
         Log.info "Merging all the read tiles into a single array..."
-        heightsArrays |> Demeton.Dem.merge)
+        let mergedHeightsArrayRect = 
+            heightsArrays |> Demeton.Dem.mbrOfHeightsArrays
+        heightsArrays |> Demeton.Dem.merge mergedHeightsArrayRect)
     // after merging the tiles, make a parent tile by downsampling
     |> Result.map (fun heightsArray -> 
         Log.info "Creating the higher-level tile by downsampling..."

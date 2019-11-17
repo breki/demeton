@@ -1,9 +1,10 @@
-﻿module Dem.``Merging DEM data``
+﻿module Tests.Dem.``Merging height arrays``
 
 open Demeton
 open Demeton.DemTypes
 
 open FsUnit
+open Raster
 open Xunit
 open Swensen.Unquote
 
@@ -19,12 +20,7 @@ let heightCellsInitializer (cellsToFill: HeightCell list) =
 
 [<Fact>]
 let ``Merging empty DEM data array results in None``() =
-    Dem.merge ([]) |> should equal None
-
-[<Fact>]
-let ``Merging single DEM data array results in the same array``() =
-    let array = HeightsArray(10, 20, 15, 25, someCells)
-    test <@ Dem.merge ([ array ]) = Some array @>
+    Dem.merge Rect.Empty [] |> should equal None
 
 [<Fact>]
 let ``Merging several DEM data arrays results in a merged array``() =
@@ -44,7 +40,9 @@ let ``Merging several DEM data arrays results in a merged array``() =
             25, 20, 15, 25, HeightsArrayInitializer2D (
                 fun x -> heightCellsInitializer cells2 x))
     let array3 = HeightsArray(100, 0, 15, 25, someCells)
-    let mergedMaybe = Dem.merge([ array1; array2; array3 ])
+    let arrays = [ array1; array2; array3 ]
+    let mbr = Demeton.Dem.mbrOfHeightsArrays arrays 
+    let mergedMaybe = Dem.merge mbr arrays
 
     test <@ (mergedMaybe |> Option.isSome) = true @>
 

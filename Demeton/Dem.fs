@@ -2,7 +2,22 @@
 
 open DemTypes
 
-let merge (heightArrays: HeightsArray list): HeightsArray option =
+let mbrOfHeightsArrays (heightsArrays: HeightsArray seq): Raster.Rect =
+    match heightsArrays |> Seq.isEmpty with
+    | true -> Raster.Rect.Empty
+    | false ->
+        let minX = (heightsArrays |> Seq.minBy (fun d -> d.MinX)).MinX
+        let minY = (heightsArrays |> Seq.minBy (fun d -> d.MinY)).MinY
+        let maxX = (heightsArrays |> Seq.maxBy (fun d -> d.MaxX)).MaxX
+        let maxY = (heightsArrays |> Seq.maxBy (fun d -> d.MaxY)).MaxY
+        let width = maxX - minX + 1
+        let height = maxY - minY + 1
+        { MinX = minX; MinY = minY; Width = width; Height = height; }
+
+let merge
+    (mergedArrayBounds: Raster.Rect)
+    (heightArrays: HeightsArray list)
+    : HeightsArray option =
     let isCellWithinArray (array: HeightsArray) ((cx, cy): GlobalCellCoords) =
         cx >= array.MinX && cx <= array.MaxX 
             && cy >= array.MinY && cy <= array.MaxY
@@ -25,22 +40,21 @@ let merge (heightArrays: HeightsArray list): HeightsArray option =
         | Some array -> array.heightAt cellCoords
         | None -> DemHeightNone
 
-    match heightArrays with
-    | [] -> None
-    | [ array ] -> Some array
+    match (heightArrays, mergedArrayBounds.Width, mergedArrayBounds.Height) with
+    | (_, 0, _) -> None
+    | (_, _, 0) -> None
+    | ([], _, _) -> None
     | _ -> 
-        let minX = (heightArrays |> List.minBy (fun d -> d.MinX)).MinX
-        let minY = (heightArrays |> List.minBy (fun d -> d.MinY)).MinY
-        let maxX = (heightArrays |> List.maxBy (fun d -> d.MaxX)).MaxX
-        let maxY = (heightArrays |> List.maxBy (fun d -> d.MaxY)).MaxY
-        let width = maxX - minX + 1
-        let height = maxY - minY + 1
-
         let heightOfCellInArrays = 
             HeightsArrayInitializer2D(fun coords -> 
                 heightArrays 
                 |> findArrayOfCell coords 
                 |> findHeightOfCell coords)
 
-        HeightsArray(minX, minY, width, height, heightOfCellInArrays)
+        HeightsArray
+            (mergedArrayBounds.MinX,
+             mergedArrayBounds.MinY,
+             mergedArrayBounds.Width,
+             mergedArrayBounds.Height,
+             heightOfCellInArrays)
         |> Some

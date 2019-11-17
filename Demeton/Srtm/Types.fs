@@ -25,9 +25,6 @@ type SrtmLongitude = { Value: int } with
         else { Value = i }
 
 [<StructuredFormatDisplay("{IdString}")>]
-[<Struct>]
-[<StructuralEquality>]
-[<StructuralComparison>]
 type SrtmTileCoords = 
     { Lon: SrtmLongitude; Lat: SrtmLatitude }
     with

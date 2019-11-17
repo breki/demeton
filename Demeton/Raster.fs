@@ -3,6 +3,8 @@
 /// </summary>
 module Raster
 
+open System
+
 /// <summary>
 /// Represents a pixel rectangle.
 /// </summary>
@@ -19,6 +21,16 @@ type Rect = { MinX: int; MinY: int; Width: int; Height: int }
 
     member this.MaxX = this.MinX + this.Width
     member this.MaxY = this.MinY + this.Height
+
+    /// <summary>
+    /// Represents an empty rectangle.
+    /// </summary>
+    static member Empty = { 
+        MinX = Int32.MaxValue
+        MinY = Int32.MaxValue
+        Width = 0
+        Height = 0 
+        }
 
 /// <summary>
 /// Represents a location of a pixel.

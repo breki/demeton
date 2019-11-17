@@ -1,9 +1,4 @@
-﻿- implement `lowerLevelTiles`
-- how do we structure the new code?
-
-- reduce the array to be merged to the size of the destination tile + buffer
-
-- merging is too slow
+﻿- merging is too slow
     - different implementation of merging: instead of, for each cell, looking which array (if any) covers it, copy the contents of each array into the merged array
     - can we parallelize it?
 - handle CreateFromLowerTiles errors in `processNextCommand`

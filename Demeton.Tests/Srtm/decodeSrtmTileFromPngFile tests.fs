@@ -46,7 +46,7 @@ let ``Can decode a valid PNG-encoded SRTM tile``() =
         decodeSrtmTileFromPngFile
             FileSys.openFileToRead tileId pngFileName
 
-    let (minx, miny) = tileId |> newTileCellMinCoords 3600
+    let (minx, miny) = tileId |> tileMinCell 3600
 
     let heightsArray = resultValue heightsArrayResult
 

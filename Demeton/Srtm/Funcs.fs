@@ -23,7 +23,7 @@ let cellXToTileX (tileSize: int) (cellX: float) =
 let cellYToTileY (tileSize: int) (cellY: float) =
     cellY / (tileSize |> float)
 
-let newTileCellMinCoords (tileSize: int) (tileId: SrtmTileId)
+let tileMinCell (tileSize: int) (tileId: SrtmTileId)
     : SrtmTileCellCoordsInt =
     let cellX =
         tileXToCellX tileSize (tileId.TileX |> float)
@@ -159,7 +159,7 @@ let parseTileName (tileName: SrtmTileName): SrtmTileId =
 
 let tileLonLatBounds tileSize (tile: SrtmTileId): LonLatBounds =
     let level = tile.Level
-    let (minCellX, minCellY) = tile |> newTileCellMinCoords tileSize
+    let (minCellX, minCellY) = tile |> tileMinCell tileSize
     let minLon = minCellX |> float |> cellXToLongitude tileSize level
     let maxLat = minCellY |> float |> cellYToLatitude tileSize level
     let maxLon = 
@@ -259,7 +259,7 @@ let createSrtmTileFromStream: ZippedSrtmTileReader =
     fun tileSize tileId stream ->
     let srtmHeights = readSrtmHeightsFromStream tileSize stream
 
-    let (cellMinX, cellMinY) = newTileCellMinCoords tileSize tileId
+    let (cellMinX, cellMinY) = tileMinCell tileSize tileId
         
     HeightsArray(
         cellMinX, 
@@ -297,22 +297,6 @@ type SrtmPngTileReader =
 type SrtmHgtToPngTileConverter = 
     SrtmTileId -> string -> string -> Result<HeightsArray, string>
 
-let private lowerLevelTiles (tileId: SrtmTileId) =
-    invalidOp "todo"
-    //let lowerLevel: SrtmLevel = { Value = tileId.Level.Value - 1 }
-    //let lon0 = tileCoords.Lon
-    //let lat0 = tileCoords.Lat
-    //let lon1: SrtmLongitude = { Value = lon0.Value + 1 }
-    //let lat1: SrtmLatitude = { Value = lat0.Value + 1 }
-
-    //[|
-    //    { Level = lowerLevel; Lon = lon0; Lat = lat0 }
-    //    { Level = lowerLevel; Lon = lon1; Lat = lat0 }
-    //    { Level = lowerLevel; Lon = lon0; Lat = lat1 }
-    //    { Level = lowerLevel; Lon = lon1; Lat = lat1 }
-    //|]
-
-
 type SrtmHeightsArrayFetcher = SrtmTileId seq -> HeightsArrayResult
 
 let fetchSrtmHeights 
@@ -341,4 +325,7 @@ let fetchSrtmHeights
 
     match errorMessage with
     | Some error -> Error error
-    | _ -> Ok (Demeton.Dem.merge heightsArraysToMerge)
+    | _ ->
+        let mergedRect =
+            heightsArraysToMerge |> Demeton.Dem.mbrOfHeightsArrays
+        Ok (Demeton.Dem.merge mergedRect heightsArraysToMerge)

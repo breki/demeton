@@ -90,9 +90,9 @@ let ``Creates the parent tile heights array by downsampling children heights``()
     let bufferAroundTile = 1
 
     let (minChildX, minChildY) = 
-        srtmTileId 1 8 8  |> newTileCellMinCoords tileSize
+        srtmTileId 1 8 8  |> tileMinCell tileSize
     let (maxChildX, maxChildY) = 
-        srtmTileId 1 10 10 |> newTileCellMinCoords tileSize
+        srtmTileId 1 10 10 |> tileMinCell tileSize
     let childrenHeightsArray = 
         HeightsArray(
             minChildX - bufferAroundTile,
@@ -108,7 +108,7 @@ let ``Creates the parent tile heights array by downsampling children heights``()
         downsampleTileHeightsArray tileSize tile (Some childrenHeightsArray)
 
     let (expectedParentTileX, expectedParentTileY)
-        = tile |> newTileCellMinCoords tileSize
+        = tile |> tileMinCell tileSize
     test <@ parentHeightsMaybe |> Option.isSome @>
 
     let parentHeights = Option.get parentHeightsMaybe

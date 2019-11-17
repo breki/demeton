@@ -28,10 +28,10 @@
     <Compile Include="FileSys.fs" />
     <Compile Include="Bnry.fs" />
     <Compile Include="CRC.fs" />
+    <Compile Include="Raster.fs" />
     <Compile Include="Geometry\Common.fs" />
     <Compile Include="Geometry\Bounds.fs" />
     <Compile Include="Geometry\D3.fs" />
-    <Compile Include="Raster.fs" />
     <Compile Include="Png\Types.fs" />
     <Compile Include="Png\Filters.fs" />
     <Compile Include="Png\Unfilters.fs" />

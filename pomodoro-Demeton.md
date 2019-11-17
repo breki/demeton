@@ -1,7 +1,8 @@
-﻿- remove old tile calculation functions, rename "new*"
-- remove the old code
+﻿- reduce the array to be merged to the size of the destination tile + buffer
+    - `constructHigherLevelTileHeightsArray`
 
 ## Sun 17.11.
+- Redesigning the `HeightsArray` `merge` function and writing property tests for it.
 - Fixing various bugs/issues with tile coordinate system.
 
 ## Sat 16.11.
