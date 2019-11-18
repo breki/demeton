@@ -1,11 +1,10 @@
-﻿- fix GitHub build
-    - prepare a bash build script to run instead of running commands directly in actions
-    - there, set up the environment variable
-- install Rider
-    - https://www.jetbrains.com/help/rider/Tuning_the_IDE.html
-- implement a proper downsampling algorithm
+﻿- implement a proper downsampling algorithm
     - can we parallelize it?
     - https://en.wikipedia.org/wiki/Image_scaling
+
+## Mon 18.11.
+- Integration test is not run if the SRTM_DIR env. var. is missing.
+- Added `build.sh` build script.
 
 ## Sun 17.11.
 - `merge` function has now been redesigned to be much faster.
