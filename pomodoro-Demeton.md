@@ -1,4 +1,9 @@
-﻿- implement a proper downsampling algorithm
+﻿- fix GitHub build
+    - prepare a bash build script to run instead of running commands directly in actions
+    - there, set up the environment variable
+- install Rider
+    - https://www.jetbrains.com/help/rider/Tuning_the_IDE.html
+- implement a proper downsampling algorithm
     - can we parallelize it?
     - https://en.wikipedia.org/wiki/Image_scaling
 
