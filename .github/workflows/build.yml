@@ -14,4 +14,4 @@ jobs:
       with:
         dotnet-version: 3.0.100
     - name: Build with dotnet
-      run: build.sh
+      run: bash build.sh
