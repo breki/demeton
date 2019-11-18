@@ -5,7 +5,6 @@ SRTM_CACHE=${PWD}/samples/cache
 
 rm -rf ${BUILD_DIR}
 
-rem dotnet clean --configuration ${CONFIG}
 dotnet build --configuration ${CONFIG} --verbosity minimal --no-incremental
 dotnet test --configuration ${CONFIG} --verbosity minimal \
 	--filter Category!=acceptance
