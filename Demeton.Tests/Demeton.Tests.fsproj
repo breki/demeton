@@ -44,6 +44,7 @@
     <Compile Include="Dem\Working with HeightsArrays.fs" />
     <Compile Include="Dem\Merging height arrays.fs" />
     <Compile Include="Dem\Merging height arrays properties.fs" />
+    <Compile Include="Dem\Downsampling height arrays.fs" />
     <Compile Include="Srtm\SrtmHelper.fs" />
     <Compile Include="Srtm\SRTM tile tests.fs" />
     <Compile Include="Srtm\Bounds to SRTM tiles.fs" />
