@@ -137,7 +137,7 @@ let processNextCommand
             let childrenTiles = 
                 tile 
                 |> childrenTilesNeededForDownsampling 
-                    DownsamplingMethod.SomeFutureMethod
+                    DownsamplingMethod.Average
             let cmd = { Parent = tile; Children = childrenTiles }
             let childrenCommands = 
                 childrenTiles |> Array.map DetermineStatus |> Array.toList
@@ -171,8 +171,7 @@ let processNextCommand
             |> List.filter Option.isSome
             |> List.map Option.get
 
-        constructHigherLevelTile 
-            DownsamplingMethod.SomeFutureMethod tile childrenTiles
+        constructHigherLevelTile DownsamplingMethod.Average tile childrenTiles
         |> Result.map (writeTileToCache tile)
         // todo: handle errors
         |> ignore

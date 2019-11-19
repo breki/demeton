@@ -94,10 +94,8 @@ let ``When a level > 0 tile is not cached, fills the command stack with children
 
     let childTiles = 
         [| 
-            (7, 15); (8, 15); (9, 15); (10, 15) 
-            (7, 16); (8, 16); (9, 16); (10, 16) 
-            (7, 17); (8, 17); (9, 17); (10, 17) 
-            (7, 18); (8, 18); (9, 18); (10, 18) 
+            (8, 16); (9, 16) 
+            (8, 17); (9, 17) 
         |] 
         |> Array.map (fun (x, y) -> srtmTileId 1 x y)
 

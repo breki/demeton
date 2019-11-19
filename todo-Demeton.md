@@ -1,4 +1,5 @@
 ﻿- implement a proper downsampling algorithm
+    - add the notes, links to its docs
     - parallelize it
 
 - heights array downsampling notes:

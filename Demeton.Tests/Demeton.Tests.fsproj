@@ -63,6 +63,7 @@
     <Compile Include="Srtm\Fetching SRTM tiles\Integration tests.fs" />
     <Compile Include="Srtm\fetchSrtmHeights tests.fs" />
     <Compile Include="Srtm\Calculating the SRTM DEM level needed.fs" />
+    <Compile Include="Srtm\Reading a batch of PNG tiles.fs" />
     <Compile Include="SimAnn\Simulated annealing.fs" />
     <Compile Include="Projections\ProjectionsTestHelpers.fs" />
     <Compile Include="Projections\WebMercator tests.fs" />

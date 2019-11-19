@@ -25,22 +25,51 @@ type DownsamplingMethod =
 let childrenTilesNeededForDownsampling
     (downsamplingMethod: DownsamplingMethod) (tile: SrtmTileId) =
     
-    match downsamplingMethod with
-    | Average -> invalidOp "todo"
-    | SomeFutureMethod ->
-        let childLevel = tile.Level.Value - 1
-        let childTileX0 = tile.TileX * 2 - 1
-        let childTileY0 = tile.TileY * 2 - 1
+    let (childTileX0, childTileY0, childCols, childRows) =
+        match downsamplingMethod with
+        | Average ->
+            let childTileX0 = tile.TileX * 2
+            let childTileY0 = tile.TileY * 2
+            (childTileX0, childTileY0, 2, 2)
 
-        [|
-            for dy in 1 .. 4 do
-                for dx in 1 .. 4 do
-                    yield { 
-                        Level = SrtmLevel.fromInt childLevel; 
-                        TileX = childTileX0 + dx - 1;
-                        TileY = childTileY0 + dy - 1 }
-        |]
+        | SomeFutureMethod ->
+            let childTileX0 = tile.TileX * 2 - 1
+            let childTileY0 = tile.TileY * 2 - 1
+            (childTileX0, childTileY0, 4, 4)
 
+    let childLevel = tile.Level.Value - 1 |> SrtmLevel.fromInt
+    
+    [|
+        for dy in 1 .. childCols do
+            for dx in 1 .. childRows do
+                yield { 
+                    Level = childLevel; 
+                    TileX = childTileX0 + dx - 1;
+                    TileY = childTileY0 + dy - 1 }
+    |]
+
+/// <summary>
+/// Downsamples the 2x2 heights grid by calculating its average (ignoring any
+/// missing heights). 
+/// </summary>
+let downsampleAverage (heights: DemHeight[]): DemHeight =
+    let (sum, nonMissingHeightsCount) =
+        heights 
+        |> Array.fold (fun (sumSoFar, usedHeights) height -> 
+            match height with
+            | DemHeightNone -> (sumSoFar, usedHeights)
+            | _ -> (sumSoFar + height, usedHeights + 1)
+            )
+            (0s, 0)
+
+    match nonMissingHeightsCount with
+    | 0 -> DemHeightNone
+    | _ -> 
+        ((sum |> float) / (nonMissingHeightsCount |> float))
+        |> System.Math.Round |> int16
+
+
+// todo: remove downsampleHeightPoint
 let downsampleHeightPoint (source: HeightsArray) x y = 
     let childX = x <<< 1
     let childY = y <<< 1
@@ -57,7 +86,17 @@ let downsampleTileHeightsArray
     let (tileMinX, tileMinY) = tile |> tileMinCell tileSize
 
     match downsamplingMethod with
-    | Average -> invalidOp "todo"
+    | Average ->
+        HeightsArray(tileMinX, tileMinY, tileSize, tileSize, 
+            HeightsArrayInitializer2D (fun (x, y) ->
+                [|
+                    heightsArray.heightAt(x * 2, y * 2)
+                    heightsArray.heightAt(x * 2 + 1, y * 2)
+                    heightsArray.heightAt(x * 2, y * 2 + 1)
+                    heightsArray.heightAt(x * 2 + 1, y * 2 + 1)
+                |]
+                |> downsampleAverage))
+        
     | SomeFutureMethod -> 
         HeightsArray(tileMinX, tileMinY, tileSize, tileSize, 
             HeightsArrayInitializer2D (fun (x, y) -> 
@@ -71,19 +110,24 @@ let downsampleTileHeightsArray
 let lowerLevelHeightsArrayNeededForDownsampling
     downsamplingMethod tileSize tile childrenHeightsArrays =
 
-    match downsamplingMethod with
-    | Average -> invalidOp "todo"
-    | SomeFutureMethod -> 
-        let (tileMinX, tileMinY) = tile |> tileMinCell tileSize
-        let buffer = 1
-        let childrenMinX = tileMinX * 2 - buffer
-        let childrenMinY = tileMinY * 2 - buffer
-        let childrenSize = tileSize * 2 + buffer * 2
-         
-        let mergedHeightsArrayRect: Raster.Rect =
-            { MinX = childrenMinX; MinY = childrenMinY; 
-            Width = childrenSize; Height = childrenSize } 
-        childrenHeightsArrays |> Demeton.Dem.merge mergedHeightsArrayRect
+    let (tileMinX, tileMinY) = tile |> tileMinCell tileSize
+
+    // The size of the buffer (in number of cells) around the direct children
+    // of the tile. This buffer is needed for certain downsampling methods
+    // which operate on a NxN neighborhood grid.
+    let buffer =
+        match downsamplingMethod with
+        | Average -> 0
+        | SomeFutureMethod -> 1
+        
+    let childrenMinX = tileMinX * 2 - buffer
+    let childrenMinY = tileMinY * 2 - buffer
+    let childrenSize = tileSize * 2 + buffer * 2
+     
+    let mergedHeightsArrayRect: Raster.Rect =
+        { MinX = childrenMinX; MinY = childrenMinY; 
+        Width = childrenSize; Height = childrenSize } 
+    childrenHeightsArrays |> Demeton.Dem.merge mergedHeightsArrayRect
         
 /// <summary>
 /// Constructs a heights array for a higher-level tile from the list of 

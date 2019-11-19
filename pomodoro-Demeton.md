@@ -1,9 +1,11 @@
-- implement a function for Averaging that downsamples height from a 4 heights window
-    - skips DemHeightNone (does not count them in the calculation)
-    - if all are DemHeightNone, then return DemHeightNone
+﻿- implement a proper downsampling algorithm
     - add the notes, links to its docs
+    - parallelize it
 
 ## Tue 19.11.
+- Switched to using `Average` downsampling.
+- Implemented the `downsampleAverage` function.
+- Moved `readPngTilesBatch` tests into its own file.
 - Introduced `DownsamplingMethod` and moved all of the downsampling code into a separate module.
 
 ## Mon 18.11.

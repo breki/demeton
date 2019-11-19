@@ -1,7 +1,6 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Creating higher level tiles``
 
 open Demeton.Srtm.Funcs
-open Demeton.Srtm.Png
 open Demeton.Srtm.Types
 open Demeton.Geometry.Common
 open Demeton.Srtm.Downsampling
@@ -11,10 +10,9 @@ open System
 
 open Xunit
 open Swensen.Unquote
-open TestHelp
 
 [<Fact>]
-let ``Correctly calculates the list of needed children for level 1 (case 1)``() =
+let ``Correctly calculates the list of needed children for level 1 for SomeFutureMethod (case 1)``() =
     let expectedChildren =
         [| 
             (-1, -1); (0, -1); (1, -1); (2, -1); 
@@ -24,23 +22,31 @@ let ``Correctly calculates the list of needed children for level 1 (case 1)``() 
         |]
         |> Array.map (fun (x, y) -> srtmTileId 0 x y)
     
-    test <@ srtmTileId 1 0 0 |> childrenTilesNeededForDownsampling DownsamplingMethod.SomeFutureMethod
-                = expectedChildren @>
+    test <@ srtmTileId 1 0 0 
+        |> childrenTilesNeededForDownsampling 
+            DownsamplingMethod.SomeFutureMethod
+            = expectedChildren @>
+
+let private tileFromBounds tileSize level minLon minLat maxLon maxLat =
+    let tiles = 
+        boundsToTiles tileSize level
+            { MinLon = minLon |> float; MinLat = minLat |> float; 
+            MaxLon = maxLon |> float; MaxLat = maxLat |> float }
+    match tiles with 
+    | [ tile ] -> tile
+    | _ -> invalidOp "bug: there should be only one tile"
 
 [<Fact>]
-let ``Correctly calculates the list of needed children for level 1 (case 2)``() =
+let ``Correctly calculates the list of needed children for level 1 for SomeFutureMethod (case 2)``() =
     let tileSize = 3600
     let level = SrtmLevel.fromInt 1
 
-    let tiles = 
-        boundsToTiles tileSize level
-            { MinLon = 14.; MinLat = 46.; MaxLon = 16.; MaxLat = 48. }
-    let tile = 
-        match tiles with 
-        | [ tile ] -> tile
-        | _ -> invalidOp "bug: there should be only one tile"
+    let tile = tileFromBounds tileSize level 14 46 16 48
 
-    let children = tile |> childrenTilesNeededForDownsampling DownsamplingMethod.SomeFutureMethod
+    let children = 
+        tile 
+        |> childrenTilesNeededForDownsampling 
+            DownsamplingMethod.SomeFutureMethod
 
     let childrenBounds =
         children
@@ -53,40 +59,30 @@ let ``Correctly calculates the list of needed children for level 1 (case 2)``() 
                 { MinLon = 13.; MinLat = 45.; MaxLon = 17.; MaxLat = 49. }
             @>
 
-let cacheDir = "somecache"
+[<Fact>]
+let ``Correctly calculates the list of needed children for level 1 for Average method``() =
+    let tileSize = 3600
+    let level = SrtmLevel.fromInt 1
 
-let tileHeights = 
-    HeightsArray(1, 2, 3, 4, HeightsArrayInitializer1D (fun _ -> DemHeightNone))
+    let tile = tileFromBounds tileSize level 14 46 16 48
 
-let decodePng: SrtmPngTileReader = fun _ _ -> Ok tileHeights
+    let children = 
+        tile 
+        |> childrenTilesNeededForDownsampling DownsamplingMethod.Average
 
-// fails only on certain tiles
-let decodePngWithFailure: SrtmPngTileReader = 
-    fun tileId _ ->
-        match tileId.TileX = 3 with
-        | false -> Ok tileHeights
-        | true -> Error "some error"
+    let childrenBounds =
+        children
+        |> Array.fold (fun mbr tile -> 
+            tile |> tileLonLatBounds tileSize |> mergeLonLatBounds mbr)
+            { MinLon = Double.MaxValue; MinLat = Double.MaxValue; 
+                MaxLon = Double.MinValue; MaxLat = Double.MinValue }
+    
+    test <@ childrenBounds =
+                { MinLon = 14.; MinLat = 46.; MaxLon = 16.; MaxLat = 48. }
+            @>
 
 [<Fact>]
-let ``All children tiles have been read successfully``() =
-    let tiles = [ srtmTileId 1 2 -4 ]
-
-    let result = readPngTilesBatch cacheDir decodePng tiles
-    test <@ result |> isOk @>
-
-[<Fact>]
-let ``Reading of some children tiles have failed``() =
-    let tiles = [ 
-        srtmTileId 1 2 4 
-        srtmTileId 1 3 4 
-        srtmTileId 1 4 4 
-    ]
-
-    let result = readPngTilesBatch cacheDir decodePngWithFailure tiles
-    test <@ result |> isError @>
-
-[<Fact>]
-let ``Creates the parent tile heights array by downsampling children heights``() =
+let ``Creates the parent tile heights array by downsampling children heights (SomeFutureMethod)``() =
     let tileSize = 10
     let tile = srtmTileId 2 4 4
     let bufferAroundTile = 1
@@ -117,3 +113,25 @@ let ``Creates the parent tile heights array by downsampling children heights``()
     test <@ parentHeights.MinY = expectedParentTileY @>
     test <@ parentHeights.Width = tileSize @>
     test <@ parentHeights.Height = tileSize @>
+    
+[<Fact>]
+let ``Average calculates the average of the 2x2 grid heights``() =
+    let heights = 
+        [| DemHeight 100s; DemHeight 150s; DemHeight 50s; DemHeight -103s |]
+    
+    test <@ downsampleAverage heights = 49s @>
+    
+[<Fact>]
+let ``Average ignores missing heights``() =
+    let heights = 
+        [| DemHeightNone; DemHeight 150s; DemHeightNone; DemHeight -103s |]
+    
+    test <@ downsampleAverage heights = 24s @>
+    
+[<Fact>]
+let ``If all heights are missing, Average returns DemHeightNone``() =
+    let heights = 
+        [| DemHeightNone; DemHeightNone; DemHeightNone; DemHeightNone |]
+    
+    test <@ downsampleAverage heights = DemHeightNone @>
+
