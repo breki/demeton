@@ -168,7 +168,7 @@ let ``When create from lower tiles command is received``() =
     let tilesStack = 
         [ Some (srtmTileId 1 4 8); None ] @ initialStackedTiles
 
-    let constructParentTile _ _ = Ok (Some someTileHeights)
+    let constructParentTile _ _ _ = Ok (Some someTileHeights)
 
     let mutable tilePngWasCreated = false
     let writeTileToCache _ _ = 

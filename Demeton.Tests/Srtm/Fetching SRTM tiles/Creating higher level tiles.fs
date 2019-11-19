@@ -1,7 +1,10 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Creating higher level tiles``
 
 open Demeton.Srtm.Funcs
-open Demeton.Srtm.Fetch
+open Demeton.Srtm.Png
+open Demeton.Srtm.Types
+open Demeton.Geometry.Common
+open Demeton.Srtm.Downsampling
 open Demeton.DemTypes
 
 open System
@@ -9,8 +12,6 @@ open System
 open Xunit
 open Swensen.Unquote
 open TestHelp
-open Demeton.Srtm.Types
-open Demeton.Geometry.Common
 
 [<Fact>]
 let ``Correctly calculates the list of needed children for level 1 (case 1)``() =
@@ -23,7 +24,8 @@ let ``Correctly calculates the list of needed children for level 1 (case 1)``() 
         |]
         |> Array.map (fun (x, y) -> srtmTileId 0 x y)
     
-    test <@ srtmTileId 1 0 0 |> listChildrenTiles = expectedChildren @>
+    test <@ srtmTileId 1 0 0 |> childrenTilesNeededForDownsampling DownsamplingMethod.SomeFutureMethod
+                = expectedChildren @>
 
 [<Fact>]
 let ``Correctly calculates the list of needed children for level 1 (case 2)``() =
@@ -38,7 +40,7 @@ let ``Correctly calculates the list of needed children for level 1 (case 2)``() 
         | [ tile ] -> tile
         | _ -> invalidOp "bug: there should be only one tile"
 
-    let children = tile |> listChildrenTiles
+    let children = tile |> childrenTilesNeededForDownsampling DownsamplingMethod.SomeFutureMethod
 
     let childrenBounds =
         children
@@ -104,14 +106,13 @@ let ``Creates the parent tile heights array by downsampling children heights``()
     test <@ childrenHeightsArray.Width = (tileSize + bufferAroundTile) * 2 @>
     test <@ childrenHeightsArray.Height = (tileSize + bufferAroundTile) * 2 @>
     
-    let parentHeightsMaybe = 
-        downsampleTileHeightsArray tileSize tile (Some childrenHeightsArray)
+    let parentHeights = 
+        downsampleTileHeightsArray
+            DownsamplingMethod.SomeFutureMethod
+            tileSize tile childrenHeightsArray
 
     let (expectedParentTileX, expectedParentTileY)
         = tile |> tileMinCell tileSize
-    test <@ parentHeightsMaybe |> Option.isSome @>
-
-    let parentHeights = Option.get parentHeightsMaybe
     test <@ parentHeights.MinX = expectedParentTileX @>
     test <@ parentHeights.MinY = expectedParentTileY @>
     test <@ parentHeights.Width = tileSize @>

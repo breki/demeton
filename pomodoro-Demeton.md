@@ -1,6 +1,10 @@
-﻿- implement a proper downsampling algorithm
-    - can we parallelize it?
-    - https://en.wikipedia.org/wiki/Image_scaling
+﻿- implement a function for Averaging that downsamples height from a 4 heights window
+    - skips DemHeightNone (does not count them in the calculation)
+    - if all are DemHeightNone, then return DemHeightNone
+    - add the notes, links to its docs
+
+## Tue 19.11.
+- Introduced `DownsamplingMethod` and moved all of the downsampling code into a separate module.
 
 ## Sun 17.11.
 - `merge` function has now been redesigned to be much faster.

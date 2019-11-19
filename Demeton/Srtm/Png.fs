@@ -190,3 +190,23 @@ let convertZippedHgtTileToPng
     Log.debug "Encoding tile %s into PNG..." tileName
 
     writeHeightsArrayIntoPng pngFileName heightsArray |> Ok
+
+/// <summary>
+/// Reads a batch of SRTM PNG tiles.
+/// </summary>
+let readPngTilesBatch 
+    localCacheDir 
+    (readPngTile: SrtmPngTileReader) 
+    (tiles: SrtmTileId list)
+    : Result<HeightsArray list, string> =
+     
+    let readPngTile readingState tile =
+        match readingState with
+        | Ok heightsArrays ->
+            tile 
+            |> toLocalCacheTileFileName localCacheDir
+            |> readPngTile tile
+            |> Result.map (fun heightsArray -> heightsArray :: heightsArrays)
+        | Error message -> Error message
+
+    tiles |> List.fold readPngTile (Ok [])

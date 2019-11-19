@@ -3,6 +3,7 @@
 open Demeton.Srtm.Fetch
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
+open Demeton.Srtm.Downsampling
 
 open System
 

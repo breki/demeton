@@ -47,6 +47,7 @@
     <Compile Include="Srtm\Types.fs" />
     <Compile Include="Srtm\Funcs.fs" />
     <Compile Include="Srtm\Png.fs" />
+    <Compile Include="Srtm\Downsampling.fs" />
     <Compile Include="Srtm\Fetch.fs" />
     <Compile Include="Projections\Common.fs" />
     <Compile Include="Projections\WebMercator.fs" />

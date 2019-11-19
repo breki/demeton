@@ -1,6 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Console.Wiring
 
+open Demeton.Srtm.Downsampling
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png

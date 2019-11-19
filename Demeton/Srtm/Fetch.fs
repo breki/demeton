@@ -3,7 +3,7 @@
 open Types
 open Funcs
 open Png
-open Demeton.DemTypes
+open Downsampling
 open System
 
 type LocalCacheTileStatus =
@@ -113,94 +113,6 @@ let determineTileStatus
         localCacheStatus
         (Lazy<SrtmDirTileStatus>(fun () -> checkSrtmDirTileStatus()))
 
-// todo tests for listChildrenTiles that check edge cases
-let listChildrenTiles (tile: SrtmTileId) =
-    let childLevel = tile.Level.Value - 1
-    let childTileX0 = tile.TileX * 2 - 1
-    let childTileY0 = tile.TileY * 2 - 1
-
-    [|
-        for dy in 1 .. 4 do
-            for dx in 1 .. 4 do
-                yield { 
-                    Level = SrtmLevel.fromInt childLevel; 
-                    TileX = childTileX0 + dx - 1;
-                    TileY = childTileY0 + dy - 1 }
-    |]
-
-let readPngTilesBatch 
-    localCacheDir 
-    (readPngTile: SrtmPngTileReader) 
-    (tiles: SrtmTileId list)
-    : Result<HeightsArray list, string> =
-     
-    let readPngTile readingState tile =
-        match readingState with
-        | Ok heightsArrays ->
-            tile 
-            |> toLocalCacheTileFileName localCacheDir
-            |> readPngTile tile
-            |> Result.map (fun heightsArray -> heightsArray :: heightsArrays)
-        | Error message -> Error message
-
-    tiles |> List.fold readPngTile (Ok [])
-
-
-let downsampleHeightPoint (source: HeightsArray) x y = 
-    let childX = x <<< 1
-    let childY = y <<< 1
-
-    source.heightAt (childX, childY)
-
-let downsampleTileHeightsArray 
-    tileSize tile (heightsArrayMaybe: HeightsArray option)
-    : HeightsArray option =
-    let (tileMinX, tileMinY)
-        = tile |> tileMinCell tileSize
-
-    heightsArrayMaybe
-    |> Option.map (fun heightsArray -> 
-        HeightsArray(tileMinX, tileMinY, tileSize, tileSize, 
-            HeightsArrayInitializer2D (fun (x, y) -> 
-                downsampleHeightPoint heightsArray x y)))
-
-/// <summary>
-/// Constructs a heights array for a higher-level tile from the list of 
-/// children lower-level tiles.
-/// </summary>
-type HigherLevelTileConstructor = 
-    SrtmTileId -> SrtmTileId list -> Result<HeightsArray option, string>
-
-/// <summary>
-/// Constructs a heights array for a higher-level tile from the list of 
-/// children lower-level tiles.
-/// </summary>
-let constructHigherLevelTileHeightsArray 
-    (tileSize: int)
-    (localCacheDir: FileSys.DirectoryName)
-    (readTilePngFile: SrtmPngTileReader): HigherLevelTileConstructor =
-    fun (tile: SrtmTileId) (childrenTiles: SrtmTileId list) ->
-
-    readPngTilesBatch localCacheDir readTilePngFile childrenTiles
-    |> Result.map (fun heightsArrays -> 
-        Log.info "Merging all the read tiles into a single array..."
-        
-        let (tileMinX, tileMinY) = tile |> tileMinCell tileSize
-        let buffer = 1
-        let childrenMinX = tileMinX * 2 - buffer
-        let childrenMinY = tileMinY * 2 - buffer
-        let childrenSize = tileSize * 2 + buffer * 2
-         
-        let mergedHeightsArrayRect: Raster.Rect =
-            { MinX = childrenMinX; MinY = childrenMinY; 
-            Width = childrenSize; Height = childrenSize } 
-        heightsArrays |> Demeton.Dem.merge mergedHeightsArrayRect)
-    // after merging the tiles, make a parent tile by downsampling
-    |> Result.map (fun heightsArray -> 
-        Log.info "Creating the higher-level tile by downsampling..."
-        heightsArray 
-        |> downsampleTileHeightsArray tileSize tile)
-
 let fetchFirstNOfTiles tilesCount = List.splitAt tilesCount
 
 let processNextCommand 
@@ -222,7 +134,10 @@ let processNextCommand
         | NotCached when tile.Level.Value = 0 -> 
             ((ConvertTileFromHgt tile) :: remainingCommands, tilesStack)
         | NotCached ->
-            let childrenTiles = listChildrenTiles tile
+            let childrenTiles = 
+                tile 
+                |> childrenTilesNeededForDownsampling 
+                    DownsamplingMethod.SomeFutureMethod
             let cmd = { Parent = tile; Children = childrenTiles }
             let childrenCommands = 
                 childrenTiles |> Array.map DetermineStatus |> Array.toList
@@ -256,7 +171,8 @@ let processNextCommand
             |> List.filter Option.isSome
             |> List.map Option.get
 
-        constructHigherLevelTile tile childrenTiles
+        constructHigherLevelTile 
+            DownsamplingMethod.SomeFutureMethod tile childrenTiles
         |> Result.map (writeTileToCache tile)
         // todo: handle errors
         |> ignore
