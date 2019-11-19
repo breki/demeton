@@ -32,8 +32,6 @@
 
 - add batch script that generates some sample images from these sample DEMs
 
-- write .none file to the cache if merging returns None
-
 - hillshading
     - run the command on Alps
 

@@ -1,10 +1,14 @@
-﻿- implement a function for Averaging that downsamples height from a 4 heights window
+- implement a function for Averaging that downsamples height from a 4 heights window
     - skips DemHeightNone (does not count them in the calculation)
     - if all are DemHeightNone, then return DemHeightNone
     - add the notes, links to its docs
 
 ## Tue 19.11.
 - Introduced `DownsamplingMethod` and moved all of the downsampling code into a separate module.
+
+## Mon 18.11.
+- Integration test is not run if the SRTM_DIR env. var. is missing.
+- Added `build.sh` build script.
 
 ## Sun 17.11.
 - `merge` function has now been redesigned to be much faster.
