@@ -1,8 +1,7 @@
-﻿- implement a proper downsampling algorithm
-    - add the notes, links to its docs
-    - parallelize it
+﻿- add the notes, links to its docs
 
 ## Tue 19.11.
+- Redesigned downsampleAverage to use 4 parameters instead of an array.
 - Switched to using `Average` downsampling.
 - Implemented the `downsampleAverage` function.
 - Moved `readPngTilesBatch` tests into its own file.

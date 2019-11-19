@@ -1,8 +1,4 @@
-﻿- implement a proper downsampling algorithm
-    - add the notes, links to its docs
-    - parallelize it
-
-- heights array downsampling notes:
+﻿- heights array downsampling notes:
     - code: 
         - https://www.paulinternet.nl/?page=bicubic
     - https://en.wikipedia.org/wiki/Image_scaling

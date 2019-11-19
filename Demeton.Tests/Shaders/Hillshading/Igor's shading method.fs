@@ -12,6 +12,11 @@ open PropertiesHelp
 
 let private darkness ofColor = Rgba8Bit.a ofColor
 
+let private byteAbsDiff (value1: byte) (value2: byte): byte =
+    match value1 <= value2 with
+    | true -> value2 - value1
+    | false -> value1 - value2
+
 let ``Igor shading properties`` 
     (parameters: IgorHillshader.ShaderParameters, aspect1, aspect2) =
     let sunAzimuth = parameters.SunAzimuth
@@ -61,15 +66,16 @@ let ``Igor shading properties``
         |> darkness
 
     let prop5 =
-        darknessOneSide = darknessOtherSide
+        (byteAbsDiff darknessOneSide darknessOtherSide <= 1uy)
         |> Prop.label 
             "faces facing the sun at the same angle have the same darkness"
+        |@ sprintf "%d <> %d" darknessOneSide darknessOtherSide
 
     prop1 .&. prop4 .&. prop5
 
 [<Fact>]
 let ``Igor shading properties test``() =
-    let generateParametes (az, col: Rgba8Bit.RgbaColor)
+    let generateParameters (az, col: Rgba8Bit.RgbaColor)
         : IgorHillshader.ShaderParameters =
         { SunAzimuth = az; ShadingColor = col }
 
@@ -78,7 +84,7 @@ let ``Igor shading properties test``() =
     let genSunAzimuth = genCircleAngle
 
     let genParameters =
-        Gen.zip genSunAzimuth ColorGen.color |> Gen.map generateParametes
+        Gen.zip genSunAzimuth ColorGen.color |> Gen.map generateParameters
 
     let genAspect =
         genCircleAngle

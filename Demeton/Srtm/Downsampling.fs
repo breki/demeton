@@ -52,29 +52,35 @@ let childrenTilesNeededForDownsampling
 /// Downsamples the 2x2 heights grid by calculating its average (ignoring any
 /// missing heights). 
 /// </summary>
-let downsampleAverage (heights: DemHeight[]): DemHeight =
-    let (sum, nonMissingHeightsCount) =
-        heights 
-        |> Array.fold (fun (sumSoFar, usedHeights) height -> 
-            match height with
-            | DemHeightNone -> (sumSoFar, usedHeights)
-            | _ -> (sumSoFar + height, usedHeights + 1)
-            )
-            (0s, 0)
-
-    match nonMissingHeightsCount with
-    | 0 -> DemHeightNone
-    | _ -> 
-        ((sum |> float) / (nonMissingHeightsCount |> float))
+let downsampleAverage
+    (height1: DemHeight) (height2: DemHeight)
+    (height3: DemHeight) (height4: DemHeight): DemHeight =
+    let average (sum: int) count =
+        ((sum |> float) / (count |> float))
         |> System.Math.Round |> int16
+    
+    if height1 <> DemHeightNone
+        && height2 <> DemHeightNone
+        && height3 <> DemHeightNone
+        && height4 <> DemHeightNone then
+        average
+            ((height1 |> int) + (height2 |> int)
+             + (height3 |> int) + (height4 |> int))
+            4
+    else        
+        let (sum, nonMissingHeightsCount) =
+            [| height1; height2; height3; height4 |] 
+            |> Array.fold (fun (sumSoFar, usedHeights) height -> 
+                match height with
+                | DemHeightNone -> (sumSoFar, usedHeights)
+                | _ -> (sumSoFar + (height |> int), usedHeights + 1)
+                )
+                (0, 0)
 
+        match nonMissingHeightsCount with
+        | 0 -> DemHeightNone
+        | _ -> average sum nonMissingHeightsCount
 
-// todo: remove downsampleHeightPoint
-let downsampleHeightPoint (source: HeightsArray) x y = 
-    let childX = x <<< 1
-    let childY = y <<< 1
-
-    source.heightAt (childX, childY)
 
 /// <summary>
 /// Creates a tile heights array by downsampling the provided lower-level
@@ -89,18 +95,16 @@ let downsampleTileHeightsArray
     | Average ->
         HeightsArray(tileMinX, tileMinY, tileSize, tileSize, 
             HeightsArrayInitializer2D (fun (x, y) ->
-                [|
-                    heightsArray.heightAt(x * 2, y * 2)
-                    heightsArray.heightAt(x * 2 + 1, y * 2)
-                    heightsArray.heightAt(x * 2, y * 2 + 1)
-                    heightsArray.heightAt(x * 2 + 1, y * 2 + 1)
-                |]
-                |> downsampleAverage))
+                downsampleAverage
+                    (heightsArray.heightAt(x * 2, y * 2))
+                    (heightsArray.heightAt(x * 2 + 1, y * 2))
+                    (heightsArray.heightAt(x * 2, y * 2 + 1))
+                    (heightsArray.heightAt(x * 2 + 1, y * 2 + 1))
+                )
+            )
         
-    | SomeFutureMethod -> 
-        HeightsArray(tileMinX, tileMinY, tileSize, tileSize, 
-            HeightsArrayInitializer2D (fun (x, y) -> 
-                downsampleHeightPoint heightsArray x y))
+    | SomeFutureMethod ->
+        invalidOp "to be implemented in the future, perhaps"
 
 /// <summary>
 /// Constructs a lower-level heights array from children tiles. This array will

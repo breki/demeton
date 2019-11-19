@@ -116,22 +116,29 @@ let ``Creates the parent tile heights array by downsampling children heights (So
     
 [<Fact>]
 let ``Average calculates the average of the 2x2 grid heights``() =
-    let heights = 
-        [| DemHeight 100s; DemHeight 150s; DemHeight 50s; DemHeight -103s |]
+    let height =
+        downsampleAverage
+                (DemHeight 100s) (DemHeight 150s)
+                (DemHeight 50s) (DemHeight -103s)
     
-    test <@ downsampleAverage heights = 49s @>
+    test <@ height = 49s @>
     
 [<Fact>]
 let ``Average ignores missing heights``() =
-    let heights = 
-        [| DemHeightNone; DemHeight 150s; DemHeightNone; DemHeight -103s |]
+    let height =
+         downsampleAverage
+            DemHeightNone (DemHeight 150s)
+            DemHeightNone (DemHeight -103s)
+        
     
-    test <@ downsampleAverage heights = 24s @>
+    test <@ height = 24s @>
     
 [<Fact>]
 let ``If all heights are missing, Average returns DemHeightNone``() =
-    let heights = 
-        [| DemHeightNone; DemHeightNone; DemHeightNone; DemHeightNone |]
+    let height =
+        downsampleAverage
+                DemHeightNone DemHeightNone
+                DemHeightNone DemHeightNone
     
-    test <@ downsampleAverage heights = DemHeightNone @>
+    test <@ height = DemHeightNone @>
 
