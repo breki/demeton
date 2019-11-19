@@ -1,4 +1,18 @@
-﻿module Demeton.Srtm.Downsampling
+﻿/// <summary>
+/// Contains types and functions for creating a higher-level SRTM tiles from
+/// lower-level ones by downsampling.
+/// </summary>
+module Demeton.Srtm.Downsampling
+
+// Some references used in investigation, could be helpful in the future:
+// - links:
+//    - https://en.wikipedia.org/wiki/Image_scaling
+//    - https://en.wikipedia.org/wiki/Supersampling
+//    - https://www.geospatialworld.net/article/comparison-of-decimation-and-averaging-methods-of-dems-resampling/
+// - terms: resampling, downsampling, gridding, interpolation methods,
+//    nearest neighbor, bilinear, cubic convultion, bicubic interpolation,
+//    decimation, 3x3 grid neighbourhood, kernel
+// - code: https://www.paulinternet.nl/?page=bicubic
 
 open Demeton.DemTypes
 open Demeton.Srtm.Types

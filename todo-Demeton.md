@@ -1,31 +1,8 @@
-﻿- heights array downsampling notes:
-    - code: 
-        - https://www.paulinternet.nl/?page=bicubic
-    - https://en.wikipedia.org/wiki/Image_scaling
-    - resampling
-    - gridding, interpolation methods
-    - methods used: 
-        - nearest neighbour
-        - bilinear
-        - cubic convolution
-        - "In general, bicubic interpolation works best for straight downsampling"
-            - https://en.wikipedia.org/wiki/Bicubic_interpolation
-    - grid resampling
-    - decimation
-    - 3x3 grid neighbourhood
-    - Moore neighbourhood
-    - kernel
-    - https://en.wikipedia.org/wiki/Supersampling
-    - low pass/high pass filters
-        - Geospatial Analysis, p. 175
-
-    - searches
-        digital elevation model downsampling
-        
-    - articles:
-        - https://www.geospatialworld.net/article/comparison-of-decimation-and-averaging-methods-of-dems-resampling/
-
-- handle CreateFromLowerTiles errors in `processNextCommand`
+﻿- study GitHub releases
+    - prepare a release (script?) for Windows and Linux (with and without .NET Core) 
+    - do we have a special branch for releasing?
+    - how to implement versioning?
+    - do we need to keep old relases?
 
 - add batch script that generates some sample images from these sample DEMs
 
@@ -43,6 +20,8 @@
     - https://fsprojects.github.io/FSharp.Formatting/commandline.html
 
 - investigate possible filters
+    - low pass/high pass filters
+        - Geospatial Analysis, p. 175
     - use Paint.NET as a start
     
 - update readme.md docs

@@ -1,6 +1,7 @@
-﻿- add the notes, links to its docs
+﻿- study GitHub releases
 
 ## Tue 19.11.
+- Added the investigation notes and links to the `Downsampling` module.
 - Redesigned downsampleAverage to use 4 parameters instead of an array.
 - Switched to using `Average` downsampling.
 - Implemented the `downsampleAverage` function.

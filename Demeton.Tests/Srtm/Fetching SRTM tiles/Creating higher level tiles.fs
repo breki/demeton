@@ -80,39 +80,6 @@ let ``Correctly calculates the list of needed children for level 1 for Average m
     test <@ childrenBounds =
                 { MinLon = 14.; MinLat = 46.; MaxLon = 16.; MaxLat = 48. }
             @>
-
-[<Fact>]
-let ``Creates the parent tile heights array by downsampling children heights (SomeFutureMethod)``() =
-    let tileSize = 10
-    let tile = srtmTileId 2 4 4
-    let bufferAroundTile = 1
-
-    let (minChildX, minChildY) = 
-        srtmTileId 1 8 8  |> tileMinCell tileSize
-    let (maxChildX, maxChildY) = 
-        srtmTileId 1 10 10 |> tileMinCell tileSize
-    let childrenHeightsArray = 
-        HeightsArray(
-            minChildX - bufferAroundTile,
-            minChildY - bufferAroundTile, 
-            maxChildX - minChildX + bufferAroundTile * 2,
-            maxChildY - minChildY + bufferAroundTile * 2,
-            HeightsArrayInitializer1D (fun _ -> DemHeight 100))
-    
-    test <@ childrenHeightsArray.Width = (tileSize + bufferAroundTile) * 2 @>
-    test <@ childrenHeightsArray.Height = (tileSize + bufferAroundTile) * 2 @>
-    
-    let parentHeights = 
-        downsampleTileHeightsArray
-            DownsamplingMethod.SomeFutureMethod
-            tileSize tile childrenHeightsArray
-
-    let (expectedParentTileX, expectedParentTileY)
-        = tile |> tileMinCell tileSize
-    test <@ parentHeights.MinX = expectedParentTileX @>
-    test <@ parentHeights.MinY = expectedParentTileY @>
-    test <@ parentHeights.Width = tileSize @>
-    test <@ parentHeights.Height = tileSize @>
     
 [<Fact>]
 let ``Average calculates the average of the 2x2 grid heights``() =

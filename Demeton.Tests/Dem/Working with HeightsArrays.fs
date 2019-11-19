@@ -1,4 +1,4 @@
-﻿module Dem.``Working with HeightsArrays``
+﻿module Tests.Dem.``Working with HeightsArrays``
 
 open Demeton.DemTypes
 
