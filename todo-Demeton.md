@@ -1,10 +1,4 @@
-﻿- speeding up HGT reading, ideas:
-    - then somehow parallelize tile reading?
-
-- run the command on Alps
-    4.285186,42.795401,17.203536,48.618385
-
-- why isn't the default shading script elevation coloring + hillshading?
+﻿- why isn't the default shading script elevation coloring + hillshading?
 - log the name of the generated PNG tile when saving it
 
 - write the size of the total raster and tiles needed before starting generating them

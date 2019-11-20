@@ -11,35 +11,35 @@ open Xunit
 open Swensen.Unquote
 open TestHelp
 
-let srtmDir = "srtm"
-let cacheDir = Environment.GetEnvironmentVariable("SRTM_CACHE")
+let private srtmDir = "srtm"
+let private cacheDir = Environment.GetEnvironmentVariable("SRTM_CACHE")
 
-let readPngTile: SrtmPngTileReader = fun fileName ->
+let private readPngTile: SrtmPngTileReader = fun fileName ->
     decodeSrtmTileFromPngFile FileSys.openFileToRead fileName
 
-let determineTileStatus = 
+let private determineTileStatus = 
     determineTileStatus srtmDir cacheDir FileSys.fileExists
 
-let writeHeightsArrayToPng =
+let private writeHeightsArrayToPng =
     writeHeightsArrayIntoPngFile
         FileSys.ensureDirectoryExists
         FileSys.openFileToWrite
 
-let openHgtStream = openZippedHgtFileStream FileSys.openZipFileEntry
+let private openHgtStream = openZippedHgtFileStream FileSys.openZipFileEntry
 
-let convertToPng =
+let private convertToPng =
     convertZippedHgtTileToPng 
         openHgtStream createSrtmTileFromStream writeHeightsArrayToPng
 
-let constructHigherLevelTile =
-    constructHigherLevelTileHeightsArray 3600 cacheDir readPngTile
+let private constructHigherLevelTile =
+    constructHigherLevelTileHeightsArray 3600
 
-let heightsArrayToPng =
+let private heightsArrayToPng =
     writeHeightsArrayIntoPngFile
         FileSys.ensureDirectoryExists
         FileSys.openFileToWrite
 
-let writeTileToCache = 
+let private writeTileToCache = 
     writeSrtmTileToLocalCache 
         cacheDir
         FileSys.ensureDirectoryExists
@@ -49,7 +49,7 @@ let writeTileToCache =
 [<Fact>]
 [<Trait("Category","slow")>]
 let ``Supports fetching already cached tile``() =
-    // Skip this tes|t if the SRTM_DIR environment variable is not set.
+    // Skip this test if the SRTM_DIR environment variable is not set.
     // This is a current workaround for GitHub action not getting the
     // variable set.
     match cacheDir with
@@ -61,12 +61,11 @@ let ``Supports fetching already cached tile``() =
                 cacheDir
                 srtmDir
                 determineTileStatus
+                readPngTile
                 convertToPng
                 constructHigherLevelTile
                 writeTileToCache
-        let result = 
-            finalState
-            |> finalizeFetchSrtmTileProcessing cacheDir readPngTile
+        let result = finalState |> finalizeFetchSrtmTileProcessing
         test <@ result |> isOk @>
 
 [<Fact(Skip="todo currently not working")>]
@@ -78,11 +77,10 @@ let ``Supports fetching higher level tile by creating it from lower level ones``
             cacheDir
             srtmDir
             determineTileStatus
+            readPngTile
             convertToPng
             constructHigherLevelTile
             writeTileToCache
-    let result = 
-        finalState
-        |> finalizeFetchSrtmTileProcessing cacheDir readPngTile
+    let result = finalState |> finalizeFetchSrtmTileProcessing
     test <@ result |> isOk @>
 

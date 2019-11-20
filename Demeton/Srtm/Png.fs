@@ -91,7 +91,7 @@ let writeHeightsArrayIntoPngFile
 /// Writes a tile into a local cache as a PNG file.
 /// </summary>
 type SrtmTileCacheWriter
-    = SrtmTileId -> HeightsArray option -> SrtmTileId option
+    = SrtmTileId -> HeightsArray option -> (SrtmTileId * HeightsArray) option
 
 /// <summary>
 /// Writes a tile into a local cache as a PNG file. If the supplied 
@@ -111,8 +111,8 @@ let writeSrtmTileToLocalCache
         
         pngFileName |> Pth.directory |> ensureDirectoryExists |> ignore
         
-        writeHeightsArrayToFile pngFileName heightsArray |> ignore
-        Some tile
+        let heightsArray = writeHeightsArrayToFile pngFileName heightsArray
+        Some (tile, heightsArray)
     | (None, 0) -> None
     | (None, _) -> 
         let noneFileName = 
@@ -219,7 +219,7 @@ let convertZippedHgtTileToPng
     Log.debug "Encoding tile %s into PNG..." tileName
 
     writeHeightsArrayIntoPng pngFileName heightsArray |> Ok
-
+   
 /// <summary>
 /// Reads a batch of SRTM PNG tiles.
 /// </summary>

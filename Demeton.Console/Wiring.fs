@@ -28,8 +28,7 @@ let fetchSrtmTile srtmDir localCacheDir
     : SrtmTileReader = fun tile ->
 
     let constructHigherLevelTile =
-        constructHigherLevelTileHeightsArray 
-            3600 localCacheDir readPngTile
+        constructHigherLevelTileHeightsArray 3600
 
     let heightsArrayToPng =
         writeHeightsArrayIntoPngFile
@@ -47,9 +46,10 @@ let fetchSrtmTile srtmDir localCacheDir
     |> processCommandStack 
         localCacheDir srtmDir 
         (determineTileStatus srtmDir localCacheDir)
+        readPngTile
         convertPngTile 
         constructHigherLevelTile writeTileToCache
-    |> finalizeFetchSrtmTileProcessing localCacheDir readPngTile
+    |> finalizeFetchSrtmTileProcessing
 
 let fetchSrtmHeights srtmDir localCacheDir = 
     fetchSrtmHeights (fetchSrtmTile srtmDir localCacheDir)

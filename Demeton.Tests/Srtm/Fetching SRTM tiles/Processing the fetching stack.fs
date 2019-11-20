@@ -23,7 +23,8 @@ let initialCommands = [
 
 // some random tiles in the initial state just so we can assert they are
 // still there after processing
-let initialStackedTiles = [ Some (srtmTileId 0 10 20); None ]
+let initialStackedTiles =
+    [ Some (srtmTileId 0 10 20, someTileHeights); None ]
 
 let initialState = (initialCommands, initialStackedTiles)
 
@@ -35,7 +36,7 @@ let ``Calling processNextCommand on an empty command stack returns the same stat
     let resultingState = 
         initialState
         |> processNextCommand 
-            localCacheDir srtmDir _noCall _noCall _noCall2 _noCall2
+            localCacheDir srtmDir _noCall _noCall _noCall2 _noCall2 _noCall2
 
     test <@ resultingState = initialState @>
 
@@ -48,23 +49,57 @@ let ``When a tile does not exist, puts None in the tiles stack``() =
         |> newTileToProcess tile
         |> processNextCommand 
             localCacheDir srtmDir
-            (fun _ -> NotExists) _noCall _noCall2 _noCall2
+            (fun _ -> NotExists) _noCall _noCall2 _noCall2 _noCall2
 
     test <@ resultingState = (initialCommands, None :: initialStackedTiles) @>
 
 [<Fact>]
-let ``When a tile is cached, puts it into the tiles stack``() =
+let ``When a tile is cached, reads it and puts it into the tiles stack``() =
     let tile = srtmTileId 0 10 20
 
+    let tileHeights = HeightsArray(1, 2, 3, 4, EmptyHeightsArray)
+    
+    let expectReadingOfTile expectedTileId tileId _ =
+        test <@ expectedTileId = tile @>
+        Ok tileHeights
+    
     let resultingState =
         initialState 
         |> newTileToProcess tile
         |> processNextCommand 
             localCacheDir srtmDir
-            (fun _ -> Cached) _noCall _noCall2 _noCall2
+            (fun _ -> Cached)
+            (expectReadingOfTile tile)
+            _noCall
+            _noCall2
+            _noCall2
 
-    test <@ resultingState = 
-                (initialCommands, Some tile :: initialStackedTiles) @>
+    test <@ resultingState =
+                (initialCommands,
+                 Some (tile, tileHeights) :: initialStackedTiles) @>
+
+[<Fact>]
+let ``If reading of a cache tile fails, put error indicator into the stack``() =
+    let tile = srtmTileId 0 10 20
+
+    let tileHeights = HeightsArray(1, 2, 3, 4, EmptyHeightsArray)
+    
+    let readingOfTileFails _ _ = Error "some error"
+    
+    let resultingState =
+        initialState 
+        |> newTileToProcess tile
+        |> processNextCommand 
+            localCacheDir srtmDir
+            (fun _ -> Cached)
+            readingOfTileFails
+            _noCall
+            _noCall2
+            _noCall2
+
+    test <@ resultingState =
+                (Failure "some error" :: initialCommands,
+                 initialStackedTiles) @>
 
 [<Fact>]
 let ``When a level 0 tile is not cached, puts ConvertTileFromHgt command``() =
@@ -75,7 +110,7 @@ let ``When a level 0 tile is not cached, puts ConvertTileFromHgt command``() =
         |> newTileToProcess tile
         |> processNextCommand 
             localCacheDir srtmDir
-            (fun _ -> NotCached) _noCall _noCall2 _noCall2
+            (fun _ -> NotCached) _noCall _noCall2 _noCall2 _noCall2
 
     test <@ resultingState = 
                 (ConvertTileFromHgt tile :: initialCommands, 
@@ -90,7 +125,7 @@ let ``When a level > 0 tile is not cached, fills the command stack with children
         |> newTileToProcess tile
         |> processNextCommand 
             localCacheDir srtmDir
-            (fun _ -> NotCached) _noCall _noCall2 _noCall2
+            (fun _ -> NotCached) _noCall _noCall2 _noCall2 _noCall2
 
     let childTiles = 
         [| 
@@ -124,11 +159,11 @@ let ``When convert from HGT command is received``() =
     let resultingState =
         (ConvertTileFromHgt tile :: initialCommands, initialStackedTiles) 
         |> processNextCommand 
-            localCacheDir srtmDir _noCall
+            localCacheDir srtmDir _noCall _noCall2 
             convertProducesSomeTile _noCall2 _noCall2
     test <@ resultingState = 
                 (initialCommands, 
-                Some tile :: initialStackedTiles) @>
+                Some (tile, someTileHeights) :: initialStackedTiles) @>
     test <@ convertWasCalled @>
 
 
@@ -145,7 +180,7 @@ let ``Convert to PNG can fail``() =
         (ConvertTileFromHgt tile :: initialCommands, initialStackedTiles) 
         |> processNextCommand 
             localCacheDir srtmDir 
-            _noCall convertThatFails _noCall2 _noCall2
+            _noCall _noCall2 convertThatFails _noCall2 _noCall2
 
     let expectedResultingState =
         (Failure errorMessage :: initialCommands, initialStackedTiles)
@@ -167,24 +202,24 @@ let ``When create from lower tiles command is received and create returns tile``
         |> CreateFromLowerTiles
 
     let tilesStack = 
-        [ Some (srtmTileId 1 4 8); None ] @ initialStackedTiles
+        [ Some (srtmTileId 1 4 8, someTileHeights); None ] @ initialStackedTiles
 
-    let constructParentTileReturnsSomeTile _ _ _ = Ok (Some someTileHeights)
+    let constructParentTileReturnsSomeTile _ _ _ = Some someTileHeights
 
     let mutable tilePngWasCreated = false
     let writeTileToCache tile _ = 
         tilePngWasCreated <- true
-        Some tile
+        Some (tile, someTileHeights)
 
     let resultingState =
         (createFromLowerTilesCmd :: initialCommands, tilesStack) 
         |> processNextCommand 
-            localCacheDir srtmDir _noCall _noCall 
+            localCacheDir srtmDir _noCall _noCall2 _noCall 
             constructParentTileReturnsSomeTile writeTileToCache
 
     test <@ resultingState =
                 (initialCommands,
-                Some tile :: initialStackedTiles) @>
+                Some (tile, someTileHeights) :: initialStackedTiles) @>
 
     // assert that the tile was saved
     test <@ tilePngWasCreated @>
@@ -204,9 +239,9 @@ let ``When create from lower tiles command is received and create returns None``
         |> CreateFromLowerTiles
 
     let tilesStack = 
-        [ Some (srtmTileId 1 4 8); None ] @ initialStackedTiles
+        [ Some (srtmTileId 1 4 8, someTileHeights); None ] @ initialStackedTiles
 
-    let constructParentTileReturnsNone _ _ _ = Ok None
+    let constructParentTileReturnsNone _ _ _ = None
 
     let mutable tilePngWasCreated = false
     let writeTileToCache _ _ = 
@@ -216,7 +251,7 @@ let ``When create from lower tiles command is received and create returns None``
     let resultingState =
         (createFromLowerTilesCmd :: initialCommands, tilesStack) 
         |> processNextCommand 
-            localCacheDir srtmDir _noCall _noCall 
+            localCacheDir srtmDir _noCall _noCall2 _noCall 
             constructParentTileReturnsNone writeTileToCache
 
     test <@ resultingState =
@@ -236,7 +271,7 @@ let ``Testing the tail recursion``() =
     let initialState =
         someTiles
         |> Array.rev
-        |> Array.fold (fun status tile -> status |> newTileToProcess tile) 
+        |> Array.fold (fun status tile ->status |> newTileToProcess tile) 
             ([], [])
 
     // run the processing of the stack recursively
@@ -244,7 +279,9 @@ let ``Testing the tail recursion``() =
         processCommandStack
             localCacheDir srtmDir
             // all of the tiles are marked as cached
-            (fun _ -> Cached) (fun _ _ _ -> Ok someTileHeights) 
+            (fun _ -> Cached)
+            (fun _ _ -> Ok someTileHeights)
+            (fun _ _ _ -> Ok someTileHeights) 
             _noCall2 _noCall2
             initialState
 
@@ -253,7 +290,8 @@ let ``Testing the tail recursion``() =
     // ensure all of the tiles are in the tiles stack
     test <@ finalTilesStack = 
                 (someTiles |> Array.rev 
-                |> Array.map Option.Some |> Array.toList) @>
+                |> Array.map (fun tile -> Option.Some(tile, someTileHeights))
+                 |> Array.toList) @>
 
 [<Fact>]
 let ``Command stack processor should stop on failure and return the error``() =
@@ -279,7 +317,8 @@ let ``Command stack processor should stop on failure and return the error``() =
     let (finalCommandStack, _) = 
         processCommandStack
             localCacheDir srtmDir
-            (fun _ -> NotCached) 
+            (fun _ -> NotCached)
+            _noCall2
             (convertFailsOnSomeCall 4)
             _noCall2 _noCall2
             initialState

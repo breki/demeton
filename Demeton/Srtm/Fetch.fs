@@ -1,5 +1,6 @@
 ﻿module Demeton.Srtm.Fetch
 
+open Demeton.DemTypes
 open Types
 open Funcs
 open Png
@@ -72,7 +73,7 @@ type TileProcessingCommand =
 
 type TileProcessingCommandStack = TileProcessingCommand list
 
-type TileInStack = SrtmTileId option
+type TileInStack = (SrtmTileId * HeightsArray) option
 type TilesStack = TileInStack list
 
 type TileFetchingState = (TileProcessingCommandStack * TilesStack)
@@ -119,6 +120,7 @@ let processNextCommand
     (localCacheDir: FileSys.DirectoryName)
     (srtmDir: FileSys.DirectoryName)
     determineTileStatus
+    (readPngTile: SrtmPngTileReader)
     (convertFromHgt: SrtmHgtToPngTileConverter)
     (constructHigherLevelTile: HigherLevelTileConstructor)
     (writeTileToCache: SrtmTileCacheWriter)
@@ -130,7 +132,18 @@ let processNextCommand
     | DetermineStatus tile :: remainingCommands -> 
         match determineTileStatus tile with
         | NotExists -> (remainingCommands, None :: tilesStack)
-        | Cached -> (remainingCommands, Some tile :: tilesStack)
+        | Cached ->
+            // read the tile heights array from the cache
+            // and then put it to the stack
+            let heightsArrayResult =
+                tile 
+                |> toLocalCacheTileFileName localCacheDir
+                |> readPngTile tile
+            match heightsArrayResult with
+            | Ok heightsArray ->
+                (remainingCommands, Some (tile, heightsArray) :: tilesStack)
+            | Error message ->
+                (Failure message :: remainingCommands, tilesStack)
         | NotCached when tile.Level.Value = 0 -> 
             ((ConvertTileFromHgt tile) :: remainingCommands, tilesStack)
         | NotCached ->
@@ -155,7 +168,8 @@ let processNextCommand
         let pngFileName = tile |> toLocalCacheTileFileName localCacheDir
 
         match convertFromHgt tile zippedHgtFileName pngFileName with
-        | Ok _ -> (remainingCommands, Some tile :: tilesStack)
+        | Ok heightsArray ->
+            (remainingCommands, Some (tile, heightsArray) :: tilesStack)
         | Error message -> (Failure message :: remainingCommands, tilesStack)
 
     | CreateFromLowerTiles parameters :: remainingCommands ->
@@ -171,17 +185,16 @@ let processNextCommand
             |> List.filter Option.isSome
             |> List.map Option.get
 
-        let constructResult =
+        let higherLevelHeightsArray =
             constructHigherLevelTile
                 DownsamplingMethod.Average tile childrenTiles
-            |> Result.map (writeTileToCache tile)
+            |> writeTileToCache tile
             
-        match constructResult with
-        | Ok (Some tile) ->
+        match higherLevelHeightsArray with
+        |Some tile ->
             (remainingCommands, Some tile :: remainingTilesInStack)
         // when the constructed tile is empty
-        | Ok None -> (remainingCommands, None :: remainingTilesInStack)
-        | Error message -> (Failure message :: remainingCommands, tilesStack)
+        | None -> (remainingCommands, None :: remainingTilesInStack)
 
     | Failure _ :: _ -> (commandStack, tilesStack)
 
@@ -189,7 +202,9 @@ let processNextCommand
 let rec processCommandStack 
     (localCacheDir: FileSys.DirectoryName)
     (srtmDir: FileSys.DirectoryName)
-    determineTileStatus convertFromHgt 
+    determineTileStatus
+    (readPngTile: SrtmPngTileReader)
+    convertFromHgt
     (constructHigherLevelTile: HigherLevelTileConstructor)
     (writeTileToCache: SrtmTileCacheWriter)
     state
@@ -198,9 +213,11 @@ let rec processCommandStack
     let updatedState = 
         processNextCommand
             localCacheDir srtmDir
-            determineTileStatus 
+            determineTileStatus
+            readPngTile
             convertFromHgt 
-            constructHigherLevelTile writeTileToCache
+            constructHigherLevelTile
+            writeTileToCache
             state
 
     match updatedState with
@@ -212,9 +229,11 @@ let rec processCommandStack
     | updatedState -> 
         processCommandStack 
             localCacheDir srtmDir
-            determineTileStatus 
+            determineTileStatus
+            readPngTile
             convertFromHgt 
-            constructHigherLevelTile writeTileToCache
+            constructHigherLevelTile
+            writeTileToCache
             updatedState
 
 let initializeProcessingState tile =
@@ -224,20 +243,16 @@ let initializeProcessingState tile =
 
 /// <summary>
 /// After the fetch tile processing stack has finished, this function checks
-/// the final state and based on it, decides whether to load a PNG tile,
-/// returns None (if the tile does not exist), or return an error (if the 
+/// the final state and based on it, decides whether to return a tile heights
+/// array, return None (if the tile does not exist), or return an error (if the 
 /// final state contains error information).
 /// </summary>
 let finalizeFetchSrtmTileProcessing 
-    localCacheDir
-    (readPngTile: SrtmPngTileReader) 
     (finalState: TileFetchingState) =
     match finalState with
-    | ([], [ Some tile ]) -> 
-        tile |> toLocalCacheTileFileName localCacheDir
-        |> readPngTile tile
-        |> Result.map (fun heightsArray -> Some heightsArray)
+    | ([], [ Some (_, heightsArray) ]) -> Ok (Some heightsArray)
     | ([], [ None ]) -> Ok None
     | (Failure message :: _, _) -> Error message
     | _ -> 
-        invalidOp "bug: the command stack is neither empty nor it indicates an error"
+        invalidOp
+            "bug: the command stack is neither empty nor it indicates an error"

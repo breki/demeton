@@ -1,11 +1,8 @@
-﻿- keep tile heights arrays in tiles stack, so we don't need to fetch them again
-
-- rebuild and continue running Alps
-- stopped at N44E014
-
+﻿- define type for SrtmTileId * HeightsArray
 - extract helper function(s) for sample files (GetManifestResourceStream)
 
 ## Wed 20.11.
+- Refactored the tile fetching code to keep the heights arrays in memory instead of having to re-read them.
 - Implemented huge speed-up of HGT tiles reading by first copying the zipped stream into a MemoryStream.
 - Extracted `openZippedHgtFileStream` so it can be reused in tests.
 - Prepared a sample batch script for generating hillshading of Alps.

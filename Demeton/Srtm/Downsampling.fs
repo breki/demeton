@@ -17,7 +17,6 @@ module Demeton.Srtm.Downsampling
 open Demeton.DemTypes
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
-open Demeton.Srtm.Png
 
 /// <summary>
 /// Specifies which method will be used to downsample 2x2 lower level SRTM tiles
@@ -152,30 +151,33 @@ let lowerLevelHeightsArrayNeededForDownsampling
 /// children lower-level tiles.
 /// </summary>
 type HigherLevelTileConstructor = 
-    DownsamplingMethod -> SrtmTileId -> SrtmTileId list
-     -> Result<HeightsArray option, string>
+    DownsamplingMethod -> SrtmTileId -> (SrtmTileId * HeightsArray) list
+     -> HeightsArray option
 
 /// <summary>
 /// Constructs a heights array for a higher-level tile from the list of 
 /// children lower-level tiles by applying a downsampling algorithm.
 /// </summary>
 let constructHigherLevelTileHeightsArray 
-    (tileSize: int)
-    (localCacheDir: FileSys.DirectoryName)
-    (readTilePngFile: SrtmPngTileReader): HigherLevelTileConstructor =
-    fun downsamplingMethod tile (childrenTiles: SrtmTileId list) ->
+    (tileSize: int): HigherLevelTileConstructor =
+    fun downsamplingMethod tile
+        (childrenTiles: (SrtmTileId * HeightsArray) list) ->
 
-    readPngTilesBatch localCacheDir readTilePngFile childrenTiles
-    |> Result.map (fun heightsArrays ->
-        Log.info "Merging all the read tiles into a single array..."
+    let childrenHeightsArrays =
+        childrenTiles
+        |> List.map (fun (_, heightArray) -> heightArray)
+        
+    Log.info "Merging all the read tiles into a single array..."
+        
+    let mergedHeights =
         lowerLevelHeightsArrayNeededForDownsampling
             downsamplingMethod
             tileSize
             tile
-            heightsArrays)
+            childrenHeightsArrays
+    
     // after merging the tiles, make a parent tile by downsampling
-    |> Result.map (fun heightsArray ->
-        Log.info "Creating the higher-level tile by downsampling..."
-        heightsArray
-        |> Option.map
-               (downsampleTileHeightsArray downsamplingMethod tileSize tile))
+    Log.info "Creating the higher-level tile by downsampling..."
+    mergedHeights
+    |> Option.map
+            (downsampleTileHeightsArray downsamplingMethod tileSize tile)

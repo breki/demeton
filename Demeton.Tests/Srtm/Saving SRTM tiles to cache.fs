@@ -51,7 +51,7 @@ let ``Saves the tile into the cache directory``() =
             _noCall
             tile (Some heights)
 
-    test <@ writtenTileIdMaybe = Some tile @>
+    test <@ writtenTileIdMaybe = Some (tile, heights) @>
     test <@ pngFileName = Some expectedFileName @>
 
 [<Fact>]

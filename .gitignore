@@ -16,6 +16,7 @@ StyleCop.Cache
 **/CustomDictionary.xml
 Builds/
 samples/cache
+output
 *.BuildNumber.txt
 *.crunchsolution.cache
 $RECYCLE.BIN/*
