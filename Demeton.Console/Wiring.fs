@@ -39,6 +39,7 @@ let fetchSrtmTile srtmDir localCacheDir
     let writeTileToCache = 
         writeSrtmTileToLocalCache 
             localCacheDir
+            FileSys.ensureDirectoryExists
             heightsArrayToPng
             FileSys.openFileToWrite
 

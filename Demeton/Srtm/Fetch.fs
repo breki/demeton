@@ -171,12 +171,17 @@ let processNextCommand
             |> List.filter Option.isSome
             |> List.map Option.get
 
-        constructHigherLevelTile DownsamplingMethod.Average tile childrenTiles
-        |> Result.map (writeTileToCache tile)
-        // todo: handle errors
-        |> ignore
-
-        (remainingCommands, Some tile :: remainingTilesInStack)
+        let constructResult =
+            constructHigherLevelTile
+                DownsamplingMethod.Average tile childrenTiles
+            |> Result.map (writeTileToCache tile)
+            
+        match constructResult with
+        | Ok (Some tile) ->
+            (remainingCommands, Some tile :: remainingTilesInStack)
+        // when the constructed tile is empty
+        | Ok None -> (remainingCommands, None :: remainingTilesInStack)
+        | Error message -> (Failure message :: remainingCommands, tilesStack)
 
     | Failure _ :: _ -> (commandStack, tilesStack)
 

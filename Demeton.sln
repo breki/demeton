@@ -30,6 +30,11 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Demeton", "Demeton\Demeton.
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Demeton.Tests", "Demeton.Tests\Demeton.Tests.fsproj", "{89DC2B09-E82D-4555-931E-60FCA2423B60}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample scripts", "sample scripts", "{0DA3FEBF-E0A4-4147-AB3E-A71A129559B7}"
+	ProjectSection(SolutionItems) = preProject
+		samples\scripts\Alps.bat = samples\scripts\Alps.bat
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +84,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0DA3FEBF-E0A4-4147-AB3E-A71A129559B7} = {D6A490FA-409C-4670-97CB-BDC836F3B791}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9DC4B81C-0F53-4EDF-851B-B75655D97FE6}

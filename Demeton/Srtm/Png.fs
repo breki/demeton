@@ -90,32 +90,40 @@ let writeHeightsArrayIntoPngFile
 /// <summary>
 /// Writes a tile into a local cache as a PNG file.
 /// </summary>
-type SrtmTileCacheWriter = SrtmTileId -> HeightsArray option -> unit
+type SrtmTileCacheWriter
+    = SrtmTileId -> HeightsArray option -> SrtmTileId option
 
 /// <summary>
 /// Writes a tile into a local cache as a PNG file. If the supplied 
 /// height array is None and the tile level is above 0, writes a ".none" file
-/// instead.
+/// instead (and returns None in this case).
 /// </summary>
 let writeSrtmTileToLocalCache
     (localCacheDir: FileSys.DirectoryName)
+    (ensureDirectoryExists: FileSys.DirectoryExistsEnsurer)
     (writeHeightsArrayToFile: HeightsArrayPngWriter)
     (openFileToWrite: FileSys.FileOpener)
     : SrtmTileCacheWriter =
-    fun (tile: SrtmTileId)
-        (heightsArrayMaybe: HeightsArray option) -> 
+    fun (tile: SrtmTileId) (heightsArrayMaybe: HeightsArray option) -> 
     match (heightsArrayMaybe, tile.Level.Value) with
     | (Some heightsArray, _) ->
         let pngFileName = tile |> toLocalCacheTileFileName localCacheDir
+        
+        pngFileName |> Pth.directory |> ensureDirectoryExists |> ignore
+        
         writeHeightsArrayToFile pngFileName heightsArray |> ignore
-    | (None, 0) -> ignore()
+        Some tile
+    | (None, 0) -> None
     | (None, _) -> 
         let noneFileName = 
             tile |> toLocalCacheTileFileName localCacheDir
             |> Pth.extension ".none"
+            
+        noneFileName |> Pth.directory |> ensureDirectoryExists |> ignore
+            
         let stream = openFileToWrite noneFileName
         stream.Close()
-        ignore()
+        None
 
 let decodeSrtmTileFromPngFile
     (openFile: FileSys.FileOpener): SrtmPngTileReader =

@@ -1,6 +1,17 @@
-﻿- study GitHub releases
+﻿+ stopped at N57E018
+
+- run the command on Alps
+    4.285186,42.795401,17.203536,48.618385
+- reading of HGTs is really slow
+    - what if we read the whole file into memory and then decompress it
+    - then somehow parallelize tile reading
+
+## Wed 20.11.
+- Prepared a sample batch script for generating hillshading of Alps.
 
 ## Tue 19.11.
+- Fixing another issue in tile processing.
+- Bugfix: `writeSrtmTileToLocalCache` does not ensure the directory exists.
 - Added the investigation notes and links to the `Downsampling` module.
 - Redesigned downsampleAverage to use 4 parameters instead of an array.
 - Switched to using `Average` downsampling.

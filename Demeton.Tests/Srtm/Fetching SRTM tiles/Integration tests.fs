@@ -42,6 +42,7 @@ let heightsArrayToPng =
 let writeTileToCache = 
     writeSrtmTileToLocalCache 
         cacheDir
+        FileSys.ensureDirectoryExists
         heightsArrayToPng
         FileSys.openFileToWrite
 

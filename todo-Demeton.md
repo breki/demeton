@@ -1,4 +1,6 @@
-﻿- study GitHub releases
+﻿- write the size of the total raster and tiles needed before starting generating them
+- study GitHub releases
+    - https://developer.github.com/v3/repos/releases/#create-a-release
     - prepare a release (script?) for Windows and Linux (with and without .NET Core) 
     - do we have a special branch for releasing?
     - how to implement versioning?
@@ -7,7 +9,6 @@
 - add batch script that generates some sample images from these sample DEMs
 
 - hillshading
-    - run the command on Alps
 
 - Vectorization: 
     - https://en.wikipedia.org/wiki/Image_tracing

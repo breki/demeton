@@ -110,25 +110,27 @@ let ``When a level > 0 tile is not cached, fills the command stack with children
     test <@ resultingState = 
                 (expectedCommands @ initialCommands, initialStackedTiles) @>
 
-// When convert from HGT command is received, calls the converter and puts 
-// the result in the tiles stack.
+// When convert from HGT command is received, calls the converter. If the
+// converted produces a tile, puts its tile ID in the tiles stack.
 [<Fact>]
 let ``When convert from HGT command is received``() =
     let tile = srtmTileId 0 4 8
 
     let mutable convertWasCalled = false
-    let callConvert _ _ _ = 
+    let convertProducesSomeTile _ _ _ = 
         convertWasCalled <- true
         Ok someTileHeights
 
     let resultingState =
         (ConvertTileFromHgt tile :: initialCommands, initialStackedTiles) 
         |> processNextCommand 
-            localCacheDir srtmDir _noCall callConvert _noCall2 _noCall2
+            localCacheDir srtmDir _noCall
+            convertProducesSomeTile _noCall2 _noCall2
     test <@ resultingState = 
                 (initialCommands, 
                 Some tile :: initialStackedTiles) @>
     test <@ convertWasCalled @>
+
 
 // Converting of HGT tile to PNG can fail, in which case we need to handle this
 // error and return it as the next command in the stack.
@@ -150,12 +152,13 @@ let ``Convert to PNG can fail``() =
 
     test <@ resultingState = expectedResultingState @>
 
-// When create from lower tiles command is received, collect the specified 
-// number of tiles (or None) from the stack and call the provided functions
-// for constructing and saving the parent tile.
-// Put the resulting tile into the tiles stack.
+// When create from lower tiles command is received, collects the specified 
+// number of tiles (or None) from the stack and calls the provided functions
+// for constructing and saving the parent tile. If the constructor function
+// returns an actual tile (and not None), put the resulting tile into the
+// tiles stack.
 [<Fact>]
-let ``When create from lower tiles command is received``() =
+let ``When create from lower tiles command is received and create returns tile``() =
     let tile = srtmTileId 2 4 8
     
     let createFromLowerTilesCmd = 
@@ -166,21 +169,59 @@ let ``When create from lower tiles command is received``() =
     let tilesStack = 
         [ Some (srtmTileId 1 4 8); None ] @ initialStackedTiles
 
-    let constructParentTile _ _ _ = Ok (Some someTileHeights)
+    let constructParentTileReturnsSomeTile _ _ _ = Ok (Some someTileHeights)
 
     let mutable tilePngWasCreated = false
-    let writeTileToCache _ _ = 
+    let writeTileToCache tile _ = 
         tilePngWasCreated <- true
+        Some tile
 
     let resultingState =
         (createFromLowerTilesCmd :: initialCommands, tilesStack) 
         |> processNextCommand 
             localCacheDir srtmDir _noCall _noCall 
-            constructParentTile writeTileToCache
+            constructParentTileReturnsSomeTile writeTileToCache
 
     test <@ resultingState =
                 (initialCommands,
                 Some tile :: initialStackedTiles) @>
+
+    // assert that the tile was saved
+    test <@ tilePngWasCreated @>
+
+// When create from lower tiles command is received, collects the specified 
+// number of tiles (or None) from the stack and calls the provided functions
+// for constructing and saving the parent tile. If the constructor
+// returns None (which happens when there is no data for that tile),  
+// it puts None in the tiles stack.
+[<Fact>]
+let ``When create from lower tiles command is received and create returns None``() =
+    let tile = srtmTileId 2 4 8
+    
+    let createFromLowerTilesCmd = 
+        { Parent = tile; 
+            Children = [| srtmTileId 1 4 8; srtmTileId 1 4 9 |] }
+        |> CreateFromLowerTiles
+
+    let tilesStack = 
+        [ Some (srtmTileId 1 4 8); None ] @ initialStackedTiles
+
+    let constructParentTileReturnsNone _ _ _ = Ok None
+
+    let mutable tilePngWasCreated = false
+    let writeTileToCache _ _ = 
+        tilePngWasCreated <- true
+        None
+
+    let resultingState =
+        (createFromLowerTilesCmd :: initialCommands, tilesStack) 
+        |> processNextCommand 
+            localCacheDir srtmDir _noCall _noCall 
+            constructParentTileReturnsNone writeTileToCache
+
+    test <@ resultingState =
+                (initialCommands,
+                None :: initialStackedTiles) @>
 
     // assert that the tile was saved
     test <@ tilePngWasCreated @>

@@ -10,7 +10,6 @@ open Demeton.Srtm.Png
 
 open Xunit
 open Swensen.Unquote
-open Tests.Srtm.SrtmHelper
 open TestHelp
 open System.IO
 
@@ -20,6 +19,11 @@ let heights =
 
 let mutable pngFileName = None
 let mutable noneFileName = None
+let mutable createdCacheDirectory = None
+
+let ensureCacheDirectoryExists: FileSys.DirectoryExistsEnsurer = fun dir ->
+    createdCacheDirectory <- Some dir
+    dir
 
 let writeAsPngFile: HeightsArrayPngWriter = 
     fun fileName heightsArray ->
@@ -39,26 +43,52 @@ let ``Saves the tile into the cache directory``() =
 
     let expectedFileName = tile |> toLocalCacheTileFileName cacheDir
 
+    let writtenTileIdMaybe =
+        writeSrtmTileToLocalCache 
+            cacheDir
+            ensureCacheDirectoryExists
+            writeAsPngFile
+            _noCall
+            tile (Some heights)
+
+    test <@ writtenTileIdMaybe = Some tile @>
+    test <@ pngFileName = Some expectedFileName @>
+
+[<Fact>]
+let ``Ensures the cache directory exists before writing the file``() =
+    let tile = srtmTileId 2 10 -20
+
+    let expectedCreatedCacheDirectory = 
+        tile |> toLocalCacheTileFileName cacheDir
+        |> Pth.extension ".none"
+        |> Pth.directory
+
     writeSrtmTileToLocalCache 
         cacheDir
+        ensureCacheDirectoryExists
         writeAsPngFile
-        _noCall
-        tile (Some heights)
+        writeAsNoneFile
+        tile None
+    |> ignore
 
-    test <@ pngFileName = Some expectedFileName @>
+    test <@ createdCacheDirectory = Some expectedCreatedCacheDirectory @>
+
 
 // When trying to write a tile of level 0 that has no heights array, simply 
 // ignore it and do nothing.
 [<Fact>]
-let ``Ignores the non-existing tile leve 0``() =
+let ``Ignores the non-existing tile level 0``() =
     let tile = srtmTileId 0 10 -20
 
-    writeSrtmTileToLocalCache 
-        cacheDir
-        writeAsPngFile
-        writeAsNoneFile
-        tile None
+    let writtenTileIdMaybe =
+        writeSrtmTileToLocalCache 
+            cacheDir
+            ensureCacheDirectoryExists
+            writeAsPngFile
+            writeAsNoneFile
+            tile None
 
+    test <@ writtenTileIdMaybe = None @>
     test <@ pngFileName = None @>
     test <@ noneFileName = None @>
 
@@ -73,11 +103,14 @@ let ``Saves the non-existing tile info into the cache directory``() =
         tile |> toLocalCacheTileFileName cacheDir
         |> Pth.extension ".none"
 
-    writeSrtmTileToLocalCache 
-        cacheDir
-        writeAsPngFile
-        writeAsNoneFile
-        tile None
+    let writtenTileIdMaybe =
+        writeSrtmTileToLocalCache 
+            cacheDir
+            ensureCacheDirectoryExists
+            writeAsPngFile
+            writeAsNoneFile
+            tile None
 
+    test <@ writtenTileIdMaybe = None @>
     test <@ noneFileName = Some expectedFileName @>
     test <@ pngFileName = None @>
