@@ -168,7 +168,7 @@ let ``Imports all tiles within the specified boundaries``() =
 
     let determineTileStatus (tile: SrtmTileId) = SrtmTileStatus.NotCached
 
-    let readTile (tile: SrtmTileId): HeightsArrayResult =
+    let readTile (tile: SrtmTileId): HeightsArrayMaybeResult =
         lock threadsLock (fun () -> tilesRead <- tiles :: tilesRead)
         let heightsArray = 
             HeightsArray (
