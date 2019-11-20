@@ -299,13 +299,12 @@ let toLocalCacheTileFileName
 
 type HeightsArrayPngWriter = FileSys.FileName -> HeightsArray -> HeightsArray
 
-type SrtmPngTileReader =
-    SrtmTileId -> FileSys.FileName -> Result<HeightsArray, string>
+type SrtmPngTileReader = SrtmTileId -> FileSys.FileName -> HeightsArrayResult
     
 type SrtmHgtToPngTileConverter = 
-    SrtmTileId -> string -> string -> Result<HeightsArray, string>
+    SrtmTileId -> string -> string -> HeightsArrayResult
 
-type SrtmHeightsArrayFetcher = SrtmTileId seq -> HeightsArrayResult
+type SrtmHeightsArrayFetcher = SrtmTileId seq -> HeightsArrayMaybeResult
 
 let fetchSrtmHeights 
     (readSrtmTile: SrtmTileReader): SrtmHeightsArrayFetcher =

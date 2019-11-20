@@ -46,7 +46,7 @@ type SrtmTile = SrtmTileId * HeightsArray
 type SrtmTileCellCoordsInt = (int * int)
 type SrtmTileCellCoordsFloat = (float * float)
 
-type SrtmTileReader = SrtmTileId -> HeightsArrayResult
+type SrtmTileReader = SrtmTileId -> HeightsArrayMaybeResult
 
 type SrtmTileName = string
 

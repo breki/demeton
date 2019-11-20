@@ -1,8 +1,8 @@
-﻿- rename `HeightsArrayResult` to `HeightsArrayMaybeResult`
-- use `HeightsArrayResult` for Result<HeightsArray, string>
-- extract helper function(s) for sample files (GetManifestResourceStream)
+﻿- why isn't the default shading script elevation coloring + hillshading?
 
 ## Wed 20.11.
+- Extract helper function(s) for sample files (GetManifestResourceStream).
+- (Re)defined `HeightsArrayResult` and defined `HeightsArrayMaybeResult` types.
 - Defined `SrtmTile` as type for SrtmTileId * HeightsArray.
 - Refactored the tile fetching code to keep the heights arrays in memory instead of having to re-read them.
 - Implemented huge speed-up of HGT tiles reading by first copying the zipped stream into a MemoryStream.

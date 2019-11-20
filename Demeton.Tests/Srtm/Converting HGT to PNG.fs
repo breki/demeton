@@ -13,6 +13,7 @@ open Swensen.Unquote
 
 open System.IO
 open System.Reflection
+open TestHelp
 
 
 [<Fact>]
@@ -73,9 +74,7 @@ let ``Can convert a HGT file into PNG image``() =
     let hgtFileNameOnly = srtmTileId + ".hgt"
     let tileId = parseTileName hgtFileNameOnly.[0..6]
 
-    let assembly = Assembly.GetExecutingAssembly()
-    use hgtStream = assembly.GetManifestResourceStream
-                                ("Demeton.Tests.samples." + hgtFileNameOnly)
+    use hgtStream = sampleFileStream hgtFileNameOnly
 
     let clock = new System.Diagnostics.Stopwatch()
     clock.Start()

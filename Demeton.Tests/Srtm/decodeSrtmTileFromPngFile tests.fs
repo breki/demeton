@@ -23,10 +23,7 @@ let ``Can decode a valid PNG-encoded SRTM tile``() =
     let prepareSamplePngTile() =
         let pngFilename = sprintf "%s.png" tileName
 
-        let assembly = Assembly.GetExecutingAssembly()
-        use resourceStream = 
-            assembly.GetManifestResourceStream(
-                sprintf "Demeton.Tests.samples.%s" pngFilename)
+        use resourceStream = sampleFileStream pngFilename
 
         match File.Exists(pngFilename) with
         | true -> 

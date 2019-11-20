@@ -1,6 +1,7 @@
 ﻿module TestHelp
 
 open System
+open System.Reflection
 
 let fail errorMessage =
     raise (Xunit.Sdk.XunitException errorMessage)
@@ -51,3 +52,11 @@ let isApproxEqualTo
     | Percentage percentage ->
         let percentageValue = controlValue * percentage / 100.
         Math.Abs(actualValue - controlValue) < percentageValue
+
+/// <summary>
+/// Opens a stream for a specified sample resource file. 
+/// </summary>
+let sampleFileStream sampleFileName =
+    let assembly = Assembly.GetExecutingAssembly()
+    assembly.GetManifestResourceStream
+        ("Demeton.Tests.samples." + sampleFileName) 

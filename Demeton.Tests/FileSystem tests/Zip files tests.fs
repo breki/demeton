@@ -1,18 +1,15 @@
 ﻿module ``FileSystem tests``.``Zip files tests``
 
 open System.IO
-open System.Reflection
 open Swensen.Unquote
+open TestHelp
 open Xunit
 
 [<Fact>]
 let ``Can read zip file entry``() = 
     let zipFileName = "file.zip"
 
-    let assembly = Assembly.GetExecutingAssembly()
-    use resourceStream = 
-        assembly.GetManifestResourceStream(
-            "Demeton.Tests.samples.N46E015.SRTMGL1.hgt.zip")
+    use resourceStream = sampleFileStream "N46E015.SRTMGL1.hgt.zip"
     use zipOutputFileStream = File.OpenWrite(zipFileName)
     resourceStream.CopyTo(zipOutputFileStream)
     zipOutputFileStream.Close()

@@ -11,6 +11,7 @@ open System.Reflection
 open FsUnit
 open FsCheck
 open FsCheck.Xunit
+open TestHelp
 open Xunit
 
 
@@ -43,9 +44,7 @@ let ``Determining the compression rate``() =
     let hgtFileNameOnly = srtmTileId + ".hgt"
     let tileId = parseTileName hgtFileNameOnly.[0..6]
 
-    let assembly = Assembly.GetExecutingAssembly()
-    use hgtStream = assembly.GetManifestResourceStream
-                                ("Demeton.Tests.samples." + hgtFileNameOnly)
+    use hgtStream = sampleFileStream hgtFileNameOnly
 
     let clock = new System.Diagnostics.Stopwatch()
     clock.Start()

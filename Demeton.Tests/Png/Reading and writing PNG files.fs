@@ -16,7 +16,7 @@ open Raster
 
 open System
 open System.IO
-open System.Reflection
+open TestHelp
 
 
 let givenA8BitGrayscaleImage rndSeed imageWidth imageHeight 
@@ -114,7 +114,7 @@ let ``Deserializing serialized IDAT chunk data results in the original image dat
     let rawImageData = 
         Array.init 
             (imageWidth * imageHeight * bytesPerPixel)
-            (fun i -> byte (rnd.Next 256))
+            (fun _ -> byte (rnd.Next 256))
     
     let deserialized = 
         deserializeIdatChunkData bpp imageWidth imageHeight
@@ -162,8 +162,7 @@ let ``Can generate and read a valid 8-bit grayscale PNG``() =
 
     use readStream = File.OpenRead(imageFileName)
 
-    let (ihdrRead, imageDataRead) = 
-        readStream |> loadPngFromStream 
+    let (_, _) = readStream |> loadPngFromStream 
 
     use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
     test <@ bitmap.Width = imageWidth @>
@@ -207,8 +206,7 @@ let ``Can generate and read a valid 16-bit grayscale PNG``() =
 
     use readStream = File.OpenRead(imageFileName)
 
-    let (ihdrRead, imageDataRead) = 
-        readStream |> loadPngFromStream 
+    let (_, _) = readStream |> loadPngFromStream 
 
     use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
     test <@ bitmap.Width = imageWidth @>
@@ -218,9 +216,7 @@ let ``Can generate and read a valid 16-bit grayscale PNG``() =
 [<Fact>]
 [<Trait("Category", "slow")>]
 let ``Can decode 16-bit grayscale image generated from a SRTM tile``() =
-    let assembly = Assembly.GetExecutingAssembly()
-    use pngReadStream = assembly.GetManifestResourceStream
-                                ("Demeton.Tests.samples.N46E015.png")    
+    use pngReadStream = sampleFileStream "N46E015.png"    
     let clock = new System.Diagnostics.Stopwatch()
     clock.Start()
 

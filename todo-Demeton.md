@@ -1,5 +1,4 @@
-﻿- why isn't the default shading script elevation coloring + hillshading?
-- log the name of the generated PNG tile when saving it
+﻿- log the name of the generated PNG tile when saving it
 
 - write the size of the total raster and tiles needed before starting generating them
 - study GitHub releases

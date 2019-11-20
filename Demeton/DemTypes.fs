@@ -108,7 +108,12 @@ type HeightsArray
         
         
 /// <summary>
+/// A result of an operation that returns <see cref="HeightsArray" />.
+/// </summary>
+type HeightsArrayResult = Result<HeightsArray, string>
+        
+/// <summary>
 /// A result of an operation that can return an optional 
 /// <see cref="HeightsArray" />.
 /// </summary>
-type HeightsArrayResult = Result<HeightsArray option, string>
+type HeightsArrayMaybeResult = Result<HeightsArray option, string>

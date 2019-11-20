@@ -11,6 +11,7 @@ open System.IO.Compression
 open FsUnit
 open Xunit
 open Swensen.Unquote
+open TestHelp
 
 [<Fact>]
 let ``Can read SRTM heights``() =
@@ -102,9 +103,7 @@ let ``Can read HGT file``() =
     let hgtFileNameOnly = "N00E031.hgt"
     let tileId = parseTileName hgtFileNameOnly.[0..6]
 
-    let assembly = Assembly.GetExecutingAssembly()
-    use stream = assembly.GetManifestResourceStream
-                    ("Demeton.Tests.samples." + hgtFileNameOnly)
+    use stream = sampleFileStream hgtFileNameOnly
 
     test <@ stream <> null @>
 
