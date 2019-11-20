@@ -73,7 +73,7 @@ type TileProcessingCommand =
 
 type TileProcessingCommandStack = TileProcessingCommand list
 
-type TileInStack = (SrtmTileId * HeightsArray) option
+type TileInStack = SrtmTile option
 type TilesStack = TileInStack list
 
 type TileFetchingState = (TileProcessingCommandStack * TilesStack)

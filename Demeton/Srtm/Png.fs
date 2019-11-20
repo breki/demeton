@@ -90,8 +90,7 @@ let writeHeightsArrayIntoPngFile
 /// <summary>
 /// Writes a tile into a local cache as a PNG file.
 /// </summary>
-type SrtmTileCacheWriter
-    = SrtmTileId -> HeightsArray option -> (SrtmTileId * HeightsArray) option
+type SrtmTileCacheWriter = SrtmTileId -> HeightsArray option -> SrtmTile option
 
 /// <summary>
 /// Writes a tile into a local cache as a PNG file. If the supplied 

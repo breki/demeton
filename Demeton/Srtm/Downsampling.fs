@@ -151,8 +151,7 @@ let lowerLevelHeightsArrayNeededForDownsampling
 /// children lower-level tiles.
 /// </summary>
 type HigherLevelTileConstructor = 
-    DownsamplingMethod -> SrtmTileId -> (SrtmTileId * HeightsArray) list
-     -> HeightsArray option
+    DownsamplingMethod -> SrtmTileId -> SrtmTile list -> HeightsArray option
 
 /// <summary>
 /// Constructs a heights array for a higher-level tile from the list of 
@@ -160,8 +159,7 @@ type HigherLevelTileConstructor =
 /// </summary>
 let constructHigherLevelTileHeightsArray 
     (tileSize: int): HigherLevelTileConstructor =
-    fun downsamplingMethod tile
-        (childrenTiles: (SrtmTileId * HeightsArray) list) ->
+    fun downsamplingMethod tile (childrenTiles: SrtmTile list) ->
 
     let childrenHeightsArrays =
         childrenTiles
