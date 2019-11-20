@@ -37,10 +37,10 @@ type SrtmTileId = { Level: SrtmLevel; TileX: int; TileY: int }
     member this.IdString = 
         sprintf "%d/%d/%d" this.Level.Value this.TileX this.TileY
 
-
 type SrtmTileCellCoordsInt = (int * int)
 type SrtmTileCellCoordsFloat = (float * float)
 
 type SrtmTileReader = SrtmTileId -> HeightsArrayResult
 
+type SrtmTileName = string
 

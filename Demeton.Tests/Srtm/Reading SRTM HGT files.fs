@@ -1,17 +1,16 @@
 ﻿module Tests.Srtm.``Reading SRTM HGT files``
 
 open Demeton.DemTypes
-open Demeton.Srtm
 open Demeton.Srtm.Funcs
 
 open System
 open System.IO;
 open System.Reflection
 
+open System.IO.Compression
 open FsUnit
 open Xunit
 open Swensen.Unquote
-open Tests.Srtm.SrtmHelper
 
 [<Fact>]
 let ``Can read SRTM heights``() =
@@ -109,5 +108,6 @@ let ``Can read HGT file``() =
 
     test <@ stream <> null @>
 
-    createSrtmTileFromStream 3600 tileId stream
-
+    let heights = createSrtmTileFromStream 3600 tileId stream
+    test <@ heights.Width = 3600 @>
+    test <@ heights.Height = 3600 @>

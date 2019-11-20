@@ -67,8 +67,6 @@ let toSrtmTileCoords (tileId: SrtmTileId): SrtmTileCoords =
         invalidOp 
             "Cannot convert SRTM tile ID with level > 0 to SRTM tile coords."
 
-type SrtmTileName = string
-
 let toHgtTileName (tileCoords: SrtmTileCoords) =
     let latitudeCharSign (latitude: SrtmLatitude) =
         match latitude with
@@ -204,7 +202,9 @@ let inline heightFromBytes firstByte secondByte =
     | 0x8000s -> DemHeightNone
     | _ -> height
 
-
+/// <summary>
+/// Reads HeightsArray data from a SRTM HGT-encoded stream.
+/// </summary>
 let readSrtmHeightsFromStream tileSize (stream: Stream): DemHeight[] =
 
     let inline readNextHeightFromStream (streamReader: FunctionalStreamReader) =
@@ -253,8 +253,16 @@ let readSrtmHeightsFromStream tileSize (stream: Stream): DemHeight[] =
 
     heightsArray
     
+/// <summary>
+/// A function that reads the <see cref="HeightsArray"/> of a SRTM tile from
+/// a zipped HGT file stream.
+/// </summary>
 type ZippedSrtmTileReader = int -> SrtmTileId -> Stream -> HeightsArray
 
+/// <summary>
+/// Reads the <see cref="HeightsArray"/> of a SRTM tile from
+/// a zipped HGT file stream.
+/// </summary>
 let createSrtmTileFromStream: ZippedSrtmTileReader = 
     fun tileSize tileId stream ->
     let srtmHeights = readSrtmHeightsFromStream tileSize stream

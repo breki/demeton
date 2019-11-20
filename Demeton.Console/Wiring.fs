@@ -18,11 +18,11 @@ let writePngTile =
         FileSys.ensureDirectoryExists
         FileSys.openFileToWrite
 
+let openHgtStream = openZippedHgtFileStream FileSys.openZipFileEntry
+
 let convertPngTile = 
     convertZippedHgtTileToPng 
-        FileSys.openZipFileEntry
-        createSrtmTileFromStream
-        writePngTile
+        openHgtStream createSrtmTileFromStream writePngTile
 
 let fetchSrtmTile srtmDir localCacheDir
     : SrtmTileReader = fun tile ->

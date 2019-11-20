@@ -95,6 +95,7 @@
     <Compile Include="Benchmarks\Array1Dvs2D.fs" />
     <Compile Include="Benchmarks\ArrayAccess.fs" />
     <Compile Include="Program.fs" />
+    <EmbeddedResource Include="..\samples\N37E051.SRTMGL1.hgt.zip" Link="samples\N37E051.SRTMGL1.hgt.zip" />
     <EmbeddedResource Include="..\samples\test-grayscale-16.png" Link="samples\test-grayscale-16.png" />
     <EmbeddedResource Include="..\samples\N46E015.png" Link="samples\N46E015.png" />
     <EmbeddedResource Include="..\samples\N00E031.hgt" Link="samples\N00E031.hgt" />
@@ -102,6 +103,8 @@
     <EmbeddedResource Include="..\samples\N46E015.hgt" Link="samples\N46E015.hgt" />
     <EmbeddedResource Include="..\samples\N46E015.SRTMGL1.hgt.zip" Link="samples\N46E015.SRTMGL1.hgt.zip" />
   </ItemGroup>
+
+  <ItemGroup />
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.11.5" />

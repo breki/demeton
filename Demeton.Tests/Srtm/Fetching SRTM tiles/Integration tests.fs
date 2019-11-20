@@ -25,11 +25,11 @@ let writeHeightsArrayToPng =
         FileSys.ensureDirectoryExists
         FileSys.openFileToWrite
 
+let openHgtStream = openZippedHgtFileStream FileSys.openZipFileEntry
+
 let convertToPng =
     convertZippedHgtTileToPng 
-        FileSys.openZipFileEntry 
-        createSrtmTileFromStream 
-        writeHeightsArrayToPng
+        openHgtStream createSrtmTileFromStream writeHeightsArrayToPng
 
 let constructHigherLevelTile =
     constructHigherLevelTileHeightsArray 3600 cacheDir readPngTile

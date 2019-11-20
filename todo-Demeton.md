@@ -1,4 +1,13 @@
-﻿- write the size of the total raster and tiles needed before starting generating them
+﻿- speeding up HGT reading, ideas:
+    - then somehow parallelize tile reading?
+
+- run the command on Alps
+    4.285186,42.795401,17.203536,48.618385
+
+- why isn't the default shading script elevation coloring + hillshading?
+- log the name of the generated PNG tile when saving it
+
+- write the size of the total raster and tiles needed before starting generating them
 - study GitHub releases
     - https://developer.github.com/v3/repos/releases/#create-a-release
     - prepare a release (script?) for Windows and Linux (with and without .NET Core) 

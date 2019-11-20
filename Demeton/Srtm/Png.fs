@@ -171,6 +171,24 @@ let decodeSrtmTileFromPngFile
     | Error errors -> Error (errors |> String.concat " ")
 
 /// <summary>
+/// A function that opens a file stream to the HGT file in the HGT zip file
+/// archive so it can be read.
+/// </summary>
+type ZippedHgtFileStreamOpener = SrtmTileId -> string -> Stream
+
+/// <summary>
+/// Opens a file stream to the HGT file in the HGT zip file archive so it can
+/// be read.
+/// </summary>
+let openZippedHgtFileStream
+    (readZipFileEntry: FileSys.ZipFileEntryReader): ZippedHgtFileStreamOpener
+    = fun tileId zippedHgtFileName ->
+    let tileName = toTileName tileId
+    let zippedEntryName = tileName + ".hgt"
+
+    readZipFileEntry zippedHgtFileName zippedEntryName
+    
+/// <summary>
 /// Reads a SRTM tile from the zipped HGT file and saves it into a PNG file.
 /// </summary>
 /// <remarks>
@@ -178,22 +196,25 @@ let decodeSrtmTileFromPngFile
 /// does not handle any errors/exceptions by itself, so it always returns Ok.
 /// </remarks>
 let convertZippedHgtTileToPng
-    (readZipFileEntry: FileSys.ZipFileEntryReader)
+    (openHgtStream: ZippedHgtFileStreamOpener)
     (createSrtmTileFromStream: ZippedSrtmTileReader)
     (writeHeightsArrayIntoPng: HeightsArrayPngWriter)
     : SrtmHgtToPngTileConverter =
     fun tileId zippedHgtFileName pngFileName ->
     
     let tileName = toTileName tileId
-    let zippedEntryName = tileName + ".hgt"
-
-    let zipEntryStream = 
-        readZipFileEntry zippedHgtFileName zippedEntryName
-
-    Log.debug "Reading tile %s..." zippedEntryName
-
+    Log.debug "Importing HGT tile %s..." tileName
+    
+    let zipEntryStream = openHgtStream tileId zippedHgtFileName
+        
+    // A hack that hugely speeds things up: first copy the whole stream to
+    // memory, and then use that memory stream to actually read the height data. 
+    let memoryStream = new MemoryStream() 
+    zipEntryStream.CopyTo memoryStream
+    memoryStream.Seek(0L, SeekOrigin.Begin) |> ignore
+    
     let heightsArray =
-        createSrtmTileFromStream 3600 tileId zipEntryStream
+        createSrtmTileFromStream 3600 tileId memoryStream
 
     Log.debug "Encoding tile %s into PNG..." tileName
 

@@ -6,7 +6,6 @@ open Xunit
 open Swensen.Unquote
 open System.IO
 open Demeton.DemTypes
-open Demeton.Srtm
 open Demeton.Srtm.Funcs
 
 let withZipFileEntry(): Stream =
@@ -26,19 +25,17 @@ let readZipFileEntry entryStreamToReturn _ _ = entryStreamToReturn
 
 let readHeightsArrayFromStream _ _ _ =
     HeightsArray
-        (10, 11, 5, 6, HeightsArrayInitializer1D(fun x -> DemHeightNone))
+        (10, 11, 5, 6, HeightsArrayInitializer1D(fun _ -> DemHeightNone))
 
 let expectToCreateSrtmTileFromStream
     expectedTileCoords
-    expectedStream
     heightsArrayToReturn
     tileSize 
     tileCoords 
-    stream =
+    _ =
 
     test <@ tileSize = 3600 @>
     test <@ tileCoords = expectedTileCoords @>
-    test <@ stream = expectedStream @>
 
     heightsArrayToReturn
 
@@ -58,17 +55,12 @@ let ``Opens HGT file entry in the zip file``() =
     let tileId = parseTileName tileName
     let zipFileName = "some/dir/N00E031.SRTMGL1.hgt.zip"
     let entryName = "N00E031.hgt"
-    let pngFileName = "some/other/N00E031.png"
 
     let entryStream = withZipFileEntry()
 
-    convertZippedHgtTileToPng
+    openZippedHgtFileStream
         (expectToReadZipFileEntry zipFileName entryName entryStream)
-        readHeightsArrayFromStream
-        (fun _ heightsArray -> heightsArray)
-        tileId 
-        zipFileName
-        pngFileName
+        tileId zipFileName
 
 [<Fact>]
 let ``Reads the zipped HGT tile as heights array``() =
@@ -85,7 +77,7 @@ let ``Reads the zipped HGT tile as heights array``() =
 
     convertZippedHgtTileToPng
         (readZipFileEntry entryStream)
-        (expectToCreateSrtmTileFromStream tileId entryStream heightsArray)
+        (expectToCreateSrtmTileFromStream tileId heightsArray)
         (fun _ heightsArray -> heightsArray)
         tileId
         zipFileName

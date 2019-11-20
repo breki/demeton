@@ -2,7 +2,7 @@
   "profiles": {
     "Demeton.Console": {
       "commandName": "Project",
-      "commandLineArgs": "shade 4.285186,42.795401,17.203536,48.618385 --map-scale 2500000 --dpi 72 --local-cache-dir E:\\src\\demeton\\samples\\cache --srtm-dir \\\\hobbit\\SRTM --tile-size 5000"
+      "commandLineArgs": "shade 4.285186,42.795401,17.203536,48.618385 --map-scale 2500000 --dpi 72 --local-cache-dir E:\\src\\demeton\\samples\\cache --srtm-dir G:\\SRTM --tile-size 5000"
     }
   }
 }

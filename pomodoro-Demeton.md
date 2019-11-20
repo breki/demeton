@@ -1,12 +1,13 @@
-﻿+ stopped at N57E018
+﻿- keep tile heights arrays in tiles stack, so we don't need to fetch them again
 
-- run the command on Alps
-    4.285186,42.795401,17.203536,48.618385
-- reading of HGTs is really slow
-    - what if we read the whole file into memory and then decompress it
-    - then somehow parallelize tile reading
+- rebuild and continue running Alps
+- stopped at N44E014
+
+- extract helper function(s) for sample files (GetManifestResourceStream)
 
 ## Wed 20.11.
+- Implemented huge speed-up of HGT tiles reading by first copying the zipped stream into a MemoryStream.
+- Extracted `openZippedHgtFileStream` so it can be reused in tests.
 - Prepared a sample batch script for generating hillshading of Alps.
 
 ## Tue 19.11.
