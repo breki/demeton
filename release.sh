@@ -10,3 +10,7 @@ dotnet test --configuration ${CONFIG} --verbosity minimal \
 	--filter Category!=acceptance
 dotnet publish Demeton.Console -c ${CONFIG} -r win10-x64 \
     --output ${PWD}/${BUILD_DIR}/Demeton-win10-x64
+
+cd ${PWD}/${BUILD_DIR}
+zip -qq -r Demeton-win10-x64.zip ./Demeton-win10-x64
+cd ..
