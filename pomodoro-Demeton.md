@@ -1,4 +1,7 @@
-﻿
+﻿- how to prevent including the source code in the release? if possible?
+- add building and running tests in the release action
+- add creating packages for Windows and Linux
+
 ## Thu 21.11.
 - Exposed `cellsPerDegree` as a parameter for Tile coord functions to speed things up.
 - Inlined some of short Tile functions.
