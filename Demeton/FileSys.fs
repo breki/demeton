@@ -89,7 +89,15 @@ let openZipFileEntry: ZipFileEntryReader = fun zipFileName entryName ->
     try
         let zipArchive = ZipFile.OpenRead(zipFileName)
         let entry = zipArchive.GetEntry(entryName)
-        entry.Open() |> Ok
+        match entry with
+        | null ->
+            sprintf
+                "ZIP file '%s' does not have a file entry '%s'."
+                zipFileName entryName
+            |> FileNotFoundException
+            |> raise
+            
+        | _ -> entry.Open() |> Ok
     with
     | ex ->
         match mapFileSysException ex with
