@@ -3,8 +3,8 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
-    <!--<RuntimeFrameworkVersion>2.2.6</RuntimeFrameworkVersion>-->
     <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

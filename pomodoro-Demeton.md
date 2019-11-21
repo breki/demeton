@@ -1,9 +1,8 @@
-﻿- how to prevent including the source code in the release? if possible?
-- add building and running tests in the release action
-- add creating packages for Windows and Linux
-- how to add version number to artifact ZIPs?
+﻿- how to add version number to artifact ZIPs?
 
 ## Thu 21.11.
+- Turned off localized satellite assemblies generation (using `SatelliteResourceLanguages` project property).
+- Implemented the release procedure (mostly).
 - Exposed `cellsPerDegree` as a parameter for Tile coord functions to speed things up.
 - Inlined some of short Tile functions.
 - Implemented functional error handling of opening streams, but it has its own problems (https://www.reddit.com/r/fsharp/comments/dzm42d/disposables_and_results/).

@@ -1,11 +1,4 @@
-﻿- study GitHub releases
-    - https://developer.github.com/v3/repos/releases/#create-a-release
-    - prepare a release (script?) for Windows and Linux (with and without .NET Core) 
-    - do we have a special branch for releasing?
-    - how to implement versioning?
-    - do we need to keep old relases?
-
-- add batch script that generates some sample images from these sample DEMs
+﻿- add batch script that generates some sample images from these sample DEMs
 
 - hillshading
 
