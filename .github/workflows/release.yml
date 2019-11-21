@@ -19,10 +19,6 @@ jobs:
          dotnet-version: 3.0.100
       - name: Build and run tests
         run: bash --noprofile --norc -eo pipefail release.sh
-      - name: Zip release package
-        uses: montudor/action-zip@v0.1.0
-        with:
-          args: zip -qq -r ./builds/Demeton-win10-x64.zip ./builds/Demeton-win10-x64
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
