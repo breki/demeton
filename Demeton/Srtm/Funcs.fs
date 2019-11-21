@@ -40,20 +40,18 @@ let findTileFromGlobalCoordinates
        
     { Level = level; TileX = tileX; TileY = tileY }
 
-let inline private cellsPerDegree tileSize (level: SrtmLevel) 
+let inline cellsPerDegree tileSize (level: SrtmLevel) 
     = (float tileSize) / levelFactorFloat level
 
-let inline longitudeToCellX tileSize (level: SrtmLevel) (lon: float) =
-    lon * cellsPerDegree tileSize level
+let inline longitudeToCellX cellsPerDegree (lon: float) =
+    lon * cellsPerDegree
 
-let inline latitudeToCellY tileSize (level: SrtmLevel) (lat: float) =
-    -lat * cellsPerDegree tileSize level
+let inline latitudeToCellY cellsPerDegree (lat: float) =
+    -lat * cellsPerDegree
 
-let inline cellXToLongitude tileSize (level: SrtmLevel) cellX =
-    cellX / cellsPerDegree tileSize level
+let inline cellXToLongitude cellsPerDegree cellX = cellX / cellsPerDegree
 
-let inline cellYToLatitude tileSize (level: SrtmLevel) cellY =
-    -cellY / cellsPerDegree tileSize level
+let inline cellYToLatitude cellsPerDegree cellY = -cellY / cellsPerDegree
 
 let inline srtmTileId level tileX tileY = 
     { Level = SrtmLevel.fromInt level; TileX = tileX; TileY = tileY }
@@ -159,35 +157,39 @@ let parseTileName (tileName: SrtmTileName): SrtmTileId =
 let tileLonLatBounds tileSize (tile: SrtmTileId): LonLatBounds =
     let level = tile.Level
     let (minCellX, minCellY) = tile |> tileMinCell tileSize
-    let minLon = minCellX |> float |> cellXToLongitude tileSize level
-    let maxLat = minCellY |> float |> cellYToLatitude tileSize level
+    
+    let cellsPerDegree = cellsPerDegree tileSize level
+    let minLon = minCellX |> float |> cellXToLongitude cellsPerDegree
+    let maxLat = minCellY |> float |> cellYToLatitude cellsPerDegree
     let maxLon = 
-        (minCellX + tileSize) |> float |> cellXToLongitude tileSize level
+        (minCellX + tileSize) |> float |> cellXToLongitude cellsPerDegree
     let minLat = 
-        (minCellY + tileSize) |> float |> cellYToLatitude tileSize level
+        (minCellY + tileSize) |> float |> cellYToLatitude cellsPerDegree
 
     { MinLon = minLon; MinLat = minLat; MaxLon = maxLon; MaxLat = maxLat }
 
 let boundsToTiles 
     tileSize (level: SrtmLevel) (bounds: LonLatBounds) : SrtmTileId list =
+        
+    let cellsPerDegree = cellsPerDegree tileSize level
     let minTileX = 
         bounds.MinLon 
-        |> longitudeToCellX tileSize level
+        |> longitudeToCellX cellsPerDegree
         |> cellXToTileX tileSize |> floor |> int
 
     let minTileY = 
         bounds.MaxLat 
-        |> latitudeToCellY tileSize level
+        |> latitudeToCellY cellsPerDegree
         |> cellYToTileY tileSize |> floor |> int
 
     let maxTileX = 
         (bounds.MaxLon
-        |> longitudeToCellX tileSize level
+        |> longitudeToCellX cellsPerDegree
         |> cellXToTileX tileSize |> ceil |> int) - 1
 
     let maxTileY = 
         (bounds.MinLat
-        |> latitudeToCellY tileSize level
+        |> latitudeToCellY cellsPerDegree
         |> cellYToTileY tileSize |> ceil |> int) - 1
 
     [ 

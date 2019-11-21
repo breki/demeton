@@ -6,7 +6,6 @@ open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Projections.MinLonLatDelta
-open Demeton.Srtm
 open Demeton.Srtm.Funcs
 open Xunit
 open Swensen.Unquote
@@ -59,17 +58,18 @@ let generateSampleWithParameters
     let maxLonNeededDeg = radToDeg maxLonNeeded 
     let maxLatNeededDeg = radToDeg maxLatNeeded 
 
+    let cellsPerDegree = cellsPerDegree 3600 srtmLevelNeeded
     let minSrtmX = 
-        minLonNeededDeg |> longitudeToCellX 3600 srtmLevelNeeded 
+        minLonNeededDeg |> longitudeToCellX cellsPerDegree 
         |> floor |> int
     let minSrtmY = 
-        minLatNeededDeg |> latitudeToCellY 3600 srtmLevelNeeded 
+        minLatNeededDeg |> latitudeToCellY cellsPerDegree 
         |> floor |> int
     let maxSrtmX = 
-        maxLonNeededDeg |> longitudeToCellX 3600 srtmLevelNeeded 
+        maxLonNeededDeg |> longitudeToCellX cellsPerDegree 
         |> floor |> int
     let maxSrtmY = 
-        maxLatNeededDeg |> latitudeToCellY 3600 srtmLevelNeeded 
+        maxLatNeededDeg |> latitudeToCellY cellsPerDegree 
         |> floor |> int
 
     let heights = 

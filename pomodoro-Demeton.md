@@ -1,6 +1,6 @@
-﻿- expose `cellsPerDegree` as a parameter?
-
+﻿
 ## Thu 21.11.
+- Exposed `cellsPerDegree` as a parameter for Tile coord functions to speed things up.
 - Inlined some of short Tile functions.
 - Implemented functional error handling of opening streams, but it has its own problems (https://www.reddit.com/r/fsharp/comments/dzm42d/disposables_and_results/).
 - Started introducing functional error handling in `FileSys`.

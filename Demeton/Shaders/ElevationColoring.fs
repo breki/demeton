@@ -11,7 +11,6 @@ open FParsec
 open Png
 open System.Threading.Tasks
 open Text
-open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 
 type ColorScaleMark = (DemHeight * Rgba8Bit.RgbaColor)
@@ -137,6 +136,8 @@ let defaultParameters = { ColorScale = colorScaleMaperitive }
 let shadeRaster (colorScale: ColorScale): RasterShader = 
     fun heightsArray srtmLevel tileRect imageData mapScale ->
 
+    let cellsPerDegree = cellsPerDegree 3600 srtmLevel 
+    
     let tileWidth = tileRect.Width
     let scaleFactor = mapScale.ProjectionScaleFactor
 
@@ -151,8 +152,8 @@ let shadeRaster (colorScale: ColorScale): RasterShader =
             let lonDeg = radToDeg lonRad
             let latDeg = radToDeg latRad
 
-            let globalSrtmX = lonDeg |> longitudeToCellX 3600 srtmLevel 
-            let globalSrtmY = latDeg |> latitudeToCellY 3600 srtmLevel 
+            let globalSrtmX = lonDeg |> longitudeToCellX cellsPerDegree 
+            let globalSrtmY = latDeg |> latitudeToCellY cellsPerDegree 
             heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
 
     let processRasterLine y =

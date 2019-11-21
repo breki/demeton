@@ -76,6 +76,7 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
 
     let scaleFactor = mapScale.ProjectionScaleFactor
     let tileWidth = tileRect.Width
+    let cellsPerDegree = cellsPerDegree 3600 srtmLevel
 
     let inline lonLatOf x y =
         let xUnscaled = float x / scaleFactor
@@ -86,8 +87,8 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
         let lonDeg = radToDeg lonRad
         let latDeg = radToDeg latRad
 
-        let globalSrtmX = lonDeg |> longitudeToCellX 3600 srtmLevel 
-        let globalSrtmY = latDeg |> latitudeToCellY 3600 srtmLevel 
+        let globalSrtmX = lonDeg |> longitudeToCellX cellsPerDegree 
+        let globalSrtmY = latDeg |> latitudeToCellY cellsPerDegree 
         heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
 
     let neighborHeights neighborCoords: float option[] option =

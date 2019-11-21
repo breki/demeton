@@ -68,11 +68,12 @@ let ``Calculates fractional global coordinates for given longitude and latitude`
     level longitude latitude tileSize expectedGlobalX expectedGlobalY =
 
     let srtmLevel = SrtmLevel.fromInt level
-
-    let globalX = longitude |> longitudeToCellX tileSize srtmLevel 
+    let cellsPerDegree = cellsPerDegree tileSize srtmLevel
+    
+    let globalX = longitude |> longitudeToCellX cellsPerDegree 
     test <@ globalX = expectedGlobalX @>
     
-    let globalY = latitude |> latitudeToCellY tileSize srtmLevel
+    let globalY = latitude |> latitudeToCellY cellsPerDegree
     test <@ globalY = expectedGlobalY @>
 
 
@@ -83,15 +84,17 @@ open PropertiesHelp
 let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
     let isApproxEqual b a = abs (a-b) < 0.0001
 
+    let childCellsPerDegree = cellsPerDegree tileSize level
+    
     // get the global coordinates
-    let cellX = longitudeToCellX tileSize level (float lon)
-    let cellY = latitudeToCellY tileSize level (float lat) 
+    let cellX = longitudeToCellX childCellsPerDegree (float lon)
+    let cellY = latitudeToCellY childCellsPerDegree (float lat) 
     let tileX = cellXToTileX tileSize cellX
     let tileY = cellYToTileY tileSize cellY
 
     let inversibility1 _ = 
-        let lon' = cellXToLongitude tileSize level cellX
-        let lat' = cellYToLatitude tileSize level cellY
+        let lon' = cellXToLongitude childCellsPerDegree cellX
+        let lat' = cellYToLatitude childCellsPerDegree cellY
 
         (lon' |> isApproxEqual lon && lat' |> isApproxEqual lat)
         |> Prop.label 
@@ -112,8 +115,9 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
 
         | childLevel ->
             let parentLevel = childLevel + 1 |> SrtmLevel.fromInt
-            let parentCellX = longitudeToCellX tileSize parentLevel (float lon)  
-            let parentCellY = latitudeToCellY tileSize parentLevel (float lat)
+            let parentCellsPerDegree = cellsPerDegree tileSize parentLevel
+            let parentCellX = longitudeToCellX parentCellsPerDegree (float lon)  
+            let parentCellY = latitudeToCellY parentCellsPerDegree (float lat)
             let halfChildX = cellX / 2.
             let halfChildY = cellY / 2.
             (halfChildX = parentCellX && halfChildY = parentCellY)
@@ -130,11 +134,12 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
 
         | childLevel ->
             let parentLevel = childLevel + 1 |> SrtmLevel.fromInt
+            let parentCellsPerDegree = cellsPerDegree tileSize parentLevel
             let parentTileX = 
-                longitudeToCellX tileSize parentLevel (float lon)  
+                longitudeToCellX parentCellsPerDegree (float lon)  
                 |> cellXToTileX tileSize
             let parentTileY = 
-                latitudeToCellY tileSize parentLevel (float lat)
+                latitudeToCellY parentCellsPerDegree (float lat)
                 |> cellYToTileY tileSize
             let halfChildX = tileX / 2.
             let halfChildY = tileY / 2.
