@@ -43,7 +43,7 @@ let tileGenerator: ShadeCommand.ShadedRasterTileGenerator =
 let tileSaver _ _ (tileX, tileY) _ _ =
     let imageFileName = sprintf "%d-%d" tileX tileY
     savedTiles <- imageFileName :: savedTiles
-    imageFileName
+    imageFileName |> Ok
 
 let initialize() =
     generatedTiles <- []

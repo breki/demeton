@@ -4,6 +4,7 @@ open Types
 open Funcs
 open Png
 open Downsampling
+open FileSys
 open System
 
 type LocalCacheTileStatus =
@@ -184,16 +185,19 @@ let processNextCommand
             |> List.filter Option.isSome
             |> List.map Option.get
 
-        let higherLevelHeightsArray =
+        let higherLevelHeightsArrayResult =
             constructHigherLevelTile
                 DownsamplingMethod.Average tile childrenTiles
             |> writeTileToCache tile
             
-        match higherLevelHeightsArray with
-        |Some tile ->
+        match higherLevelHeightsArrayResult with
+        | Ok (Some tile) ->
             (remainingCommands, Some tile :: remainingTilesInStack)
         // when the constructed tile is empty
-        | None -> (remainingCommands, None :: remainingTilesInStack)
+        | Ok None -> (remainingCommands, None :: remainingTilesInStack)
+        | Error error ->
+            (Failure (error |> fileSysErrorMessage)
+             :: remainingCommands, tilesStack)
 
     | Failure _ :: _ -> (commandStack, tilesStack)
 

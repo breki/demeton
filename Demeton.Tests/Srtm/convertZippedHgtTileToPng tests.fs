@@ -77,7 +77,7 @@ let ``Reads the zipped HGT tile as heights array``() =
     convertZippedHgtTileToPng
         (readZipFileEntry entryStream)
         (expectToCreateSrtmTileFromStream tileId heightsArray)
-        (fun _ heightsArray -> heightsArray)
+        (fun _ heightsArray -> heightsArray |> Ok)
         tileId
         zipFileName
         pngFileName
@@ -99,7 +99,7 @@ let ``Encodes the read SRTM heights array into PNG file``() =
         (readZipFileEntry entryStream)
         (fun _ _ _ -> heightsArray)
         (fun a b -> expectHeightsArrayToBeEncodedIntoPngFile 
-                        heightsArray pngFileName a b)
+                        heightsArray pngFileName a b |> Ok)
         tileId 
         zipFileName
         pngFileName
@@ -121,7 +121,7 @@ let ``Returns the read heights array``() =
         convertZippedHgtTileToPng
             (readZipFileEntry entryStream)
             (fun _ _ _ -> heightsArray)
-            (fun _ heightsArray -> heightsArray)
+            (fun _ heightsArray -> Ok heightsArray)
             tileId
             zipFileName 
             pngFileName

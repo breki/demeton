@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <!--<RuntimeFrameworkVersion>2.2.6</RuntimeFrameworkVersion>-->
     <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
@@ -93,7 +93,7 @@
     <Compile Include="Benchmarks\CrcBenchmarks.fs" />
     <Compile Include="Benchmarks\Array1Dvs2D.fs" />
     <Compile Include="Benchmarks\ArrayAccess.fs" />
-    <Compile Include="Program.fs" />
+    <Compile Include="DummyProgram.fs" />
     <EmbeddedResource Include="..\samples\N37E051.SRTMGL1.hgt.zip" Link="samples\N37E051.SRTMGL1.hgt.zip" />
     <EmbeddedResource Include="..\samples\test-grayscale-16.png" Link="samples\test-grayscale-16.png" />
     <EmbeddedResource Include="..\samples\N46E015.png" Link="samples\N46E015.png" />
@@ -112,6 +112,7 @@
     <PackageReference Include="fscheck.xunit" Version="2.14.0" />
     <PackageReference Include="FSharp.Formatting.CommandTool" Version="3.1.0" />
     <PackageReference Include="FsUnit.xUnit" Version="3.4.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="SharpZipLib.NETStandard" Version="1.0.7" />
     <PackageReference Include="System.Drawing.Common" Version="4.6.0" />
     <PackageReference Include="Unquote" Version="5.0.0" />

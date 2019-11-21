@@ -20,6 +20,7 @@ open Demeton.Shaders.Pipeline.BuildingSlopeShader
 open Demeton.Srtm
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Types
+open FileSys
 open Png.Types
 open Text
 open System
@@ -292,17 +293,19 @@ let generateShadedRasterTile
         | None -> Ok None
     
 type ShadedRasterTileSaver = 
-    Options -> int -> (int * int) -> Raster.Rect -> RawImageData -> string
+    Options -> int -> (int * int) -> Raster.Rect -> RawImageData
+        -> Result<string, string>
 
 let saveShadedRasterTile 
     (ensureDirectoryExists: FileSys.DirectoryExistsEnsurer)
-    (openFileToWrite: FileSys.FileOpener)
-    (writePngToStream: Png.File.PngStreamWriter)
-    (options: Options) 
-    (maxTileIndex: int)
-    (tileIndexX, tileIndexY)
-    (tileRect: Raster.Rect)
-    imageData =
+    (openFileToWrite: FileSys.FileWriter)
+    (writePngToStream: Png.File.PngStreamWriter): ShadedRasterTileSaver =
+    fun
+        (options: Options) 
+        (maxTileIndex: int)
+        (tileIndexX, tileIndexY)
+        (tileRect: Raster.Rect)
+        imageData ->
 
     ensureDirectoryExists options.OutputDir |> ignore
 
@@ -318,21 +321,22 @@ let saveShadedRasterTile
                 tileIndexX 
                 tileIndexStringWidth 
                 tileIndexY)
-    use stream = openFileToWrite tilePngFileName
+    openFileToWrite tilePngFileName
+    |> Result.map (fun stream -> 
+        let ihdr = {
+            Width = tileRect.Width
+            Height = tileRect.Height
+            BitDepth = PngBitDepth.BitDepth8
+            ColorType = PngColorType.RgbAlpha
+            InterlaceMethod = PngInterlaceMethod.NoInterlace
+        }
 
-    let ihdr = {
-        Width = tileRect.Width
-        Height = tileRect.Height
-        BitDepth = PngBitDepth.BitDepth8
-        ColorType = PngColorType.RgbAlpha
-        InterlaceMethod = PngInterlaceMethod.NoInterlace
-    }
-
-    stream |> writePngToStream ihdr imageData |> ignore
+        stream |> writePngToStream ihdr imageData |> closeStream
     
-    Log.info "Saved a shade tile to %s" tilePngFileName
+        Log.info "Saved a shade tile to %s" tilePngFileName
 
-    tilePngFileName
+        tilePngFileName)
+    |> Result.mapError fileSysErrorMessage
 
 let run 
     (options: Options) 
@@ -413,14 +417,12 @@ let run
             match maybeGeneratedTile with
             | Some imageData -> 
                 Log.info "Saving the shade tile..."
-
-                let tileImageFileName = 
-                    saveTile 
-                        options 
-                        maxTileIndex 
-                        (xIndex, yIndex) 
-                        tileBounds 
-                        imageData
-                Some (Ok tileImageFileName)
+                saveTile 
+                    options 
+                    maxTileIndex 
+                    (xIndex, yIndex) 
+                    tileBounds 
+                    imageData
+                |> Some
             | None  -> None
         )

@@ -23,17 +23,17 @@ let mutable createdCacheDirectory = None
 
 let ensureCacheDirectoryExists: FileSys.DirectoryExistsEnsurer = fun dir ->
     createdCacheDirectory <- Some dir
-    dir
+    Ok dir
 
 let writeAsPngFile: HeightsArrayPngWriter = 
     fun fileName heightsArray ->
     pngFileName <- Some fileName
-    heightsArray
+    heightsArray |> Ok
 
-let writeAsNoneFile: FileSys.FileOpener = 
+let writeAsNoneFile: FileSys.FileWriter = 
     fun fileName ->
     noneFileName <- Some fileName
-    new MemoryStream() :> Stream
+    new MemoryStream() :> Stream |> Ok
 
 // When saving a tile to the cache, it writes it into an appropriate location
 // in the cache, as a PNG file.
@@ -51,7 +51,7 @@ let ``Saves the tile into the cache directory``() =
             _noCall
             tile (Some heights)
 
-    test <@ writtenTileIdMaybe = Some (tile, heights) @>
+    test <@ writtenTileIdMaybe = Ok (Some (tile, heights)) @>
     test <@ pngFileName = Some expectedFileName @>
 
 [<Fact>]
@@ -88,7 +88,7 @@ let ``Ignores the non-existing tile level 0``() =
             writeAsNoneFile
             tile None
 
-    test <@ writtenTileIdMaybe = None @>
+    test <@ writtenTileIdMaybe = Ok None @>
     test <@ pngFileName = None @>
     test <@ noneFileName = None @>
 
@@ -111,6 +111,6 @@ let ``Saves the non-existing tile info into the cache directory``() =
             writeAsNoneFile
             tile None
 
-    test <@ writtenTileIdMaybe = None @>
+    test <@ writtenTileIdMaybe = Ok None @>
     test <@ noneFileName = Some expectedFileName @>
     test <@ pngFileName = None @>

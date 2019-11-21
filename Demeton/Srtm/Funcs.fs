@@ -5,22 +5,23 @@ open Demeton.IOTypes
 open Demeton.DemTypes
 open Demeton.Srtm.Types
 
+open FileSys
 open System
 open System.IO
 
-let private levelFactorFloat (level: SrtmLevel) =
+let inline private levelFactorFloat (level: SrtmLevel) =
     1 <<< level.Value |> float
 
-let tileXToCellX (tileSize: int) (tileX: float) =
+let inline tileXToCellX (tileSize: int) (tileX: float) =
     tileX * (tileSize |> float)
 
-let tileYToCellY (tileSize: int) (tileY: float) =
+let inline tileYToCellY (tileSize: int) (tileY: float) =
     tileY * (tileSize |> float)
 
-let cellXToTileX (tileSize: int) (cellX: float) =
+let inline cellXToTileX (tileSize: int) (cellX: float) =
     cellX / (tileSize |> float)
 
-let cellYToTileY (tileSize: int) (cellY: float) =
+let inline cellYToTileY (tileSize: int) (cellY: float) =
     cellY / (tileSize |> float)
 
 let tileMinCell (tileSize: int) (tileId: SrtmTileId)
@@ -39,22 +40,22 @@ let findTileFromGlobalCoordinates
        
     { Level = level; TileX = tileX; TileY = tileY }
 
-let private cellsPerDegree tileSize (level: SrtmLevel) 
+let inline private cellsPerDegree tileSize (level: SrtmLevel) 
     = (float tileSize) / levelFactorFloat level
 
-let longitudeToCellX tileSize (level: SrtmLevel) (lon: float) =
+let inline longitudeToCellX tileSize (level: SrtmLevel) (lon: float) =
     lon * cellsPerDegree tileSize level
 
-let latitudeToCellY tileSize (level: SrtmLevel) (lat: float) =
+let inline latitudeToCellY tileSize (level: SrtmLevel) (lat: float) =
     -lat * cellsPerDegree tileSize level
 
-let cellXToLongitude tileSize (level: SrtmLevel) cellX =
+let inline cellXToLongitude tileSize (level: SrtmLevel) cellX =
     cellX / cellsPerDegree tileSize level
 
-let cellYToLatitude tileSize (level: SrtmLevel) cellY =
+let inline cellYToLatitude tileSize (level: SrtmLevel) cellY =
     -cellY / cellsPerDegree tileSize level
 
-let srtmTileId level tileX tileY = 
+let inline srtmTileId level tileX tileY = 
     { Level = SrtmLevel.fromInt level; TileX = tileX; TileY = tileY }
 
 let toSrtmTileCoords (tileId: SrtmTileId): SrtmTileCoords =
@@ -297,7 +298,8 @@ let toLocalCacheTileFileName
     |> Pth.combine tilePngFileName 
 
 
-type HeightsArrayPngWriter = FileSys.FileName -> HeightsArray -> HeightsArray
+type HeightsArrayPngWriter =
+    FileSys.FileName -> HeightsArray -> Result<HeightsArray, FileSysError>
 
 type SrtmPngTileReader = SrtmTileId -> FileSys.FileName -> HeightsArrayResult
     

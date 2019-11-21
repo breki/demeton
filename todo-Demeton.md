@@ -1,9 +1,4 @@
-﻿- handle errors in reading PNG tiles
-    - write its file name
-- are we using `use` for file streams?
-- inline short functions (see tile functions, for example)
-
-- study GitHub releases
+﻿- study GitHub releases
     - https://developer.github.com/v3/repos/releases/#create-a-release
     - prepare a release (script?) for Windows and Linux (with and without .NET Core) 
     - do we have a special branch for releasing?

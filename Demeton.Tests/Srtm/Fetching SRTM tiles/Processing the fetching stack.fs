@@ -60,7 +60,7 @@ let ``When a tile is cached, reads it and puts it into the tiles stack``() =
     let tileHeights = HeightsArray(1, 2, 3, 4, EmptyHeightsArray)
     
     let expectReadingOfTile expectedTileId tileId _ =
-        test <@ expectedTileId = tile @>
+        test <@ expectedTileId = tileId @>
         Ok tileHeights
     
     let resultingState =
@@ -82,8 +82,6 @@ let ``When a tile is cached, reads it and puts it into the tiles stack``() =
 let ``If reading of a cache tile fails, put error indicator into the stack``() =
     let tile = srtmTileId 0 10 20
 
-    let tileHeights = HeightsArray(1, 2, 3, 4, EmptyHeightsArray)
-    
     let readingOfTileFails _ _ = Error "some error"
     
     let resultingState =
@@ -209,7 +207,7 @@ let ``When create from lower tiles command is received and create returns tile``
     let mutable tilePngWasCreated = false
     let writeTileToCache tile _ = 
         tilePngWasCreated <- true
-        Some (tile, someTileHeights)
+        Some (tile, someTileHeights) |> Ok
 
     let resultingState =
         (createFromLowerTilesCmd :: initialCommands, tilesStack) 
@@ -246,7 +244,7 @@ let ``When create from lower tiles command is received and create returns None``
     let mutable tilePngWasCreated = false
     let writeTileToCache _ _ = 
         tilePngWasCreated <- true
-        None
+        Ok None
 
     let resultingState =
         (createFromLowerTilesCmd :: initialCommands, tilesStack) 

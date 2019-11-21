@@ -2,9 +2,11 @@
 
 open Demeton.DemTypes
 open Demeton.Srtm.Png
+open FileSys
 open Xunit
 open Swensen.Unquote
 open System.IO
+open TestHelp
 
 [<Fact>]
 let ``Creates the necessary directories for the local cache``() =
@@ -18,8 +20,8 @@ let ``Creates the necessary directories for the local cache``() =
     writeHeightsArrayIntoPngFile 
         (fun dir -> 
             test <@ dir = localCacheDirWithLevel @>
-            dir)
-        (fun _ -> new MemoryStream() :> Stream)
+            Ok dir)
+        (fun _ -> new MemoryStream() :> Stream |> Ok)
         pngFileName
         heightsArray 
 
@@ -33,7 +35,7 @@ let ``Writes the encoded PNG image to the specified file``() =
     FileSys.deleteDirectoryIfExists localCacheDir |> ignore
 
     let pngFileName = 
-        localCacheDir |> Pth.combine "0" |> Pth.combine "file.png"
+        localCacheDir |> Pth.combine "0" |> Pth.combine "file1.png"
 
     writeHeightsArrayIntoPngFile 
         FileSys.ensureDirectoryExists
@@ -42,8 +44,10 @@ let ``Writes the encoded PNG image to the specified file``() =
         heightsArray 
     |> ignore
 
-    use writtenFileStream = FileSys.openFileToRead pngFileName
-    use memoryStream = new MemoryStream()
-    writtenFileStream.CopyTo(memoryStream)
+    match FileSys.openFileToRead pngFileName with
+    | Ok writtenFileStream -> 
+        use memoryStream = new MemoryStream()
+        writtenFileStream.CopyTo(memoryStream)
 
-    test <@ memoryStream.Length = 68L @>
+        test <@ memoryStream.Length = 68L @>
+    | Error error -> error |> fileSysErrorMessage |> fail

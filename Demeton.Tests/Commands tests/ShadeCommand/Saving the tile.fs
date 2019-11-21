@@ -34,7 +34,7 @@ let imageData = Rgba8Bit.createImageData 10 20 Rgba8Bit.ImageDataZero
 let mutable createdDirectoryName = None
 let createDirectory dirName = 
     createdDirectoryName <- Some dirName
-    dirName
+    Ok dirName
 
 let mutable ihdrUsed = None
 let mutable imageDataUsed = None
@@ -47,7 +47,7 @@ let writePngToStream: Png.File.PngStreamWriter =
 let mutable pngFileNameUsed = None
 let openPngFile fileName =
     pngFileNameUsed <- Some fileName
-    new MemoryStream() :> Stream
+    new MemoryStream() :> Stream |> Ok
 
 let saveTile maxTileIndex =
     ShadeCommand.saveShadedRasterTile 
@@ -75,7 +75,7 @@ let ``The name of tile PNG file has to be in the required format and is returned
         |> Pth.combine 
             (sprintf "%s-%d-%d.png" options.FilePrefix tileIndexX tileIndexY)
     test <@ pngFileNameUsed = Some expectedFileName @>
-    test <@ returnedFileName = expectedFileName @>
+    test <@ returnedFileName = Ok expectedFileName @>
 
 [<Theory>]
 [<InlineData(30, "03-05")>]

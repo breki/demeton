@@ -78,21 +78,23 @@ let encodeSrtmHeightsArrayToPng
 
 
 let writeHeightsArrayIntoPngFile
-    (ensureDirectoryExists: string -> string)
-    (openFileToWrite: FileSys.FileOpener): HeightsArrayPngWriter =
+    (ensureDirectoryExists: DirectoryExistsEnsurer)
+    (openFileToWrite: FileSys.FileReader): HeightsArrayPngWriter =
     fun pngFileName heightsArray ->
 
     ensureDirectoryExists (pngFileName |> Pth.directory) |> ignore
 
-    use stream = openFileToWrite pngFileName
-    encodeSrtmHeightsArrayToPng heightsArray stream |> ignore
-
-    heightsArray
+    openFileToWrite pngFileName
+    |> Result.map (fun stream -> 
+        encodeSrtmHeightsArrayToPng heightsArray stream
+        |> closeStream
+        heightsArray)
 
 /// <summary>
 /// Writes a tile into a local cache as a PNG file.
 /// </summary>
-type SrtmTileCacheWriter = SrtmTileId -> HeightsArray option -> SrtmTile option
+type SrtmTileCacheWriter =
+    SrtmTileId -> HeightsArray option -> Result<SrtmTile option, FileSysError>
 
 /// <summary>
 /// Writes a tile into a local cache as a PNG file. If the supplied 
@@ -103,7 +105,7 @@ let writeSrtmTileToLocalCache
     (localCacheDir: FileSys.DirectoryName)
     (ensureDirectoryExists: FileSys.DirectoryExistsEnsurer)
     (writeHeightsArrayToFile: HeightsArrayPngWriter)
-    (openFileToWrite: FileSys.FileOpener)
+    (openFileToWrite: FileSys.FileWriter)
     : SrtmTileCacheWriter =
     fun (tile: SrtmTileId) (heightsArrayMaybe: HeightsArray option) -> 
     match (heightsArrayMaybe, tile.Level.Value) with
@@ -114,9 +116,9 @@ let writeSrtmTileToLocalCache
         
         pngFileName |> Pth.directory |> ensureDirectoryExists |> ignore
         
-        let heightsArray = writeHeightsArrayToFile pngFileName heightsArray
-        Some (tile, heightsArray)
-    | (None, 0) -> None
+        writeHeightsArrayToFile pngFileName heightsArray
+        |> Result.map (fun heightsArray -> Some (tile, heightsArray))
+    | (None, 0) -> Ok None
     | (None, _) -> 
         let noneFileName = 
             tile |> toLocalCacheTileFileName localCacheDir
@@ -124,18 +126,15 @@ let writeSrtmTileToLocalCache
             
         noneFileName |> Pth.directory |> ensureDirectoryExists |> ignore
             
-        let stream = openFileToWrite noneFileName
-        stream.Close()
-        None
+        openFileToWrite noneFileName
+        |> Result.map (fun stream -> 
+            stream |> closeStream
+            None)
 
 let decodeSrtmTileFromPngFile
-    (openFile: FileSys.FileOpener): SrtmPngTileReader =
+    (readFile: FileSys.FileReader): SrtmPngTileReader =
     fun tileId pngFileName ->
     Log.info "Loading PNG SRTM tile '%s'..." pngFileName
-
-    use stream = openFile pngFileName
-
-    let (ihdr, imageData) = stream |> loadPngFromStream
 
     let validateImageSize ihdr =
         match (ihdr.Width, ihdr.Height) with
@@ -149,7 +148,7 @@ let decodeSrtmTileFromPngFile
         | _ -> 
             Error "The color type of this PNG does not correspond to the SRTM tile."
 
-    let generateHeightsArray() = 
+    let generateHeightsArray ihdr (imageData: RawImageData) = 
         let (minX, minY) = tileMinCell 3600 tileId
 
         let srtmTileInitialize (cells: DemHeight[]) = 
@@ -166,12 +165,19 @@ let decodeSrtmTileFromPngFile
         Ok (HeightsArray(minX, minY, 3600, 3600, 
                 HeightsArrayCustomInitializer srtmTileInitialize))
 
-    let validationResult =
-        ResultSeq.fold [ validateColorType; validateImageSize ] ihdr
+    match readFile pngFileName with
+    | Ok stream ->
+        let (ihdr, imageData) = stream |> loadPngFromStream
+        
+        stream |> closeStream
+        
+        let validationResult =
+            ResultSeq.fold [ validateColorType; validateImageSize ] ihdr
 
-    match validationResult with
-    | Ok _ -> generateHeightsArray()
-    | Error errors -> Error (errors |> String.concat " ")
+        match validationResult with
+        | Ok _ -> generateHeightsArray ihdr imageData
+        | Error errors -> Error (errors |> String.concat " ")
+    | Error fileSysError -> fileSysError |> fileSysErrorMessage |> Error
 
 /// <summary>
 /// A function that opens a file stream to the HGT file in the HGT zip file
@@ -215,6 +221,8 @@ let convertZippedHgtTileToPng
         // memory, and then use that memory stream to actually read the height data. 
         let memoryStream = new MemoryStream() 
         zipEntryStream.CopyTo memoryStream
+        zipEntryStream |> closeStream
+        
         memoryStream.Seek(0L, SeekOrigin.Begin) |> ignore
         
         let heightsArray =
@@ -222,7 +230,8 @@ let convertZippedHgtTileToPng
 
         Log.debug "Encoding tile %s into PNG..." tileName
 
-        writeHeightsArrayIntoPng pngFileName heightsArray |> Ok
+        writeHeightsArrayIntoPng pngFileName heightsArray
+        |> Result.mapError fileSysErrorMessage
     | Error error ->
         sprintf
             "Could not open SRTM HTG file '%s': %s"

@@ -69,9 +69,11 @@ let ``Calculates fractional global coordinates for given longitude and latitude`
 
     let srtmLevel = SrtmLevel.fromInt level
 
-    test <@ longitude |> longitudeToCellX tileSize srtmLevel 
-                = expectedGlobalX @>
-    test <@ latitude |> latitudeToCellY tileSize srtmLevel = expectedGlobalY @>
+    let globalX = longitude |> longitudeToCellX tileSize srtmLevel 
+    test <@ globalX = expectedGlobalX @>
+    
+    let globalY = latitude |> latitudeToCellY tileSize srtmLevel
+    test <@ globalY = expectedGlobalY @>
 
 
 open FsCheck
