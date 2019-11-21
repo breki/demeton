@@ -29,7 +29,7 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
-      - name: Upload Release Asset
+      - name: Upload win10-x64 package
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1.0.1
         env:
@@ -38,4 +38,24 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
           asset_path: ./builds/Demeton-win10-x64.zip
           asset_name: Demeton-win10-x64.zip
+          asset_content_type: application/zip
+      - name: Upload win10-x64-full package
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./builds/Demeton-win10-x64-full.zip
+          asset_name: Demeton-win10-x64-full.zip
+          asset_content_type: application/zip
+      - name: Upload linux-x64-full package
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./builds/Demeton-linux-x64-full.zip
+          asset_name: Demeton-linux-x64-full.zip
           asset_content_type: application/zip
