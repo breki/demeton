@@ -1,6 +1,8 @@
-﻿- why isn't the default shading script elevation coloring + hillshading?
+﻿- write the size of the total raster and tiles needed before starting generating them
 
 ## Wed 20.11.
+- Improved logging if tile fetching code.
+- Fixed the wrong order of compositing images (source vs. destination).
 - Extract helper function(s) for sample files (GetManifestResourceStream).
 - (Re)defined `HeightsArrayResult` and defined `HeightsArrayMaybeResult` types.
 - Defined `SrtmTile` as type for SrtmTileId * HeightsArray.

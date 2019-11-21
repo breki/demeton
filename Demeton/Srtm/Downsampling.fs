@@ -145,7 +145,7 @@ let lowerLevelHeightsArrayNeededForDownsampling
         { MinX = childrenMinX; MinY = childrenMinY; 
         Width = childrenSize; Height = childrenSize } 
     childrenHeightsArrays |> Demeton.Dem.merge mergedHeightsArrayRect
-        
+
 /// <summary>
 /// Constructs a heights array for a higher-level tile from the list of 
 /// children lower-level tiles.
@@ -161,21 +161,26 @@ let constructHigherLevelTileHeightsArray
     (tileSize: int): HigherLevelTileConstructor =
     fun downsamplingMethod tile (childrenTiles: SrtmTile list) ->
 
-    let childrenHeightsArrays =
-        childrenTiles
-        |> List.map (fun (_, heightArray) -> heightArray)
+    match childrenTiles with
+    | [] -> None
+    | _ -> 
+        let childrenHeightsArrays =
+            childrenTiles
+            |> List.map (fun (_, heightArray) -> heightArray)
+            
+        Log.info "Merging all the read tiles into a single array..."
+            
+        let mergedHeightsMaybe =
+            lowerLevelHeightsArrayNeededForDownsampling
+                downsamplingMethod
+                tileSize
+                tile
+                childrenHeightsArrays
         
-    Log.info "Merging all the read tiles into a single array..."
-        
-    let mergedHeights =
-        lowerLevelHeightsArrayNeededForDownsampling
-            downsamplingMethod
-            tileSize
-            tile
-            childrenHeightsArrays
-    
-    // after merging the tiles, make a parent tile by downsampling
-    Log.info "Creating the higher-level tile by downsampling..."
-    mergedHeights
-    |> Option.map
-            (downsampleTileHeightsArray downsamplingMethod tileSize tile)
+        mergedHeightsMaybe
+        |> Option.map (fun mergedHeights ->
+                // after merging the tiles, make a parent tile by downsampling
+                Log.info "Creating the higher-level tile by downsampling..."
+                
+                mergedHeights
+                |> downsampleTileHeightsArray downsamplingMethod tileSize tile)

@@ -106,6 +106,8 @@ let writeSrtmTileToLocalCache
     fun (tile: SrtmTileId) (heightsArrayMaybe: HeightsArray option) -> 
     match (heightsArrayMaybe, tile.Level.Value) with
     | (Some heightsArray, _) ->
+        Log.info "Writing SRTM tile %s..." (toTileName tile)
+        
         let pngFileName = tile |> toLocalCacheTileFileName localCacheDir
         
         pngFileName |> Pth.directory |> ensureDirectoryExists |> ignore

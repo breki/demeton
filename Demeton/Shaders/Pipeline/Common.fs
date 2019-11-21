@@ -45,7 +45,7 @@ let rec executeShadingStep
 
     match step with
     | Compositing (step1, step2, compositingFuncId) ->
-        let image1 = 
+        let destImage = 
             executeShadingStep 
                 shadingFuncFactory
                 compositingFuncFactory 
@@ -54,7 +54,7 @@ let rec executeShadingStep
                 tileRect 
                 mapScale 
                 step1
-        let image2 = 
+        let sourceImage = 
             executeShadingStep 
                 shadingFuncFactory
                 compositingFuncFactory 
@@ -66,7 +66,7 @@ let rec executeShadingStep
 
         Log.info "Running compositing step '%s'..." compositingFuncId
         let compositingFunc = compositingFuncFactory compositingFuncId
-        compositingFunc tileRect.Width tileRect.Height image1 image2
+        compositingFunc tileRect.Width tileRect.Height sourceImage destImage
     | _ -> 
         let rasterShaderToUse = 
             match step with

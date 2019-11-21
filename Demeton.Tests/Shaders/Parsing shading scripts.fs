@@ -11,11 +11,22 @@ open Xunit
 open Swensen.Unquote
 open TestHelp
 
-let parseShadingScript script: ShadingStep =
+let private parseShadingScript script: ShadingStep =
     match ShadeCommand.parseShadingScriptOption script with
     | OkValue parsedValue -> parsedValue :?> ShadingStep
     | InvalidValue errorMessage -> 
         fail (sprintf "parsing of shading script failed: %s" errorMessage)
+
+let private isElevationColoring step =
+    match step with
+    | ElevationColoring _ -> true
+    | _ -> false
+
+let private isIgorHillshading step =
+    match step with
+    | IgorHillshading _ -> true
+    | _ -> false
+    
 
 [<Fact>]
 let ``Supports parsing elevation coloring step without parameters``() =
@@ -43,6 +54,18 @@ let ``Supports parsing elevation coloring step with custom color scale``() =
     test <@ match rootStep with 
             | ElevationColoring parameters -> 
                 parameters.ColorScale = expectedColorScale
+            | _ -> false
+        @>
+
+[<Fact>]
+let ``Supports parsing compositing steps``() =
+    let script = "elecolor |+ igor"
+
+    let rootStep = parseShadingScript script
+
+    test <@ match rootStep with
+            | Compositing (step1, step2, _) ->
+                step1 |> isElevationColoring && step2 |> isIgorHillshading
             | _ -> false
         @>
     
