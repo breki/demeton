@@ -12,6 +12,7 @@
     <WarningsAsErrors />
   </PropertyGroup>
   <ItemGroup>
+    <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
     <Compile Include="SimAnn.fs" />
     <Compile Include="Text.fs" />
     <Compile Include="TextParsers.fs" />

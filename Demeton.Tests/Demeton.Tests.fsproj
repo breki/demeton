@@ -18,6 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
     <Compile Include="TestHelp.fs" />
     <Compile Include="PropertiesHelp.fs" />
     <Compile Include="ColorGen.fs" />

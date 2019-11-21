@@ -18,6 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
     <Compile Include="Wiring.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
