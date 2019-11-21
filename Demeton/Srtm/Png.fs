@@ -2,12 +2,14 @@
 
 open Demeton.DemTypes
 open Raster
+open Types
 open Png
 open Png.Types
 open Png.File
 open Demeton.Srtm.Funcs
+
+open FileSys
 open System.IO
-open Types
 
 [<Literal>]
 let MissingHeightAsUint16 = 0us
@@ -175,7 +177,8 @@ let decodeSrtmTileFromPngFile
 /// A function that opens a file stream to the HGT file in the HGT zip file
 /// archive so it can be read.
 /// </summary>
-type ZippedHgtFileStreamOpener = SrtmTileId -> string -> Stream
+type ZippedHgtFileStreamOpener =
+    SrtmTileId -> string -> Result<Stream, FileSysError>
 
 /// <summary>
 /// Opens a file stream to the HGT file in the HGT zip file archive so it can
@@ -206,20 +209,26 @@ let convertZippedHgtTileToPng
     let tileName = toTileName tileId
     Log.debug "Importing HGT tile %s..." tileName
     
-    let zipEntryStream = openHgtStream tileId zippedHgtFileName
+    match openHgtStream tileId zippedHgtFileName with
+    | Ok zipEntryStream ->
+        // A hack that hugely speeds things up: first copy the whole stream to
+        // memory, and then use that memory stream to actually read the height data. 
+        let memoryStream = new MemoryStream() 
+        zipEntryStream.CopyTo memoryStream
+        memoryStream.Seek(0L, SeekOrigin.Begin) |> ignore
         
-    // A hack that hugely speeds things up: first copy the whole stream to
-    // memory, and then use that memory stream to actually read the height data. 
-    let memoryStream = new MemoryStream() 
-    zipEntryStream.CopyTo memoryStream
-    memoryStream.Seek(0L, SeekOrigin.Begin) |> ignore
-    
-    let heightsArray =
-        createSrtmTileFromStream 3600 tileId memoryStream
+        let heightsArray =
+            createSrtmTileFromStream 3600 tileId memoryStream
 
-    Log.debug "Encoding tile %s into PNG..." tileName
+        Log.debug "Encoding tile %s into PNG..." tileName
 
-    writeHeightsArrayIntoPng pngFileName heightsArray |> Ok
+        writeHeightsArrayIntoPng pngFileName heightsArray |> Ok
+    | Error error ->
+        sprintf
+            "Could not open SRTM HTG file '%s': %s"
+            zippedHgtFileName (error |> fileSysErrorMessage)
+        |> Error
+        
    
 /// <summary>
 /// Reads a batch of SRTM PNG tiles.

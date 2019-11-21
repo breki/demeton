@@ -1,7 +1,8 @@
-﻿- handle errors in reading PNG tiles
-    - write its file name
+﻿- introduce functional error handling for `FileSys`
+    - write tests for negative scenarios
 
 ## Thu 21.11.
+- Started introducing functional error handling in `FileSys`.
 - `shade` command now writes the size of the total raster and tiles needed before starting generating them.
 
 ## Wed 20.11.

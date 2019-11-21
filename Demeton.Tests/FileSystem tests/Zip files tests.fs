@@ -1,5 +1,6 @@
 ﻿module ``FileSystem tests``.``Zip files tests``
 
+open FileSys
 open System.IO
 open Swensen.Unquote
 open TestHelp
@@ -14,9 +15,11 @@ let ``Can read zip file entry``() =
     resourceStream.CopyTo(zipOutputFileStream)
     zipOutputFileStream.Close()
 
-    use stream = FileSys.openZipFileEntry zipFileName "N46E015.hgt"
-    use copiedStream = new MemoryStream()
-    stream.CopyTo (copiedStream)
+    match FileSys.openZipFileEntry zipFileName "N46E015.hgt" with
+    | Ok stream -> 
+        use copiedStream = new MemoryStream()
+        stream.CopyTo (copiedStream)
 
-    test <@ copiedStream.Length = 25934402L @>
+        test <@ copiedStream.Length = 25934402L @>
+    | Error error -> error |> fileSysErrorMessage |> fail
     

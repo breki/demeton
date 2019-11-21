@@ -2,20 +2,35 @@
 /// Contains functions for working with files and directories 
 /// in a functional way.
 /// </summary>
-[<RequireQualifiedAccess>]
 module FileSys
 
+open System
 open System.IO
 open System.IO.Compression
 
 type FileName = string
 type DirectoryName = string
 
+type FileSysError = {
+    Exception: System.Exception
+}
+
+let inline fileSysErrorMessage error = error.Exception.Message
+
+let mapFileSysException (ex: Exception) =
+    match ex with
+    | :? DirectoryNotFoundException as ex -> Some { Exception =  ex }
+    | :? FileNotFoundException as ex -> Some { Exception =  ex }
+    | :? PathTooLongException as ex -> Some { Exception =  ex }
+    | :? IOException as ex -> Some { Exception =  ex }
+    | :? UnauthorizedAccessException as ex -> Some { Exception =  ex }
+    | _ -> None
+
 /// <summary>
 /// A function providing the ability open a reading stream to a file entry 
 /// inside a ZIP package.
 /// </summary>
-type ZipFileEntryReader = string -> string -> Stream
+type ZipFileEntryReader = string -> string -> Result<Stream, FileSysError>
 
 /// <summary>
 /// A function providing the ability to check whether a file exists or not.
@@ -71,6 +86,12 @@ let openFileToWrite: FileOpener =
 /// Open a reading stream to a file entry inside a ZIP package.
 /// </summary>
 let openZipFileEntry: ZipFileEntryReader = fun zipFileName entryName ->
-    let zipArchive = ZipFile.OpenRead(zipFileName)
-    let entry = zipArchive.GetEntry(entryName)
-    entry.Open()
+    try
+        let zipArchive = ZipFile.OpenRead(zipFileName)
+        let entry = zipArchive.GetEntry(entryName)
+        entry.Open() |> Ok
+    with
+    | ex ->
+        match mapFileSysException ex with
+        | Some error -> Error error
+        | None -> raise ex

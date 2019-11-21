@@ -8,8 +8,7 @@ open System.IO
 open Demeton.DemTypes
 open Demeton.Srtm.Funcs
 
-let withZipFileEntry(): Stream =
-    new MemoryStream() :> Stream
+let withZipFileEntry() = Ok (new MemoryStream() :> Stream)
 
 let expectToReadZipFileEntry 
     expectedZipFileName 
