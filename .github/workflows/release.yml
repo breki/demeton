@@ -13,6 +13,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@master
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+         dotnet-version: 3.0.100
+      - name: Build and run tests
+        run: bash --noprofile --norc -eo pipefail release.sh
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
