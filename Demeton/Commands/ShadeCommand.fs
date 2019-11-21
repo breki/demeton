@@ -386,10 +386,20 @@ let run
                         yield (xIndex, yIndex, tileBounds)
         ]
 
-    let maxTileIndex = 
+    let maxTileIndexX =
         tilesToGenerate 
-        |> List.map (fun (xIndex, yIndex, _) -> max xIndex yIndex)
-        |> List.max
+        |> List.map (fun (xIndex, _, _) -> xIndex) |> List.max
+
+    let maxTileIndexY =
+        tilesToGenerate 
+        |> List.map (fun (_, yIndex, _) -> yIndex) |> List.max
+    
+    let maxTileIndex = max maxTileIndexX maxTileIndexY
+        
+    Log.info
+        "NOTE: The command will generate a total raster size of %dx%d pixels (%dx%d tiles)."
+        rasterMbrRounded.Width rasterMbrRounded.Height
+        (maxTileIndexX + 1) (maxTileIndexY + 1)
 
     tilesToGenerate 
     |> List.choose (fun (xIndex, yIndex, tileBounds) ->

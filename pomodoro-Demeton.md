@@ -1,4 +1,8 @@
-﻿- write the size of the total raster and tiles needed before starting generating them
+﻿- handle errors in reading PNG tiles
+    - write its file name
+
+## Thu 21.11.
+- `shade` command now writes the size of the total raster and tiles needed before starting generating them.
 
 ## Wed 20.11.
 - Improved logging if tile fetching code.
