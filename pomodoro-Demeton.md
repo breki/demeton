@@ -1,10 +1,15 @@
-﻿- how do we extract version number from tag?
-    - solution 1: release script does it, then places it into an environment variable
-    - https://github.community/t5/GitHub-Actions/Support-saving-environment-variables-between-steps/td-p/31373
-- release.sh
-    - fail on error exit codes
+﻿- newline is missing at "demeton help import"
+- something is wrong with the shading direction
+
+- implement acceptance testing on releases
+    1. copy release to a staging area
+    1. execute a short shading command
+        - the data is in VCS
+    1. check the exit code
+    1. check that the output file is there
 
 ## Fri 22.11.
+- Added a simple smoke test to `release.sh`.
 - `release.sh` now accepts a release version number.
 - `build.sh` is now running on my local Ubuntu.
 - Fixed a couple of tests to no longer use `\` for paths.

@@ -1,10 +1,4 @@
-﻿- implement acceptance testing on releases
-    1. copy release to a staging area
-    1. execute a short shading command
-    1. check the exit code
-    1. check that the output file is there
-
-- add batch script that generates some sample images from these sample DEMs
+﻿- add batch script that generates some sample images from these sample DEMs
 
 - update readme.md docs
 - add documentation for
