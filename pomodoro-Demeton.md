@@ -1,4 +1,6 @@
-﻿- use ${{ github.ref }} as a parameter to release.sh
+﻿- how do we extract version number from tag?
+    - solution 1: release script does it, then places it into an environment variable
+    - https://github.community/t5/GitHub-Actions/Support-saving-environment-variables-between-steps/td-p/31373
 - release.sh
     - fail on error exit codes
 
