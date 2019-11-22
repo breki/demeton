@@ -1,6 +1,10 @@
-﻿- Make the build and release scripts run on my local Ubuntu.
+﻿- use ${{ github.ref }} as a parameter to release.sh
+- release.sh
+    - fail on error exit codes
 
 ## Fri 22.11.
+- `release.sh` now accepts a release version number.
+- `build.sh` is now running on my local Ubuntu.
 - Fixed a couple of tests to no longer use `\` for paths.
 - Added skipping of loading 16-bit grayscale PNGs using GDI+ in tests since it doesn't work on vanilla Ubuntu 18.04
 - Prepared WLS Ubuntu machine so I can test build scripts on Linux.

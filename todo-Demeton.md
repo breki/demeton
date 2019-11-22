@@ -1,11 +1,4 @@
-﻿- how to add version number to artifact ZIPs?
-    - how do we test release.sh?
-        - a VM?
-        - Windows-integrated VM?
-    - release.sh should accept a version as a parameter
-    - use ${{ github.ref }} as a parameter to release.sh
-
-- implement acceptance testing on releases
+﻿- implement acceptance testing on releases
     1. copy release to a staging area
     1. execute a short shading command
     1. check the exit code
