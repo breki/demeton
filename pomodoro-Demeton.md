@@ -1,4 +1,9 @@
-﻿- how to add version number to artifact ZIPs?
+﻿- Make the build and release scripts run on my local Ubuntu.
+
+## Fri 22.11.
+- Fixed a couple of tests to no longer use `\` for paths.
+- Added skipping of loading 16-bit grayscale PNGs using GDI+ in tests since it doesn't work on vanilla Ubuntu 18.04
+- Prepared WLS Ubuntu machine so I can test build scripts on Linux.
 
 ## Thu 21.11.
 - Turned off localized satellite assemblies generation (using `SatelliteResourceLanguages` project property).

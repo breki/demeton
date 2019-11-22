@@ -2,6 +2,9 @@
 
 open System
 open System.Reflection
+open System.Runtime.InteropServices
+
+let isLinux() = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) 
 
 let fail errorMessage =
     raise (Xunit.Sdk.XunitException errorMessage)
@@ -59,4 +62,6 @@ let isApproxEqualTo
 let sampleFileStream sampleFileName =
     let assembly = Assembly.GetExecutingAssembly()
     assembly.GetManifestResourceStream
-        ("Demeton.Tests.samples." + sampleFileName) 
+        ("Demeton.Tests.samples." + sampleFileName)
+        
+    

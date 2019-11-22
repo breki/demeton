@@ -11,12 +11,12 @@ open FsCheck.Xunit
 open FsUnit
 open Xunit
 open Swensen.Unquote
+open TestHelp
 
 open Raster
 
 open System
 open System.IO
-open TestHelp
 
 
 let givenA8BitGrayscaleImage rndSeed imageWidth imageHeight 
@@ -208,9 +208,14 @@ let ``Can generate and read a valid 16-bit grayscale PNG``() =
 
     let (_, _) = readStream |> loadPngFromStream 
 
-    use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
-    test <@ bitmap.Width = imageWidth @>
-    test <@ bitmap.Height = imageHeight @>
+    // Skipping this check on Linux since the 16-bit grayscale PNGs require a
+    // version of libgdiplus that is more recent than the one that is available
+    // on Ubuntu 18.04. See https://github.com/mono/libgdiplus/issues/522 for
+    // more info.
+    if not (isLinux()) then
+        use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
+        test <@ bitmap.Width = imageWidth @>
+        test <@ bitmap.Height = imageHeight @>
 
 
 [<Fact>]

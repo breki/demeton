@@ -1,4 +1,25 @@
-﻿- add batch script that generates some sample images from these sample DEMs
+﻿- how to add version number to artifact ZIPs?
+    - how do we test release.sh?
+        - a VM?
+        - Windows-integrated VM?
+    - release.sh should accept a version as a parameter
+    - use ${{ github.ref }} as a parameter to release.sh
+
+- implement acceptance testing on releases
+    1. copy release to a staging area
+    1. execute a short shading command
+    1. check the exit code
+    1. check that the output file is there
+
+- add batch script that generates some sample images from these sample DEMs
+
+- update readme.md docs
+- add documentation for
+    - releases
+        https://github.com/breki/demeton/releases/latest
+        - `libgdiplus` package is needed on Linux
+    - 2-min tutorial
+    - 5-min tutorial
 
 - hillshading
 
@@ -7,8 +28,6 @@
     - https://en.wikipedia.org/wiki/Color_quantization
     - https://en.wikipedia.org/wiki/Posterization
 
-- generate GitHub releases: https://developer.github.com/v3/repos/releases/#create-a-release
-
 - how to generate code docs?
     - https://fsprojects.github.io/FSharp.Formatting/commandline.html
 
@@ -16,8 +35,6 @@
     - low pass/high pass filters
         - Geospatial Analysis, p. 175
     - use Paint.NET as a start
-    
-- update readme.md docs
 
 - in what format to save the shaded tile PNG metadata?  
     - extra sidecar file?
