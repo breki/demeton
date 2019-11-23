@@ -24,4 +24,4 @@ Check out this [10-minute tutorial](docs/10MinTutorial.md) for a quick get to kn
 ## More documentation
 - [Roadmap](docs/Roadmap.md)
 - [Building the code](docs/Building.md)
-- [Source code ](docs/Architecture.md)
+- [Architecture and source code](docs/Architecture.md)

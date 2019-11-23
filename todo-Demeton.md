@@ -1,21 +1,19 @@
-- Write a better GitHub heading.
-- Add image to GitHub project.
+- add documentation for
+    - 10-min tutorial
+    - building
+    - architecture
+
+- in what format to save the shaded tile PNG metadata?  
+    - extra sidecar file?
+    - extra PNG chunk?
+
 - Add my name and GH link in cmd line help.
 
 - generate some nice samples for the documentation
-    - Alps
     - Mount Fuji: 138.637436,35.288563,138.822693,35.434156
     - Kilimanjaro: 36.933563,-3.416918,37.721558,-2.825636
     - Etna
-- update readme.md docs
-- add batch script that generates some sample images from these sample DEMs
-
-- add documentation for
-    - releases
-        https://github.com/breki/demeton/releases/latest
-        - `libgdiplus` package is needed on Linux
-    - 2-min tutorial
-    - 5-min tutorial
+    - add batch script that generates some sample images from these sample DEMs
 
 - how to generate code docs?
     - https://fsprojects.github.io/FSharp.Formatting/commandline.html
@@ -24,10 +22,6 @@
     - low pass/high pass filters
         - Geospatial Analysis, p. 175
     - use Paint.NET as a start
-
-- in what format to save the shaded tile PNG metadata?  
-    - extra sidecar file?
-    - extra PNG chunk?
 
 - proj4 links
     - https://en.wikibooks.org/wiki/PROJ.4
