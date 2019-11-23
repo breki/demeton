@@ -151,6 +151,8 @@ let helpMainHelp executableName supportedCommands =
     |> appendFormat
         "{0} help {1}" 
             [| executableName; supportedCommands.[0].Name |]
+    |> newLine
+    |> newLine
     |> toString
 
 let helpCommandTemplateDef = {

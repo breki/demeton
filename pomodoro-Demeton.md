@@ -1,12 +1,7 @@
-﻿- newline is missing at "demeton help import"
-- something is wrong with the shading direction
+- Add Downloading section in readme and describe artifacts.
 
-- implement acceptance testing on releases
-    1. copy release to a staging area
-    1. execute a short shading command
-        - the data is in VCS
-    1. check the exit code
-    1. check that the output file is there
+## Sat 23.11.
+- Written the `Roadmap.md` document.
 
 ## Fri 22.11.
 - Added a simple smoke test to `release.sh`.

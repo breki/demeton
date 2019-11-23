@@ -1,15 +1,15 @@
 # Demeton
 
 ## One minute intro
-Demeton is an F# library for generating hillshading (both in raster and vector forms) from [NASA's SRTM](https://en.wikipedia.org/wiki/Shuttle_Radar_Topography_Mission) digital elevation model.
+Demeton is a command line tool and an F# library for generating raster hillshading from [NASA's SRTM](https://en.wikipedia.org/wiki/Shuttle_Radar_Topography_Mission) digital elevation model.
 
-The library is currently (September 2019) in development, so it's not yet production-ready. 
+Here's an example of Demeton's output:
 
-### Main goals I want to achieve
-- Reading of zipped SRTM HGT files and converting them to **PNG grayscale images** (for more optimized local storage and interoperability). - **(working on this right now)**
-- Generating **raster hillshades** for a given area (using algorithms I developed for [Maperitive](http://maperitive.net), and probably adding some more).
-- The ability to convert the **raster hillshade into the vector form** (so it can be used in SVG vector maps like the ones I offer on [ScalableMaps](https://scalablemaps.com).
-- Generating **elevation contours**.
-- The API should be available from **C#**.
-- OS-independent **console** application.
-- Practice in learning [F#](https://fsharp.org/) (which is a great language) and functional programming.
+The tools runs on both Windows and Linux. You can find the latest binaries on the [Releases](https://github.com/breki/demeton/releases/latest) page. 
+
+See [10-minute tutorial](docs/10MinTutorial.md) for a more in-depth look into the tool.
+
+## More documentation
+- [Roadmap](docs/Roadmap.md)
+- [Building the code](docs/Building.md)
+- [Source code ](docs/Architecture.md)

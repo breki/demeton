@@ -1,19 +1,19 @@
-﻿- add batch script that generates some sample images from these sample DEMs
+- Include license file in the distribution.
 
+- generate some nice samples for the documentation
+    - Alps
+    - Mount Fuji: 138.637436,35.288563,138.822693,35.434156
+    - Kilimanjaro: 36.933563,-3.416918,37.721558,-2.825636
+    - Etna
 - update readme.md docs
+- add batch script that generates some sample images from these sample DEMs
+
 - add documentation for
     - releases
         https://github.com/breki/demeton/releases/latest
         - `libgdiplus` package is needed on Linux
     - 2-min tutorial
     - 5-min tutorial
-
-- hillshading
-
-- Vectorization: 
-    - https://en.wikipedia.org/wiki/Image_tracing
-    - https://en.wikipedia.org/wiki/Color_quantization
-    - https://en.wikipedia.org/wiki/Posterization
 
 - how to generate code docs?
     - https://fsprojects.github.io/FSharp.Formatting/commandline.html
