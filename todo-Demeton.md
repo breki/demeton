@@ -1,6 +1,5 @@
 - Write a better GitHub heading.
 - Add image to GitHub project.
-- Add Downloading section in readme and describe artifacts.
 - Add my name and GH link in cmd line help.
 
 - generate some nice samples for the documentation

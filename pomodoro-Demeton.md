@@ -1,6 +1,6 @@
-- Generate Alps, but without empty tiles.
-
 ## Sat 23.11.
+- Added a description of release packages.
+- Added sample Alps images.
 - Included the license file in the distribution.
 - Written the `Roadmap.md` document.
 
