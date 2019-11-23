@@ -1,6 +1,7 @@
-- Add Downloading section in readme and describe artifacts.
+- Generate Alps, but without empty tiles.
 
 ## Sat 23.11.
+- Included the license file in the distribution.
 - Written the `Roadmap.md` document.
 
 ## Fri 22.11.

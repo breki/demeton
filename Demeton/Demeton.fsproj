@@ -14,8 +14,13 @@
   </PropertyGroup>
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
+    <Content Include="..\LICENSE" Link="LICENSE">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Compile Include="SimAnn.fs" />
-    <Compile Include="Text.fs" />
+    <Compile Include="Text.fs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
     <Compile Include="TextParsers.fs" />
     <Compile Include="CommandLine\Common.fs" />
     <Compile Include="CommandLine\ValueParsers.fs" />
@@ -70,6 +75,7 @@
     <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="FParsec" Version="1.0.3" />
     <PackageReference Include="SharpZipLib.NETStandard" Version="1.0.7" />

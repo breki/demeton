@@ -59,7 +59,9 @@ tomato: peels a tomato
 help: displays help information (this command)
 
 HINT: for a detailed help about a certain command, specify the command name, like:
-someapp help potato" @>
+someapp help potato
+
+" @>
 
 [<Fact>]
 let ``Reports an error on unrecognized command``() =
