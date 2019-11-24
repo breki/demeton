@@ -24,23 +24,70 @@ On Windows, you will have to do this manually, unfortunately. Follow these steps
 
 Type in the following command (on Windows, replace `./Demeton.Console` with just `Demeton.Console`):
 
-```bash
-./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1000000
+```sh
+./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1500000
 ```
 
 If everything goes well, the command should write out something like:
-```
-Demeton by Igor Brejc (https://github.com/breki/demeton)
-
-2019-11-24 14:09:44Z | NOTE: The command will generate a total raster size of 976x732 pixels (1x1 tiles).
-2019-11-24 14:09:44Z | Generating a shade tile 0/0...
-2019-11-24 14:09:44Z | Loading PNG SRTM tile 'cache/0/N46E013.png'...
-2019-11-24 14:09:45Z | Loading PNG SRTM tile 'cache/0/N46E014.png'...
-2019-11-24 14:09:46Z | Running elevation coloring step...
-2019-11-24 14:09:46Z | Running igor hillshading step...
-2019-11-24 14:09:46Z | Running compositing step 'over'...
-2019-11-24 14:09:46Z | Saving the shade tile...
-2019-11-24 14:09:47Z | Saved a shade tile to output/shading-0-0.png
+```txt
+2019-11-24 17:55:33Z | NOTE: The command will generate a total raster size of 650x488 pixels (1x1 tiles).
+2019-11-24 17:55:33Z | Generating a shade tile 0/0...
+2019-11-24 17:55:33Z | Loading PNG SRTM tile 'cache/0/N46E013.png'...
+2019-11-24 17:55:33Z | Merging all the read tiles into a single array...
+2019-11-24 17:55:34Z | Creating the higher-level tile by downsampling...
+2019-11-24 17:55:36Z | Writing SRTM tile l1e06n24...
+2019-11-24 17:55:37Z | Loading PNG SRTM tile 'cache/0/N46E014.png'...
+2019-11-24 17:55:38Z | Merging all the read tiles into a single array...
+2019-11-24 17:55:38Z | Creating the higher-level tile by downsampling...
+2019-11-24 17:55:41Z | Writing SRTM tile l1e07n24...
+2019-11-24 17:55:42Z | Running elevation coloring step...
+2019-11-24 17:55:42Z | Running igor hillshading step...
+2019-11-24 17:55:43Z | Running compositing step 'over'...
+2019-11-24 17:55:43Z | Saving the shade tile...
+2019-11-24 17:55:43Z | Saved a shade tile to output/shading-0-0.png
 ```
 
 As it says, there is a PNG file waiting for us in the `output` directory:
+
+![Our first hillshading](docs/images/tutorial-first.png)
+
+The image shows elevation colored and hillshaded area of [Triglav national park](https://www.tnp.si/en/visit/) in Slovenia:
+- "**Elevation colored**" because terrain elevations are mapped into their respective color, from green (lowlands) to grayish (mountains). As we will see later, we can change this color scheme.
+- "**Hillshaded**" because mountain sides opposite the sun are additionally colored using gray gradients. The direction (or [azimuth](https://en.wikipedia.org/wiki/Azimuth), to be more precise) of the sun in this case is the standard cartographic one - it comes from northwest.
+
+## Map scale
+Perhaps you noticed that one of the parameters in the command we used was map scale: `--map-scale 1500000`. So the generated map has a map scale of 1 : 1,500,000. Roughly, since this depends on what kind of device you are reading this tutorial (or maybe you reading it on a paper). We'll get into this more later.
+
+Anyway, the image is small(-ish), but you can make it bigger by specifying a larger map scale:
+```sh
+./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1000000
+```
+
+In the tutorial, we'll stick to the original size, though to save some page space.
+
+## Shading scripts
+Let's say we don't want the elevation coloring and are only interested in hillshading. We can tell that to Demeton by defining a **shading script**:
+
+```sh
+./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1500000 --shading-script igor
+```
+
+![Hillshading only](docs/images/tutorial-hillshading.png)
+
+In this case, the script is very short: `igor` specifies the shading operation to perform. We can specify some parameters to that operation:
+
+```sh
+./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1500000 --shading-script "igor(sunaz=135,shadcol=#ffff80)"
+```
+
+Here we told Demeton the Sun comes from southeast and it leaves yellow shades. Let's call this "sunshading". I know, it's weird, but for the next step and it will be clearer:
+
+```sh
+./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1500000 --shading-script "igor(sunaz=135,shadcol=#ffff80)|+igor"
+```
+
+And here's the result:
+
+![Hillshading only](docs/images/tutorial-sunshading.png)
+
+What magic did we do here? The shading script `igor(sunaz=135,shadcol=#ffff80)|+igor` tells Demeton to perform two operations: "sunshading" and the hillshading we did at the start, and merge them together. `|+` is a symbol for this merge.

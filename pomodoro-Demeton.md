@@ -1,5 +1,4 @@
 - try out tutorial steps on a brand new Ubuntu
-    - do we really need `libgdiplus`?
 
 ## Sun 24.11.
 - The igor hillshading used in the default shading script had -90 degrees instead of -45.
