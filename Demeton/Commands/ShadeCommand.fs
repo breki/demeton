@@ -342,7 +342,8 @@ let run
     (options: Options) 
     (generateTile: ShadedRasterTileGenerator) 
     (saveTile: ShadedRasterTileSaver)
-    : Result<string, string> list =
+    : Result<unit, string> =
+               
     // project each coverage point
     let projectedPoints = 
         options.CoveragePoints 
@@ -405,24 +406,25 @@ let run
         rasterMbrRounded.Width rasterMbrRounded.Height
         (maxTileIndexX + 1) (maxTileIndexY + 1)
 
-    tilesToGenerate 
-    |> List.choose (fun (xIndex, yIndex, tileBounds) ->
-        Log.info "Generating a shade tile %d/%d..." xIndex yIndex
+    tilesToGenerate
+    |> List.fold
+           (fun state (xIndex, yIndex, tileBounds) ->
+            state
+            |> Result.bind (fun () -> 
+                Log.info "Generating a shade tile %d/%d..." xIndex yIndex
 
-        let tileGenerationResult = generateTile srtmLevel tileBounds options
-
-        match tileGenerationResult with
-        | Error errorMessage -> Some (Error errorMessage)
-        | Ok maybeGeneratedTile ->
-            match maybeGeneratedTile with
-            | Some imageData -> 
-                Log.info "Saving the shade tile..."
-                saveTile 
-                    options 
-                    maxTileIndex 
-                    (xIndex, yIndex) 
-                    tileBounds 
-                    imageData
-                |> Some
-            | None  -> None
-        )
+                generateTile srtmLevel tileBounds options
+                |> Result.map (fun maybeGeneratedTile ->
+                    maybeGeneratedTile
+                    |> Option.map (fun imageData -> 
+                        Log.info "Saving the shade tile..."
+                        saveTile 
+                            options 
+                            maxTileIndex 
+                            (xIndex, yIndex) 
+                            tileBounds 
+                            imageData)
+                    |> ignore)
+                )
+            )
+            (Ok())

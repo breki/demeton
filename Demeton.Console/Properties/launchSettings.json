@@ -2,7 +2,7 @@
   "profiles": {
     "Demeton.Console": {
       "commandName": "Project",
-      "commandLineArgs": "shade 13.49437,46.159668,14.236633,46.543914 --map-scale 500000 --tile-size 5000 --local-cache-dir D:\\src\\demeton\\samples\\cache --srtm-dir \\\\hobbit\\SRTM --shading-script \"elecolor|+igor(sunaz=-45)\""
+      "commandLineArgs": "shade 13.49437,46.159668,14.236633,46.543914 --map-scale 500000 --tile-size 5000 --local-cache-dir Z:\\src\\demeton\\samples\\cache --srtm-dir \\\\hobbit\\SRTM --shading-script \"elecolor|+igor(sunaz=-45)\""
     }
   }
 }

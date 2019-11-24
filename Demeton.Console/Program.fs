@@ -5,16 +5,7 @@ open Demeton.Console
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Types
 open Text
-
-let displayHelp exitCode = 
-    // todo: add code to display all the available commands
-    printfn "We'll display help text here soon..."
-    exitCode
-
-let handleUnknownCommand commandName =
-    printfn "Unknown command '%s'." commandName
-    1
-
+open System
 
 let runImportCommand parsedParameters =
     let options = ImportSrtmTilesCommand.fillOptions parsedParameters
@@ -50,8 +41,11 @@ let runShadeCommand parsedParameters =
 
     let results =
         ShadeCommand.run options generateTile saveTile
-    
-    CommandExecuted
+    match results with
+    | Ok _ -> CommandExecuted
+    | Error message ->
+        Console.Error.WriteLine message
+        CommandFailed
 
 
 let supportedCommands: Command[] = [|
@@ -93,13 +87,22 @@ let helpCommand = {
 
 [<EntryPoint>]
 let main args =
+    Console.Out.WriteLine "Demeton by Igor Brejc (https://github.com/breki/demeton)"
+    Console.Out.WriteLine ""
+    
     let commandResult = 
         Shell.parseAndExecuteCommandLine 
-            System.Console.Out.Write 
-            System.Console.Error.Write 
+            Console.Out.Write 
+            Console.Error.Write 
             "demeton" args supportedCommands
 
-    match commandResult with
-    | CommandExecuted -> 0
-    | ParsingFailed -> 1
-    | UnregnizedCommand -> 2
+    let exitCode = 
+        match commandResult with
+        | CommandExecuted -> 0
+        | CommandFailed -> 1
+        | ParsingFailed -> 2
+        | UnrecognizedCommand -> 3
+
+    exit exitCode
+    
+    exitCode

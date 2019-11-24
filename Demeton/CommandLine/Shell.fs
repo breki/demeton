@@ -42,4 +42,4 @@ let parseAndExecuteCommandLine
             "Unrecognized command '%s'. Please use 'help' command to list all available commands."
             commandName
         |> writeErrorOutput
-        UnregnizedCommand
+        UnrecognizedCommand

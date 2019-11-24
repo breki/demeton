@@ -78,4 +78,4 @@ let ``Reports an error on unrecognized command``() =
     test <@ errorOutput() = 
                 "Unrecognized command 'unknowncmd'. Please use 'help' "+
                 "command without arguments to list all available commands." @>
-    test <@ result = UnregnizedCommand @>
+    test <@ result = UnrecognizedCommand @>

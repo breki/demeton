@@ -1,8 +1,11 @@
-- the distributables should include Readme.md
+- check todos
 - make a proper release
     - try deleting the old releases
 
 ## Sun 24.11.
+- Fixing the returning result of `ShadeCommand.run`.
+- The console now prints out the GitHub repo link.
+- `README.md` is now included in the distribution.
 - Added `download-sample-data.sh` script.
 
 ## Sat 23.11.

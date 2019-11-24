@@ -7,8 +7,6 @@
     - extra sidecar file?
     - extra PNG chunk?
 
-- Add my name and GH link in cmd line help.
-
 - generate some nice samples for the documentation
     - Mount Fuji: 138.637436,35.288563,138.822693,35.434156
     - Kilimanjaro: 36.933563,-3.416918,37.721558,-2.825636

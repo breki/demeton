@@ -6,6 +6,7 @@ open Demeton.Shaders
 open Xunit
 open Swensen.Unquote
 open Png
+open TestHelp
 open Tests.Shaders
 
 let (area, heights, srtmLevel, mapScale, tileRect) = 
@@ -84,32 +85,11 @@ let ``Saves the generated tile images to files``() =
     test <@ savedTiles.[3] = "1-1" @>
 
 [<Fact>]
-let ``If generation of a tile fails it records it in the result``() =
+let ``If generation of a tile fails, it records it in the result``() =
     initialize()
     
     let tileGenerator _ _ _ =
         Error "some error"
 
     let results = ShadeCommand.run options tileGenerator tileSaver
-    test <@ results.Length = 4 @>
-    test <@ 
-            results 
-            |> List.exists (fun x -> x <> Error "some error") 
-            |> not
-            @>
-
-[<Fact>]
-let ``If tile generator returns None, we skip that in the results``() =
-    initialize()
-    
-    let mutable counter = 0
-    let tileGeneratorWithNones srtmLevel rasterTile options =
-        counter <- counter + 1
-        if counter % 2 = 0 then
-            Ok None
-        else
-            tileGenerator srtmLevel rasterTile options
-
-    let results = 
-        ShadeCommand.run options tileGeneratorWithNones tileSaver
-    test <@ results.Length = 2 @>
+    test <@ results |> isErrorData "some error" @>

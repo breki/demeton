@@ -83,7 +83,7 @@ let ``When command was not found``() =
     let args = [| "cmdX" |]
 
     let result = parseAndExecuteCommandLine args supportedCommands 
-    test <@ result = UnregnizedCommand @>
+    test <@ result = UnrecognizedCommand @>
     test <@ errorOutput() = 
                 "Unrecognized command 'cmdX'. Please use 'help' command "+
                 "to list all available commands." @>

@@ -74,6 +74,9 @@
     <Compile Include="Shaders\Pipeline\BuildingAspectShader.fs" />
     <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
+    <Content Include="..\README.md">
+      <Link>README.md</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

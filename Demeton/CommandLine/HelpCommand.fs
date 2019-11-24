@@ -213,7 +213,7 @@ let runCommandFromOptions
                     sprintf 
                         "Unrecognized command '%s'. Please use 'help' command without arguments to list all available commands."
                         commandName,
-                    UnregnizedCommand)
+                    UnrecognizedCommand)
 
     match helpOutput, errorOutput, commandResult with
     | _, "", _ -> 
