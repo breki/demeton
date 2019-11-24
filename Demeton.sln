@@ -35,6 +35,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample scripts", "sample scripts", "{0DA3FEBF-E0A4-4147-AB3E-A71A129559B7}"
 	ProjectSection(SolutionItems) = preProject
 		samples\scripts\Alps.bat = samples\scripts\Alps.bat
+		samples\scripts\download-sample-data.sh = samples\scripts\download-sample-data.sh
 	EndProjectSection
 EndProject
 Global

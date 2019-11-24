@@ -7,6 +7,9 @@ Right now Demeton only generates raster tile PNG files, but there is no accompan
 
 So each tile would probably need a "sidecar" file with this georeferencing information, but I'm not sure in what format this file should be. What I do believe is that the file should be in an easy-to-parse format (key-value pairs, JSON, XML...).
 
+## More shaders and filters
+Current Demeton offers four shader operations, but I plan to add more. I am also thinking about introducing low and high pass filters to augment the shaders.
+
 ## Vector output
 The problem with hillshading rasters (bitmaps) is that they require a lot of memory and they don't scale - they are prepared for a certain map scale (and DPI) and when zoomed beyond that you can see the constituent pixels. For a reasonably sized map, a printing-quality raster covering it requires large image files which are difficult to work with.
 

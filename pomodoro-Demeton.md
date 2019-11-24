@@ -1,3 +1,10 @@
+- the distributables should include Readme.md
+- make a proper release
+    - try deleting the old releases
+
+## Sun 24.11.
+- Added `download-sample-data.sh` script.
+
 ## Sat 23.11.
 - Added a description of release packages.
 - Added sample Alps images.
