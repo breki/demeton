@@ -1,8 +1,9 @@
-- check todos
 - make a proper release
     - try deleting the old releases
 
 ## Sun 24.11.
+- Started writing the tutorial.
+- Included the `download-sample-data.sh` script in the release.
 - Fixing the returning result of `ShadeCommand.run`.
 - The console now prints out the GitHub repo link.
 - `README.md` is now included in the distribution.

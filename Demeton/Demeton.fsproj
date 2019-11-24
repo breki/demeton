@@ -77,6 +77,10 @@
     <Content Include="..\README.md">
       <Link>README.md</Link>
     </Content>
+    <Content Include="..\samples\scripts\download-sample-data.sh">
+      <Link>download-sample-data.sh</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

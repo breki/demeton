@@ -32,10 +32,6 @@ let ``Sane defaults are used for options``() =
     test <@ options.FilePrefix = "shading" @>
     test <@ options.MapScale.MapScale = 50000. @>
     test <@ options.OutputDir = "output" @>
-    // todo
-    //test <@ 
-    //        options.Shader 
-    //            = ElevationColoringShader elevationColorScaleMaperitive @>
 
 [<Fact>]
 let ``Reports error when coverage points parameter does not have any points``() =

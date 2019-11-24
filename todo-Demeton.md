@@ -4,8 +4,10 @@
     - architecture
 
 - in what format to save the shaded tile PNG metadata?  
-    - extra sidecar file?
-    - extra PNG chunk?
+    - JSON file convering all of the tiles
+        - contains projection information (PROJ)
+        - pixel coordinates of the top left corner  
+        - also lon/lat coordinates of the top left corner
 
 - generate some nice samples for the documentation
     - Mount Fuji: 138.637436,35.288563,138.822693,35.434156
