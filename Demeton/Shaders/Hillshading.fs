@@ -81,7 +81,7 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
     let inline lonLatOf x y =
         let xUnscaled = float x / scaleFactor
         let yUnscaled = float y / scaleFactor
-        WebMercator.inverse xUnscaled -yUnscaled
+        Mercator.inverse xUnscaled -yUnscaled
 
     let heightOf (lonRad, latRad) =
         let lonDeg = radToDeg lonRad

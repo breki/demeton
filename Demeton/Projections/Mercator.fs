@@ -1,5 +1,5 @@
 ﻿[<RequireQualifiedAccess>]
-module Demeton.Projections.WebMercator
+module Demeton.Projections.Mercator
 
 open Demeton.Geometry.Common
 

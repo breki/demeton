@@ -1,4 +1,4 @@
-﻿module Projections.``WebMercator tests``
+﻿module Projections.``Mercator tests``
 
 open Demeton.Geometry.Common
 open Demeton.Projections
@@ -17,28 +17,28 @@ open TestHelp
 [<InlineData(180., -80., 3.14159265, -2.43624605)>]
 let ``Correctly projects`` longitude latitude expectedX expectedY =
 
-    test <@ WebMercator.proj (degToRad longitude) (degToRad latitude)
+    test <@ Mercator.proj (degToRad longitude) (degToRad latitude)
         |> expectXY expectedX expectedY @>
 
 [<Theory>]
 [<InlineData(0., 86)>]
 [<InlineData(0., -86)>]
-let ``Returns None if latitude is outside of Web Mercator bounds``
+let ``Returns None if latitude is outside of Mercator bounds``
     longitude latitude =
         
-    WebMercator.proj (degToRad longitude) (degToRad latitude) |> expectNone
+    Mercator.proj (degToRad longitude) (degToRad latitude) |> expectNone
 
 [<ProjectLonLat>]
-let ``WebMercator projection formulas are correct`` (lonLat: ProjectLonLat) = 
+let ``Mercator projection formulas are correct`` (lonLat: ProjectLonLat) = 
     let (lonDegrees, latDegrees) = lonLat
     let lon = degToRad lonDegrees
     let lat = degToRad latDegrees
-    let pointOption = WebMercator.proj lon lat
+    let pointOption = Mercator.proj lon lat
     match pointOption with
     | None -> 
-        lat > WebMercator.MinLat || lat < WebMercator.MaxLat
+        lat > Mercator.MinLat || lat < Mercator.MaxLat
     | Some (x, y) ->
-        let inverse = WebMercator.inverse x y
+        let inverse = Mercator.inverse x y
         match inverse with
         | None -> false
         | Some (ilon, ilat) ->

@@ -24,7 +24,7 @@ type LonLatDelta = float
 type MinLonLatDeltaState = Raster.Point
 
 let private rasterXYToLonLat (rasterX, rasterY) scaleFactor =
-    WebMercator.inverse 
+    Mercator.inverse 
         ((float rasterX) / scaleFactor)
         -((float rasterY) / scaleFactor)
 
@@ -73,7 +73,7 @@ let private srtmMinCellDeltaNeighbor (rasterRect: Raster.Rect) :
 
 /// <summary>
 /// Calculates the minimum longitude/latitude delta for the given raster.
-/// Currently it only supports Web Mercator projection, but this will be fixed
+/// Currently it only supports Mercator projection, but this will be fixed
 /// once we start supporting custom map projections.
 /// </summary>
 let minLonLatDelta (rasterRect: Raster.Rect) scaleFactor: LonLatDelta =

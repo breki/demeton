@@ -15,10 +15,10 @@ let area =
 
 let private rasterRectFor scaleFactor =
     let minCornerX, minCornerY = 
-        WebMercator.proj (area.MinLon |> degToRad) (area.MaxLat |> degToRad)
+        Mercator.proj (area.MinLon |> degToRad) (area.MaxLat |> degToRad)
         |> Option.get
     let maxCornerX, maxCornerY = 
-        WebMercator.proj (area.MaxLon |> degToRad) (area.MinLat |> degToRad) 
+        Mercator.proj (area.MaxLon |> degToRad) (area.MinLat |> degToRad) 
         |> Option.get
 
     Raster.Rect.asMinMax

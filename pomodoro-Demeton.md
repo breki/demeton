@@ -1,6 +1,7 @@
 - try out tutorial steps on a brand new Ubuntu
 
 ## Sun 24.11.
+- Renamed incorrectly named `WebMercator` to `Mercator`.
 - The igor hillshading used in the default shading script had -90 degrees instead of -45.
 - Started writing the tutorial.
 - Included the `download-sample-data.sh` script in the release.
@@ -326,7 +327,7 @@
 ## Mon 30.9.
 - Introduce FParsec for parsing the command line.
 - Started working on the shade command.
-- Implemented basic projection and inverse functions for Web Mercator projection.
+- Implemented basic projection and inverse functions for Mercator projection.
 
 ## Sun 29.9.
 - Corrected `longitudeToGlobalX` and `longitudeToGlobalY` functions to take into account that the rounded (non-fractional) coordinates represent each cell's center point, not it bottom left one.

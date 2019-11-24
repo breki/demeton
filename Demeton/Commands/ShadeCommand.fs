@@ -259,11 +259,11 @@ let generateShadedRasterTile
 
     let x1 = float (tileRect.MinX - buffer) / scaleFactor
     let y1 = float (tileRect.MinY - buffer) / scaleFactor
-    let (lon1Rad, lat1Rad) = WebMercator.inverse x1 -y1 |> Option.get
+    let (lon1Rad, lat1Rad) = Mercator.inverse x1 -y1 |> Option.get
 
     let x2 = float (tileRect.MaxX + buffer) / scaleFactor
     let y2 = float (tileRect.MaxY + buffer) / scaleFactor
-    let (lon2Rad, lat2Rad) = WebMercator.inverse x2 -y2 |> Option.get
+    let (lon2Rad, lat2Rad) = Mercator.inverse x2 -y2 |> Option.get
 
     let lonLatBounds: LonLatBounds = 
         { 
@@ -350,7 +350,7 @@ let run
         options.CoveragePoints 
         |> List.map (
             fun (lonDegrees, latDegrees) -> 
-                WebMercator.proj (degToRad lonDegrees) (degToRad latDegrees))
+                Mercator.proj (degToRad lonDegrees) (degToRad latDegrees))
         |> List.filter (fun p -> Option.isSome p)
         |> List.map (fun p -> Option.get p)
         |> List.map (fun (x, y) -> (x, -y))

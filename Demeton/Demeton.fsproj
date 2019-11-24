@@ -57,7 +57,7 @@
     <Compile Include="Srtm\Downsampling.fs" />
     <Compile Include="Srtm\Fetch.fs" />
     <Compile Include="Projections\Common.fs" />
-    <Compile Include="Projections\WebMercator.fs" />
+    <Compile Include="Projections\Mercator.fs" />
     <Compile Include="Projections\MinLonLatDelta.fs" />
     <Compile Include="Shaders\Types.fs" />
     <Compile Include="Shaders\ElevationColoring.fs" />

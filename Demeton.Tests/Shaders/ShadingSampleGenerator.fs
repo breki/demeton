@@ -25,10 +25,10 @@ let generateSampleWithParameters
     let scaleFactor = mapScale.ProjectionScaleFactor
 
     let minCornerX, minCornerY = 
-        WebMercator.proj (area.MinLon |> degToRad) (area.MaxLat |> degToRad)
+        Mercator.proj (area.MinLon |> degToRad) (area.MaxLat |> degToRad)
         |> Option.get
     let maxCornerX, maxCornerY = 
-        WebMercator.proj (area.MaxLon |> degToRad) (area.MinLat |> degToRad) 
+        Mercator.proj (area.MaxLon |> degToRad) (area.MinLat |> degToRad) 
         |> Option.get
 
     let rasterRect = 
@@ -43,12 +43,12 @@ let generateSampleWithParameters
         |> lonLatDeltaToSrtmLevel 3600
 
     let (minLonNeeded, minLatNeeded) = 
-        WebMercator.inverse 
+        Mercator.inverse 
             ((rasterRect.MinX - 1 |> float) / scaleFactor)
             -((rasterRect.MinY - 1 |> float) / scaleFactor)
         |> Option.get
     let (maxLonNeeded, maxLatNeeded) = 
-        WebMercator.inverse 
+        Mercator.inverse 
             ((rasterRect.MaxX + 1 |> float) / scaleFactor)
             -((rasterRect.MaxY + 1 |> float) / scaleFactor)
         |> Option.get
