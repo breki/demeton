@@ -22,6 +22,25 @@ On Windows, you will have to do this manually, unfortunately. Follow these steps
 
 ## Our first hillshading
 
+Type in the following command (on Windows, replace `./Demeton.Console` with just `Demeton.Console`):
+
 ```bash
-./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914
+./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1000000
 ```
+
+If everything goes well, the command should write out something like:
+```
+Demeton by Igor Brejc (https://github.com/breki/demeton)
+
+2019-11-24 14:09:44Z | NOTE: The command will generate a total raster size of 976x732 pixels (1x1 tiles).
+2019-11-24 14:09:44Z | Generating a shade tile 0/0...
+2019-11-24 14:09:44Z | Loading PNG SRTM tile 'cache/0/N46E013.png'...
+2019-11-24 14:09:45Z | Loading PNG SRTM tile 'cache/0/N46E014.png'...
+2019-11-24 14:09:46Z | Running elevation coloring step...
+2019-11-24 14:09:46Z | Running igor hillshading step...
+2019-11-24 14:09:46Z | Running compositing step 'over'...
+2019-11-24 14:09:46Z | Saving the shade tile...
+2019-11-24 14:09:47Z | Saved a shade tile to output/shading-0-0.png
+```
+
+As it says, there is a PNG file waiting for us in the `output` directory:

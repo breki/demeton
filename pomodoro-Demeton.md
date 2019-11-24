@@ -1,7 +1,9 @@
-- make a proper release
-    - try deleting the old releases
+- libgdiplus is not needed to run Demeton
+- try out tutorial steps on a brand new Ubuntu
+    - do we really need `libgdiplus`?
 
 ## Sun 24.11.
+- The igor hillshading used in the default shading script had -90 degrees instead of -45.
 - Started writing the tutorial.
 - Included the `download-sample-data.sh` script in the release.
 - Fixing the returning result of `ShadeCommand.run`.

@@ -1,6 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module CommandLine.Shell
 
+open System
 open CommandLine.Common
 
 let parseAndExecuteCommandLine 
@@ -35,6 +36,7 @@ let parseAndExecuteCommandLine
         | Ok parsedParameters -> command.Runner parsedParameters
         | Error message -> 
             writeErrorOutput message
+            writeErrorOutput Environment.NewLine
             ParsingFailed
 
     | None -> 
@@ -42,4 +44,5 @@ let parseAndExecuteCommandLine
             "Unrecognized command '%s'. Please use 'help' command to list all available commands."
             commandName
         |> writeErrorOutput
+        writeErrorOutput Environment.NewLine
         UnrecognizedCommand

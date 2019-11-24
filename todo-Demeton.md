@@ -1,3 +1,5 @@
+- if shade command has no tiles to work on, it does nothing, but it doesn't tell it to the user
+
 - add documentation for
     - 10-min tutorial
     - building

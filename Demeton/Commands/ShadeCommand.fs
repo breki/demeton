@@ -10,6 +10,7 @@ open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Projections.MinLonLatDelta
 open Demeton.Shaders
+open Demeton.Shaders
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
 open Demeton.Shaders.Pipeline.Building
@@ -173,7 +174,7 @@ let supportedParameters: CommandParameter[] = [|
 
 let fillOptions parsedParameters =
     let igorShaderParameters: IgorHillshader.ShaderParameters = { 
-        SunAzimuth = degToRad -90.
+        SunAzimuth = degToRad IgorHillshader.DefaultSunAzimuth
         ShadingColor = 0u }
 
     let shadingPipeline = 
