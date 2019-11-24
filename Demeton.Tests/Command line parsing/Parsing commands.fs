@@ -6,6 +6,7 @@ open Text
 
 open System.Text
 
+open System
 open Xunit
 open Swensen.Unquote
 
@@ -74,7 +75,8 @@ let ``Command parsing failure``() =
     let result = parseAndExecuteCommandLine args supportedCommands 
     test <@ result = ParsingFailed @>
     test <@ not command1Executed @>
-    test <@ errorOutput() = "Unrecognized parameter 'par2'." @>
+    test <@ errorOutput() =
+                "Unrecognized parameter 'par2'." + Environment.NewLine @>
 
 // When command was not found this results in its own result code and some error
 // message.
@@ -86,5 +88,5 @@ let ``When command was not found``() =
     test <@ result = UnrecognizedCommand @>
     test <@ errorOutput() = 
                 "Unrecognized command 'cmdX'. Please use 'help' command "+
-                "to list all available commands." @>
+                "to list all available commands." + Environment.NewLine @>
     

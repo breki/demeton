@@ -4,7 +4,7 @@ This tutorial is a short walk-through of some of the capabilities of Demeton's c
 
 ## Getting the tool
 First of all, download the [latest release](https://github.com/breki/demeton/releases/latest). There are several packages available in the release:
-- If you are on **Linux**, use **`Demeton-linux-x64-full.zip`** package. It contains Demeton's libraries as well as .NET Core stuff needed to run it. **NOTE:** you still need to install `libgdiplus` package on your system (if you don't already have it).
+- If you are on **Linux**, use **`Demeton-linux-x64-full.zip`** package. It contains Demeton's libraries as well as .NET Core stuff needed to run it.
 - If you are on **Windows** and you don't have .NET Core 3 installed, please use the **`Demeton-win10-x64-full.zip`** package, as it includes .NET Core libraries.
 - If you are on **Windows** and you already have .NET Core 3 installed, you can use the smaller **`Demeton-win10-x64.zip`** package.
 

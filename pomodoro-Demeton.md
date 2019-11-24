@@ -1,4 +1,3 @@
-- libgdiplus is not needed to run Demeton
 - try out tutorial steps on a brand new Ubuntu
     - do we really need `libgdiplus`?
 
