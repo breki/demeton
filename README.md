@@ -19,7 +19,7 @@ The tool runs on both Windows and Linux. You can find the latest binaries on the
 
 ## How to use
 
-Check out this [10-minute tutorial](docs/10MinTutorial.md) for a quick introduction to the shader tool.
+Check out this [10-minute tutorial](docs/Tutorial.md) for a quick introduction to the shader tool.
 
 ## More documentation
 - [Roadmap](docs/Roadmap.md)
