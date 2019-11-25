@@ -1,7 +1,7 @@
-- if shade command has no tiles to work on, it does nothing, but it doesn't tell it to the user
 - try out tutorial steps on a brand new Ubuntu
 
 ## Mon 25.11.
+- Fixed: if shade command has no tiles to work on, it does nothing, but it doesn't tell it to the user.
 - Implemented the basic PROJ parsing into a list of parameters.
 
 ## Sun 24.11.

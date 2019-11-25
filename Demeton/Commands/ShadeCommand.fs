@@ -10,7 +10,6 @@ open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Projections.MinLonLatDelta
 open Demeton.Shaders
-open Demeton.Shaders
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
 open Demeton.Shaders.Pipeline.Building
@@ -411,21 +410,30 @@ let run
     |> List.fold
            (fun state (xIndex, yIndex, tileBounds) ->
             state
-            |> Result.bind (fun () -> 
+            |> Result.bind (fun tilesGeneratedSoFar -> 
                 Log.info "Generating a shade tile %d/%d..." xIndex yIndex
 
                 generateTile srtmLevel tileBounds options
                 |> Result.map (fun maybeGeneratedTile ->
-                    maybeGeneratedTile
-                    |> Option.map (fun imageData -> 
+                    match maybeGeneratedTile with
+                    | Some imageData -> 
                         Log.info "Saving the shade tile..."
                         saveTile 
                             options 
                             maxTileIndex 
                             (xIndex, yIndex) 
                             tileBounds 
-                            imageData)
-                    |> ignore)
+                            imageData |> ignore
+                        tilesGeneratedSoFar + 1
+                    | None -> tilesGeneratedSoFar)
                 )
             )
-            (Ok())
+            (Ok 0)
+    |> Result.map (fun actualTilesGenerated ->
+        match actualTilesGenerated with
+        | 0 -> 
+            Log.info 
+                "Nothing was generated since there were no SRTM tiles to work with. Are you sure '%s' directory contains SRTM tiles?" 
+                options.SrtmDir
+        | _ -> ignore())
+        
