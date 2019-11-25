@@ -65,7 +65,7 @@ Anyway, the image is small(-ish), but you can make it bigger by specifying a lar
 ./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1000000
 ```
 
-In the tutorial, we'll stick to the original size, though to save some page space.
+In the tutorial, we'll stick to the original size, though, to save some page space.
 
 ## Shading scripts
 Let's say we don't want the elevation coloring and are only interested in hillshading. We can tell that to Demeton by defining a **shading script**:
@@ -82,7 +82,7 @@ In this case, the script is very short: `igor` specifies the shading operation t
 ./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1500000 --shading-script "igor(sunaz=135,shadcol=#ffff80)"
 ```
 
-Here we told Demeton the Sun comes from southeast (`sunaz=135` representing Sun azimuth of 135°) and it leaves yellow shades (`shadcol=#ffff80` means the yellowish shading color). Let's call this "sunshading". I know, it's weird, but for the next step and it will be clearer:
+Here we told Demeton the Sun comes from southeast (`sunaz=135` representing Sun azimuth of 135°) and it leaves yellow shades (`shadcol=#ffff80` means the yellowish shading color). Let's call this "sunshading". I know, it's weird, but wait for the next step and it will be clearer:
 
 ```sh
 ./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1500000 --shading-script "igor(sunaz=135,shadcol=#ffff80)|+igor"

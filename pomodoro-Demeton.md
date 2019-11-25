@@ -1,10 +1,12 @@
 - tutorial
+    - describe elevation scale parameters
     - slope
     - tiling
         - split into small tiles and add them as demo
 - publish official release (1.0.0.0)
 
 ## Mon 25.11.
+- Implemented rudimentary PROJ parsing to Mercator projection.
 - Continued working on the tutorial.
 - Introduced `Level0` and `HigherLevel` active patterns.
 - Fixed: if shade command has no tiles to work on, it does nothing, but it doesn't tell it to the user.
