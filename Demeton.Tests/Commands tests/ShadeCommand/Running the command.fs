@@ -3,6 +3,7 @@
 open Demeton.Commands
 open Demeton.Shaders
 
+open Demeton.Projections
 open Xunit
 open Swensen.Unquote
 open Png
@@ -25,6 +26,8 @@ let options: ShadeCommand.Options = {
         RootShadingStep = Pipeline.Common.ElevationColoring
             { ColorScale = ElevationColoring.colorScaleMaperitive }
         MapScale = mapScale
+        ProjectFunc = Mercator.proj
+        InvertFunc = Mercator.inverse
     }
 
 let mutable generatedTiles = []
@@ -55,7 +58,6 @@ let ``Correctly calculates the SRTM level needed``() =
     initialize()
 
     ShadeCommand.run options tileGeneratorNeedsSrtmLevel tileSaver |> ignore
-
 
 [<Fact>]
 let ``Correctly splits the raster into multiple tiles``() =

@@ -2,6 +2,7 @@
 	<s:Int64 x:Key="/Default/CodeStyle/CodeFormatting/FSharpFormat/WRAP_LIMIT/@EntryValue">80</s:Int64>
 	<s:String x:Key="/Default/Environment/ContinuousTesting/TriggerMode/@EntryValue">OnSave</s:String>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Brejc/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=colorer/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=composited/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=compositing/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Demeton/@EntryIndexedValue">True</s:Boolean>

@@ -5,6 +5,8 @@ open Demeton.Shaders
 open Demeton.Shaders.Types
 open Png
 
+open Demeton.Projections
+open Projections
 open Xunit
 open Swensen.Unquote
 
@@ -14,7 +16,7 @@ let mutable shadedImageGenerated = None
 let ShadingFuncIdStupid = "stupid"
 
 let stupidRasterShader: RasterShader = 
-    fun _ _ _ imageData _ -> 
+    fun _ _ _ imageData _ _ -> 
     shadedImageGenerated <- Some imageData
 
 let createShadingFuncById shadingFuncId =
@@ -53,7 +55,7 @@ let ``Supports running a simple, single-step pipeline``() =
         executeShadingStep 
             createShadingFuncById
             createCompositingFuncById 
-            heights srtmLevel tileRect shaderOptions step
+            heights srtmLevel tileRect Mercator.inverse shaderOptions step
     test <@ Some resultingImageData = shadedImageGenerated @>
 
 [<Fact>]
@@ -69,7 +71,8 @@ let ``Supports compositing of images``() =
             createCompositingFuncById 
             heights 
             srtmLevel
-            tileRect 
+            tileRect
+            Mercator.inverse 
             shaderOptions 
             compositingStep
     test <@ Some resultingImageData = compositedImageGenerated @>
@@ -82,7 +85,8 @@ let ``Supports elevation coloring``() =
         createCompositingFuncById 
         heights 
         srtmLevel
-        tileRect 
+        tileRect
+        Mercator.inverse 
         shaderOptions 
         step |> ignore
 
@@ -94,7 +98,8 @@ let ``Supports aspect shading``() =
         createCompositingFuncById 
         heights 
         srtmLevel
-        tileRect 
+        tileRect
+        Mercator.inverse 
         shaderOptions 
         step |> ignore
 
@@ -106,7 +111,8 @@ let ``Supports slope shading``() =
         createCompositingFuncById 
         heights 
         srtmLevel
-        tileRect 
+        tileRect
+        Mercator.inverse 
         shaderOptions 
         step |> ignore
 
@@ -118,6 +124,7 @@ let ``Supports igor shading``() =
         createCompositingFuncById 
         heights 
         srtmLevel
-        tileRect 
+        tileRect
+        Mercator.inverse 
         shaderOptions 
         step |> ignore

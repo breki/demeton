@@ -39,7 +39,7 @@ let generateSampleWithParameters
             -(int (ceil (maxCornerY * scaleFactor)))
 
     let srtmLevelNeeded =
-        minLonLatDelta rasterRect scaleFactor
+        minLonLatDelta rasterRect Mercator.inverse scaleFactor
         |> lonLatDeltaToSrtmLevel 3600
 
     let (minLonNeeded, minLatNeeded) = 

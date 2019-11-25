@@ -71,8 +71,9 @@ let calculateSlopeAndAspect p q: SlopeAndAspect =
     (slope, aspect)
 
 
-let shadeRaster (pixelHillshader: PixelHillshader): RasterShader = 
-    fun heightsArray srtmLevel tileRect imageData mapScale ->
+let shadeRaster
+    (pixelHillshader: PixelHillshader): RasterShader = 
+    fun heightsArray srtmLevel tileRect imageData inverse mapScale ->
 
     let scaleFactor = mapScale.ProjectionScaleFactor
     let tileWidth = tileRect.Width
@@ -81,7 +82,7 @@ let shadeRaster (pixelHillshader: PixelHillshader): RasterShader =
     let inline lonLatOf x y =
         let xUnscaled = float x / scaleFactor
         let yUnscaled = float y / scaleFactor
-        Mercator.inverse xUnscaled -yUnscaled
+        inverse xUnscaled -yUnscaled
 
     let heightOf (lonRad, latRad) =
         let lonDeg = radToDeg lonRad
