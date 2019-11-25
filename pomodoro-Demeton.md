@@ -1,4 +1,4 @@
-- try out tutorial steps on a brand new Ubuntu
+- some tutorial images are too big
 
 ## Mon 25.11.
 - Fixed: if shade command has no tiles to work on, it does nothing, but it doesn't tell it to the user.
