@@ -110,10 +110,10 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
         |@ sprintf "%f <> %f or %f <> %f" cellX cellX' cellY cellY'
     
     let parentCellCoordsAreHalf _ =
-        match level.Value with
-        | 0 -> true |> Prop.classify true "level 0"
-
-        | childLevel ->
+        match level with
+        | Level0 -> true |> Prop.classify true "level 0"
+        | HigherLevel ->
+            let childLevel = level.Value
             let parentLevel = childLevel + 1 |> SrtmLevel.fromInt
             let parentCellsPerDegree = cellsPerDegree tileSize parentLevel
             let parentCellX = longitudeToCellX parentCellsPerDegree (float lon)  
@@ -129,10 +129,10 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
                     halfChildX parentCellX halfChildY parentCellY
     
     let parentTileCoordsAreHalf _ =
-        match level.Value with
-        | 0 -> true |> Prop.classify true "level 0"
-
-        | childLevel ->
+        match level with
+        | Level0 -> true |> Prop.classify true "level 0"
+        | HigherLevel ->
+            let childLevel = level.Value
             let parentLevel = childLevel + 1 |> SrtmLevel.fromInt
             let parentCellsPerDegree = cellsPerDegree tileSize parentLevel
             let parentTileX = 
@@ -172,8 +172,8 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
         |> Prop.label "Tile names are properly generated and parsed"
 
     let conversionToTileCoords _ =
-        match level.Value with
-        | 0 ->
+        match level with
+        | Level0 ->
             let lonMin = lon |> floor
             let latMin = lat |> floor
 
@@ -196,7 +196,7 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
                 |@ sprintf "%A <> %A" actualCoords expectedCoords
             | _ -> invalidOp "bug"
 
-        | _ -> true |> Prop.classify true "level > 0"
+        | HigherLevel -> true |> Prop.classify true "level > 0"
 
     inversibility1 .&. inversibility2 .&. parentCellCoordsAreHalf
         .&. parentTileCoordsAreHalf .&. cellsToTilesRelation

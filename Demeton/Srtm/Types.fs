@@ -12,6 +12,11 @@ type SrtmLevel = { Value: int } with
             then invalidArg "i" "SRTM level is out of range"
         else { Value = i }
 
+let (|Level0|HigherLevel|) (level: SrtmLevel) =
+    match level.Value with
+    | 0 -> Level0
+    | _ -> HigherLevel
+
 [<StructuredFormatDisplay("{Value}")>]
 type SrtmLatitude = { Value: int } with 
     static member fromInt i =
@@ -49,4 +54,3 @@ type SrtmTileCellCoordsFloat = (float * float)
 type SrtmTileReader = SrtmTileId -> HeightsArrayMaybeResult
 
 type SrtmTileName = string
-

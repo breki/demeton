@@ -20,9 +20,9 @@ let determineLocalCacheTileStatus
     match tilePngExistsInLocalCache with
     | true -> Cached
     | false -> 
-        match level.Value with
-        | 0 -> NotCached    
-        | _ -> 
+        match level with
+        | Level0 -> NotCached    
+        | HigherLevel -> 
             match tileNoneFileExistsInLocalCache.Value with
             | true -> HigherLevelDoesNotExist
             | false -> NotCached

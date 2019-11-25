@@ -1,6 +1,7 @@
 - some tutorial images are too big
 
 ## Mon 25.11.
+- Introduced `Level0` and `HigherLevel` active patterns.
 - Fixed: if shade command has no tiles to work on, it does nothing, but it doesn't tell it to the user.
 - Implemented the basic PROJ parsing into a list of parameters.
 
