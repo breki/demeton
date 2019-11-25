@@ -49,7 +49,7 @@ If everything goes well, the command should write out something like:
 
 As it says, there is a PNG file waiting for us in the `output` directory:
 
-![Our first hillshading](docs/images/tutorial-first.png)
+![Our first hillshading](images/tutorial-first.png)
 
 The image shows elevation colored and hillshaded area of [Triglav national park](https://www.tnp.si/en/visit/) in Slovenia:
 - "**Elevation colored**" because terrain elevations are mapped into their respective color, from green (lowlands) to grayish (mountains). As we will see later, we can change this color scheme.
@@ -72,7 +72,7 @@ Let's say we don't want the elevation coloring and are only interested in hillsh
 ./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1500000 --shading-script igor
 ```
 
-![Hillshading only](docs/images/tutorial-hillshading.png)
+![Hillshading only](images/tutorial-hillshading.png)
 
 In this case, the script is very short: `igor` specifies the shading operation to perform. We can specify some parameters to that operation:
 
@@ -88,6 +88,6 @@ Here we told Demeton the Sun comes from southeast and it leaves yellow shades. L
 
 And here's the result:
 
-![Hillshading only](docs/images/tutorial-sunshading.png)
+![Hillshading only](images/tutorial-sunshading.png)
 
 What magic did we do here? The shading script `igor(sunaz=135,shadcol=#ffff80)|+igor` tells Demeton to perform two operations: "sunshading" and the hillshading we did at the start, and merge them together. `|+` is a symbol for this merge.
