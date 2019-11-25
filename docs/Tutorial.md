@@ -53,7 +53,9 @@ As it says, there is a PNG file waiting for us in the `output` directory:
 
 The image shows elevation colored and hillshaded area of [Triglav national park](https://www.tnp.si/en/visit/) in Slovenia:
 - "**Elevation colored**" because terrain elevations are mapped into their respective color, from green (lowlands) to grayish (mountains). As we will see later, we can change this color scheme.
-- "**Hillshaded**" because mountain sides opposite the sun are additionally colored using gray gradients. The direction (or [azimuth](https://en.wikipedia.org/wiki/Azimuth), to be more precise) of the sun in this case is the standard cartographic one - it comes from northwest.
+- "**Hillshaded**" because mountain sides opposite the Sun are additionally colored using gray gradients. The direction (or [azimuth](https://en.wikipedia.org/wiki/Azimuth), to be more precise) of the Sun in this case is the standard cartographic one - it comes from northwest.
+
+The coordinates we entered (`13.49437,46.159668,14.236633,46.543914`) represent two pairs of longitudes and latitudes of a bounding box that covers the mentioned national park.
 
 ## Map scale
 Perhaps you noticed that one of the parameters in the command we used was map scale: `--map-scale 1500000`. So the generated map has a map scale of 1 : 1,500,000. Roughly, since this depends on what kind of device you are reading this tutorial (or maybe you reading it on a paper). We'll get into this more later.
@@ -80,7 +82,7 @@ In this case, the script is very short: `igor` specifies the shading operation t
 ./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1500000 --shading-script "igor(sunaz=135,shadcol=#ffff80)"
 ```
 
-Here we told Demeton the Sun comes from southeast and it leaves yellow shades. Let's call this "sunshading". I know, it's weird, but for the next step and it will be clearer:
+Here we told Demeton the Sun comes from southeast (`sunaz=135` representing Sun azimuth of 135°) and it leaves yellow shades (`shadcol=#ffff80` means the yellowish shading color). Let's call this "sunshading". I know, it's weird, but for the next step and it will be clearer:
 
 ```sh
 ./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1500000 --shading-script "igor(sunaz=135,shadcol=#ffff80)|+igor"
@@ -91,3 +93,13 @@ And here's the result:
 ![Hillshading only](images/tutorial-sunshading.png)
 
 What magic did we do here? The shading script `igor(sunaz=135,shadcol=#ffff80)|+igor` tells Demeton to perform two operations: "sunshading" and the hillshading we did at the start, and merge them together. `|+` is a symbol for this merge.
+
+## Coloring it differently
+Now let's switch back to elevation coloring, but with something completely different:
+```sh
+./Demeton.Console shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1500000 --shading-script "elecolor(scale=0:#000000;3000:#ffffff;none:#00000000)|+igor"
+```
+
+![Hillshading only](images/tutorial-skeleton.png)
+
+We got this odd yet somehow beautiful shading by progressively coloring from black to white as the elevation rises (with added hillshading to give it some plasticity).

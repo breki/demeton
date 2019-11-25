@@ -1,6 +1,11 @@
-- some tutorial images are too big
+- tutorial
+    - slope
+    - tiling
+        - split into small tiles and add them as demo
+- publish official release (1.0.0.0)
 
 ## Mon 25.11.
+- Continued working on the tutorial.
 - Introduced `Level0` and `HigherLevel` active patterns.
 - Fixed: if shade command has no tiles to work on, it does nothing, but it doesn't tell it to the user.
 - Implemented the basic PROJ parsing into a list of parameters.
