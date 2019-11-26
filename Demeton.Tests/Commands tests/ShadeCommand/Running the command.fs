@@ -2,8 +2,8 @@
 
 open Demeton.Commands
 open Demeton.Shaders
-
 open Demeton.Projections
+open Demeton.Projections.Parsing
 open Xunit
 open Swensen.Unquote
 open Png
@@ -26,6 +26,7 @@ let options: ShadeCommand.Options = {
         RootShadingStep = Pipeline.Common.ElevationColoring
             { ColorScale = ElevationColoring.colorScaleMaperitive }
         MapScale = mapScale
+        MapProjection = { Projection = Mercator; IgnoredParameters = [] }
         ProjectFunc = Mercator.proj
         InvertFunc = Mercator.inverse
     }

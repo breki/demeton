@@ -35,6 +35,7 @@ type Options = {
     TileSize: int
     RootShadingStep: Pipeline.Common.ShadingStep 
     MapScale: MapScale
+    MapProjection: ParsedProjection
     ProjectFunc: ProjectFunc
     InvertFunc: InvertFunc
 }
@@ -215,6 +216,7 @@ let fillOptions parsedParameters =
             TileSize = DefaultTileSize
             RootShadingStep = shadingPipeline
             MapScale = { MapScale = DefaultMapScale; Dpi = DefaultDpi }
+            MapProjection = { Projection = Mercator; IgnoredParameters = [] }
             ProjectFunc = Mercator.proj
             InvertFunc = Mercator.inverse
         }

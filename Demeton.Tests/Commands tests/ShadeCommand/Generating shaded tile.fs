@@ -5,8 +5,9 @@ open Demeton.Commands
 open Demeton.Shaders
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
-
 open Demeton.Projections
+open Demeton.Projections.Parsing
+
 open Xunit
 open Swensen.Unquote
 open TestHelp
@@ -29,6 +30,7 @@ let options: ShadeCommand.Options = {
         TileSize = 1000
         RootShadingStep = Pipeline.Common.CustomShading ("some shader")
         MapScale = mapScale
+        MapProjection = { Projection = Mercator; IgnoredParameters = [] }
         ProjectFunc = Mercator.proj
         InvertFunc = Mercator.inverse
     }
