@@ -49,11 +49,11 @@ let FilePrefixParameter = "file-prefix"
 [<Literal>]
 let LocalCacheDirParameter = "local-cache-dir"
 [<Literal>]
-let ProjectionParameter = "proj"
-[<Literal>]
 let MapScaleParameter = "map-scale"
 [<Literal>]
 let OutputDirParameter = "output-dir"
+[<Literal>]
+let ProjectionParameter = "proj"
 [<Literal>]
 let ShadingScriptParameter = "shading-script"
 [<Literal>]

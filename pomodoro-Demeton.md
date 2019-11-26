@@ -1,7 +1,11 @@
+- publish official release (1.0.0.0)
+
 - projections
     - should options contain ParsedProjection instead?
 
 ## Tue 26.11.
+- Updated the Roadmap with map projection developments.
+- Finished writing the tutorial, for now.
 - Defined a map projection factory function.
 - Started adding command line support for projections.
 - Beautified `build.bat` output a little.

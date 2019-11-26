@@ -2,6 +2,9 @@
 
 The page lists features I plan to implement (in the order of priority).
 
+## Support for other map projections
+Right now Demeton outputs the maps in Spherical Mercator projection, but for my own purposes I need support other types of projections, too. The projection would be provided through [PROJ](https://proj.org/usage/projections.html) parameters. The PROJ parser has already been implemented and what's left now is to implement [individual projections](https://proj.org/operations/projections/index.html#projections). I'm not sure how much effort would take to implement support for all of the projections, I will start with the ones I need, probably by porting a PROJ library from another language.
+
 ## Georeferencing metadata
 Right now Demeton only generates raster tile PNG files, but there is no accompanying information that tells the user where each of the tiles lies in space. This information is needed when you want to combine these tiles with other cartographic content (like road vector layers, landuse etc.). 
 
@@ -30,16 +33,6 @@ Some useful links:
 - https://en.wikipedia.org/wiki/Image_tracing
 - https://en.wikipedia.org/wiki/Color_quantization
 - https://en.wikipedia.org/wiki/Posterization
-
-## Support for other map projections
-Right now Demeton outputs the maps in Spherical Mercator projection, but for my own purposes I need support other types of projections, too. The projection would be provided through [PROJ](https://proj.org/usage/projections.html) parameters. 
-So I need: 
-1. A parser for PROJ strings.
-1. The underlying math model to be able to project lon/lat coordinates into map coordinates (and back).
-
-Since I'm not sure how much effort would take to implement a general-purpose map projection library, in the first phase I might stick with implementing support for just the projections I need.
-
-One other option would be to port PROJ library from another language.
 
 ## Generating elevation contours
 This task is similar to vectorization and some of the vectorization code could probably be reused. Instead of polygons, the end result here would be a list of polylines (or perhaps even better - Bezier curves). Each polyline would have an associated elevation. 

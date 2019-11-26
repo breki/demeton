@@ -4,15 +4,7 @@
     - add proj parameter to shade command
     - add parameter for handling ignored PROJ parameters
 
-- tutorial
-    - describe elevation scale parameters
-    - slope
-    - tiling
-        - split into small tiles and add them as demo
-- publish official release (1.0.0.0)
-
 - add documentation for
-    - 10-min tutorial
     - building
     - architecture
 
