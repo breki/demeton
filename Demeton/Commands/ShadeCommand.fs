@@ -34,6 +34,8 @@ type Options = {
     TileSize: int
     RootShadingStep: Pipeline.Common.ShadingStep 
     MapScale: MapScale
+    ProjectFunc: ProjectFunc
+    InvertFunc: InvertFunc
 }
 
 [<Literal>]
@@ -195,6 +197,8 @@ let fillOptions parsedParameters =
             TileSize = DefaultTileSize
             RootShadingStep = shadingPipeline
             MapScale = { MapScale = DefaultMapScale; Dpi = DefaultDpi }
+            ProjectFunc = Mercator.proj
+            InvertFunc = Mercator.inverse
         }
 
     let processParameter options parameter =
@@ -258,11 +262,11 @@ let generateShadedRasterTile
 
     let x1 = float (tileRect.MinX - buffer) / scaleFactor
     let y1 = float (tileRect.MinY - buffer) / scaleFactor
-    let (lon1Rad, lat1Rad) = Mercator.inverse x1 -y1 |> Option.get
+    let (lon1Rad, lat1Rad) = options.InvertFunc x1 -y1 |> Option.get
 
     let x2 = float (tileRect.MaxX + buffer) / scaleFactor
     let y2 = float (tileRect.MaxY + buffer) / scaleFactor
-    let (lon2Rad, lat2Rad) = Mercator.inverse x2 -y2 |> Option.get
+    let (lon2Rad, lat2Rad) = options.InvertFunc x2 -y2 |> Option.get
 
     let lonLatBounds: LonLatBounds = 
         { 
@@ -286,7 +290,8 @@ let generateShadedRasterTile
                     Demeton.Shaders.Pipeline.Common.createCompositingFuncById
                     heightsArray 
                     srtmLevel
-                    tileRect 
+                    tileRect
+                    options.InvertFunc
                     options.MapScale 
                     options.RootShadingStep 
             Ok (Some imageData)
@@ -348,8 +353,8 @@ let run
     let projectedPoints = 
         options.CoveragePoints 
         |> List.map (
-            fun (lonDegrees, latDegrees) -> 
-                Mercator.proj (degToRad lonDegrees) (degToRad latDegrees))
+            fun (lonDegrees, latDegrees) ->
+                options.ProjectFunc (degToRad lonDegrees) (degToRad latDegrees))
         |> List.filter (fun p -> Option.isSome p)
         |> List.map (fun p -> Option.get p)
         |> List.map (fun (x, y) -> (x, -y))
@@ -372,7 +377,7 @@ let run
 
     // calculate SRTM level needed
     let srtmLevel = 
-        minLonLatDelta rasterMbrRounded scaleFactor
+        minLonLatDelta rasterMbrRounded options.InvertFunc scaleFactor
         |> lonLatDeltaToSrtmLevel 3600
 
     // then split it up into tiles

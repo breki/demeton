@@ -6,6 +6,7 @@
 - publish official release (1.0.0.0)
 
 ## Mon 25.11.
+- Introduced indirection when using map projection, the production code no longer directly calls `Mercator`'s functions.
 - Implemented rudimentary PROJ parsing to Mercator projection.
 - Continued working on the tutorial.
 - Introduced `Level0` and `HigherLevel` active patterns.

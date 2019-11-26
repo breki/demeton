@@ -6,6 +6,7 @@ open Demeton.Shaders
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 
+open Demeton.Projections
 open Xunit
 open Swensen.Unquote
 open TestHelp
@@ -17,7 +18,7 @@ let (area, heights, srtmLevel, mapScale, tileRect) =
 
 let coveragePoints = [(area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat)]
 
-let mockRasterShader _ _ _ _ _ = ()
+let mockRasterShader _ _ _ _ _ _ = ()
 
 let options: ShadeCommand.Options = {
         CoveragePoints = coveragePoints
@@ -28,6 +29,8 @@ let options: ShadeCommand.Options = {
         TileSize = 1000
         RootShadingStep = Pipeline.Common.CustomShading ("some shader")
         MapScale = mapScale
+        ProjectFunc = Mercator.proj
+        InvertFunc = Mercator.inverse
     }
    
 [<Fact>]
@@ -90,7 +93,7 @@ let ``Tile generator prepares the tile image data and returns it``() =
 
     let mutable imageDataReceived = None
     let shadeRasterReceivesTileRectAndImageData 
-        _ _ tileRectReceived (imageData: RawImageData) _ = 
+        _ _ tileRectReceived (imageData: RawImageData) _ _ = 
         imageDataReceived <- Some imageData
         test <@ imageData.Length = 
             tileRect.Width * tileRect.Height * Png.Rgba8Bit.BytesPerPixel @>

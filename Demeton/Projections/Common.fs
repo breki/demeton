@@ -1,5 +1,7 @@
 ﻿module Demeton.Projections.Common
 
+open Demeton.Geometry.Common
+
 open System
 
 [<Literal>]
@@ -19,6 +21,9 @@ type MapScale = {
     with
     member this.ProjectionScaleFactor =
         EarthRadiusInMeters / this.MapScale * InchesPerMeter * this.Dpi
+
+type ProjectFunc = float -> float -> Point option
+type InvertFunc = float -> float -> LonLat option
 
 /// <summary>
 /// Calculates an approximate geodetic distance (in meters) between two points 

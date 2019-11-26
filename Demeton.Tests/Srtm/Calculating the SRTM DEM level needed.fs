@@ -35,7 +35,8 @@ let calculateLonLatDeltaOfSamplePoint
     let rasterSamplePointX = mapRasterBox.MinX + mapRasterBox.Width / 2
     let rasterSamplePointY = mapRasterBox.MinY + mapRasterBox.Height / 2
 
-    calculateLonLatDeltaOfPoint 
+    calculateLonLatDeltaOfPoint
+        Mercator.inverse 
         rasterSamplePointX rasterSamplePointY scaleFactor
 
 [<Fact>]
@@ -79,7 +80,7 @@ let private calculateMinDeltaUsingBruteForce
         }
 
     points 
-    |> Seq.map (srtmMinCellEnergy scaleFactor)
+    |> Seq.map (srtmMinCellEnergy Mercator.inverse scaleFactor)
     |> Seq.min
 
 [<Fact>]
@@ -87,7 +88,8 @@ let ``Determines the min lon/lat delta using simulated annealing``() =
     let scaleFactor = { MapScale = 1000000.; Dpi = 5. }.ProjectionScaleFactor
     let rasterRect = scaleFactor |> rasterRectFor
 
-    let minDeltaUsingSimAnn = minLonLatDelta rasterRect scaleFactor
+    let minDeltaUsingSimAnn =
+        minLonLatDelta rasterRect Mercator.inverse scaleFactor
         
     let minDeltaUsingBruteForce = 
         calculateMinDeltaUsingBruteForce rasterRect scaleFactor

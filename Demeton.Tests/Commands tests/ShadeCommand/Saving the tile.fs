@@ -7,6 +7,7 @@ open Png.Types
 
 open System.IO
 
+open Demeton.Projections
 open Xunit
 open Swensen.Unquote
 
@@ -22,6 +23,8 @@ let options: ShadeCommand.Options = {
         RootShadingStep = Pipeline.Common.ElevationColoring
             { ColorScale = ElevationColoring.colorScaleMaperitive }
         MapScale = { Dpi = 300.; MapScale = 5000000. }
+        ProjectFunc = Mercator.proj
+        InvertFunc = Mercator.inverse
     }
 
 let tileIndexX = 3

@@ -11,7 +11,7 @@
 module Demeton.Projections.MinLonLatDelta
 
 open Demeton.Srtm.Types
-open Demeton.Projections
+open Demeton.Projections.Common
 open SimAnn
 open System
 
@@ -23,8 +23,9 @@ type LonLatDelta = float
 /// </summary>
 type MinLonLatDeltaState = Raster.Point
 
-let private rasterXYToLonLat (rasterX, rasterY) scaleFactor =
-    Mercator.inverse 
+let private rasterXYToLonLat
+    (inverse: InvertFunc) (rasterX, rasterY) scaleFactor =
+    inverse 
         ((float rasterX) / scaleFactor)
         -((float rasterY) / scaleFactor)
 
@@ -32,15 +33,16 @@ let private rasterXYToLonLat (rasterX, rasterY) scaleFactor =
 /// Calculates the minimum longitude/latitude delta for the given raster point.
 /// </summary>
 let calculateLonLatDeltaOfPoint
+    (inverse: InvertFunc) 
     rasterSamplePointX rasterSamplePointY
     scaleFactor
     =
     let lonlat0Maybe = 
         rasterXYToLonLat 
-            (rasterSamplePointX, rasterSamplePointY) scaleFactor
+            inverse (rasterSamplePointX, rasterSamplePointY) scaleFactor
     let lonlat1Maybe = 
         rasterXYToLonLat
-            (rasterSamplePointX + 1, rasterSamplePointY + 1) scaleFactor
+            inverse (rasterSamplePointX + 1, rasterSamplePointY + 1) scaleFactor
 
     match (lonlat0Maybe, lonlat1Maybe) with
     | (Some (lon0, lat0), Some (lon1, lat1)) ->
@@ -52,9 +54,10 @@ let calculateLonLatDeltaOfPoint
 /// delta longitude/latitude. Basically, it just calls 
 /// <see cref="calculateLonLatDeltaOfPoint" /> function.
 /// </summary>
-let srtmMinCellEnergy scaleFactor: EnergyFunc<MinLonLatDeltaState> =
+let srtmMinCellEnergy (inverse: InvertFunc) scaleFactor
+    : EnergyFunc<MinLonLatDeltaState> =
     fun (rasterX, rasterY) ->
-        calculateLonLatDeltaOfPoint rasterX rasterY scaleFactor
+        calculateLonLatDeltaOfPoint inverse rasterX rasterY scaleFactor
 
 let private srtmMinCellDeltaNeighbor (rasterRect: Raster.Rect) : 
     NeighborFunc<MinLonLatDeltaState> = 
@@ -76,7 +79,10 @@ let private srtmMinCellDeltaNeighbor (rasterRect: Raster.Rect) :
 /// Currently it only supports Mercator projection, but this will be fixed
 /// once we start supporting custom map projections.
 /// </summary>
-let minLonLatDelta (rasterRect: Raster.Rect) scaleFactor: LonLatDelta =
+let minLonLatDelta
+    (rasterRect: Raster.Rect)
+    (inverse: InvertFunc) 
+    scaleFactor: LonLatDelta =
     let initialState = (
         rasterRect.MinX + rasterRect.Width / 2,
         rasterRect.MinY + rasterRect.Height / 2 )
@@ -86,11 +92,11 @@ let minLonLatDelta (rasterRect: Raster.Rect) scaleFactor: LonLatDelta =
             (annealingScheduleExponential 100. 0.85) 
             initialState 
             (srtmMinCellDeltaNeighbor rasterRect)
-            (srtmMinCellEnergy scaleFactor)
+            (srtmMinCellEnergy inverse scaleFactor)
             kirkpatrickAcceptanceProbability
             1000 
     
-    srtmMinCellEnergy scaleFactor finalMinDeltaPoint
+    srtmMinCellEnergy inverse scaleFactor finalMinDeltaPoint
 
 /// <summary>
 /// Calculates the required SRTM level for a given lon/lat delta.

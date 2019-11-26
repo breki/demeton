@@ -6,6 +6,7 @@ open Demeton.Shaders
 open Demeton.Srtm
 open Png
 
+open Demeton.Projections
 open Xunit
 open Swensen.Unquote
 open Tests.Shaders
@@ -26,6 +27,8 @@ let options: ShadeCommand.Options = {
         RootShadingStep = Pipeline.Common.ElevationColoring
             { ColorScale = ElevationColoring.colorScaleMaperitive }
         MapScale = mapScale
+        ProjectFunc = Mercator.proj
+        InvertFunc = Mercator.inverse
     }
 
 [<Fact>]
@@ -41,7 +44,8 @@ let ``Elevation colorer colors all of the image``() =
         heights
         srtmLevel
         tileRect 
-        imageData 
+        imageData
+        options.InvertFunc
         options.MapScale
 
     let mutable anyNonColoredPixel = false
