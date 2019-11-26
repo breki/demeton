@@ -3,7 +3,9 @@
 open CommandLine.Common
 open Demeton.Commands
 open Demeton.Shaders.Pipeline.Common
+open Demeton.Geometry.Common
 
+open Demeton.Projections
 open Xunit
 open Swensen.Unquote
 open TestHelp
@@ -18,7 +20,7 @@ let parseArgs args =
     | Error error -> Error error
 
 
-let isOkWithOptions result: ShadeCommand.Options =
+let getOptions result: ShadeCommand.Options =
     match result with
     | Ok options -> options
     | _ -> invalidOp "Expected the parsed options."
@@ -26,7 +28,7 @@ let isOkWithOptions result: ShadeCommand.Options =
 [<Fact>]
 let ``Sane defaults are used for options``() =
     let result = parseArgs [ "10,20,30,40" ]
-    let options = isOkWithOptions result
+    let options = getOptions result
 
     test <@ options.MapScale.Dpi = 300. @>
     test <@ options.FilePrefix = "shading" @>
@@ -70,7 +72,7 @@ let ``Accepts two coverage points and places them into the options``() =
     let result = parseArgs [ "10,20,30,40" ]
     test <@ result |> isOk @>
     test <@ 
-            (isOkWithOptions result).CoveragePoints 
+            (getOptions result).CoveragePoints 
                 = [ (10., 20.); (30., 40.) ] 
         @>
 
@@ -102,7 +104,7 @@ let ``Accepts a valid map scale value and puts it into the options`` () =
         parseArgs [ "10,20,30,40"; "--map-scale"; "100000" ]
     test <@ result |> isOk @>
     test <@ 
-            (isOkWithOptions result).MapScale.MapScale = 100000. 
+            (getOptions result).MapScale.MapScale = 100000. 
         @>
 
 [<Fact>]
@@ -131,7 +133,7 @@ let ``Accepts a valid DPI value and puts it into the options`` () =
         parseArgs [ "10,20,30,40"; "--dpi"; "72" ]
     test <@ result |> isOk @>
     test <@ 
-            (isOkWithOptions result).MapScale.Dpi = 72. 
+            (getOptions result).MapScale.Dpi = 72. 
         @>
 
 [<Fact>]
@@ -160,7 +162,7 @@ let ``Accepts a valid tile size value and puts it into the options`` () =
         parseArgs [ "10,20,30,40"; "--tile-size"; "3000" ]
     test <@ result |> isOk @>
     test <@ 
-            (isOkWithOptions result).TileSize = 3000
+            (getOptions result).TileSize = 3000
         @>
 
 [<Fact>]
@@ -179,7 +181,7 @@ let ``Accepts a valid FileName value and puts it into the options`` () =
         parseArgs [ "10,20,30,40"; "--file-prefix"; "hillshading" ]
     test <@ result |> isOk @>
     test <@ 
-            (isOkWithOptions result).FilePrefix = "hillshading" 
+            (getOptions result).FilePrefix = "hillshading" 
         @>
 
 [<Fact>]
@@ -189,7 +191,7 @@ let ``Accepts a valid OutputDir value and puts it into the options`` () =
             "10,20,30,40"; "--output-dir"; "some/hillshading" ]
     test <@ result |> isOk @>
     test <@ 
-            (isOkWithOptions result).OutputDir = "some/hillshading" 
+            (getOptions result).OutputDir = "some/hillshading" 
         @>
 
 [<Fact>]
@@ -198,7 +200,7 @@ let ``Accepts a valid shading script value and puts it into the options`` () =
         parseArgs [ 
             "10,20,30,40"; "--shading-script"; "elecolor" ]
     test <@ result |> isOk @>
-    test <@ match (isOkWithOptions result).RootShadingStep with 
+    test <@ match (getOptions result).RootShadingStep with 
             | ElevationColoring _ -> true
             | _ -> false
         @>
@@ -248,3 +250,16 @@ let ``Reports an error when the shading script step has an error``() =
                 @"'shading-script' option's value is invalid:
 Error in step 'elecolor': 'scale' parameter value error: invalid color scale."
         @>
+
+[<Fact>]
+let ``Accepts a valid map projection specification puts it into the options`` () =
+    let result = parseArgs [ "10,20,30,40"; "--proj"; "+proj=merc" ]
+    test <@ result |> isOk @>
+    
+    let options = getOptions result
+    
+    test <@
+             let testLon = (degToRad 15.)
+             let testLat = (degToRad 46.)
+             options.ProjectFunc testLon testLat =
+                 Mercator.proj testLon testLat @>

@@ -9,6 +9,7 @@ open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Projections.MinLonLatDelta
+open Demeton.Projections.Parsing
 open Demeton.Shaders
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
@@ -46,6 +47,8 @@ let DpiParameter = "dpi"
 let FilePrefixParameter = "file-prefix"
 [<Literal>]
 let LocalCacheDirParameter = "local-cache-dir"
+[<Literal>]
+let ProjectionParameter = "proj"
 [<Literal>]
 let MapScaleParameter = "map-scale"
 [<Literal>]
@@ -86,6 +89,13 @@ let parseCoverage value =
         | _ -> 
             let coveragePoints = floatsListToPoints floatsList
             OkValue coveragePoints
+
+let parseProjSpecParameter value: OptionValueParsingResult =
+    match Parsing.parseProjSpecProjection value with
+    | Ok value -> OkValue value
+    | Error ProjectionNotSpecified ->
+        InvalidValue "PROJ specification does not contain a map projection ('+proj') parameter"
+    | _ -> invalidOp "todo"
 
 let registeredStepBuilders = dict [
     ("aspect", aspectShaderStepBuilder)
@@ -137,6 +147,14 @@ let supportedParameters: CommandParameter[] = [|
     Option.build LocalCacheDirParameter
     |> Option.desc "The path to the local SRTM cache directory. The directory will be created if it does not exist yet."
     |> Option.asDirectory |> Option.defaultValue DefaultLocalCacheDir
+    |> Option.toPar
+
+    Option.build ProjectionParameter
+    |> Option.desc "The map projection to use (PROJ specification text)."
+    |> Option.defaultValue "Mercator projection"
+    |> Option.parser parseProjSpecParameter
+    // todo: add example once we have support for other projections
+//    |> Option.example "100000"  "the map scale of resulting raster image will be 1 : 100,000"
     |> Option.toPar
 
     Option.build MapScaleParameter
@@ -215,6 +233,8 @@ let fillOptions parsedParameters =
         | ParsedOption { Name = MapScaleParameter; Value = value } ->
             { options with 
                 MapScale = { options.MapScale with MapScale = value :?> float }}
+        // todo: implement a parser for projections
+        | ParsedOption { Name = ProjectionParameter; Value = value } -> options
         | ParsedOption { Name = OutputDirParameter; Value = value } ->
             { options with OutputDir = value :?> string }
         | ParsedOption { Name = ShadingScriptParameter; Value = value } ->
