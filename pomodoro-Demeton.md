@@ -1,11 +1,8 @@
 - projections
     - should options contain ParsedProjection instead?
-    - add (nominal) support for another projection
-        - which one?
-    - add proj parameter to shade command
-    - add parameter for handling ignored PROJ parameters
 
 ## Tue 26.11.
+- Defined a map projection factory function.
 - Started adding command line support for projections.
 - Beautified `build.bat` output a little.
 - Moved the projection parsing code to the production module.

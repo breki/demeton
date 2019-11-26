@@ -1,3 +1,9 @@
+- projections
+    - add (nominal) support for another projection
+        - which one?
+    - add proj parameter to shade command
+    - add parameter for handling ignored PROJ parameters
+
 - tutorial
     - describe elevation scale parameters
     - slope

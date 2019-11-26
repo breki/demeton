@@ -1,6 +1,8 @@
 ﻿module Tests.Projections.``PROJ parsing``
 
 open Demeton.Projections.Parsing
+open Demeton.Projections.Factory
+open Demeton.Geometry.Common
 
 open Xunit
 open Swensen.Unquote
@@ -74,3 +76,26 @@ let ``Reports an error if PROJ specification has a syntax error``() =
             |> isErrorData (SpecParsingError {
                   Message = "Expected: parameter indicator '+'";
                   Location = 12 }) @>
+
+[<Fact>]
+let ``Maps Mercator to its projection functions``() =
+    
+    let (proj, invert) = prepareProjectionFunctions Mercator
+    
+    let testLon = degToRad 15.
+    let testLat = degToRad 46.
+    test <@
+         proj testLon testLat =
+             Demeton.Projections.Mercator.proj testLon testLat @>
+    test <@
+             match proj testLon testLat with
+             | Some (x, y) ->
+                 match invert x y with
+                 | Some (lon, lat) ->
+                     (lon |> isApproxEqualTo testLon (Decimals 6))
+                     && (lat |> isApproxEqualTo testLat (Decimals 6))
+                 | None ->
+                     fail "The invert function should have returned a lon/lat point."
+             | None ->
+                 fail "The proj function should have returned a point."
+         @>

@@ -63,5 +63,3 @@ let sampleFileStream sampleFileName =
     let assembly = Assembly.GetExecutingAssembly()
     assembly.GetManifestResourceStream
         ("Demeton.Tests.samples." + sampleFileName)
-        
-    
