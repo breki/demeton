@@ -1,9 +1,9 @@
-- tutorial
-    - describe elevation scale parameters
-    - slope
-    - tiling
-        - split into small tiles and add them as demo
-- publish official release (1.0.0.0)
+- projections
+    - add proj parameter to shade command
+
+## Tue 26.11.
+- Beautified `build.bat` output a little.
+- Moved the projection parsing code to the production module.
 
 ## Mon 25.11.
 - Introduced indirection when using map projection, the production code no longer directly calls `Mercator`'s functions.
