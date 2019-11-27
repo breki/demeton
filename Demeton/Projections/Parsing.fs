@@ -30,7 +30,7 @@ type Parameter = { Name: string; Value: ParameterValue }
 /// <summary>
 /// Specifies a map projection used.
 /// </summary>
-type Projection =
+type ProjectionParameters =
     /// <summary>
     /// Mercator projection.
     /// </summary>
@@ -41,7 +41,7 @@ type Projection =
 /// including any parameters that are ignored by Demeton.
 /// </summary>
 type ParsedProjection =
-    { Projection: Projection; IgnoredParameters: Parameter list }
+    { Projection: ProjectionParameters; IgnoredParameters: Parameter list }
 
 /// <summary>
 /// Represents error information when PROJ specification parsing has failed. 
@@ -76,6 +76,8 @@ type ProjSpec = string
 [<Literal>]
 let private ParProj = "proj"
 
+let private isAny _ = true
+
 let private isAlphanumeric x = isAsciiLetter x || isDigit x || x = '_'
 
 let private pParName: Parser<string, unit> =
@@ -101,7 +103,10 @@ let private pProjParameter: Parser<Parameter, unit> =
         (fun _ parName _ parValue -> { Name = parName; Value = parValue })
 
 let private pProj: Parser<Parameter list, unit> =
-    sepBy pProjParameter spaces1 <?> "parameters"
+    (sepBy pProjParameter spaces1 <?> "parameter indicator '+'")
+    .>> (notFollowedByL
+            (many1Satisfy isAny) 
+            "Unexpected character, parameter indicator '+'")
 
 /// <summary>
 /// Parses PROJ specification into a list of PROJ parameters.
@@ -109,8 +114,11 @@ let private pProj: Parser<Parameter list, unit> =
 let parseProjSpecParameters (projSpec: ProjSpec)
     : Result<Parameter list, TextParsers.ParsingError> =
     match run pProj projSpec with
-    | Success (steps, _, _) -> Result.Ok steps
+    | Success (parameters, _, _) ->
+        System.Diagnostics.Debugger.Break()
+        Result.Ok parameters
     | Failure (_, parserError, _) -> 
+        System.Diagnostics.Debugger.Break()
         TextParsers.formatParsingFailure parserError
 
 /// <summary>

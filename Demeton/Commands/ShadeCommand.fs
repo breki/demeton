@@ -95,7 +95,11 @@ let parseProjSpecParameter value: OptionValueParsingResult =
     | Ok value -> OkValue value
     | Error ProjectionNotSpecified ->
         InvalidValue "PROJ specification does not contain a map projection ('+proj') parameter"
-    | _ -> invalidOp "todo"
+    | Error (SpecParsingError error) ->
+        InvalidValue (Environment.NewLine + error.Message)
+    | Error (UnsupportedProjection projectionId) ->
+        sprintf "unsupported map projection '%s'" projectionId
+        |> InvalidValue
 
 let registeredStepBuilders = dict [
     ("aspect", aspectShaderStepBuilder)
@@ -232,8 +236,8 @@ let fillOptions parsedParameters =
         | ParsedOption { Name = MapScaleParameter; Value = value } ->
             { options with 
                 MapScale = { options.MapScale with MapScale = value :?> float }}
-        // todo: implement a parser for projections
-        | ParsedOption { Name = ProjectionParameter; Value = value } -> options
+        | ParsedOption { Name = ProjectionParameter; Value = value } ->
+            { options with MapProjection = value :?> ParsedProjection }
         | ParsedOption { Name = OutputDirParameter; Value = value } ->
             { options with OutputDir = value :?> string }
         | ParsedOption { Name = ShadingScriptParameter; Value = value } ->

@@ -1,7 +1,8 @@
 - projections
-    - integrate parsing of PROJ in the command line
 
 ## Wed 27.11.
+- Implemented all scenarios for `parseProjSpecParameter`. 
+- Fixed a bug in PROJ parsing.
 - Replaced the old Mercator projection functions with the new `Mercator.MapProjection` class.
 - `MapScale` and `ProjectionScaleFactor` are now embedded in the map projection, so they don't need to be carried around separately.
 - Introduced `MercatorMapProjection` class to begin merging map scale with projection.

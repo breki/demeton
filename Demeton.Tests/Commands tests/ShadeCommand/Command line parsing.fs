@@ -2,7 +2,6 @@
 
 open CommandLine.Common
 open Demeton.Commands
-open Demeton.Geometry.Common
 open Demeton.Projections.Parsing
 open Demeton.Shaders.Pipeline.Common
 
@@ -255,12 +254,38 @@ Error in step 'elecolor': 'scale' parameter value error: invalid color scale."
 // projections
 [<Fact>]
 let ``Accepts a valid map projection specification and puts it into the options`` () =
-    let result = parseArgs [ "10,20,30,40"; "--proj"; "+proj=merc" ]
+    let result = parseArgs [ "10,20,30,40"; "--proj"; "+proj=merc +test=20" ]
     test <@ result |> isOk @>
     
     let options = getOptions result
     
     test <@
              options.MapProjection = {
-                 Projection = Mercator; IgnoredParameters = []
+                 Projection = Mercator; IgnoredParameters = [
+                    { Name = "test"; Value = NumericValue 20. } ]
              } @>
+
+[<Fact>]
+let ``Reports an error when PROJ specification is invalid``() =
+    let result = parseArgs [ "10,20,30,40"; "--proj"; "proj=merc" ]
+    test <@ result
+            |> isErrorData 
+                @"'proj' option's value is invalid:
+Expected: parameter indicator '+'"
+        @>
+
+[<Fact>]
+let ``Reports an error when PROJ specification does not have '+proj' parameter``() =
+    let result = parseArgs [ "10,20,30,40"; "--proj"; "+test=20" ]
+    test <@ result
+            |> isErrorData 
+                @"'proj' option's value is invalid, PROJ specification does not contain a map projection ('+proj') parameter."
+        @>
+
+[<Fact>]
+let ``Reports an error when map projection is not supported``() =
+    let result = parseArgs [ "10,20,30,40"; "--proj"; "+proj=tmerc" ]
+    test <@ result
+            |> isErrorData 
+                @"'proj' option's value is invalid, unsupported map projection 'tmerc'."
+        @>

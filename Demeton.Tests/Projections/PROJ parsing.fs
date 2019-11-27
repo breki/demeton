@@ -1,8 +1,6 @@
 ﻿module Tests.Projections.``PROJ parsing``
 
 open Demeton.Projections.Parsing
-open Demeton.Projections.Factory
-open Demeton.Geometry.Common
 
 open Xunit
 open Swensen.Unquote
@@ -18,7 +16,15 @@ let ``Successfully parses PROJ specification into parameters list``() =
                 ]  @>
 
 [<Fact>]
-let ``Reports an error if PROJ parameter does not start with +``() =
+let ``Reports an error if PROJ parameter does not start with + (case 1)``() =
+    let result = parseProjSpecParameters "proj=merc"
+    
+    test <@ result |> isErrorData 
+                { Message = "Expected: parameter indicator '+'";
+                  Location = 0 } @>
+
+[<Fact>]
+let ``Reports an error if PROJ parameter does not start with + (case 2)``() =
     let result = parseProjSpecParameters "+proj=merc lat_ts=56.5"
     
     test <@ result |> isErrorData 
