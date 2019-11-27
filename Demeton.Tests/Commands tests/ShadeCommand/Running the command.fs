@@ -10,7 +10,7 @@ open Swensen.Unquote
 open TestHelp
 open Tests.Shaders
 
-let (area, heights, srtmLevel, mapScale, tileRect) = 
+let (area, heights, srtmLevel, mapProjection, mapScale, tileRect) = 
     ShadingSampleGenerator.generateSampleWithParameters
         10.1 45.5 16.962471 48.502048 5000000. 72.
 

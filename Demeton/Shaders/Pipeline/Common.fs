@@ -40,7 +40,6 @@ let rec executeShadingStep
     srtmLevel
     tileRect
     inverse
-    mapScale
     (step: ShadingStep)
     : RawImageData =
 
@@ -54,7 +53,6 @@ let rec executeShadingStep
                 srtmLevel
                 tileRect
                 inverse
-                mapScale 
                 step1
         let sourceImage = 
             executeShadingStep 
@@ -64,7 +62,6 @@ let rec executeShadingStep
                 srtmLevel
                 tileRect
                 inverse
-                mapScale 
                 step2
 
         Log.info "Running compositing step '%s'..." compositingFuncId
@@ -93,5 +90,5 @@ let rec executeShadingStep
                 tileRect.Width tileRect.Height Rgba8Bit.ImageDataZero
 
         rasterShaderToUse
-            heightsArray srtmLevel tileRect imageData inverse mapScale
+            heightsArray srtmLevel tileRect imageData inverse
         imageData

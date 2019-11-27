@@ -5,8 +5,6 @@ open Demeton.Shaders
 open Demeton.Shaders.Types
 open Png
 
-open Demeton.Projections
-open Projections
 open Xunit
 open Swensen.Unquote
 
@@ -16,7 +14,7 @@ let mutable shadedImageGenerated = None
 let ShadingFuncIdStupid = "stupid"
 
 let stupidRasterShader: RasterShader = 
-    fun _ _ _ imageData _ _ -> 
+    fun _ _ _ imageData _ -> 
     shadedImageGenerated <- Some imageData
 
 let createShadingFuncById shadingFuncId =
@@ -44,7 +42,7 @@ let createCompositingFuncById compositingFuncId =
     | CompositingFuncIdStupid -> stupidCompositing
     | _ -> invalidOp "Unknown compositing function."
 
-let (area, heights, srtmLevel, shaderOptions, tileRect) = 
+let (area, heights, srtmLevel, mapProjection, mapScale, tileRect) = 
     ShadingSampleGenerator.generateSample()
 
 [<Fact>]
@@ -55,7 +53,7 @@ let ``Supports running a simple, single-step pipeline``() =
         executeShadingStep 
             createShadingFuncById
             createCompositingFuncById 
-            heights srtmLevel tileRect Mercator.inverse shaderOptions step
+            heights srtmLevel tileRect mapProjection.Invert step
     test <@ Some resultingImageData = shadedImageGenerated @>
 
 [<Fact>]
@@ -72,8 +70,7 @@ let ``Supports compositing of images``() =
             heights 
             srtmLevel
             tileRect
-            Mercator.inverse 
-            shaderOptions 
+            mapProjection.Invert 
             compositingStep
     test <@ Some resultingImageData = compositedImageGenerated @>
 
@@ -86,8 +83,7 @@ let ``Supports elevation coloring``() =
         heights 
         srtmLevel
         tileRect
-        Mercator.inverse 
-        shaderOptions 
+        mapProjection.Invert 
         step |> ignore
 
 [<Fact>]
@@ -99,8 +95,7 @@ let ``Supports aspect shading``() =
         heights 
         srtmLevel
         tileRect
-        Mercator.inverse 
-        shaderOptions 
+        mapProjection.Invert 
         step |> ignore
 
 [<Fact>]
@@ -112,8 +107,7 @@ let ``Supports slope shading``() =
         heights 
         srtmLevel
         tileRect
-        Mercator.inverse 
-        shaderOptions 
+        mapProjection.Invert 
         step |> ignore
 
 [<Fact>]
@@ -125,6 +119,5 @@ let ``Supports igor shading``() =
         heights 
         srtmLevel
         tileRect
-        Mercator.inverse 
-        shaderOptions 
+        mapProjection.Invert 
         step |> ignore

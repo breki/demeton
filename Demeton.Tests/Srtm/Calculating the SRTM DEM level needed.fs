@@ -1,10 +1,10 @@
 ﻿module Tests.Srtm.``Calculating the SRTM DEM level needed``
 
 open Demeton.Geometry.Common
-open Demeton.Projections
 open Demeton.Projections.Common
+open Demeton.Projections.Factory
 open Demeton.Projections.MinLonLatDelta
-open System
+open Demeton.Projections.Parsing
 
 open Xunit
 open Swensen.Unquote
@@ -13,55 +13,61 @@ let area =
     { MinLon = 4.702148; MinLat = 43.331571; 
     MaxLon = 16.976075; MaxLat = 48.580605 }
 
-let private rasterRectFor scaleFactor =
+let private rasterRectFor projection =
     let minCornerX, minCornerY = 
-        Mercator.proj (area.MinLon |> degToRad) (area.MaxLat |> degToRad)
+        projection.Proj (area.MinLon |> degToRad) (area.MaxLat |> degToRad)
         |> Option.get
     let maxCornerX, maxCornerY = 
-        Mercator.proj (area.MaxLon |> degToRad) (area.MinLat |> degToRad) 
+        projection.Proj (area.MaxLon |> degToRad) (area.MinLat |> degToRad) 
         |> Option.get
 
     Raster.Rect.asMinMax
-        (int (floor (minCornerX * scaleFactor)))
-        -(int (floor (minCornerY * scaleFactor)))
-        (int (ceil (maxCornerX * scaleFactor)))
-        -(int (ceil (maxCornerY * scaleFactor)))
+        (int (floor minCornerX))
+        -(int (floor minCornerY))
+        (int (ceil maxCornerX))
+        -(int (ceil maxCornerY))
 
 
 let calculateLonLatDeltaOfSamplePoint
-    scaleFactor
+    mapProjection
     (mapRasterBox: Raster.Rect)
     =
     let rasterSamplePointX = mapRasterBox.MinX + mapRasterBox.Width / 2
     let rasterSamplePointY = mapRasterBox.MinY + mapRasterBox.Height / 2
 
     calculateLonLatDeltaOfPoint
-        Mercator.inverse 
-        rasterSamplePointX rasterSamplePointY scaleFactor
+        mapProjection.Invert 
+        rasterSamplePointX rasterSamplePointY
 
 [<Fact>]
 let ``Can calculate distance between neighborhood rasters pixels in terms of SRTM DEM cells``() =
-    let scaleFactor = { MapScale = 1000000.; Dpi = 1. }.ProjectionScaleFactor
+    let mapScale = { MapScale = 1000000.; Dpi = 1. }
+    let projection = createMapProjection Mercator mapScale
+
     let delta = 
-        scaleFactor 
+        projection 
         |> rasterRectFor
-        |> calculateLonLatDeltaOfSamplePoint scaleFactor
+        |> calculateLonLatDeltaOfSamplePoint projection
 
     test <@ abs (delta - 0.00277597281) < 0.0001 @>
 
-    let scaleFactor = { MapScale = 2000000.; Dpi = 1. }.ProjectionScaleFactor
+    let mapScale = { MapScale = 2000000.; Dpi = 1. }
+    let projection = createMapProjection Mercator mapScale
+
     let delta = 
-        scaleFactor 
+        projection 
         |> rasterRectFor
-        |> calculateLonLatDeltaOfSamplePoint scaleFactor
+        |> calculateLonLatDeltaOfSamplePoint projection
 
     test <@ abs (delta - 0.005544002665) < 0.0001 @>
 
-    let scaleFactor = { MapScale = 1000000.; Dpi = 2. }.ProjectionScaleFactor
+    let mapScale = { MapScale = 1000000.; Dpi = 2. }
+    let projection = createMapProjection Mercator mapScale
+
     let delta = 
-        scaleFactor 
+        projection 
         |> rasterRectFor
-        |> calculateLonLatDeltaOfSamplePoint scaleFactor
+        |> calculateLonLatDeltaOfSamplePoint projection
 
     test <@ abs (delta - 0.001385007704) < 0.0001 @>
 
@@ -71,7 +77,7 @@ let ``Can calculate distance between neighborhood rasters pixels in terms of SRT
 /// simulated annealing.
 /// </summary>
 let private calculateMinDeltaUsingBruteForce 
-    (rasterRect: Raster.Rect) scaleFactor =
+    (rasterRect: Raster.Rect) mapProjection =
     let points = 
         seq {
             for y in rasterRect.MinY .. rasterRect.MaxY do
@@ -80,19 +86,20 @@ let private calculateMinDeltaUsingBruteForce
         }
 
     points 
-    |> Seq.map (srtmMinCellEnergy Mercator.inverse scaleFactor)
+    |> Seq.map (srtmMinCellEnergy mapProjection.Invert)
     |> Seq.min
 
 [<Fact>]
 let ``Determines the min lon/lat delta using simulated annealing``() =
-    let scaleFactor = { MapScale = 1000000.; Dpi = 5. }.ProjectionScaleFactor
-    let rasterRect = scaleFactor |> rasterRectFor
+    let mapScale = { MapScale = 1000000.; Dpi = 5. }
+    let projection = createMapProjection Mercator mapScale
+    let rasterRect = projection |> rasterRectFor
 
     let minDeltaUsingSimAnn =
-        minLonLatDelta rasterRect Mercator.inverse scaleFactor
+        minLonLatDelta rasterRect projection.Invert
         
     let minDeltaUsingBruteForce = 
-        calculateMinDeltaUsingBruteForce rasterRect scaleFactor
+        calculateMinDeltaUsingBruteForce rasterRect projection
 
     test <@ abs (minDeltaUsingSimAnn - minDeltaUsingBruteForce) < 0.001 @>
 

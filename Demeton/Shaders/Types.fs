@@ -7,6 +7,6 @@ open Demeton.Srtm.Types
     
 type RasterShader = 
     HeightsArray -> SrtmLevel -> Raster.Rect -> RawImageData -> InvertFunc
-        -> MapScale -> unit
+        -> unit
 
         

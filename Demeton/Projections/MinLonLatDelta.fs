@@ -4,7 +4,7 @@
 /// used to determine which SRTM DEM level is needed and what is the maximum
 /// DPI that can actually be provided when generating the shaded raster.
 /// </summary>
-/// <remarks>The algoritm uses
+/// <remarks>The algorithm uses
 /// simulated annealing to "walk" along the raster, looking for a point with
 /// the minimum longitude/latitude delta.
 /// </remarks>
@@ -24,25 +24,21 @@ type LonLatDelta = float
 type MinLonLatDeltaState = Raster.Point
 
 let private rasterXYToLonLat
-    (inverse: InvertFunc) (rasterX, rasterY) scaleFactor =
-    inverse 
-        ((float rasterX) / scaleFactor)
-        -((float rasterY) / scaleFactor)
+    (inverse: InvertFunc) (rasterX, rasterY) =
+    inverse (float rasterX) -(float rasterY)
 
 /// <summary>
 /// Calculates the minimum longitude/latitude delta for the given raster point.
 /// </summary>
 let calculateLonLatDeltaOfPoint
-    (inverse: InvertFunc) 
-    rasterSamplePointX rasterSamplePointY
-    scaleFactor
+    (inverse: InvertFunc) rasterSamplePointX rasterSamplePointY
     =
     let lonlat0Maybe = 
         rasterXYToLonLat 
-            inverse (rasterSamplePointX, rasterSamplePointY) scaleFactor
+            inverse (rasterSamplePointX, rasterSamplePointY)
     let lonlat1Maybe = 
         rasterXYToLonLat
-            inverse (rasterSamplePointX + 1, rasterSamplePointY + 1) scaleFactor
+            inverse (rasterSamplePointX + 1, rasterSamplePointY + 1)
 
     match (lonlat0Maybe, lonlat1Maybe) with
     | (Some (lon0, lat0), Some (lon1, lat1)) ->
@@ -54,10 +50,10 @@ let calculateLonLatDeltaOfPoint
 /// delta longitude/latitude. Basically, it just calls 
 /// <see cref="calculateLonLatDeltaOfPoint" /> function.
 /// </summary>
-let srtmMinCellEnergy (inverse: InvertFunc) scaleFactor
+let srtmMinCellEnergy (inverse: InvertFunc) 
     : EnergyFunc<MinLonLatDeltaState> =
     fun (rasterX, rasterY) ->
-        calculateLonLatDeltaOfPoint inverse rasterX rasterY scaleFactor
+        calculateLonLatDeltaOfPoint inverse rasterX rasterY
 
 let private srtmMinCellDeltaNeighbor (rasterRect: Raster.Rect) : 
     NeighborFunc<MinLonLatDeltaState> = 
@@ -81,8 +77,7 @@ let private srtmMinCellDeltaNeighbor (rasterRect: Raster.Rect) :
 /// </summary>
 let minLonLatDelta
     (rasterRect: Raster.Rect)
-    (inverse: InvertFunc) 
-    scaleFactor: LonLatDelta =
+    (inverse: InvertFunc) =
     let initialState = (
         rasterRect.MinX + rasterRect.Width / 2,
         rasterRect.MinY + rasterRect.Height / 2 )
@@ -92,11 +87,11 @@ let minLonLatDelta
             (annealingScheduleExponential 100. 0.85) 
             initialState 
             (srtmMinCellDeltaNeighbor rasterRect)
-            (srtmMinCellEnergy inverse scaleFactor)
+            (srtmMinCellEnergy inverse)
             kirkpatrickAcceptanceProbability
             1000 
     
-    srtmMinCellEnergy inverse scaleFactor finalMinDeltaPoint
+    srtmMinCellEnergy inverse finalMinDeltaPoint
 
 /// <summary>
 /// Calculates the required SRTM level for a given lon/lat delta.

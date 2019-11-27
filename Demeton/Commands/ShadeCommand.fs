@@ -267,25 +267,23 @@ let splitIntoIntervals minValue maxValue intervalSize =
         )
 
 type ShadedRasterTileGenerator = 
-    SrtmLevel -> Raster.Rect -> Options -> MapProjection
+    SrtmLevel -> Raster.Rect -> Pipeline.Common.ShadingStep -> MapProjection
         -> Result<RawImageData option, string>
 
 let generateShadedRasterTile 
     (fetchHeightsArray: SrtmHeightsArrayFetcher)
     (createShaderFunction: Demeton.Shaders.Pipeline.Common.ShadingFuncFactory)
     : ShadedRasterTileGenerator = 
-    fun srtmLevel (tileRect: Raster.Rect) options mapProjection ->
-
-    let scaleFactor = options.MapScale.ProjectionScaleFactor
+    fun srtmLevel (tileRect: Raster.Rect) rootShadingStep mapProjection ->
 
     let buffer = 1
 
-    let x1 = float (tileRect.MinX - buffer) / scaleFactor
-    let y1 = float (tileRect.MinY - buffer) / scaleFactor
+    let x1 = float (tileRect.MinX - buffer)
+    let y1 = float (tileRect.MinY - buffer)
     let (lon1Rad, lat1Rad) = mapProjection.Invert x1 -y1 |> Option.get
 
-    let x2 = float (tileRect.MaxX + buffer) / scaleFactor
-    let y2 = float (tileRect.MaxY + buffer) / scaleFactor
+    let x2 = float (tileRect.MaxX + buffer)
+    let y2 = float (tileRect.MaxY + buffer)
     let (lon2Rad, lat2Rad) = mapProjection.Invert x2 -y2 |> Option.get
 
     let lonLatBounds: LonLatBounds = 
@@ -312,8 +310,7 @@ let generateShadedRasterTile
                     srtmLevel
                     tileRect
                     mapProjection.Invert
-                    options.MapScale 
-                    options.RootShadingStep 
+                    rootShadingStep 
             Ok (Some imageData)
         | None -> Ok None
     
@@ -370,7 +367,9 @@ let run
     : Result<unit, string> =
 
     let mapProjection =
-        prepareProjectionFunctions options.MapProjection.Projection        
+        createMapProjection
+            options.MapProjection.Projection
+            options.MapScale
                        
     // project each coverage point
     let projectedPoints = 
@@ -383,12 +382,7 @@ let run
         |> List.map (fun (x, y) -> (x, -y))
 
     // calculate the minimum bounding rectangle of all the projected points
-    let projectionMbr = Bounds.mbrOf projectedPoints
-
-    // calculate MBR in terms of pixels
-    let scaleFactor = options.MapScale.ProjectionScaleFactor
-
-    let rasterMbr = projectionMbr |> Bounds.multiply scaleFactor
+    let rasterMbr = Bounds.mbrOf projectedPoints
 
     // round off the raster so we work with integer coordinates
     let rasterMbrRounded = 
@@ -400,7 +394,7 @@ let run
 
     // calculate SRTM level needed
     let srtmLevel = 
-        minLonLatDelta rasterMbrRounded mapProjection.Invert scaleFactor
+        minLonLatDelta rasterMbrRounded mapProjection.Invert
         |> lonLatDeltaToSrtmLevel 3600
 
     // then split it up into tiles
@@ -441,7 +435,8 @@ let run
             |> Result.bind (fun tilesGeneratedSoFar -> 
                 Log.info "Generating a shade tile %d/%d..." xIndex yIndex
 
-                generateTile srtmLevel tileBounds options mapProjection
+                generateTile
+                    srtmLevel tileBounds options.RootShadingStep mapProjection
                 |> Result.map (fun maybeGeneratedTile ->
                     match maybeGeneratedTile with
                     | Some imageData -> 

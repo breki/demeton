@@ -3,8 +3,9 @@ module Tests.Shaders.ShadingSampleGenerator
 
 open Demeton.DemTypes
 open Demeton.Geometry.Common
-open Demeton.Projections
 open Demeton.Projections.Common
+open Demeton.Projections.Factory
+open Demeton.Projections.Parsing
 open Demeton.Projections.MinLonLatDelta
 open Demeton.Srtm.Funcs
 open Xunit
@@ -22,35 +23,35 @@ let generateSampleWithParameters
         { MinLon = minLon; MinLat = minLat; MaxLon = maxLon; MaxLat = maxLat }
 
     let mapScale = { MapScale = mapScale; Dpi = dpi }
-    let scaleFactor = mapScale.ProjectionScaleFactor
+    let projection = createMapProjection Mercator mapScale
 
     let minCornerX, minCornerY = 
-        Mercator.proj (area.MinLon |> degToRad) (area.MaxLat |> degToRad)
+        projection.Proj (area.MinLon |> degToRad) (area.MaxLat |> degToRad)
         |> Option.get
     let maxCornerX, maxCornerY = 
-        Mercator.proj (area.MaxLon |> degToRad) (area.MinLat |> degToRad) 
+        projection.Proj (area.MaxLon |> degToRad) (area.MinLat |> degToRad) 
         |> Option.get
 
     let rasterRect = 
         Raster.Rect.asMinMax
-            (int (floor (minCornerX * scaleFactor)))
-            -(int (floor (minCornerY * scaleFactor)))
-            (int (ceil (maxCornerX * scaleFactor)))
-            -(int (ceil (maxCornerY * scaleFactor)))
+            (int (floor minCornerX))
+            -(int (floor minCornerY))
+            (int (ceil maxCornerX))
+            -(int (ceil maxCornerY))
 
     let srtmLevelNeeded =
-        minLonLatDelta rasterRect Mercator.inverse scaleFactor
+        minLonLatDelta rasterRect projection.Invert
         |> lonLatDeltaToSrtmLevel 3600
 
     let (minLonNeeded, minLatNeeded) = 
-        Mercator.inverse 
-            ((rasterRect.MinX - 1 |> float) / scaleFactor)
-            -((rasterRect.MinY - 1 |> float) / scaleFactor)
+        projection.Invert 
+            (rasterRect.MinX - 1 |> float)
+            -(rasterRect.MinY - 1 |> float)
         |> Option.get
     let (maxLonNeeded, maxLatNeeded) = 
-        Mercator.inverse 
-            ((rasterRect.MaxX + 1 |> float) / scaleFactor)
-            -((rasterRect.MaxY + 1 |> float) / scaleFactor)
+        projection.Invert 
+            (rasterRect.MaxX + 1 |> float)
+            -(rasterRect.MaxY + 1 |> float)
         |> Option.get
 
     let minLonNeededDeg = radToDeg minLonNeeded 
@@ -78,7 +79,7 @@ let generateSampleWithParameters
             maxSrtmX - minSrtmX + 1, maxSrtmY - minSrtmY + 1, 
             HeightsArrayInitializer1D(fun _ -> DemHeight 1000))
 
-    (area, heights, srtmLevelNeeded, mapScale, rasterRect)
+    (area, heights, srtmLevelNeeded, projection, mapScale, rasterRect)
 
 /// <summary>
 /// Generates a sample geographic area bounds, its corresponding heights array
@@ -91,7 +92,7 @@ let generateSample() =
 
 [<Fact>]
 let ``Sample data is valid and sane``() =
-    let (_, heights, srtmLevel, _, rasterRect) = generateSample()
+    let (_, heights, srtmLevel, _, _, rasterRect) = generateSample()
 
     test <@ srtmLevel = SrtmLevel.fromInt 2 @>
     test <@ heights.Width = 129 @>

@@ -5,36 +5,22 @@ open Demeton.Commands
 open Demeton.Shaders
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
-open Demeton.Projections.Parsing
-open Demeton.Projections.Factory
 
 open Xunit
 open Swensen.Unquote
 open TestHelp
 open Tests.Shaders
 
-let (area, heights, srtmLevel, mapScale, tileRect) = 
+let (area, heights, srtmLevel, mapProjection, mapScale, tileRect) = 
     ShadingSampleGenerator.generateSampleWithParameters
         4.262676 42.90816 16.962471 48.502048 5000000. 100.
 
 let coveragePoints = [(area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat)]
 
-let mockRasterShader _ _ _ _ _ _ = ()
+let mockRasterShader _ _ _ _ _ = ()
 
-let options: ShadeCommand.Options = {
-        CoveragePoints = coveragePoints
-        FilePrefix = "shading"
-        LocalCacheDir = "cache"
-        OutputDir = "output"
-        SrtmDir = "srtm"
-        TileSize = 1000
-        RootShadingStep = Pipeline.Common.CustomShading ("some shader")
-        MapScale = mapScale
-        MapProjection = { Projection = Mercator; IgnoredParameters = [] }
-    }
+let rootShadingStep = Pipeline.Common.CustomShading ("some shader")
 
-let mapProjection = prepareProjectionFunctions options.MapProjection.Projection
-   
 [<Fact>]
 let ``Tile generator correctly calculates which SRTM tiles it needs``() =
 
@@ -53,7 +39,7 @@ let ``Tile generator correctly calculates which SRTM tiles it needs``() =
         (fun _ -> mockRasterShader)
         srtmLevel
         tileRect 
-        options 
+        rootShadingStep 
     |> ignore
 
     test <@ true @>
@@ -69,7 +55,7 @@ let ``When heights array fetcher returns None, tile generator does nothing and r
             (fun _ -> mockRasterShader)
             srtmLevel
             tileRect 
-            options
+            rootShadingStep
             mapProjection
 
     test <@ isOk shadeTileResult @>
@@ -86,7 +72,7 @@ let ``When heights array fetcher returns an error, tile generator returns an err
             (fun _ -> mockRasterShader)
             srtmLevel
             tileRect 
-            options
+            rootShadingStep
             mapProjection
 
     test <@ isError shadeTileResult @>
@@ -97,7 +83,7 @@ let ``Tile generator prepares the tile image data and returns it``() =
 
     let mutable imageDataReceived = None
     let shadeRasterReceivesTileRectAndImageData 
-        _ _ tileRectReceived (imageData: RawImageData) _ _ = 
+        _ _ tileRectReceived (imageData: RawImageData) _ = 
         imageDataReceived <- Some imageData
         test <@ imageData.Length = 
             tileRect.Width * tileRect.Height * Png.Rgba8Bit.BytesPerPixel @>
@@ -108,10 +94,8 @@ let ``Tile generator prepares the tile image data and returns it``() =
             fetchSomeHeights
             (fun _ -> shadeRasterReceivesTileRectAndImageData)
             srtmLevel
-            tileRect 
-            { options with 
-                RootShadingStep 
-                    = Pipeline.Common.CustomShading "whatever" }
+            tileRect
+            (Pipeline.Common.CustomShading "whatever")
             mapProjection
 
     test <@ result = Ok imageDataReceived @>

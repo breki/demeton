@@ -76,26 +76,3 @@ let ``Reports an error if PROJ specification has a syntax error``() =
             |> isErrorData (SpecParsingError {
                   Message = "Expected: parameter indicator '+'";
                   Location = 12 }) @>
-
-[<Fact>]
-let ``Maps Mercator to its projection functions``() =
-    
-    let projection = prepareProjectionFunctions Mercator
-    
-    let testLon = degToRad 15.
-    let testLat = degToRad 46.
-    test <@
-         projection.Proj testLon testLat =
-             Demeton.Projections.Mercator.proj testLon testLat @>
-    test <@
-             match projection.Proj testLon testLat with
-             | Some (x, y) ->
-                 match projection.Invert x y with
-                 | Some (lon, lat) ->
-                     (lon |> isApproxEqualTo testLon (Decimals 6))
-                     && (lat |> isApproxEqualTo testLat (Decimals 6))
-                 | None ->
-                     fail "The invert function should have returned a lon/lat point."
-             | None ->
-                 fail "The proj function should have returned a point."
-         @>

@@ -4,7 +4,6 @@ module Demeton.Shaders.ElevationColoring
 open Raster
 open Demeton.DemTypes
 open Demeton.Geometry.Common
-open Demeton.Projections.Common
 open Demeton.Srtm
 open Demeton.Shaders.Types
 open FParsec
@@ -135,17 +134,14 @@ let defaultParameters = { ColorScale = colorScaleMaperitive }
 
 let shadeRaster
     (colorScale: ColorScale): RasterShader = 
-    fun heightsArray srtmLevel tileRect imageData inverse mapScale ->
+    fun heightsArray srtmLevel tileRect imageData inverse ->
 
     let cellsPerDegree = cellsPerDegree 3600 srtmLevel 
     
     let tileWidth = tileRect.Width
-    let scaleFactor = mapScale.ProjectionScaleFactor
 
     let heightForTilePixel x y =
-        let xUnscaled = float x / scaleFactor
-        let yUnscaled = float y / scaleFactor
-        let lonLatOption = inverse xUnscaled -yUnscaled
+        let lonLatOption = inverse (float x) (float -y)
 
         match lonLatOption with
         | None -> None

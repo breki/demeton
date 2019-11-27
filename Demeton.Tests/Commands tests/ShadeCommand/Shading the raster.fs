@@ -12,7 +12,7 @@ open Xunit
 open Swensen.Unquote
 open Tests.Shaders
 
-let (area, heights, srtmLevel, mapScale, tileRect) = 
+let (area, heights, srtmLevel, mapProjection, mapScale, tileRect) = 
     ShadingSampleGenerator.generateSampleWithParameters 
         15.331473 46.45726 15.465991 46.539525 10000. 1.
 
@@ -31,8 +31,6 @@ let options: ShadeCommand.Options = {
         MapProjection = { Projection = Mercator; IgnoredParameters = [] }
     }
 
-let mapProjection = prepareProjectionFunctions options.MapProjection.Projection
-
 [<Fact>]
 let ``Elevation colorer colors all of the image``() =
     let imageWidth = tileRect.Width
@@ -48,7 +46,6 @@ let ``Elevation colorer colors all of the image``() =
         tileRect 
         imageData
         mapProjection.Invert
-        options.MapScale
 
     let mutable anyNonColoredPixel = false
     for y in 0 .. (imageHeight-1) do

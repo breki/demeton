@@ -1,8 +1,8 @@
-- projections
-    - can we merge MapScale together with MapProjection?
-    - ProjectionScaleFactor
+- Remove existing Mercator projection functions
+    - Mercator tests should use new `MercatorMapProjection`
 
 ## Wed 27.11.
+- `MapScale` and `ProjectionScaleFactor` are now embedded in the map projection, so they don't need to be carried around separately.
 - Introduced `MercatorMapProjection` class to begin merging map scale with projection.
 - Extracted `MapProjection` record holding the two projection functions. This is now used in `ShadeCommand.Options`.
 

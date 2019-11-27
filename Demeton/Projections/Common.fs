@@ -17,7 +17,6 @@ type MapScale = {
     MapScale: float
     Dpi: float
     }
-
     with
     member this.ProjectionScaleFactor =
         EarthRadiusInMeters / this.MapScale * InchesPerMeter * this.Dpi
