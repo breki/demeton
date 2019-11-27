@@ -5,8 +5,8 @@ open Demeton.Commands
 open Demeton.Shaders
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
-open Demeton.Projections
 open Demeton.Projections.Parsing
+open Demeton.Projections.Factory
 
 open Xunit
 open Swensen.Unquote
@@ -31,9 +31,9 @@ let options: ShadeCommand.Options = {
         RootShadingStep = Pipeline.Common.CustomShading ("some shader")
         MapScale = mapScale
         MapProjection = { Projection = Mercator; IgnoredParameters = [] }
-        ProjectFunc = Mercator.proj
-        InvertFunc = Mercator.inverse
     }
+
+let mapProjection = prepareProjectionFunctions options.MapProjection.Projection
    
 [<Fact>]
 let ``Tile generator correctly calculates which SRTM tiles it needs``() =
@@ -69,7 +69,8 @@ let ``When heights array fetcher returns None, tile generator does nothing and r
             (fun _ -> mockRasterShader)
             srtmLevel
             tileRect 
-            options 
+            options
+            mapProjection
 
     test <@ isOk shadeTileResult @>
     test <@ shadeTileResult |> isOkValue None @>
@@ -85,7 +86,8 @@ let ``When heights array fetcher returns an error, tile generator returns an err
             (fun _ -> mockRasterShader)
             srtmLevel
             tileRect 
-            options 
+            options
+            mapProjection
 
     test <@ isError shadeTileResult @>
 
@@ -110,5 +112,6 @@ let ``Tile generator prepares the tile image data and returns it``() =
             { options with 
                 RootShadingStep 
                     = Pipeline.Common.CustomShading "whatever" }
+            mapProjection
 
     test <@ result = Ok imageDataReceived @>

@@ -2,10 +2,10 @@
 
 open CommandLine.Common
 open Demeton.Commands
-open Demeton.Shaders.Pipeline.Common
 open Demeton.Geometry.Common
+open Demeton.Projections.Parsing
+open Demeton.Shaders.Pipeline.Common
 
-open Demeton.Projections
 open Xunit
 open Swensen.Unquote
 open TestHelp
@@ -251,15 +251,16 @@ let ``Reports an error when the shading script step has an error``() =
 Error in step 'elecolor': 'scale' parameter value error: invalid color scale."
         @>
 
+// todo this test should use a non-default projection, once we support other
+// projections
 [<Fact>]
-let ``Accepts a valid map projection specification puts it into the options`` () =
+let ``Accepts a valid map projection specification and puts it into the options`` () =
     let result = parseArgs [ "10,20,30,40"; "--proj"; "+proj=merc" ]
     test <@ result |> isOk @>
     
     let options = getOptions result
     
     test <@
-             let testLon = (degToRad 15.)
-             let testLat = (degToRad 46.)
-             options.ProjectFunc testLon testLat =
-                 Mercator.proj testLon testLat @>
+             options.MapProjection = {
+                 Projection = Mercator; IgnoredParameters = []
+             } @>

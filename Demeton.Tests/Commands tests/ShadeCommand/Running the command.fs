@@ -2,11 +2,11 @@
 
 open Demeton.Commands
 open Demeton.Shaders
-open Demeton.Projections
 open Demeton.Projections.Parsing
+open Png
+
 open Xunit
 open Swensen.Unquote
-open Png
 open TestHelp
 open Tests.Shaders
 
@@ -27,8 +27,6 @@ let options: ShadeCommand.Options = {
             { ColorScale = ElevationColoring.colorScaleMaperitive }
         MapScale = mapScale
         MapProjection = { Projection = Mercator; IgnoredParameters = [] }
-        ProjectFunc = Mercator.proj
-        InvertFunc = Mercator.inverse
     }
 
 let mutable generatedTiles = []
@@ -36,12 +34,12 @@ let mutable savedTiles = []
 
 let tileGeneratorNeedsSrtmLevel
     : ShadeCommand.ShadedRasterTileGenerator =
-    fun providedSrtmLevel _ _ ->
+    fun providedSrtmLevel _ _ _ ->
     test <@ srtmLevel = providedSrtmLevel @>
     Ok (Some (Rgba8Bit.createImageData 10 10 Rgba8Bit.ImageDataZero))
 
 let tileGenerator: ShadeCommand.ShadedRasterTileGenerator =
-    fun _ rasterTileCoords _ ->
+    fun _ rasterTileCoords _ _ ->
     generatedTiles <- rasterTileCoords :: generatedTiles
     Ok (Some (Rgba8Bit.createImageData 10 10 Rgba8Bit.ImageDataZero))
 
@@ -91,7 +89,7 @@ let ``Saves the generated tile images to files``() =
 let ``If generation of a tile fails, it records it in the result``() =
     initialize()
     
-    let tileGenerator _ _ _ =
+    let tileGenerator _ _ _ _ =
         Error "some error"
 
     let results = ShadeCommand.run options tileGenerator tileSaver

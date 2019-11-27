@@ -2,7 +2,7 @@
 
 open Demeton.Commands
 open Demeton.Geometry.Common
-open Demeton.Projections
+open Demeton.Projections.Factory
 open Demeton.Projections.Parsing
 open Demeton.Shaders
 open Demeton.Srtm
@@ -29,9 +29,9 @@ let options: ShadeCommand.Options = {
             { ColorScale = ElevationColoring.colorScaleMaperitive }
         MapScale = mapScale
         MapProjection = { Projection = Mercator; IgnoredParameters = [] }
-        ProjectFunc = Mercator.proj
-        InvertFunc = Mercator.inverse
     }
+
+let mapProjection = prepareProjectionFunctions options.MapProjection.Projection
 
 [<Fact>]
 let ``Elevation colorer colors all of the image``() =
@@ -47,7 +47,7 @@ let ``Elevation colorer colors all of the image``() =
         srtmLevel
         tileRect 
         imageData
-        options.InvertFunc
+        mapProjection.Invert
         options.MapScale
 
     let mutable anyNonColoredPixel = false

@@ -2,7 +2,6 @@
 
 open Demeton.Commands
 open Demeton.Shaders
-open Demeton.Projections
 open Demeton.Projections.Parsing
 open Png
 open Png.Types
@@ -25,8 +24,6 @@ let options: ShadeCommand.Options = {
             { ColorScale = ElevationColoring.colorScaleMaperitive }
         MapScale = { Dpi = 300.; MapScale = 5000000. }
         MapProjection = { Projection = Mercator; IgnoredParameters = [] }
-        ProjectFunc = Mercator.proj
-        InvertFunc = Mercator.inverse
     }
 
 let tileIndexX = 3

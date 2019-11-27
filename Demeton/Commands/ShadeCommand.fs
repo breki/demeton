@@ -8,6 +8,7 @@ open Demeton.Geometry
 open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
+open Demeton.Projections.Factory
 open Demeton.Projections.MinLonLatDelta
 open Demeton.Projections.Parsing
 open Demeton.Shaders
@@ -36,8 +37,6 @@ type Options = {
     RootShadingStep: Pipeline.Common.ShadingStep 
     MapScale: MapScale
     MapProjection: ParsedProjection
-    ProjectFunc: ProjectFunc
-    InvertFunc: InvertFunc
 }
 
 [<Literal>]
@@ -217,8 +216,6 @@ let fillOptions parsedParameters =
             RootShadingStep = shadingPipeline
             MapScale = { MapScale = DefaultMapScale; Dpi = DefaultDpi }
             MapProjection = { Projection = Mercator; IgnoredParameters = [] }
-            ProjectFunc = Mercator.proj
-            InvertFunc = Mercator.inverse
         }
 
     let processParameter options parameter =
@@ -270,13 +267,14 @@ let splitIntoIntervals minValue maxValue intervalSize =
         )
 
 type ShadedRasterTileGenerator = 
-    SrtmLevel -> Raster.Rect -> Options -> Result<RawImageData option, string>
+    SrtmLevel -> Raster.Rect -> Options -> MapProjection
+        -> Result<RawImageData option, string>
 
 let generateShadedRasterTile 
     (fetchHeightsArray: SrtmHeightsArrayFetcher)
     (createShaderFunction: Demeton.Shaders.Pipeline.Common.ShadingFuncFactory)
     : ShadedRasterTileGenerator = 
-    fun srtmLevel (tileRect: Raster.Rect) options ->
+    fun srtmLevel (tileRect: Raster.Rect) options mapProjection ->
 
     let scaleFactor = options.MapScale.ProjectionScaleFactor
 
@@ -284,11 +282,11 @@ let generateShadedRasterTile
 
     let x1 = float (tileRect.MinX - buffer) / scaleFactor
     let y1 = float (tileRect.MinY - buffer) / scaleFactor
-    let (lon1Rad, lat1Rad) = options.InvertFunc x1 -y1 |> Option.get
+    let (lon1Rad, lat1Rad) = mapProjection.Invert x1 -y1 |> Option.get
 
     let x2 = float (tileRect.MaxX + buffer) / scaleFactor
     let y2 = float (tileRect.MaxY + buffer) / scaleFactor
-    let (lon2Rad, lat2Rad) = options.InvertFunc x2 -y2 |> Option.get
+    let (lon2Rad, lat2Rad) = mapProjection.Invert x2 -y2 |> Option.get
 
     let lonLatBounds: LonLatBounds = 
         { 
@@ -313,7 +311,7 @@ let generateShadedRasterTile
                     heightsArray 
                     srtmLevel
                     tileRect
-                    options.InvertFunc
+                    mapProjection.Invert
                     options.MapScale 
                     options.RootShadingStep 
             Ok (Some imageData)
@@ -335,7 +333,7 @@ let saveShadedRasterTile
         imageData ->
 
     ensureDirectoryExists options.OutputDir |> ignore
-
+    
     let tileIndexStringWidth = 
         int (ceil (Math.Log10(float (maxTileIndex + 1))))
 
@@ -370,13 +368,16 @@ let run
     (generateTile: ShadedRasterTileGenerator) 
     (saveTile: ShadedRasterTileSaver)
     : Result<unit, string> =
-               
+
+    let mapProjection =
+        prepareProjectionFunctions options.MapProjection.Projection        
+                       
     // project each coverage point
     let projectedPoints = 
         options.CoveragePoints 
         |> List.map (
             fun (lonDegrees, latDegrees) ->
-                options.ProjectFunc (degToRad lonDegrees) (degToRad latDegrees))
+                mapProjection.Proj (degToRad lonDegrees) (degToRad latDegrees))
         |> List.filter (fun p -> Option.isSome p)
         |> List.map (fun p -> Option.get p)
         |> List.map (fun (x, y) -> (x, -y))
@@ -399,7 +400,7 @@ let run
 
     // calculate SRTM level needed
     let srtmLevel = 
-        minLonLatDelta rasterMbrRounded options.InvertFunc scaleFactor
+        minLonLatDelta rasterMbrRounded mapProjection.Invert scaleFactor
         |> lonLatDeltaToSrtmLevel 3600
 
     // then split it up into tiles
@@ -440,7 +441,7 @@ let run
             |> Result.bind (fun tilesGeneratedSoFar -> 
                 Log.info "Generating a shade tile %d/%d..." xIndex yIndex
 
-                generateTile srtmLevel tileBounds options
+                generateTile srtmLevel tileBounds options mapProjection
                 |> Result.map (fun maybeGeneratedTile ->
                     match maybeGeneratedTile with
                     | Some imageData -> 

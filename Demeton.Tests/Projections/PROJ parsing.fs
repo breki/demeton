@@ -80,17 +80,17 @@ let ``Reports an error if PROJ specification has a syntax error``() =
 [<Fact>]
 let ``Maps Mercator to its projection functions``() =
     
-    let (proj, invert) = prepareProjectionFunctions Mercator
+    let projection = prepareProjectionFunctions Mercator
     
     let testLon = degToRad 15.
     let testLat = degToRad 46.
     test <@
-         proj testLon testLat =
+         projection.Proj testLon testLat =
              Demeton.Projections.Mercator.proj testLon testLat @>
     test <@
-             match proj testLon testLat with
+             match projection.Proj testLon testLat with
              | Some (x, y) ->
-                 match invert x y with
+                 match projection.Invert x y with
                  | Some (lon, lat) ->
                      (lon |> isApproxEqualTo testLon (Decimals 6))
                      && (lat |> isApproxEqualTo testLat (Decimals 6))

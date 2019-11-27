@@ -1,7 +1,7 @@
-- publish official release (1.0.0.0)
-
 - projections
-    - should options contain ParsedProjection instead?
+
+## Wed 27.11.
+- Extracted `MapProjection` record holding the two projection functions. This is now used in `ShadeCommand.Options`.
 
 ## Tue 26.11.
 - Updated the Roadmap with map projection developments.
