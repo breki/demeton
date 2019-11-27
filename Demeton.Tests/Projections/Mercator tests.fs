@@ -2,6 +2,8 @@
 
 open Demeton.Geometry.Common
 open Demeton.Projections
+open Demeton.Projections.Common
+open Demeton.Projections.Parsing
 
 open System
 
@@ -16,8 +18,10 @@ open TestHelp
 [<InlineData(10., 80., 0.17453293, 2.43624605)>]
 [<InlineData(180., -80., 3.14159265, -2.43624605)>]
 let ``Correctly projects`` longitude latitude expectedX expectedY =
-
-    test <@ Mercator.proj (degToRad longitude) (degToRad latitude)
+    let mapScale = MapScale.ScaleOf1
+    let projection = Factory.createMapProjection Mercator mapScale
+    
+    test <@ projection.Proj (degToRad longitude) (degToRad latitude)
         |> expectXY expectedX expectedY @>
 
 [<Theory>]
@@ -25,22 +29,28 @@ let ``Correctly projects`` longitude latitude expectedX expectedY =
 [<InlineData(0., -86)>]
 let ``Returns None if latitude is outside of Mercator bounds``
     longitude latitude =
+
+    let mapScale = MapScale.ScaleOf1
+    let projection = Factory.createMapProjection Mercator mapScale
         
-    Mercator.proj (degToRad longitude) (degToRad latitude) |> expectNone
+    projection.Proj (degToRad longitude) (degToRad latitude) |> expectNone
 
 [<ProjectLonLat>]
-let ``Mercator projection formulas are correct`` (lonLat: ProjectLonLat) = 
+let ``Mercator projection formulas are correct`` (lonLat: ProjectLonLat) =
+    let mapScale = { MapScale = 100000.; Dpi = 300. }
+    let projection = Factory.createMapProjection Mercator mapScale
+    
     let (lonDegrees, latDegrees) = lonLat
     let lon = degToRad lonDegrees
     let lat = degToRad latDegrees
-    let pointOption = Mercator.proj lon lat
+    let pointOption = projection.Proj lon lat
     match pointOption with
     | None -> 
         lat > Mercator.MinLat || lat < Mercator.MaxLat
     | Some (x, y) ->
-        let inverse = Mercator.inverse x y
+        let inverse = projection.Invert x y
         match inverse with
         | None -> false
-        | Some (ilon, ilat) ->
-            Math.Round(ilon, 10) |> isApproxEqualTo lon (Decimals 10)
-            && Math.Round(ilat, 10) |> isApproxEqualTo lat (Decimals 10)
+        | Some (lon', lat') ->
+            Math.Round(lon', 10) |> isApproxEqualTo lon (Decimals 10)
+            && Math.Round(lat', 10) |> isApproxEqualTo lat (Decimals 10)

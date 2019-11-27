@@ -10,15 +10,25 @@ let MaxLat = 1.48442222974533
 [<Literal>]
 let MinLat = -1.48442222974533
 
-let proj: ProjectFunc = fun longitude latitude ->
-    match latitude with
-    | _ when latitude < MinLat || latitude > MaxLat -> None
-    | _ -> 
-        let x = longitude
-        let y = Math.Log (Math.Tan (Math.PI / 4. + latitude / 2.))
-        Some (x, y)
+type MapProjection(mapScale: MapScale) =
+    let mapScale = mapScale
+    let scaleFactor = mapScale.ProjectionScaleFactor 
+        
+    member this.proj: ProjectFunc = fun longitude latitude ->
+        match latitude with
+        | _ when latitude < MinLat || latitude > MaxLat -> None
+        | _ -> 
+            let x = longitude * scaleFactor
+            let y =
+                Math.Log (Math.Tan (Math.PI / 4. + latitude / 2.))
+                    * scaleFactor
+            Some (x, y)
 
-let inverse: InvertFunc = fun x y -> 
-    let longitude = x
-    let latitude = 2. * Math.Atan (Math.Exp y) - Math.PI / 2.
-    Some (longitude, latitude)
+    member this.inverse: InvertFunc = fun x y -> 
+        let longitude = x / scaleFactor
+        let latitude =
+            2. * Math.Atan (Math.Exp (y / scaleFactor)) - Math.PI / 2.
+        Some (longitude, latitude)
+    
+    member this.projection =
+        { Proj = this.proj; Invert = this.inverse }

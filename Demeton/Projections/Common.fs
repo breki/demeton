@@ -21,8 +21,18 @@ type MapScale = {
     member this.ProjectionScaleFactor =
         EarthRadiusInMeters / this.MapScale * InchesPerMeter * this.Dpi
 
+    /// <summary>
+    /// Represents map scale which has a projection scale factor of 1.
+    /// </summary>
+    static member ScaleOf1 = {
+        MapScale = 1.;
+        Dpi = 1. / (EarthRadiusInMeters * InchesPerMeter)
+    }
+
 type ProjectFunc = float -> float -> Point option
 type InvertFunc = float -> float -> LonLat option
+
+type MapProjection = { Proj: ProjectFunc; Invert: InvertFunc }
 
 /// <summary>
 /// Calculates an approximate geodetic distance (in meters) between two points 
@@ -38,3 +48,4 @@ let geodeticDistanceApproximate lon1 lat1 lon2 lat2 =
         * Math.Sin dlon2 * Math.Sin dlon2
     let c = 2. * Math.Atan2(Math.Sqrt a, Math.Sqrt(1.-a))
     EarthRadiusInMeters * c
+
