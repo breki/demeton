@@ -1,6 +1,9 @@
 - projections
+    - can we merge MapScale together with MapProjection?
+    - ProjectionScaleFactor
 
 ## Wed 27.11.
+- Introduced `MercatorMapProjection` class to begin merging map scale with projection.
 - Extracted `MapProjection` record holding the two projection functions. This is now used in `ShadeCommand.Options`.
 
 ## Tue 26.11.
