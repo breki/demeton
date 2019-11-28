@@ -1,9 +1,8 @@
 - implement LCC projection
-    - handle ignored parameters
-    - how do we integrate map scale with it?
     - implement properties testing for it
-    - add PROJ license
-    - test it
+    - how do we integrate map scale with it?
+    - add support for +datum=WGS84
+    - what about `+units=m` `+no_defs`
 
 ## Thu 28.11.
 - Started working on the Lambert Conformal Conic projection support.

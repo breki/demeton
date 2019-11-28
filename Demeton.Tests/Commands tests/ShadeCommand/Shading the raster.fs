@@ -2,7 +2,6 @@
 
 open Demeton.Commands
 open Demeton.Geometry.Common
-open Demeton.Projections.Factory
 open Demeton.Projections.PROJParsing
 open Demeton.Shaders
 open Demeton.Srtm

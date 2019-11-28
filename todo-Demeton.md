@@ -1,7 +1,6 @@
 - projections
-    - add (nominal) support for another projection
-        - which one?
-    - add proj parameter to shade command
+    - add PROJ license
+    - test LCC in action
     - add parameter for handling ignored PROJ parameters
 
 - add documentation for

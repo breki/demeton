@@ -113,7 +113,7 @@ let extractParameters projParameters:
                 |> Result.bind tryGetEllipsoid
                 |> Result.map (fun value -> 
                     { parameters with Ellipsoid = value }, ignoredParameters)
-            | _ -> invalidOp "todo"
+            | _ -> Ok (parameters, parameter :: ignoredParameters)
                 )
             
     let defaultParameters = {
@@ -130,9 +130,9 @@ let msfnz e sinphi cosphi =
 
 let tsfnz e phi sinphi =
     let con = e * sinphi
-    let com = 0.5 * e
-    let con = Math.Pow ((1.0 - con) / (1.0 + con), com)
-    tan (0.5 * (Math.PI / 2. - phi)) / con;
+    let com = e / 2.
+    let con' = Math.Pow ((1.0 - con) / (1.0 + con), com)
+    tan (0.5 * (Math.PI / 2. - phi)) / con';
 
 let adjustLon lon =
     if (abs (lon) < Math.PI) then
@@ -141,13 +141,15 @@ let adjustLon lon =
         lon - ((sign lon |> float) * Math.PI * 2.)
 
 let phi2z e ts =
+    let eHalf = e / 2.
+    
     let rec search i phi =
-        if i >= 15 then None
+        if i > 15 then None
         else
             let con = e * Math.Sin (phi)
             let deltaPhi =
                 Math.PI / 2.
-                - 2. * atan (ts * Math.Pow ((1. - con) / (1. + con), e))
+                - 2. * atan (ts * Math.Pow ((1. - con) / (1. + con), eHalf))
             let phi' = phi + deltaPhi
             
             if abs deltaPhi < Epsilon then Some phi'
@@ -155,18 +157,6 @@ let phi2z e ts =
             
     let startingPhi = Math.PI / 2. - 2. * atan ts
     search 0 startingPhi      
-
-//    for (var i = 0; i <= 15; i++)
-//    {
-//        double con = eccent * Math.Sin (phi);
-//        double dphi = MathExt.PI2 - 2 * Math.Atan (ts * Math.Pow ((1.0 - con) / (1.0 + con), eccnth)) - phi;
-//        phi += dphi;
-//        if (Math.Abs (dphi) <= .0000000001) return phi;
-//    }
-
-    //alert ("Phi2z has NoConvergence");
-//    return None
-
 
 type MapProjection(parameters: Parameters, mapScale: MapScale) =
     let mapScale = mapScale
@@ -248,12 +238,12 @@ type MapProjection(parameters: Parameters, mapScale: MapScale) =
         if rh1 <> 0. || ns > 0. then
             let con' = 1. / ns
             let ts = Math.Pow (rh1 / (semimajor * f0), con')
-            let lat = phi2z e ts
-            match lat with
+            let latMaybe = phi2z e ts
+            match latMaybe with
             | None -> None
-            | _ ->
+            | Some lat ->
                 let lon = adjustLon (theta / ns + lon0)
-                Some (lon, lat |> Option.get)
+                Some (lon, lat)
         else
             let lat = -Math.PI / 2.
             let lon = adjustLon (theta / ns + lon0)
