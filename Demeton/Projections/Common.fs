@@ -23,6 +23,7 @@ type Ellipsoid = {
 }
 
 let GRS80 = { SemimajorRadius = 6378137.; SemiminorRadius = 6356752.314140347 }
+let WGS84 = { SemimajorRadius = 6378137.; SemiminorRadius = 6356752.314245 }
 
 let eccentricity ellipsoid =
     let ratio = ellipsoid.SemiminorRadius / ellipsoid.SemimajorRadius

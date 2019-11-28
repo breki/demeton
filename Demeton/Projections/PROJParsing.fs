@@ -49,6 +49,9 @@ type PROJError =
     /// by Demeton. 
     /// </summary>
     | UnsupportedProjection of string
+    /// <summary>
+    /// One of map projection parameters in the PROJ specification has an invalid value.
+    /// </summary>
     | InvalidProjectionParameters of string
     
 /// <summary>
@@ -103,11 +106,8 @@ let private pProj: Parser<PROJParameter list, unit> =
 let parseProjSpecParameters (projSpec: PROJSpec)
     : Result<PROJParameter list, TextParsers.ParsingError> =
     match run pProj projSpec with
-    | Success (parameters, _, _) ->
-        System.Diagnostics.Debugger.Break()
-        Result.Ok parameters
+    | Success (parameters, _, _) -> Result.Ok parameters
     | Failure (_, parserError, _) -> 
-        System.Diagnostics.Debugger.Break()
         TextParsers.formatParsingFailure parserError
 
 /// <summary>

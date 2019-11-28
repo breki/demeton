@@ -43,9 +43,86 @@ type Parameters = {
     Ellipsoid: Ellipsoid
 }
 
-let extractParameters parsedParameters:
+/// <summary>
+/// Tries to get a numeric value of the specified PROJ parameter. If the
+/// parameter is not a numeric value, returns an error.
+/// </summary>
+let tryGetParameterNumericValue parameter =
+    match parameter.Value with
+    | NumericValue value -> Ok value
+    | StringValue _ -> 
+        sprintf "PROJ parameter '%s' must have a numeric value." parameter.Name
+        |> Error 
+
+/// <summary>
+/// Tries to get a string value of the specified PROJ parameter. If the
+/// parameter is not a string value, returns an error.
+/// </summary>
+let tryGetParameterStringValue parameter =
+    match parameter.Value with
+    | StringValue value -> Ok value
+    | NumericValue value -> 
+        value.ToString (System.Globalization.CultureInfo.InvariantCulture)
+        |> Ok 
+
+let tryGetEllipsoid (ellipsoidId: string) =    
+    match ellipsoidId.ToLowerInvariant() with
+    | "grs80" -> Ok GRS80
+    | "wgs84" -> Ok WGS84
+    | _ ->
+        sprintf "Unsupported ellipsoid '%s'" ellipsoidId
+        |> Error
+    
+let extractParameters projParameters:
     Result<(Parameters * PROJParameter list), string> =
-    invalidOp "todo"
+    
+    let processParameter resultSoFar parameter =
+        resultSoFar 
+        |> Result.bind (fun (parameters, ignoredParameters) -> 
+            match parameter.Name with
+            | "lon_0" -> 
+                tryGetParameterNumericValue parameter
+                |> Result.map (fun value -> 
+                    { parameters with Lon0 = value }, ignoredParameters)
+            | "lat_0" -> 
+                tryGetParameterNumericValue parameter
+                |> Result.map (fun value -> 
+                    { parameters with Lat0 = value }, ignoredParameters)
+            | "lat_1" -> 
+                tryGetParameterNumericValue parameter
+                |> Result.map (fun value -> 
+                    { parameters with Lat1 = value }, ignoredParameters)
+            | "lat_2" -> 
+                tryGetParameterNumericValue parameter
+                |> Result.map (fun value -> 
+                    { parameters with Lat2 = value }, ignoredParameters)
+            | "x_0" -> 
+                tryGetParameterNumericValue parameter
+                |> Result.map (fun value -> 
+                    { parameters with X0 = value }, ignoredParameters)
+            | "y_0" -> 
+                tryGetParameterNumericValue parameter
+                |> Result.map (fun value -> 
+                    { parameters with Y0 = value }, ignoredParameters)
+            | "k_0" -> 
+                tryGetParameterNumericValue parameter
+                |> Result.map (fun value -> 
+                    { parameters with K0 = value }, ignoredParameters)
+            | "ellps" ->
+                tryGetParameterStringValue parameter
+                |> Result.bind tryGetEllipsoid
+                |> Result.map (fun value -> 
+                    { parameters with Ellipsoid = value }, ignoredParameters)
+            | _ -> invalidOp "todo"
+                )
+            
+    let defaultParameters = {
+        X0 = 0.; Y0 = 0. 
+        Lon0 = 0.; Lat0 = 0.; Lat1 = 0.; Lat2 = 0.; K0 = 1.
+        Ellipsoid = GRS80 }
+            
+    projParameters
+    |> List.fold processParameter (Result.Ok (defaultParameters, []))
 
 let msfnz e sinphi cosphi =
     let con = e * sinphi
