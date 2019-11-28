@@ -2,7 +2,7 @@
 
 open Demeton.Commands
 open Demeton.Shaders
-open Demeton.Projections.Parsing
+open Demeton.Projections.PROJParsing
 open Png
 open Png.Types
 

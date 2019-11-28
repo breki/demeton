@@ -2,7 +2,8 @@
 
 open CommandLine.Common
 open Demeton.Commands
-open Demeton.Projections.Parsing
+open Demeton.Projections.Common
+open Demeton.Projections.PROJParsing
 open Demeton.Shaders.Pipeline.Common
 
 open Xunit

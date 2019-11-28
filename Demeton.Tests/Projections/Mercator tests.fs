@@ -3,7 +3,7 @@
 open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
-open Demeton.Projections.Parsing
+open Demeton.Projections.PROJParsing
 
 open System
 
@@ -11,6 +11,15 @@ open Xunit
 open Projections.ProjectionsTestHelpers
 open Swensen.Unquote
 open TestHelp
+       
+[<Fact>]
+let ``Parses PROJ specification that uses Mercator``() =
+    let parseResult = parseProjSpecProjection "+proj=merc +lat_ts=56.5"
+    test <@ parseResult
+            |> isOkValue { Projection = Mercator;
+                           IgnoredParameters = [
+                               { Name = "lat_ts"; Value = NumericValue 56.5 }
+                           ] } @>
 
 [<Theory>]
 [<InlineData(0., 0., 0., 0.)>]

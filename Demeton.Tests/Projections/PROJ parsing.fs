@@ -1,6 +1,7 @@
 ﻿module Tests.Projections.``PROJ parsing``
 
-open Demeton.Projections.Parsing
+open Demeton.Projections.Common
+open Demeton.Projections.PROJParsing
 
 open Xunit
 open Swensen.Unquote
@@ -54,16 +55,6 @@ let ``Reports an error if PROJ parameter does not have a value assigned``() =
     test <@ result |> isErrorData 
                 { Message = "Expected: parameter value";
                   Location = 6 } @>
-
-       
-[<Fact>]
-let ``Parses PROJ specification that uses Mercator``() =
-    let parseResult = parseProjSpecProjection "+proj=merc +lat_ts=56.5"
-    test <@ parseResult
-            |> isOkValue { Projection = Mercator;
-                           IgnoredParameters = [
-                               { Name = "lat_ts"; Value = NumericValue 56.5 }
-                           ] } @>
        
 [<Fact>]
 let ``Reports an error if projection name is unsupported``() =
@@ -82,3 +73,12 @@ let ``Reports an error if PROJ specification has a syntax error``() =
             |> isErrorData (SpecParsingError {
                   Message = "Expected: parameter indicator '+'";
                   Location = 12 }) @>
+       
+[<Fact>]
+let ``Parses PROJ specification that uses Lambert Conformal Conic``() =
+    let parseResult = parseProjSpecProjection "+proj=merc +lat_ts=56.5"
+    test <@ parseResult
+            |> isOkValue { Projection = Mercator;
+                           IgnoredParameters = [
+                               { Name = "lat_ts"; Value = NumericValue 56.5 }
+                           ] } @>

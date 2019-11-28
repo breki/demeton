@@ -66,8 +66,9 @@
     <Compile Include="Srtm\Reading a batch of PNG tiles.fs" />
     <Compile Include="SimAnn\Simulated annealing.fs" />
     <Compile Include="Projections\ProjectionsTestHelpers.fs" />
-    <Compile Include="Projections\Mercator tests.fs" />
     <Compile Include="Projections\PROJ parsing.fs" />
+    <Compile Include="Projections\LCC tests.fs" />
+    <Compile Include="Projections\Mercator tests.fs" />
     <Compile Include="Shaders\ShadingSampleGenerator.fs" />
     <Compile Include="Shaders\Hillshading\Calculating aspect and slope.fs" />
     <Compile Include="Shaders\Hillshading\Igor%27s shading method.fs" />

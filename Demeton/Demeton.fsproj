@@ -57,8 +57,9 @@
     <Compile Include="Srtm\Downsampling.fs" />
     <Compile Include="Srtm\Fetch.fs" />
     <Compile Include="Projections\Common.fs" />
-    <Compile Include="Projections\Parsing.fs" />
     <Compile Include="Projections\Mercator.fs" />
+    <Compile Include="Projections\LambertConformalConic.fs" />
+    <Compile Include="Projections\PROJParsing.fs" />
     <Compile Include="Projections\MinLonLatDelta.fs" />
     <Compile Include="Projections\Factory.fs" />
     <Compile Include="Shaders\Types.fs" />

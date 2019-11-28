@@ -13,6 +13,21 @@ let MetersPerInch = 0.0254
 [<Literal>]
 let InchesPerMeter = 39.3701
 
+
+[<Literal>]
+let Epsilon = 1.0e-10;
+
+type Ellipsoid = {
+    SemimajorRadius: float
+    SemiminorRadius: float
+}
+
+let GRS80 = { SemimajorRadius = 6378137.; SemiminorRadius = 6356752.314140347 }
+
+let eccentricity ellipsoid =
+    let ratio = ellipsoid.SemiminorRadius / ellipsoid.SemimajorRadius
+    Math.Sqrt(1. - ratio * ratio)
+
 type MapScale = {
     MapScale: float
     Dpi: float
@@ -49,3 +64,21 @@ let geodeticDistanceApproximate lon1 lat1 lon2 lat2 =
     let c = 2. * Math.Atan2(Math.Sqrt a, Math.Sqrt(1.-a))
     EarthRadiusInMeters * c
 
+
+/// <summary>
+/// A PROJ parameter value.
+/// </summary>
+type PROJParameterValue =
+    /// <summary>
+    /// Value of a PROJ string parameter.
+    /// </summary>
+    | StringValue of string
+    /// <summary>
+    /// Value of a PROJ numeric parameter.
+    /// </summary>
+    | NumericValue of float
+    
+/// <summary>
+/// A PROJ parameter.
+/// </summary>
+type PROJParameter = { Name: string; Value: PROJParameterValue }

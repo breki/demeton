@@ -1,0 +1,186 @@
+﻿[<RequireQualifiedAccess>]
+module Demeton.Projections.LambertConformalConic
+
+// https://proj.org/operations/projections/lcc.html
+
+open Demeton.Projections.Common
+
+open System
+
+type Parameters = {
+    /// <summary>
+    /// False easting.
+    /// </summary>
+    X0: float
+    /// <summary>
+    /// False northing.
+    /// </summary>
+    Y0: float
+    /// <summary>
+    /// Longitude of projection center.
+    /// </summary>
+    Lon0: float
+    /// <summary>
+    /// Latitude of projection center.
+    /// </summary>
+    Lat0: float
+    /// <summary>
+    /// First standard parallel.
+    /// </summary>
+    Lat1: float
+    /// <summary>
+    /// Second standard parallel.
+    /// </summary>
+    Lat2: float
+    
+    /// <summary>
+    /// This parameter can represent two different values depending on the form
+    /// of the projection. In LCC 1SP it determines the scale factor at natural
+    /// origin. In LCC 2SP Michigan it determines the ellipsoid scale factor.
+    /// </summary>
+    K0: float
+    
+    Ellipsoid: Ellipsoid
+}
+
+let extractParameters parsedParameters:
+    Result<(Parameters * PROJParameter list), string> =
+    invalidOp "todo"
+
+let msfnz e sinphi cosphi =
+    let con = e * sinphi
+    cosphi / Math.Sqrt (1.0 - con * con)
+
+let tsfnz e phi sinphi =
+    let con = e * sinphi
+    let com = 0.5 * e
+    let con = Math.Pow ((1.0 - con) / (1.0 + con), com)
+    tan (0.5 * (Math.PI / 2. - phi)) / con;
+
+let adjustLon lon =
+    if (abs (lon) < Math.PI) then
+        lon
+    else
+        lon - ((sign lon |> float) * Math.PI * 2.)
+
+let phi2z e ts =
+    let rec search i phi =
+        if i >= 15 then None
+        else
+            let con = e * Math.Sin (phi)
+            let deltaPhi =
+                Math.PI / 2.
+                - 2. * atan (ts * Math.Pow ((1. - con) / (1. + con), e))
+            let phi' = phi + deltaPhi
+            
+            if abs deltaPhi < Epsilon then Some phi'
+            else search (i + 1) phi'
+            
+    let startingPhi = Math.PI / 2. - 2. * atan ts
+    search 0 startingPhi      
+
+//    for (var i = 0; i <= 15; i++)
+//    {
+//        double con = eccent * Math.Sin (phi);
+//        double dphi = MathExt.PI2 - 2 * Math.Atan (ts * Math.Pow ((1.0 - con) / (1.0 + con), eccnth)) - phi;
+//        phi += dphi;
+//        if (Math.Abs (dphi) <= .0000000001) return phi;
+//    }
+
+    //alert ("Phi2z has NoConvergence");
+//    return None
+
+
+type MapProjection(parameters: Parameters, mapScale: MapScale) =
+    let mapScale = mapScale
+    let scaleFactor = mapScale.ProjectionScaleFactor 
+
+    let x0 = parameters.X0
+    let y0 = parameters.Y0
+    
+    let lon0 = parameters.Lon0      
+    let lat0 = parameters.Lat0
+    let lat1 = parameters.Lat1
+    let lat2 = parameters.Lat2
+    let k0 = parameters.K0
+    
+    let semimajor = parameters.Ellipsoid.SemimajorRadius
+    let e = eccentricity parameters.Ellipsoid
+    
+    let sin1 = sin lat1
+    let cos1 = cos lat1
+    let ms1 = msfnz e sin1 cos1
+    let ts1 = tsfnz e lat1 sin1
+    
+    let sin2 = sin lat2
+    let cos2 = cos lat2
+    let ms2 = msfnz e sin2 cos2
+    let ts2 = tsfnz e lat2 sin2
+        
+    let ts0 = tsfnz e lat0 (sin lat0)
+
+    let ns =
+        if abs (lat1 - lat2) > Epsilon then
+            Math.Log (ms1 / ms2) / Math.Log (ts1 / ts2)
+        else
+            sin1
+        
+    let f0 = ms1 / (ns * Math.Pow (ts1, ns))
+    let rh = parameters.Ellipsoid.SemimajorRadius * f0 * Math.Pow (ts0, ns)
+            
+    do
+        if Math.Abs (lat1 + lat2) < Epsilon then
+            invalidArg
+                "parameters" 
+                "Standard parallels cannot be equal and on opposite sides of the equator."
+        else
+            ignore()
+            
+    member this.proj: ProjectFunc = fun longitude latitude ->
+        let con = Math.Abs (Math.Abs (latitude) - (Math.PI / 2.))
+
+        if con > Epsilon then
+            let ts = tsfnz e latitude (sin latitude)
+            let rh1 = semimajor * f0 * Math.Pow (ts, ns)
+            let theta = ns * adjustLon(longitude - lon0)
+            let x = k0 * (rh1 * sin theta) + x0
+            let y = k0 * (rh - rh1 * cos theta) + y0
+            Some (x, y)
+        else
+            if latitude * ns <= 0. then None
+            else
+                // rh1 = 0
+                let x = k0 + x0
+                let y = k0 * rh + y0
+                Some (x, y)
+    
+    member this.inverse: InvertFunc = fun x y ->
+        let x' = (x - x0) / k0
+        let y' = rh - (y - y0) / k0;
+        
+        let sign = if ns > 0. then 1. else -1.
+        
+        let rh1 = sign * Math.Sqrt (x' * x' + y' * y')
+        let con = sign
+
+        let theta = 
+            match rh1 with
+            | 0. -> 0.
+            | _ -> Math.Atan2 (con * x', con * y')
+            
+        if rh1 <> 0. || ns > 0. then
+            let con' = 1. / ns
+            let ts = Math.Pow (rh1 / (semimajor * f0), con')
+            let lat = phi2z e ts
+            match lat with
+            | None -> None
+            | _ ->
+                let lon = adjustLon (theta / ns + lon0)
+                Some (lon, lat |> Option.get)
+        else
+            let lat = -Math.PI / 2.
+            let lon = adjustLon (theta / ns + lon0)
+            Some (lon, lat)
+    
+    member this.projection =
+        { Proj = this.proj; Invert = this.inverse }

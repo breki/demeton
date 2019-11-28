@@ -10,7 +10,7 @@ open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Projections.Factory
 open Demeton.Projections.MinLonLatDelta
-open Demeton.Projections.Parsing
+open Demeton.Projections.PROJParsing
 open Demeton.Shaders
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
@@ -36,7 +36,7 @@ type Options = {
     TileSize: int
     RootShadingStep: Pipeline.Common.ShadingStep 
     MapScale: MapScale
-    MapProjection: ParsedProjection
+    MapProjection: PROJProjection
 }
 
 [<Literal>]
@@ -91,7 +91,7 @@ let parseCoverage value =
             OkValue coveragePoints
 
 let parseProjSpecParameter value: OptionValueParsingResult =
-    match Parsing.parseProjSpecProjection value with
+    match PROJParsing.parseProjSpecProjection value with
     | Ok value -> OkValue value
     | Error ProjectionNotSpecified ->
         InvalidValue "PROJ specification does not contain a map projection ('+proj') parameter"
@@ -100,6 +100,7 @@ let parseProjSpecParameter value: OptionValueParsingResult =
     | Error (UnsupportedProjection projectionId) ->
         sprintf "unsupported map projection '%s'" projectionId
         |> InvalidValue
+    | Error (InvalidProjectionParameters message) -> invalidOp "todo"
 
 let registeredStepBuilders = dict [
     ("aspect", aspectShaderStepBuilder)
@@ -237,7 +238,7 @@ let fillOptions parsedParameters =
             { options with 
                 MapScale = { options.MapScale with MapScale = value :?> float }}
         | ParsedOption { Name = ProjectionParameter; Value = value } ->
-            { options with MapProjection = value :?> ParsedProjection }
+            { options with MapProjection = value :?> PROJProjection }
         | ParsedOption { Name = OutputDirParameter; Value = value } ->
             { options with OutputDir = value :?> string }
         | ParsedOption { Name = ShadingScriptParameter; Value = value } ->

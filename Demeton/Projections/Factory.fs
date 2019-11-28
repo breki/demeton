@@ -1,7 +1,7 @@
 ﻿module Demeton.Projections.Factory
 
 open Demeton.Projections
-open Parsing
+open PROJParsing
 
 /// <summary>
 /// Given a map projection type and map scale, creates a map projection
@@ -9,4 +9,6 @@ open Parsing
 /// </summary>
 let createMapProjection projection mapScale =
     match projection with
+    | LambertConformalConic parameters ->
+        LambertConformalConic.MapProjection(parameters, mapScale).projection
     | Mercator -> Mercator.MapProjection(mapScale).projection

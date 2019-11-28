@@ -5,7 +5,7 @@ open Demeton.DemTypes
 open Demeton.Geometry.Common
 open Demeton.Projections.Common
 open Demeton.Projections.Factory
-open Demeton.Projections.Parsing
+open Demeton.Projections.PROJParsing
 open Demeton.Projections.MinLonLatDelta
 open Demeton.Srtm.Funcs
 open Xunit

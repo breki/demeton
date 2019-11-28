@@ -1,4 +1,16 @@
-- projections
+- implement LCC projection
+    - implement Ellipsoid construction
+        +ellps=<value>
+    - implement fetching of parameters for it
+        - defaults should be implemented when matching parsed parameters
+    - handle `InvalidProjectionParameters` case
+    - how do we integrate map scale with it?
+    - implement properties testing for it
+    - add PROJ license
+    - test it
+
+## Thu 28.11.
+- Restructured the PROJ code, renamed some modules and types.
 
 ## Wed 27.11.
 - Implemented all scenarios for `parseProjSpecParameter`. 

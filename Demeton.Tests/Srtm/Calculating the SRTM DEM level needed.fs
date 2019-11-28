@@ -4,7 +4,7 @@ open Demeton.Geometry.Common
 open Demeton.Projections.Common
 open Demeton.Projections.Factory
 open Demeton.Projections.MinLonLatDelta
-open Demeton.Projections.Parsing
+open Demeton.Projections.PROJParsing
 
 open Xunit
 open Swensen.Unquote
