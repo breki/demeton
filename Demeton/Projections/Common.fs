@@ -29,6 +29,12 @@ let eccentricity ellipsoid =
     let ratio = ellipsoid.SemiminorRadius / ellipsoid.SemimajorRadius
     Math.Sqrt(1. - ratio * ratio)
 
+//type Datum = {
+//    DatumCode: string
+//    DatumName: string
+//    Ellipsoid: Ellipsoid
+//}
+
 type MapScale = {
     MapScale: float
     Dpi: float

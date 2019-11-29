@@ -169,8 +169,7 @@ let phi2z e ts =
     search 0 startingPhi      
 
 type MapProjection(parameters: Parameters, mapScale: MapScale) =
-    let mapScale = mapScale
-    let scaleFactor = mapScale.ProjectionScaleFactor 
+    let scaleFactor = InchesPerMeter * mapScale.Dpi  / mapScale.MapScale 
 
     let x0 = parameters.X0
     let y0 = parameters.Y0
@@ -222,18 +221,18 @@ type MapProjection(parameters: Parameters, mapScale: MapScale) =
             let theta = ns * adjustLon(longitude - lon0)
             let x = k0 * (rh1 * sin theta) + x0
             let y = k0 * (rh - rh1 * cos theta) + y0
-            Some (x, y)
+            Some (x * scaleFactor, y * scaleFactor)
         else
             if latitude * ns <= 0. then None
             else
                 // rh1 = 0
                 let x = k0 + x0
                 let y = k0 * rh + y0
-                Some (x, y)
+                Some (x * scaleFactor, y * scaleFactor)
     
     member this.inverse: InvertFunc = fun x y ->
-        let x' = (x - x0) / k0
-        let y' = rh - (y - y0) / k0;
+        let x' = ((x / scaleFactor) - x0) / k0
+        let y' = rh - ((y / scaleFactor) - y0) / k0;
         
         let sign = if ns > 0. then 1. else -1.
         

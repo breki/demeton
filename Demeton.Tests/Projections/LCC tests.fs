@@ -6,6 +6,7 @@ open Demeton.Projections.PROJParsing
 open Demeton.Geometry.Common
 
 open Xunit
+open FsUnit.Xunit
 open Swensen.Unquote
 open FsCheck
 open TestHelp
@@ -90,10 +91,11 @@ let ``Sampling LCC functions``(lon, lat, lat1, lat2, expectedX, expectedY) =
           K0 = 1.
           Ellipsoid = WGS84 }
         
-    let mapScale = { MapScale = 100000.; Dpi = 300. }
+    // this is the map scale that converts to scaleFactor=1 in LCC code
+    let mapScaleOf1 = { MapScale = 1.; Dpi = 1. / InchesPerMeter }
         
     let projection =
-        LambertConformalConic.MapProjection(parameters, mapScale).projection
+        LambertConformalConic.MapProjection(parameters, mapScaleOf1).projection
         
     match projection.Proj (degToRad lon) (degToRad lat) with
     | Some (x, y) ->
@@ -110,7 +112,7 @@ let ``Sampling LCC functions``(lon, lat, lat1, lat2, expectedX, expectedY) =
     
     
 
-let lccProperties(lonDeg, latDeg) =
+let lccProperties((lonDeg, latDeg), mapScale, dpi) =
     let parameters: LambertConformalConic.Parameters =
         { X0 = 0.; Y0 = 0.;
           Lon0 = 0.; Lat0 = 0.;
@@ -118,7 +120,7 @@ let lccProperties(lonDeg, latDeg) =
           K0 = 1.
           Ellipsoid = WGS84 }
         
-    let mapScale = { MapScale = 100000.; Dpi = 300. }
+    let mapScale = { MapScale = mapScale; Dpi = dpi }
         
     let projection =
         LambertConformalConic.MapProjection(parameters, mapScale).projection
@@ -135,16 +137,19 @@ let lccProperties(lonDeg, latDeg) =
             |> Prop.label "Inverted coordinates should not be None"
     | None ->
         true
-        |> Prop.classify true "proj = None" // todo: check the lon lat
+        |> Prop.classify true "proj = None"
          
 [<Fact>]
 let ``Test LCC properties``() =
     let genLon = floatInRange -180 180
     let genLat = floatInRange -90 90
+    let genMapScale = floatInRange 1 100000
+    let genDpi = floatInRange 1 3000
     
     let genCoords = Gen.zip genLon genLat
+    let genParams = Gen.zip3 genCoords genMapScale genDpi
     
-    genCoords
+    genParams
     |> Arb.fromGen
     |> Prop.forAll <| lccProperties
     |> Check.QuickThrowOnFailure

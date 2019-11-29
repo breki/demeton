@@ -1,10 +1,8 @@
-- implement LCC projection
-    - how do we integrate map scale with it?
-    - what about `+units=m`
-
 - projections
     - add PROJ license
-    - test LCC in action
+        - what about other licenses? 
+            -FParsec
+            -ICSharpCode.SharpZipLib
     - add parameter for handling ignored PROJ parameters
 
 - add documentation for

@@ -1,5 +1,7 @@
+- test LCC in action
 
 ## Fri 29.11.
+- Integrated map scale into LCC code.
 - Finished working on LCC, for now.
 - Fixed a bug in `phi2z` function, so LCC now calculates correct inverse values.
 - PROJ: added support for parsing parameters without values (like `+no_defs`).
