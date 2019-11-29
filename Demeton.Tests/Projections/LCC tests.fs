@@ -70,11 +70,11 @@ let ``Lists any ignored parameters when parsing``() =
     test <@ parseResult
             |> isOkValue { Projection = LambertConformalConic expectedPars;
                            IgnoredParameters = [
-                               {Name = "par2"; Value = StringValue "value2"}
-                               {Name = "par1"; Value = StringValue "value1"}
+                               {Name = "par2"; Value = Some (StringValue "value2")}
+                               {Name = "par1"; Value = Some (StringValue "value1")}
                            ] } @>
 
-[<Fact(Skip="todo: continue")>]
+[<Fact>]
 let ``Sampling LCC functions``() =
     let parameters: LambertConformalConic.Parameters =
         { X0 = 0.; Y0 = 0.;

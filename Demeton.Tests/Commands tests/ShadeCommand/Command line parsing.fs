@@ -263,7 +263,7 @@ let ``Accepts a valid map projection specification and puts it into the options`
     test <@
              options.MapProjection = {
                  Projection = Mercator; IgnoredParameters = [
-                    { Name = "test"; Value = NumericValue 20. } ]
+                    { Name = "test"; Value = Some (NumericValue 20.) } ]
              } @>
 
 [<Fact>]

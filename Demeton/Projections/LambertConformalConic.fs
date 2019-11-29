@@ -49,10 +49,13 @@ type Parameters = {
 /// </summary>
 let tryGetParameterNumericValue parameter =
     match parameter.Value with
-    | NumericValue value -> Ok value
-    | StringValue _ -> 
+    | Some (NumericValue value) -> Ok value
+    | Some (StringValue _) -> 
         sprintf "PROJ parameter '%s' must have a numeric value." parameter.Name
-        |> Error 
+        |> Error
+    | None -> 
+        sprintf "PROJ parameter '%s' is missing a value." parameter.Name
+        |> Error
 
 /// <summary>
 /// Tries to get a string value of the specified PROJ parameter. If the
@@ -60,10 +63,13 @@ let tryGetParameterNumericValue parameter =
 /// </summary>
 let tryGetParameterStringValue parameter =
     match parameter.Value with
-    | StringValue value -> Ok value
-    | NumericValue value -> 
+    | Some (StringValue value) -> Ok value
+    | Some (NumericValue value) -> 
         value.ToString (System.Globalization.CultureInfo.InvariantCulture)
         |> Ok 
+    | None -> 
+        sprintf "PROJ parameter '%s' is missing a value." parameter.Name
+        |> Error
 
 let tryGetEllipsoid (ellipsoidId: string) =    
     match ellipsoidId.ToLowerInvariant() with

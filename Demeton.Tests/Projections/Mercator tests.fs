@@ -18,7 +18,7 @@ let ``Parses PROJ specification that uses Mercator``() =
     test <@ parseResult
             |> isOkValue { Projection = Mercator;
                            IgnoredParameters = [
-                               { Name = "lat_ts"; Value = NumericValue 56.5 }
+                               { Name = "lat_ts"; Value = Some (NumericValue 56.5) }
                            ] } @>
 
 [<Theory>]

@@ -12,8 +12,8 @@ let ``Successfully parses PROJ specification into parameters list``() =
     let result = parseProjSpecParameters "+proj=merc +lat_ts=56.5"
     
     test <@ result |> isOkValue [
-                { Name = "proj"; Value = StringValue "merc" };    
-                { Name = "lat_ts"; Value = NumericValue 56.5 }    
+                { Name = "proj"; Value = Some (StringValue "merc") };    
+                { Name = "lat_ts"; Value = Some (NumericValue 56.5) }    
                 ]  @>
 
 [<Fact>]
@@ -39,14 +39,6 @@ let ``Reports an error if PROJ parameter name is missing``() =
     test <@ result |> isErrorData 
                 { Message = "Expected: parameter name";
                   Location = 1 } @>
-
-[<Fact>]
-let ``Reports an error if PROJ parameter does not continue with =``() =
-    let result = parseProjSpecParameters "+proj +lat_ts=56.5"
-    
-    test <@ result |> isErrorData 
-                { Message = "Expected: parameter value assignment '='";
-                  Location = 5 } @>
 
 [<Fact>]
 let ``Reports an error if PROJ parameter does not have a value assigned``() =
@@ -75,10 +67,10 @@ let ``Reports an error if PROJ specification has a syntax error``() =
                   Location = 12 }) @>
        
 [<Fact>]
-let ``Parses PROJ specification that uses Lambert Conformal Conic``() =
-    let parseResult = parseProjSpecProjection "+proj=merc +lat_ts=56.5"
+let ``Supports parsing of parameters without values``() =
+    let parseResult = parseProjSpecProjection "+proj=merc +no_defs"
     test <@ parseResult
             |> isOkValue { Projection = Mercator;
                            IgnoredParameters = [
-                               { Name = "lat_ts"; Value = NumericValue 56.5 }
+                               { Name = "no_defs"; Value = None }
                            ] } @>

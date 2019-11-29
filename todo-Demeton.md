@@ -1,3 +1,12 @@
+- implement LCC projection
+    - how to verify it?
+        - online?
+        - using C# code?
+    - implement properties testing for it
+    - how do we integrate map scale with it?
+    - add support for +datum=WGS84
+    - what about `+units=m`
+
 - projections
     - add PROJ license
     - test LCC in action

@@ -82,4 +82,4 @@ type PROJParameterValue =
 /// <summary>
 /// A PROJ parameter.
 /// </summary>
-type PROJParameter = { Name: string; Value: PROJParameterValue }
+type PROJParameter = { Name: string; Value: PROJParameterValue option }

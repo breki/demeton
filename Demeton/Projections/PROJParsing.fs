@@ -88,11 +88,17 @@ let private pParValue: Parser<PROJParameterValue, unit> =
 
 let private pParIndicator = (pstring "+") <?> "parameter indicator '+'"
 
-let private pParAssigment = (pstring "=") <?> "parameter value assignment '='"
+let private pParAssigmentSymbol =
+    (pstring "=") <?> "parameter value assignment '='"
 
-let private pProjParameter: Parser<PROJParameter, unit> =
-    pipe4 pParIndicator pParName pParAssigment pParValue
-        (fun _ parName _ parValue -> { Name = parName; Value = parValue })
+let private pPar = pParIndicator >>. pParName
+
+let private pParValueAssignment =
+    opt (pParAssigmentSymbol >>. pParValue)
+
+let private pProjParameter =
+    (pPar .>>.? pParValueAssignment)
+    |>> (fun (parName, parValue) -> { Name = parName; Value = parValue })
 
 let private pProj: Parser<PROJParameter list, unit> =
     (sepBy pProjParameter spaces1 <?> "parameter indicator '+'")
@@ -120,7 +126,7 @@ let parseProjSpecProjection (projSpec: PROJSpec): PROJParsingResult =
         |> List.tryFind (fun p -> p.Name = ParProj)
         |> Option.map (fun p -> p.Value)
         |> function
-        | Some (StringValue strValue) -> Some strValue
+        | Some (Some (StringValue strValue)) -> Some strValue
         | _ -> None
     
     let removeProjParameter parameters =

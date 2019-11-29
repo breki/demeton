@@ -1,8 +1,5 @@
-- implement LCC projection
-    - implement properties testing for it
-    - how do we integrate map scale with it?
-    - add support for +datum=WGS84
-    - what about `+units=m` `+no_defs`
+## Fri 29.11.
+- PROJ: added support for parsing parameters without values (like `+no_defs`).
 
 ## Thu 28.11.
 - Started working on the Lambert Conformal Conic projection support.
