@@ -32,6 +32,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample scripts", "sample sc
 	ProjectSection(SolutionItems) = preProject
 		samples\scripts\Alps.bat = samples\scripts\Alps.bat
 		samples\scripts\download-sample-data.sh = samples\scripts\download-sample-data.sh
+		samples\scripts\Alps-lcc.bat = samples\scripts\Alps-lcc.bat
+		samples\scripts\Europe-lcc.bat = samples\scripts\Europe-lcc.bat
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{C30C9FC6-0EBB-419B-BB64-69D190FFD709}"

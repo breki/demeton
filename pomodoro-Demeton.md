@@ -1,6 +1,8 @@
+- run Europe on LCC
 - test LCC in action
-    - run Alps on it
-        - specify lcc parameters correctly
+    - problem: the map scale is quite different from Mercator's
+        - introduce true-scale for Mercator
+        - also, use Ellipsoid's Earth circumference value
 
 ## Fri 29.11.
 - Various bug fixes and implementations of missing error handling.
