@@ -1,6 +1,10 @@
 - test LCC in action
+    - run Alps on it
+        - specify lcc parameters correctly
 
 ## Fri 29.11.
+- Various bug fixes and implementations of missing error handling.
+- Introducing map projection validation step before the creation.
 - Integrated map scale into LCC code.
 - Finished working on LCC, for now.
 - Fixed a bug in `phi2z` function, so LCC now calculates correct inverse values.

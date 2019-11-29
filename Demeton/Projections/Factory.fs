@@ -10,5 +10,9 @@ open PROJParsing
 let createMapProjection projection mapScale =
     match projection with
     | LambertConformalConic parameters ->
-        LambertConformalConic.MapProjection(parameters, mapScale).projection
-    | Mercator -> Mercator.MapProjection(mapScale).projection
+        LambertConformalConic.validateParameters parameters
+        |> Result.map (fun () -> 
+            LambertConformalConic.MapProjection(parameters, mapScale).projection)
+    | Mercator ->
+        Mercator.MapProjection(mapScale).projection
+        |> Ok

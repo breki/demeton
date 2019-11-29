@@ -31,10 +31,6 @@
         - Geospatial Analysis, p. 175
     - use Paint.NET as a start
 
-- proj4 links
-    - https://en.wikibooks.org/wiki/PROJ.4
-    - https://github.com/albertov/proj4hs
-    - https://github.com/naqsha/naqsha
 - hillshading links
     - http://www.saga-gis.org/saga_tool_doc/2.2.0/ta_lighting_0.html
     - https://www.rayshader.com/

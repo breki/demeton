@@ -100,7 +100,8 @@ let parseProjSpecParameter value: OptionValueParsingResult =
     | Error (UnsupportedProjection projectionId) ->
         sprintf "unsupported map projection '%s'" projectionId
         |> InvalidValue
-    | Error (InvalidProjectionParameters message) -> invalidOp "todo"
+    | Error (InvalidProjectionParameters message) ->
+        InvalidValue (Environment.NewLine + message)
 
 let registeredStepBuilders = dict [
     ("aspect", aspectShaderStepBuilder)
@@ -365,17 +366,13 @@ let saveShadedRasterTile
         tilePngFileName)
     |> Result.mapError fileSysErrorMessage
 
-let run 
+let runWithProjection
+    mapProjection
     (options: Options) 
     (generateTile: ShadedRasterTileGenerator) 
     (saveTile: ShadedRasterTileSaver)
     : Result<unit, string> =
 
-    let mapProjection =
-        createMapProjection
-            options.MapProjection.Projection
-            options.MapScale
-                       
     // project each coverage point
     let projectedPoints = 
         options.CoveragePoints 
@@ -465,3 +462,15 @@ let run
                 options.SrtmDir
         | _ -> ignore())
         
+let run 
+    (options: Options) 
+    (generateTile: ShadedRasterTileGenerator) 
+    (saveTile: ShadedRasterTileSaver)
+    : Result<unit, string> =
+
+    createMapProjection
+        options.MapProjection.Projection
+        options.MapScale
+    |> Result.bind (fun mapProjection ->
+        runWithProjection mapProjection options generateTile saveTile)
+    

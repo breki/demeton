@@ -28,7 +28,9 @@ let ``Parses PROJ specification that uses Mercator``() =
 [<InlineData(180., -80., 3.14159265, -2.43624605)>]
 let ``Correctly projects`` longitude latitude expectedX expectedY =
     let mapScale = MapScale.ScaleOf1
-    let projection = Factory.createMapProjection Mercator mapScale
+    let projection =
+        Factory.createMapProjection Mercator mapScale
+        |> resultValue
     
     test <@ projection.Proj (degToRad longitude) (degToRad latitude)
         |> expectXY expectedX expectedY @>
@@ -40,14 +42,18 @@ let ``Returns None if latitude is outside of Mercator bounds``
     longitude latitude =
 
     let mapScale = MapScale.ScaleOf1
-    let projection = Factory.createMapProjection Mercator mapScale
+    let projection =
+        Factory.createMapProjection Mercator mapScale
+        |> resultValue
         
     projection.Proj (degToRad longitude) (degToRad latitude) |> expectNone
 
 [<ProjectLonLat>]
 let ``Mercator projection formulas are correct`` (lonLat: ProjectLonLat) =
     let mapScale = { MapScale = 100000.; Dpi = 300. }
-    let projection = Factory.createMapProjection Mercator mapScale
+    let projection =
+        Factory.createMapProjection Mercator mapScale
+        |> resultValue
     
     let (lonDegrees, latDegrees) = lonLat
     let lon = degToRad lonDegrees

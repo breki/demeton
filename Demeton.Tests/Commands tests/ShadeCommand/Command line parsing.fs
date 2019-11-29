@@ -290,3 +290,12 @@ let ``Reports an error when map projection is not supported``() =
             |> isErrorData 
                 @"'proj' option's value is invalid, unsupported map projection 'tmerc'."
         @>
+
+[<Fact>]
+let ``Reports an error when PROJ specification has an invalid value``() =
+    let result = parseArgs [ "10,20,30,40"; "--proj"; "+proj=lcc +lat_1=test" ]
+    test <@ result
+            |> isErrorData 
+                @"'proj' option's value is invalid:
+PROJ parameter 'lat_1' must have a numeric value."
+        @>

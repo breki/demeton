@@ -3,6 +3,7 @@ module Demeton.Projections.LambertConformalConic
 
 // https://proj.org/operations/projections/lcc.html
 
+open Demeton.Geometry.Common
 open Demeton.Projections.Common
 
 open System
@@ -168,16 +169,22 @@ let phi2z e ts =
     let startingPhi = Math.PI / 2. - 2. * atan ts
     search 0 startingPhi      
 
+let validateParameters parameters =
+     if Math.Abs (parameters.Lat1 + parameters.Lat2) < Epsilon then
+        "Standard parallels cannot be equal or on opposite sides of the equator."
+        |> Error
+     else Ok()
+
 type MapProjection(parameters: Parameters, mapScale: MapScale) =
     let scaleFactor = InchesPerMeter * mapScale.Dpi  / mapScale.MapScale 
 
     let x0 = parameters.X0
     let y0 = parameters.Y0
     
-    let lon0 = parameters.Lon0      
-    let lat0 = parameters.Lat0
-    let lat1 = parameters.Lat1
-    let lat2 = parameters.Lat2
+    let lon0 = parameters.Lon0 |> degToRad
+    let lat0 = parameters.Lat0 |> degToRad
+    let lat1 = parameters.Lat1 |> degToRad
+    let lat2 = parameters.Lat2 |> degToRad
     let k0 = parameters.K0
     
     let semimajor = parameters.Ellipsoid.SemimajorRadius
@@ -205,12 +212,10 @@ type MapProjection(parameters: Parameters, mapScale: MapScale) =
     let rh = parameters.Ellipsoid.SemimajorRadius * f0 * Math.Pow (ts0, ns)
             
     do
-        if Math.Abs (lat1 + lat2) < Epsilon then
-            invalidArg
-                "parameters" 
-                "Standard parallels cannot be equal and on opposite sides of the equator."
-        else
-            ignore()
+        match validateParameters parameters with
+        | Result.Ok() -> ignore()
+        | Result.Error message ->
+            invalidArg "parameters" message
             
     member this.proj: ProjectFunc = fun longitude latitude ->
         let con = Math.Abs (Math.Abs (latitude) - (Math.PI / 2.))

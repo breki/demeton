@@ -11,6 +11,7 @@ open Demeton.Srtm.Funcs
 open Xunit
 open Swensen.Unquote
 open Demeton.Srtm.Types
+open TestHelp
 
 /// <summary>
 /// Generates a sample geographic area bounds, its corresponding heights array
@@ -23,7 +24,9 @@ let generateSampleWithParameters
         { MinLon = minLon; MinLat = minLat; MaxLon = maxLon; MaxLat = maxLat }
 
     let mapScale = { MapScale = mapScale; Dpi = dpi }
-    let projection = createMapProjection Mercator mapScale
+    let projection =
+        createMapProjection Mercator mapScale
+        |> resultValue
 
     let minCornerX, minCornerY = 
         projection.Proj (area.MinLon |> degToRad) (area.MaxLat |> degToRad)

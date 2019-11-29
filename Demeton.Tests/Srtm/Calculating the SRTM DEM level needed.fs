@@ -8,6 +8,7 @@ open Demeton.Projections.PROJParsing
 
 open Xunit
 open Swensen.Unquote
+open TestHelp
 
 let area = 
     { MinLon = 4.702148; MinLat = 43.331571; 
@@ -42,7 +43,9 @@ let calculateLonLatDeltaOfSamplePoint
 [<Fact>]
 let ``Can calculate distance between neighborhood rasters pixels in terms of SRTM DEM cells``() =
     let mapScale = { MapScale = 1000000.; Dpi = 1. }
-    let projection = createMapProjection Mercator mapScale
+    let projection =
+        createMapProjection Mercator mapScale
+        |> resultValue
 
     let delta = 
         projection 
@@ -52,7 +55,9 @@ let ``Can calculate distance between neighborhood rasters pixels in terms of SRT
     test <@ abs (delta - 0.00277597281) < 0.0001 @>
 
     let mapScale = { MapScale = 2000000.; Dpi = 1. }
-    let projection = createMapProjection Mercator mapScale
+    let projection =
+        createMapProjection Mercator mapScale
+        |> resultValue
 
     let delta = 
         projection 
@@ -62,7 +67,9 @@ let ``Can calculate distance between neighborhood rasters pixels in terms of SRT
     test <@ abs (delta - 0.005544002665) < 0.0001 @>
 
     let mapScale = { MapScale = 1000000.; Dpi = 2. }
-    let projection = createMapProjection Mercator mapScale
+    let projection =
+        createMapProjection Mercator mapScale
+        |> resultValue
 
     let delta = 
         projection 
@@ -92,7 +99,9 @@ let private calculateMinDeltaUsingBruteForce
 [<Fact>]
 let ``Determines the min lon/lat delta using simulated annealing``() =
     let mapScale = { MapScale = 1000000.; Dpi = 5. }
-    let projection = createMapProjection Mercator mapScale
+    let projection =
+        createMapProjection Mercator mapScale
+        |> resultValue
     let rasterRect = projection |> rasterRectFor
 
     let minDeltaUsingSimAnn =

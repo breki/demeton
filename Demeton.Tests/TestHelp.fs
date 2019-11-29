@@ -24,6 +24,10 @@ let isOkValue expectedOkValue result =
     | Ok value -> value = expectedOkValue
     | Error _ -> false
 
+/// <summary>
+/// Assert the result is Ok and returns its associated value. Throws an
+/// exception if the result is Error.
+/// </summary>
 let resultValue result =
     match result with
     | Ok x -> x

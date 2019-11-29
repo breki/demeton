@@ -87,7 +87,7 @@ let ``Sampling LCC functions``(lon, lat, lat1, lat2, expectedX, expectedY) =
     let parameters: LambertConformalConic.Parameters =
         { X0 = 0.; Y0 = 0.;
           Lon0 = 0.; Lat0 = 0.;
-          Lat1 = degToRad lat1; Lat2 = degToRad lat2;
+          Lat1 = lat1; Lat2 = lat2;
           K0 = 1.
           Ellipsoid = WGS84 }
         
@@ -116,7 +116,7 @@ let lccProperties((lonDeg, latDeg), mapScale, dpi) =
     let parameters: LambertConformalConic.Parameters =
         { X0 = 0.; Y0 = 0.;
           Lon0 = 0.; Lat0 = 0.;
-          Lat1 = degToRad 25.; Lat2 = degToRad 55.;
+          Lat1 = 25.; Lat2 = 55.;
           K0 = 1.
           Ellipsoid = WGS84 }
         
