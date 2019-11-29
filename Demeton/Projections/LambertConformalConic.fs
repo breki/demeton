@@ -146,8 +146,11 @@ let adjustLon lon =
     else
         lon - ((sign lon |> float) * Math.PI * 2.)
 
+/// <summary>
+/// Determine latitude angle phi-2.
+/// </summary>
 let phi2z e ts =
-    let eHalf = e / 2.
+    let eccnth = e / 2.
     
     let rec search i phi =
         if i > 15 then None
@@ -155,7 +158,8 @@ let phi2z e ts =
             let con = e * Math.Sin (phi)
             let deltaPhi =
                 Math.PI / 2.
-                - 2. * atan (ts * Math.Pow ((1. - con) / (1. + con), eHalf))
+                - 2. * atan (ts * Math.Pow ((1. - con) / (1. + con), eccnth))
+                - phi
             let phi' = phi + deltaPhi
             
             if abs deltaPhi < Epsilon then Some phi'

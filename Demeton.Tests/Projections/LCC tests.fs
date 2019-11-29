@@ -74,12 +74,19 @@ let ``Lists any ignored parameters when parsing``() =
                                {Name = "par1"; Value = Some (StringValue "value1")}
                            ] } @>
 
-[<Fact>]
-let ``Sampling LCC functions``() =
+// used https://mygeodata.cloud/cs2cs/ as a source for control data
+// from: +proj=longlat +datum=WGS84 +no_defs
+// to: +proj=lcc +ellps=WGS84 +lat_1=25 +lat_2=55
+[<Theory>]
+[<InlineData(0.,15.,25.,55.,0.,1872030.82778)>]
+[<InlineData(0.,45.,25.,55.,0.,5172085.53971)>]
+[<InlineData(10.,45.,25.,55.,762227.613999,5215404.28979)>]
+[<InlineData(0.,60.,25.,55.,0.,6828656.81024)>]
+let ``Sampling LCC functions``(lon, lat, lat1, lat2, expectedX, expectedY) =
     let parameters: LambertConformalConic.Parameters =
         { X0 = 0.; Y0 = 0.;
           Lon0 = 0.; Lat0 = 0.;
-          Lat1 = degToRad 25.; Lat2 = degToRad 55.;
+          Lat1 = degToRad lat1; Lat2 = degToRad lat2;
           K0 = 1.
           Ellipsoid = WGS84 }
         
@@ -88,10 +95,19 @@ let ``Sampling LCC functions``() =
     let projection =
         LambertConformalConic.MapProjection(parameters, mapScale).projection
         
-    match projection.Proj (degToRad 0.) (degToRad 45.) with
+    match projection.Proj (degToRad lon) (degToRad lat) with
     | Some (x, y) ->
-        test <@ x = 0. && y |> isApproxEqualTo 5172085.54 (Decimals 2)  @>
+        test <@ x |> isApproxEqualTo expectedX (Decimals 2) @>
+        test <@ y |> isApproxEqualTo expectedY (Decimals 2) @>
+        
+        match projection.Invert x y with
+        | Some (lon', lat') ->
+            test <@ (radToDeg lon') |> isApproxEqualTo lon (Decimals 6) @>
+            test <@ (radToDeg lat') |> isApproxEqualTo lat (Decimals 6) @>
+        | None -> fail "The inverted coordinates should not have been None"
+
     | None -> fail "The projected coordinates should not have been None"
+    
     
 
 let lccProperties(lonDeg, latDeg) =
@@ -111,7 +127,8 @@ let lccProperties(lonDeg, latDeg) =
     | Some (x, y) ->
         match projection.Invert x y with
         | Some (lon', lat') ->
-            (lonDeg = (radToDeg lon') && latDeg = (radToDeg lat'))
+            ((radToDeg lon') |> isApproxEqualTo lonDeg (Decimals 6)
+             && (radToDeg lat') |> isApproxEqualTo latDeg (Decimals 6))
             |> Prop.label "Inverted coordinates should be equal to original ones"
         | None ->
             false
@@ -120,7 +137,7 @@ let lccProperties(lonDeg, latDeg) =
         true
         |> Prop.classify true "proj = None" // todo: check the lon lat
          
-[<Fact(Skip="todo: continue")>]
+[<Fact>]
 let ``Test LCC properties``() =
     let genLon = floatInRange -180 180
     let genLat = floatInRange -90 90
