@@ -1,8 +1,12 @@
-- start experimenting with image tracing
+- isoline search    
+    - properties tests
+
 - run Europe on LCC
     - Could not open SRTM HTG file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip': ZIP file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip' does not have a file entry 'N44E048.hgt'.
 
 ## Sat 30.11.
+- Added the ability to search for multiple isolines of the same value.
+- Implemented isolines tracing.
 - Implemented the first simple case for isoline tracing.
 - Added `LICENSE-3RD-PARTY.txt` document.
 - Moved common projection functions into `Common` module.
