@@ -4,6 +4,9 @@
         - introduce true-scale for Mercator
         - also, use Ellipsoid's Earth circumference value
 
+## Sat 30.11.
+- Moved common projection functions into `Common` module.
+
 ## Fri 29.11.
 - Various bug fixes and implementations of missing error handling.
 - Introducing map projection validation step before the creation.

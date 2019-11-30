@@ -25,6 +25,14 @@ type Ellipsoid = {
 let GRS80 = { SemimajorRadius = 6378137.; SemiminorRadius = 6356752.314140347 }
 let WGS84 = { SemimajorRadius = 6378137.; SemiminorRadius = 6356752.314245 }
 
+let tryGetEllipsoid (ellipsoidId: string) =    
+    match ellipsoidId.ToLowerInvariant() with
+    | "grs80" -> Ok GRS80
+    | "wgs84" -> Ok WGS84
+    | _ ->
+        sprintf "Unsupported ellipsoid '%s'" ellipsoidId
+        |> Error
+
 let eccentricity ellipsoid =
     let ratio = ellipsoid.SemiminorRadius / ellipsoid.SemimajorRadius
     Math.Sqrt(1. - ratio * ratio)
@@ -89,3 +97,70 @@ type PROJParameterValue =
 /// A PROJ parameter.
 /// </summary>
 type PROJParameter = { Name: string; Value: PROJParameterValue option }
+
+/// <summary>
+/// Tries to get a numeric value of the specified PROJ parameter. If the
+/// parameter is not a numeric value, returns an error.
+/// </summary>
+let tryGetParameterNumericValue parameter =
+    match parameter.Value with
+    | Some (NumericValue value) -> Ok value
+    | Some (StringValue _) -> 
+        sprintf "PROJ parameter '%s' must have a numeric value." parameter.Name
+        |> Error
+    | None -> 
+        sprintf "PROJ parameter '%s' is missing a value." parameter.Name
+        |> Error
+
+/// <summary>
+/// Tries to get a string value of the specified PROJ parameter. If the
+/// parameter is not a string value, returns an error.
+/// </summary>
+let tryGetParameterStringValue parameter =
+    match parameter.Value with
+    | Some (StringValue value) -> Ok value
+    | Some (NumericValue value) -> 
+        value.ToString (System.Globalization.CultureInfo.InvariantCulture)
+        |> Ok 
+    | None -> 
+        sprintf "PROJ parameter '%s' is missing a value." parameter.Name
+        |> Error
+
+
+let msfnz e sinphi cosphi =
+    let con = e * sinphi
+    cosphi / Math.Sqrt (1.0 - con * con)
+
+let tsfnz e phi sinphi =
+    let con = e * sinphi
+    let com = e / 2.
+    let con' = Math.Pow ((1.0 - con) / (1.0 + con), com)
+    tan (0.5 * (Math.PI / 2. - phi)) / con';
+
+let adjustLon lon =
+    if (abs (lon) < Math.PI) then
+        lon
+    else
+        lon - ((sign lon |> float) * Math.PI * 2.)
+
+/// <summary>
+/// Determine latitude angle phi-2.
+/// </summary>
+let phi2z e ts =
+    let eccnth = e / 2.
+    
+    let rec search i phi =
+        if i > 15 then None
+        else
+            let con = e * Math.Sin (phi)
+            let deltaPhi =
+                Math.PI / 2.
+                - 2. * atan (ts * Math.Pow ((1. - con) / (1. + con), eccnth))
+                - phi
+            let phi' = phi + deltaPhi
+            
+            if abs deltaPhi < Epsilon then Some phi'
+            else search (i + 1) phi'
+            
+    let startingPhi = Math.PI / 2. - 2. * atan ts
+    search 0 startingPhi      

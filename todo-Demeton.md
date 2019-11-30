@@ -15,7 +15,11 @@
         - pixel coordinates of the top left corner  
         - also lon/lat coordinates of the top left corner
 
-- image tracing: http://potrace.sourceforge.net/#dual
+- image tracing: 
+    - http://potrace.sourceforge.net/#dual
+    - An Algorithm for Automatically Fitting Digitized Curves
+    - http://www.imageprocessingplace.com/downloads_V3/root_downloads/tutorials/contour_tracing_Abeer_George_Ghuneim/alg.html
+    - https://en.wikipedia.org/wiki/Boundary_tracing
 
 - generate some nice samples for the documentation
     - Mount Fuji: 138.637436,35.288563,138.822693,35.434156
