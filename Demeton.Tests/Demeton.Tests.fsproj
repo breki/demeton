@@ -18,6 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Vectorization tests\Exploring vectorization.fs" />
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
     <Compile Include="TestHelp.fs" />
     <Compile Include="PropertiesHelp.fs" />
@@ -106,8 +107,6 @@
     <EmbeddedResource Include="..\samples\N46E015.SRTMGL1.hgt.zip" Link="samples\N46E015.SRTMGL1.hgt.zip" />
   </ItemGroup>
 
-  <ItemGroup />
-
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.11.5" />
     <PackageReference Include="FParsec" Version="1.0.3" />
@@ -135,6 +134,10 @@
 
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Vectorization tests\" />
   </ItemGroup>
 
 </Project>
