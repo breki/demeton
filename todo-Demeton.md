@@ -1,9 +1,4 @@
-- projections
-    - add PROJ license
-        - what about other licenses? 
-            -FParsec
-            -ICSharpCode.SharpZipLib
-    - add parameter for handling ignored PROJ parameters
+- report ignored PROJ parameters in the console
 
 - add documentation for
     - building

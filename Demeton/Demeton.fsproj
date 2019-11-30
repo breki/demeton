@@ -14,9 +14,6 @@
   </PropertyGroup>
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
-    <Content Include="..\LICENSE" Link="LICENSE">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Compile Include="SimAnn.fs" />
     <Compile Include="Text.fs">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
@@ -79,6 +76,14 @@
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
     <Content Include="..\README.md">
       <Link>README.md</Link>
+    </Content>
+    <Content Include="..\LICENSE">
+      <Link>LICENSE</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\LICENSE-3RD-PARTY.txt">
+      <Link>LICENSE-3RD-PARTY.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\samples\scripts\download-sample-data.sh">
       <Link>download-sample-data.sh</Link>

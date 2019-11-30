@@ -1,10 +1,8 @@
+- start experimenting with image tracing
 - run Europe on LCC
-- test LCC in action
-    - problem: the map scale is quite different from Mercator's
-        - introduce true-scale for Mercator
-        - also, use Ellipsoid's Earth circumference value
 
 ## Sat 30.11.
+- Added `LICENSE-3RD-PARTY.txt` document.
 - Moved common projection functions into `Common` module.
 
 ## Fri 29.11.

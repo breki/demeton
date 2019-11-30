@@ -1,8 +1,6 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Projections.Mercator
 
-// https://proj.org/operations/projections/merc.html
-
 open Demeton.Projections.Common
 
 open System
@@ -12,43 +10,9 @@ let MaxLat = 1.48442222974533
 [<Literal>]
 let MinLat = -1.48442222974533
 
-
-type Parameters = {
-    /// <summary>
-    /// False easting.
-    /// </summary>
-    X0: float
-    /// <summary>
-    /// False northing.
-    /// </summary>
-    Y0: float
-    /// <summary>
-    /// Longitude of projection center.
-    /// </summary>
-    Lon0: float
-    /// <summary>
-    /// Latitude of projection center.
-    /// </summary>
-    Lat0: float
-    /// <summary>
-    /// First standard parallel.
-    /// </summary>
-    Lat1: float
-    /// <summary>
-    /// Second standard parallel.
-    /// </summary>
-    Lat2: float
-    
-    /// <summary>
-    /// This parameter can represent two different values depending on the form
-    /// of the projection. In LCC 1SP it determines the scale factor at natural
-    /// origin. In LCC 2SP Michigan it determines the ellipsoid scale factor.
-    /// </summary>
-    K0: float
-    
-    Ellipsoid: Ellipsoid
-}
-
+// todo: Mercator projection should be extended with its PROJ parameters
+// (see https://proj.org/operations/projections/merc.html)
+// Currently it uses true scale on the Equator and it ignores datum/ellipsoid.
 type MapProjection(mapScale: MapScale) =
     let mapScale = mapScale
     let scaleFactor = mapScale.ProjectionScaleFactor 
