@@ -18,7 +18,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Vectorization tests\Exploring vectorization.fs" />
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
     <Compile Include="TestHelp.fs" />
     <Compile Include="PropertiesHelp.fs" />
@@ -83,6 +82,7 @@
     <Compile Include="Shaders\Building slope shader step.fs" />
     <Compile Include="Shaders\Building aspect shader step.fs" />
     <Compile Include="Shaders\Parsing shading scripts.fs" />
+    <Compile Include="Vectorization tests\Exploring vectorization.fs" />
     <Compile Include="Commands tests\ShadeCommand\Command line parsing.fs" />
     <Compile Include="Commands tests\ShadeCommand\Running the command.fs" />
     <Compile Include="Commands tests\ShadeCommand\Splitting into intervals.fs" />
@@ -136,8 +136,6 @@
     <PackageReference Update="FSharp.Core" Version="4.7.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Vectorization tests\" />
-  </ItemGroup>
+  <ItemGroup />
 
 </Project>

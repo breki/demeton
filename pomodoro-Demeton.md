@@ -1,8 +1,10 @@
-- isoline search    
-    - properties tests
+- use integers for heights so we can test scenario when isovalue is same as height
 
 - run Europe on LCC
     - Could not open SRTM HTG file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip': ZIP file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip' does not have a file entry 'N44E048.hgt'.
+
+## Sun 01.12.
+- Fixing various bugs in isoline detection algorithm.
 
 ## Sat 30.11.
 - Added the ability to search for multiple isolines of the same value.

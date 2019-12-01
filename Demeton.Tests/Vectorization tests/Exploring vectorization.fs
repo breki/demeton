@@ -2,6 +2,8 @@
 
 open Xunit
 open Swensen.Unquote
+open FsCheck
+open PropertiesHelp
 
 type IsolinePoint =
     | OnHorizontalEdge of (int * int)
@@ -15,9 +17,19 @@ type IsolineStepDirection =
     
 type IsolineStep = (IsolinePoint * IsolineStepDirection) 
 
-type Isoline = {
+type IsolineEndingType = ClippedEnding | ClosedEnding
+
+type ClosedIsoline = {
     Steps: IsolineStep list
 }
+
+type ClippedIsoline = {
+    Steps: IsolineStep list
+}
+
+type Isoline =
+    | ClosedIsoline of ClosedIsoline
+    | ClippedIsoline of ClippedIsoline
 
 /// Defines the direction of the isoline search. When Backward, we create
 /// isoline with reverse steps and directions, which are then reversed
@@ -31,46 +43,124 @@ let oppositeStepDirection =
     | Down -> Up
     | Left -> Right
 
+let isStepOnArrayEdge width height = function
+    | (OnHorizontalEdge (x, y), _) ->
+        x = 0 || y = 0 || x >= width - 1 || y >= height - 2  
+    | (OnVerticalEdge (x, y), _) -> 
+        x = 0 || y = 0 || x >= width - 2 || y >= height - 1         
+
+/// Determines whether the isoline value is between the left and right
+/// height values.
+let isIsoValueBetween
+    isolineValue (heightToTheLeft: float) (heightToTheRight: float) =
+    match heightToTheLeft, heightToTheRight with
+    | (l, r) when l >= r -> false
+    | (l, r) when l <= isolineValue && isolineValue <= r -> true
+    | _ -> false
+
+/// Determines whether the given step lies on the isoline path. 
+let isOnIsolinePath
+    heights width height isolineValue searchDirection step: bool =
+    match step with
+    | (OnVerticalEdge (x, y), Up) ->
+        if x >= 0 && x + 1 < width && y >= 0 && y < height then
+            Some (heights x y, heights (x+1) y)
+        else None
+    | (OnHorizontalEdge (x, y), Right) ->
+        if x >= 0 && x < width && y >= 0 && y + 1 < height then
+            Some (heights x y, heights x (y+1))
+        else None
+    | (OnVerticalEdge (x, y), Down) ->
+        if x >= 0 && x + 1 < width && y >= 0 && y < height then
+            Some (heights (x+1) y, heights x y)
+        else None                
+    | (OnHorizontalEdge (x, y), Left) ->
+        if x >= 0 && x < width && y >= 0 && y + 1 < height then
+            Some (heights x (y+1), heights x y)
+        else None
+    | (point, direction) ->
+        sprintf "bug: invalid step - point %A, direction %A" point direction
+        |> invalidOp
+    |> function
+    | Some (hLeft, hRight) ->
+        match searchDirection with
+        | Forward -> isIsoValueBetween isolineValue hLeft hRight
+        | Backward -> isIsoValueBetween isolineValue hRight hLeft
+    | None -> false
+
+
 let findIsolines
     width height (heights: int -> int -> float) isolineValue
     : Isoline seq =
         
-    let array2dIndex x y = y * height + x
-    
+    let array2dIndex x y = y * width + x
+        
     /// indicates whether each horizontal point was already covered by an isoline
     let coverageArrayHorizontal = Array.init (width * height) (fun _ -> false)
     /// indicates whether each vertical point was already covered by an isoline
     let coverageArrayVertical = Array.init (width * height) (fun _ -> false)      
+                      
+    let isHorizEdgeFree x y =
+        if x < 0 || x >= width then
+            raise (System.ArgumentOutOfRangeException "x")
+        if y < 0 || y >= height then
+            raise (System.ArgumentOutOfRangeException "y")
         
-    /// Determines whether the isoline value is between the left and right
-    /// height values.
-    let isIsoValueBetween (heightToTheLeft: float) (heightToTheRight: float) =
-        match heightToTheLeft, heightToTheRight with
-        | (l, r) when l >= r -> false
-        | (l, r) when l <= isolineValue && isolineValue <= r -> true
-        | _ -> false
-               
+        coverageArrayHorizontal.[array2dIndex x y] |> not
+
+    let isVertEdgeFree x y =
+        if x < 0 || x >= width then
+            raise (System.ArgumentOutOfRangeException "x")
+        if y < 0 || y >= height then
+            raise (System.ArgumentOutOfRangeException "y")
+                
+        coverageArrayVertical.[array2dIndex x y] |> not
+        
+    let isPointFree = function
+        | OnHorizontalEdge (x, y) -> isHorizEdgeFree x y
+        | OnVerticalEdge (x, y) -> isVertEdgeFree x y
+                    
+    /// Lists all the points detected for an isoline at the specified
+    /// array coordinates.
+    let listIsolinePoints x y = seq {
+        let h00 = heights x y
+        let h10 = heights (x + 1) y
+        let h01 = heights x (y + 1)
+        if isVertEdgeFree x y then
+           if isIsoValueBetween isolineValue h00 h10 then
+                yield ((OnVerticalEdge (x, y), Down), Backward)
+           else if isIsoValueBetween isolineValue h10 h00 then
+                yield ((OnVerticalEdge (x, y), Down), Forward)
+                
+        if isHorizEdgeFree x y then
+           if isIsoValueBetween isolineValue h00 h01 then
+                yield ((OnHorizontalEdge (x, y), Right), Forward)
+           else if isIsoValueBetween isolineValue h01 h00 then
+                yield ((OnHorizontalEdge (x, y), Right), Backward)
+    }
+                          
     /// Returns a sequence of starting steps of isolines.
     let findIsolineStartingSteps(): (IsolineStep * SearchDirection) seq =
         seq {
-            for y in 0 .. height-2 do
-                for x in 0 .. width-2 do
-                    let horizontalLineFree =
-                        coverageArrayHorizontal.[array2dIndex x y] |> not
-                    let verticalLineFree =
-                        coverageArrayVertical.[array2dIndex x y] |> not
+            // First look for possible isoline points at the edges of the array.
+            // This will identify all of the isolines that are clipped at the
+            // edges of the array.
+            if width > 1 && height > 1 then
+                yield! listIsolinePoints 0 0
+                if width > 2 then
+                    yield! listIsolinePoints (width-2) 0
                     
-                    let h00 = heights x y
-                    let h10 = heights (x + 1) y
-                    let h01 = heights x (y + 1)
-                    if verticalLineFree && isIsoValueBetween h00 h10 then
-                        yield ((OnVerticalEdge (x, y), Down), Backward)
-                    if verticalLineFree && isIsoValueBetween h10 h00 then
-                        yield ((OnVerticalEdge (x, y), Down), Forward)
-                    if horizontalLineFree && isIsoValueBetween h00 h01 then
-                        yield ((OnHorizontalEdge (x, y), Right), Forward)
-                    if horizontalLineFree && isIsoValueBetween h01 h00 then
-                        yield ((OnHorizontalEdge (x, y), Right), Backward)
+                if height > 2 then
+                    yield! listIsolinePoints 0 (height-2)
+                    if width > 2 then
+                        yield! listIsolinePoints (width-2) (height-2)
+            
+            // Now look for array's inner points, identifying any remaining
+            // isolines (which are not clipped at the edges of the array and
+            // are thus closed (self-looping) isolines).
+            for y in 1 .. height-3 do
+                for x in 1 .. width-3 do                   
+                    yield! listIsolinePoints x y
         }
     
     /// Calculates the step point given the current step and the direction of
@@ -98,34 +188,6 @@ let findIsolines
                 fromPoint fromDirection toStepDirection
             |> invalidOp
     
-    /// Determines whether the given step lies on the isoline path. 
-    let isOnIsolinePath searchDirection step: bool =
-        match step with
-        | (OnVerticalEdge (x, y), Up) ->
-            if x >= 0 && x + 1 < width && y >= 0 && y < height then
-                Some (heights x y, heights (x+1) y)
-            else None
-        | (OnHorizontalEdge (x, y), Right) ->
-            if x >= 0 && x < width && y >= 0 && y + 1 < height then
-                Some (heights x y, heights x (y+1))
-            else None
-        | (OnVerticalEdge (x, y), Down) ->
-            if x >= 0 && x + 1 < width && y >= 0 && y < height then
-                Some (heights (x+1) y, heights x y)
-            else None                
-        | (OnHorizontalEdge (x, y), Left) ->
-            if x >= 0 && x < width && y >= 0 && y + 1 < height then
-                Some (heights x (y+1), heights x y)
-            else None
-        | (point, direction) ->
-            sprintf "bug: invalid step - point %A, direction %A" point direction
-            |> invalidOp
-        |> function
-        | Some (hLeft, hRight) ->
-            match searchDirection with
-            | Forward -> isIsoValueBetween hLeft hRight
-            | Backward -> isIsoValueBetween hRight hLeft
-        | None -> false
     
     /// Finds the next appropriate isoline step based on the specified current
     /// step. If no new steps are possible (when the isoline reaches the array
@@ -133,44 +195,60 @@ let findIsolines
     let findNextStep
         currentStep
         searchDirection
-        (possibleDirections: IsolineStepDirection[])
+        (allowedDirections: IsolineStepDirection[])
         : IsolineStep option =
         
-        possibleDirections
+        allowedDirections
         |> Array.map (fun possibleDirection ->
             (getIsolinePoint currentStep possibleDirection,
              possibleDirection))
-        |> Array.filter (isOnIsolinePath searchDirection)
+        // filter out directions that don't correspond to isoline paths
+        |> Array.filter
+               (isOnIsolinePath
+                    heights width height isolineValue searchDirection)
+        // filter out directions that were already covered by other isolines
+        |> Array.filter (fun (point, _) -> isPointFree point)
         |> function
-        | [| actualStep |] -> Some actualStep
-        | [||] -> None
-        | _ -> invalidOp "bug: more than one possible step"
+        | [| possibleStep |] -> Some possibleStep
+        | [||] ->
+            // If the isoline has no more possible steps, this could only mean
+            // it has reached an edge of the array. Verify this.
+            if not (isStepOnArrayEdge width height currentStep) then
+                sprintf
+                    "bug: isoline has run out of possible steps, but it has not reached an edge of the heights array (%A)"
+                    currentStep
+                |> invalidOp
+            None
+        | possibleSteps ->
+            // if there are multiple possible steps, chose the first one
+            possibleSteps |> Array.head |> Some
             
     /// Recursively moves one step of the isoline until it reaches its starting
     /// point, building the visited steps list.
-    let rec moveIsoline searchDirection firstStep stepsSoFar: IsolineStep list =
+    let rec moveIsoline searchDirection firstStep stepsSoFar
+        : IsolineEndingType * IsolineStep list =
         let previousStep = List.head stepsSoFar 
-        let possibleDirections =
+        let allowedDirections =
             match previousStep with
             | (_, Up) -> [| Left; Up; Right |]
             | (_, Right) -> [| Up; Right; Down |]
             | (_, Down) -> [| Right; Down; Left |]
             | (_, Left) -> [| Down; Left; Up |]
     
-        match findNextStep previousStep searchDirection possibleDirections with
+        match findNextStep previousStep searchDirection allowedDirections with
         | Some nextStep ->
             // did we reach the starting point, making a loop?
             if nextStep = firstStep then
-                stepsSoFar
+                (ClosedEnding,  stepsSoFar)
             else
                 moveIsoline searchDirection firstStep (nextStep :: stepsSoFar)
         // did we reach an edge of the array?
-        | None -> stepsSoFar
+        | None -> (ClippedEnding, stepsSoFar)
 
     /// Traces the whole movement of the isoline, from the specified starting
     /// step.
     let traceIsoline (startingStep, searchDirection): Isoline =
-        let isolineSteps =
+        let (endingType, isolineSteps) =
             moveIsoline searchDirection startingStep [ startingStep ]
         
         let steps =
@@ -181,25 +259,29 @@ let findIsolines
                 |> List.map (fun (point, stepDirection) ->
                     (point, oppositeStepDirection stepDirection))
 
-        { Steps = steps }
+        match endingType with
+        | ClosedEnding -> ClosedIsoline  { Steps = steps }
+        | ClippedEnding -> ClippedIsoline  { Steps = steps }
          
     let markIsolinePointAsCovered step =
         match step with
         | (OnHorizontalEdge (x, y), _) ->
-            let alreadyCovered = coverageArrayHorizontal.[array2dIndex x y]
-            if alreadyCovered then
-                invalidOp "bug: this point was already covered by an isoline"
-            else
+            let isEdgeFree = isHorizEdgeFree x y
+            if isEdgeFree then
                 coverageArrayHorizontal.[array2dIndex x y] <- true
-        | (OnVerticalEdge (x, y), _) ->
-            let alreadyCovered = coverageArrayVertical.[array2dIndex x y]
-            if alreadyCovered then
-                invalidOp "bug: this point was already covered by an isoline"
             else
+                invalidOp "bug: this point was already covered by an isoline"
+        | (OnVerticalEdge (x, y), _) ->
+            let isEdgeFree = isVertEdgeFree x y
+            if isEdgeFree then
                 coverageArrayVertical.[array2dIndex x y] <- true
+            else
+                invalidOp "bug: this point was already covered by an isoline"
     
-    let drawIsolineOnCoverageArray isoline =
-        isoline.Steps
+    let drawIsolineOnCoverageArray (isoline: Isoline) =
+        match isoline with
+        | ClosedIsoline x -> x.Steps
+        | ClippedIsoline x -> x.Steps
         |> List.iter markIsolinePointAsCovered
     
     findIsolineStartingSteps()
@@ -214,7 +296,7 @@ let getHeight (array: float[]) width height x y =
     | _ when x >= width -> raise (System.ArgumentOutOfRangeException "x") 
     | _ when y < 0 -> raise (System.ArgumentOutOfRangeException "y")
     | _ when y >= height -> raise (System.ArgumentOutOfRangeException "y")
-    | _ -> array.[y * height + x]
+    | _ -> array.[y * width + x]
 
 [<Fact>]
 let ``Simple peak``() =
@@ -232,7 +314,7 @@ let ``Simple peak``() =
         findIsolines width height heights 50.
         |> Seq.toList
     
-    test <@ isolines = [ {
+    test <@ isolines = [ ClosedIsoline {
                 Steps = [
                     (OnHorizontalEdge (1, 0), Right)
                     (OnVerticalEdge (1, 1), Down)
@@ -257,7 +339,7 @@ let ``Simple hole``() =
         findIsolines width height heights 50.
         |> Seq.toList
     
-    test <@ isolines = [ {
+    test <@ isolines = [ ClosedIsoline {
                 Steps = [
                     OnVerticalEdge (0, 1), Down
                     OnHorizontalEdge (1, 1), Right
@@ -283,7 +365,7 @@ let ``Simple horizontal line (right)``() =
         findIsolines width height heights 50.
         |> Seq.toList
     
-    test <@ isolines = [ {
+    test <@ isolines = [ ClippedIsoline {
                 Steps = [
                     OnHorizontalEdge (0, 0), Right
                     OnHorizontalEdge (1, 0), Right
@@ -307,7 +389,7 @@ let ``Simple horizontal line (left)``() =
         findIsolines width height heights 50.
         |> Seq.toList
     
-    test <@ isolines = [ {
+    test <@ isolines = [ ClippedIsoline {
                 Steps = [
                     OnHorizontalEdge (2, 0), Left
                     OnHorizontalEdge (1, 0), Left
@@ -331,7 +413,7 @@ let ``Simple vertical line (up)``() =
         findIsolines width height heights 50.
         |> Seq.toList
     
-    test <@ isolines = [ {
+    test <@ isolines = [ ClippedIsoline {
                 Steps = [
                     OnVerticalEdge (0, 2), Up
                     OnVerticalEdge (0, 1), Up
@@ -355,10 +437,179 @@ let ``Simple vertical line (down)``() =
         findIsolines width height heights 50.
         |> Seq.toList
     
-    test <@ isolines = [ {
+    test <@ isolines = [ ClippedIsoline {
                 Steps = [
                     OnVerticalEdge (0, 0), Down
                     OnVerticalEdge (0, 1), Down
                     OnVerticalEdge (0, 2), Down
                 ]
             } ] @>
+
+[<Fact>]
+let ``Simple bend``() =
+    let width = 2
+    let height = 2
+    let testArray = [|
+        100.; 0.
+        0.; 0.
+    |]
+
+    let heights = getHeight testArray width height
+
+    let isolines =
+        findIsolines width height heights 50.
+        |> Seq.toList
+    
+    test <@ isolines = [ ClippedIsoline {
+                Steps = [
+                    OnVerticalEdge (0, 0), Down
+                    OnHorizontalEdge (0, 0), Left
+                ]
+            } ] @>
+
+
+[<Fact>]
+let ``Can handle multiple possible directions case``() =
+    let width = 2
+    let height = 2
+    let testArray = [|
+        100.; 0.
+        0.; 100.
+    |]
+
+    let heights = getHeight testArray width height
+
+    let isolines =
+        findIsolines width height heights 50.
+        |> Seq.toList
+    
+    test <@ isolines = [
+                ClippedIsoline { Steps = [
+                    OnVerticalEdge (0, 0), Down
+                    OnHorizontalEdge (1, 0), Right
+                ] }
+                ClippedIsoline { Steps = [
+                    OnVerticalEdge (0, 1), Up
+                    OnHorizontalEdge (0, 0), Left
+                ] }
+            ] @>
+
+[<Fact>]
+let ``Can identify multiple isolines``() =
+    let width = 3
+    let height = 3
+    let testArray = [|
+        100.; 0.; 100.
+        100.; 0.; 100.
+        100.; 0.; 100.
+    |]
+
+    let heights = getHeight testArray width height
+
+    let isolines =
+        findIsolines width height heights 50.
+        |> Seq.toList
+    
+    test <@ isolines = [
+                ClippedIsoline { Steps = [
+                    OnVerticalEdge (0, 0), Down
+                    OnVerticalEdge (0, 1), Down
+                    OnVerticalEdge (0, 2), Down
+                ] }
+                ClippedIsoline { Steps = [
+                    OnVerticalEdge (1, 2), Up
+                    OnVerticalEdge (1, 1), Up
+                    OnVerticalEdge (1, 0), Up
+                ] }
+            ] @>
+
+[<Fact>]
+let ``More complex case``() =
+    let width = 3
+    let height = 4
+    let testArray = [|
+        0.; 100.; 0.
+        100.; 100.; 0.
+        100.; 0.; 100.
+        0.; 100.; 0.
+    |]
+
+    let heights = getHeight testArray width height
+
+    let isolines =
+        findIsolines width height heights 50.
+        |> Seq.toList
+    
+    test <@ isolines = [
+                ClippedIsoline { Steps = [
+                    OnHorizontalEdge (0, 0), Right
+                    OnVerticalEdge (0, 0), Up
+                ] }
+                ClippedIsoline { Steps = [
+                    OnVerticalEdge (1, 0), Down
+                    OnVerticalEdge (1, 1), Down
+                    OnHorizontalEdge (2, 1), Right
+                ] }
+                ClosedIsoline { Steps = [
+                    OnVerticalEdge (0, 2), Down
+                    OnHorizontalEdge (1, 2), Right
+                    OnVerticalEdge (1, 2), Up
+                    OnHorizontalEdge (1, 1), Left
+                ] }
+                ClippedIsoline { Steps = [
+                    OnVerticalEdge (0, 3), Up
+                    OnHorizontalEdge (0, 2), Left
+                ] }
+            ] @>
+  
+let ``isolines properties``((heightsArray, isoValue): float[,] * float) =
+    let heights x y = heightsArray.[x,y]
+    let width = heightsArray |> Array2D.length1
+    let height = heightsArray |> Array2D.length2
+    
+    match width, height with
+    | (0, _) -> true |> Prop.classify true "Empty array"
+    | (_, 0) -> true |> Prop.classify true "Empty array"
+    | _ ->
+        let isolines =
+            findIsolines width height heights isoValue
+            |> Seq.toArray
+
+        let isolineStepsIsValid isoline =
+            match isoline with
+            | ClosedIsoline isoline -> isoline.Steps
+            | ClippedIsoline isoline -> isoline.Steps
+            |> List.forall (fun step ->
+                isOnIsolinePath
+                    heights width height isoValue Forward step)
+        
+        let isolineIsProperlyCompleted (isoline: Isoline) =
+            match isoline with
+            | ClosedIsoline _ -> true
+            | ClippedIsoline isoline ->
+                (isoline.Steps.Head |> isStepOnArrayEdge width height)
+                && (isoline.Steps |> List.last |> isStepOnArrayEdge width height)
+        
+        let allIsolineStepsAreValid =
+            isolines
+            |> Seq.forall isolineStepsIsValid
+            |> Prop.label "all isolines are valid"
+        
+        let allIsolinesAreProperlyCompleted =
+            isolines
+            |> Seq.forall isolineIsProperlyCompleted
+            |> Prop.label "all isolines are properly completed"
+            
+        allIsolineStepsAreValid .&. allIsolinesAreProperlyCompleted
+
+[<Fact>]    
+let ``Test isoline properties``() =
+    let genHeight = floatInRange -100 100
+    let genArray = genHeight |> Gen.array2DOf
+
+    Gen.zip genArray genHeight 
+    |> Arb.fromGen
+    |> Prop.forAll <| ``isolines properties``
+    //|> Check.QuickThrowOnFailure
+    |> replayPropertyCheck (1567451850,296676651) // not at the edge
+     
