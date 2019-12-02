@@ -82,7 +82,9 @@
     <Compile Include="Shaders\Building slope shader step.fs" />
     <Compile Include="Shaders\Building aspect shader step.fs" />
     <Compile Include="Shaders\Parsing shading scripts.fs" />
-    <Compile Include="Vectorization tests\Exploring vectorization.fs" />
+    <Compile Include="Vectorization tests\Isolines.fs" />
+    <Compile Include="Vectorization tests\Isoline tests.fs" />
+    <Compile Include="Vectorization tests\Isoline property tests.fs" />
     <Compile Include="Commands tests\ShadeCommand\Command line parsing.fs" />
     <Compile Include="Commands tests\ShadeCommand\Running the command.fs" />
     <Compile Include="Commands tests\ShadeCommand\Splitting into intervals.fs" />

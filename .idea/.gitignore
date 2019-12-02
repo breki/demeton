@@ -20,3 +20,5 @@
 **/*.iml
 **/contentModel.xml
 **/modules.xml
+
+**/*.name

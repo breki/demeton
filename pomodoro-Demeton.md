@@ -1,9 +1,14 @@
+- add property for checking the validity of clipped edges
+- add property for checking that the closed isoline is really closed
+    - by defining "is neighbour step" function
+- add property for asserting that iso point is present in one and only one iosline
+- add property for checking whether steps are neighboring
+- separate h and v step directions
 - refactor the code to avoid using height and isoline values directly and instead provide a comparison function
 
-- run Europe on LCC
-    - Could not open SRTM HTG file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip': ZIP file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip' does not have a file entry 'N44E048.hgt'.
 
 ## Mon 02.12.
+- Separated isoline production code from unit and property tests.
 - Finally (hopefully) fixed the isoline detection algorithm to pass all property tests. I still have to clean the code and refactor it to stop using height values directly.
 
 ## Sun 01.12.
