@@ -1,11 +1,9 @@
-- add property for checking the validity of clipped edges
-    - the step direction should be correct one
-- add property for asserting that iso point is present in one and only one iosline
 - separate h and v step directions
 - refactor the code to avoid using height and isoline values directly and instead provide a comparison function
 
 
 ## Mon 02.12.
+- Added test property for asserting that iso point is present in one and only one isoline.
 - Added test property for checking that the closed isoline is really closed.
 - Added test property for checking whether the isoline steps follow previous ones.
 - Separated isoline production code from unit and property tests.
