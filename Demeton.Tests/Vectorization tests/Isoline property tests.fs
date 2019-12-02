@@ -34,6 +34,11 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
     let width = heightsArray |> Array2D.length1
     let height = heightsArray |> Array2D.length2
     let isoValue = float isoValueInt
+    
+    let isolineFunc: IsolineFunc = fun isolinePoint ->
+        match isolinePoint with
+        | IsolineHPoint (OnHorizontalEdge (x, y)) -> invalidOp "todo"
+        | IsolineVPoint (OnVerticalEdge (x, y)) -> invalidOp "todo"
                
     let clippedIsolineEndsAtEdges (isoline: Isoline) =
         let steps = isoline |> isolineSteps
@@ -74,7 +79,7 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
     | (_, 0) -> true |> Prop.classify true "Empty array"
     | _ ->
         let isolines =
-            findIsolines width height heights isoValue
+            findIsolines width height heights isoValue isolineFunc
             |> Seq.toArray      
         
         let allIsolinesHaveCorrectlyConstructedStepsThatFollowPreviousOne() =

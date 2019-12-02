@@ -3,6 +3,10 @@
 type IsolineHPoint = OnHorizontalEdge of (int * int) 
 type IsolineVPoint = OnVerticalEdge of (int * int) 
 
+type IsolinePoint =
+    | IsolineHPoint of IsolineHPoint 
+    | IsolineVPoint of IsolineVPoint
+
 type IsolineHorizontalStepDirection = Left | Right
 type IsolineVerticalStepDirection = Up | Down
 
@@ -37,6 +41,8 @@ let isolineSteps = function
 /// isoline with reverse steps and directions, which are then reversed
 /// at the end.
 type SearchDirection = Forward | Backward
+
+type IsolineFunc = IsolinePoint -> IsolineStep option
 
 let oppositeStep = function
     | VStep (point, Up) -> VStep (point, Down)
@@ -166,7 +172,9 @@ let isOnIsolinePath
 
 /// For a given array, returns a sequence of identified isolines.
 let findIsolines
-    width height (heights: int -> int -> float) isolineValue
+    width height
+    (heights: int -> int -> float) isolineValue
+    (isolineFunc: IsolineFunc)
     : Isoline seq =
         
     let array2dIndex x y = y * width + x

@@ -1,7 +1,8 @@
 - refactor the code to avoid using height and isoline values directly and instead provide a comparison function
-
+    - function x y -> 
 
 ## Mon 02.12.
+- Started working on a more generic isoline function.
 - Implemented DSL for isoline building.
 - Separated isoline H and V coordinate types, directions and steps.
 - Separated horizontal from vertical isoline directions.
