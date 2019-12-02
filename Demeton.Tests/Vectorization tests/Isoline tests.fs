@@ -1,6 +1,7 @@
 ﻿module Tests.``Vectorization tests``.``Isoline tests``
 
 open Demeton.Vectorization.Isolines
+open Tests.``Vectorization tests``.``Isoline DSL``
 open Xunit
 open Swensen.Unquote
 
@@ -74,14 +75,7 @@ let ``Simple hole``() =
         findIsolines width height heights 50.
         |> Seq.toList
     
-    test <@ isolines = [ ClosedIsoline {
-                Steps = [
-                    VStep (OnVerticalEdge (0, 1), Down)
-                    HStep (OnHorizontalEdge (1, 1), Right)
-                    VStep (OnVerticalEdge (1, 1), Up)
-                    HStep (OnHorizontalEdge (1, 0), Left)
-                ]
-            } ] @>
+    test <@ isolines = [ parseIsolineDef "o;v0,1;drul" ] @>
 
 
 [<Fact>]

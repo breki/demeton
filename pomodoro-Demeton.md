@@ -1,8 +1,8 @@
-- dsl for isoline building?
 - refactor the code to avoid using height and isoline values directly and instead provide a comparison function
 
 
 ## Mon 02.12.
+- Implemented DSL for isoline building.
 - Separated isoline H and V coordinate types, directions and steps.
 - Separated horizontal from vertical isoline directions.
 - Added test property for asserting that iso point is present in one and only one isoline.
