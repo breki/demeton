@@ -4,63 +4,104 @@ open Demeton.Vectorization.Isolines
 open Xunit
 open FsCheck
 
+/// Determines whether two steps are neighboring (i.e. the second one can
+/// follow the first one). 
+let canFollowStep (fromStep: IsolineStep) (toStep: IsolineStep) =
+    fromStep |> allowedDirectionsForStep
+    |> Array.map (buildNextStep fromStep)
+    |> Array.exists (fun step -> step = toStep)
+
 let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
     let heights x y = heightsArray.[x,y] |> float
     
     let width = heightsArray |> Array2D.length1
     let height = heightsArray |> Array2D.length2
     let isoValue = float isoValueInt
-    
+
+    let isolineStepsThatDoNotFollowsPrevious isoline =
+        isoline |> isolineSteps
+        |> List.pairwise
+        |> List.filter (fun (prev, next) -> next |> canFollowStep prev |> not)
+        
+    let closedIsolineIsProperlyClosed (isoline: Isoline) =
+        let steps = isoline |> isolineSteps
+        let firstStep = steps.Head 
+        let lastStep = steps |> List.last
+        
+        match isoline with
+        | ClosedIsoline _ -> firstStep |> canFollowStep lastStep 
+        | ClippedIsoline _ -> true
+        
+    let clippedIsolineEndsAtEdges (isoline: Isoline) =
+        let steps = isoline |> isolineSteps
+        let firstStep = steps.Head 
+        let lastStep = steps |> List.last
+        
+        match isoline with
+        | ClosedIsoline _ -> true 
+        | ClippedIsoline _ ->
+            (firstStep |> isStepOnArrayEdge width height)
+            && (lastStep |> isStepOnArrayEdge width height)
+
+    let isolineCorrectlyDividesTheSpace isoline =
+        isoline |> isolineSteps
+        |> List.forall (fun step ->
+            isOnIsolinePath
+                heights width height isoValue Forward step)    
+
+    let stepIsCovered isolines step =
+        if isOnIsolinePath heights width height isoValue Forward step then
+            isolines
+            |> Array.exists (fun isoline ->
+                let stepPoint, stepDirection = step
+                let oppositeStep = (stepPoint, oppositeStepDirection stepDirection)
+                    
+                isoline |> isolineSteps                       
+                |> List.exists (fun x -> x = step || x = oppositeStep)
+                )
+        else true
+            
     match width, height with
     | (0, _) -> true |> Prop.classify true "Empty array"
     | (_, 0) -> true |> Prop.classify true "Empty array"
     | _ ->
         let isolines =
             findIsolines width height heights isoValue
-            |> Seq.toArray
-
-        let isolineStepsAreValid isoline =
-            match isoline with
-            | ClosedIsoline isoline -> isoline.Steps
-            | ClippedIsoline isoline -> isoline.Steps
-            |> List.forall (fun step ->
-                isOnIsolinePath
-                    heights width height isoValue Forward step)
+            |> Seq.toArray      
         
-        let isolineIsProperlyCompleted (isoline: Isoline) =
-            match isoline with
-            | ClosedIsoline _ -> true
-            | ClippedIsoline isoline ->
-                (isoline.Steps.Head |> isStepOnArrayEdge width height)
-                && (isoline.Steps |> List.last |> isStepOnArrayEdge width height)
-        
-        let allIsolineStepsAreValid() =
-            isolines
-            |> Seq.forall isolineStepsAreValid
-            |> Prop.label "all isolines are valid"
-        
-        let allIsolinesAreProperlyCompleted() =
-            isolines
-            |> Seq.forall isolineIsProperlyCompleted
-            |> Prop.label "all isolines are properly completed"
-            
-        let stepIsCovered step =
-            if isOnIsolinePath heights width height isoValue Forward step then
+        let allIsolinesHaveCorrectlyConstructedStepsThatFollowPreviousOne() =
+            let isolinesWithWrongSteps =
                 isolines
-                |> Array.exists (fun isoline ->
-                    let steps =
-                        match isoline with
-                        | ClosedIsoline x -> x.Steps
-                        | ClippedIsoline x -> x.Steps
-                        
-                    let stepPoint, stepDirection = step
-                    let oppositeStep = (stepPoint, oppositeStepDirection stepDirection)
-                        
-                    steps
-                    |> List.exists (fun x -> x = step || x = oppositeStep)
-                    )
-            else true
-            
+                |> Seq.map isolineStepsThatDoNotFollowsPrevious
+                |> Seq.filter (fun illegalSteps ->
+                    illegalSteps |> Seq.isEmpty |> not) 
+                
+            isolinesWithWrongSteps |> Seq.isEmpty
+            |> Prop.label
+                   "all isolines have correctly constructed steps that follow previous one"
+            |@ sprintf
+                   "isolines and their invalid steps: %A" isolinesWithWrongSteps
+        
+        let allIsolinesCorrectlyDivideTheSpace() =
+            isolines
+            |> Seq.forall isolineCorrectlyDividesTheSpace
+            |> Prop.label "all isolines correctly divide the space into two areas"
+        
+        let allClosedIsolinesAreProperlyClosed() =
+            let improperlyClosedIsolines =
+                isolines
+                |> Seq.filter (closedIsolineIsProperlyClosed >> not)
+                
+            improperlyClosedIsolines |> Seq.isEmpty
+            |> Prop.label "all closed isolines are properly closed"
+            |@ sprintf
+                "improperly closed polyines: %A" improperlyClosedIsolines
+        
+        let allClippedIsolinesEndAtEdges() =
+            isolines
+            |> Seq.forall clippedIsolineEndsAtEdges
+            |> Prop.label "all clipped isolines end at edges"
+                       
         let allArrayHasBeenCovered() =
             let notCoveredPoints =
                 Array.allPairs [|0..width|] [|0..height|]
@@ -68,12 +109,14 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
                     let horizNotCovered =
                         if x <= (maxHorizX width)
                            && y <= (maxHorizY height) then
-                            stepIsCovered (OnHorizontalEdge (x, y), Left) |> not
+                            stepIsCovered
+                                isolines (OnHorizontalEdge (x, y), Left) |> not
                         else false
                         
                     let vertNotCovered =
                         if x <= (maxVertX width) && y <= (maxVertY height) then
-                            stepIsCovered (OnVerticalEdge (x, y), Up) |> not
+                            stepIsCovered
+                                isolines (OnVerticalEdge (x, y), Up) |> not
                         else false
                         
                     horizNotCovered || vertNotCovered)
@@ -83,8 +126,11 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
             |> Prop.label "all isoline positions in the array have been covered"
             |@ sprintf "isoline positions not covered: %A" notCoveredPoints
             
-        allIsolineStepsAreValid .&. allIsolinesAreProperlyCompleted
-            .&. allArrayHasBeenCovered
+        allIsolinesHaveCorrectlyConstructedStepsThatFollowPreviousOne
+        .&. allIsolinesCorrectlyDivideTheSpace
+        .&. allClosedIsolinesAreProperlyClosed
+        .&. allClippedIsolinesEndAtEdges
+        .&. allArrayHasBeenCovered
 
 [<Fact>]    
 let ``Test isoline properties``() =

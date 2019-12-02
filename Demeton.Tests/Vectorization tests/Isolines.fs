@@ -26,6 +26,11 @@ type Isoline =
     | ClosedIsoline of ClosedIsoline
     | ClippedIsoline of ClippedIsoline
 
+/// Gets the steps of the isoline.
+let isolineSteps = function
+    | ClosedIsoline x -> x.Steps
+    | ClippedIsoline x -> x.Steps
+
 /// Defines the direction of the isoline search. When Backward, we create
 /// isoline with reverse steps and directions, which are then reversed
 /// at the end.
@@ -37,6 +42,42 @@ let oppositeStepDirection =
     | Right -> Left
     | Down -> Up
     | Left -> Right
+
+/// For a given step, returns an array of possible next step directions
+/// (not taking into account whether it has reached an edge of the array). 
+let allowedDirectionsForStep = function
+    | (_, Up) -> [| Left; Up; Right |]
+    | (_, Right) -> [| Up; Right; Down |]
+    | (_, Down) -> [| Right; Down; Left |]
+    | (_, Left) -> [| Down; Left; Up |]
+
+/// Builds the next step given the current step and the direction of
+/// the next step.
+let buildNextStep
+    ((fromPoint, fromDirection): IsolineStep)
+    (toStepDirection: IsolineStepDirection)
+    : IsolineStep =
+        
+    let nextPoint = 
+        match fromPoint, fromDirection, toStepDirection with
+        | (OnHorizontalEdge (x,y), Left, Up) -> OnVerticalEdge (x-1, y)
+        | (OnHorizontalEdge (x,y), Left, Down) -> OnVerticalEdge (x-1, y+1)
+        | (OnHorizontalEdge (x,y), Left, Left) -> OnHorizontalEdge (x-1, y)
+        | (OnHorizontalEdge (x,y), Right, Up) -> OnVerticalEdge (x, y)
+        | (OnHorizontalEdge (x,y), Right, Down) -> OnVerticalEdge (x, y+1)
+        | (OnHorizontalEdge (x,y), Right, Right) -> OnHorizontalEdge (x+1, y)
+        | (OnVerticalEdge (x,y), Up, Up) -> OnVerticalEdge (x, y-1)
+        | (OnVerticalEdge (x,y), Up, Left) -> OnHorizontalEdge (x, y-1)
+        | (OnVerticalEdge (x,y), Up, Right) -> OnHorizontalEdge (x+1, y-1)
+        | (OnVerticalEdge (x,y), Down, Down) -> OnVerticalEdge (x, y+1)
+        | (OnVerticalEdge (x,y), Down, Left) -> OnHorizontalEdge (x, y)
+        | (OnVerticalEdge (x,y), Down, Right) -> OnHorizontalEdge (x+1, y)
+        | _ ->
+            sprintf
+                "bug: invalid move from point %A and direction %A to direction %A"
+                fromPoint fromDirection toStepDirection
+            |> invalidOp
+    (nextPoint, toStepDirection)
 
 /// Maximum X coordinate for horizontal isoline points.
 let maxHorizX width = width - 1
@@ -239,32 +280,6 @@ let findIsolines
                     yield! listVertIsolinePoints x y
         }
     
-    /// Calculates the step point given the current step and the direction of
-    /// movement.
-    let getIsolinePoint
-        ((fromPoint, fromDirection): IsolineStep)
-        (toStepDirection: IsolineStepDirection)
-        : IsolinePoint =
-        match fromPoint, fromDirection, toStepDirection with
-        | (OnHorizontalEdge (x,y), Left, Up) -> OnVerticalEdge (x-1, y)
-        | (OnHorizontalEdge (x,y), Left, Down) -> OnVerticalEdge (x-1, y+1)
-        | (OnHorizontalEdge (x,y), Left, Left) -> OnHorizontalEdge (x-1, y)
-        | (OnHorizontalEdge (x,y), Right, Up) -> OnVerticalEdge (x, y)
-        | (OnHorizontalEdge (x,y), Right, Down) -> OnVerticalEdge (x, y+1)
-        | (OnHorizontalEdge (x,y), Right, Right) -> OnHorizontalEdge (x+1, y)
-        | (OnVerticalEdge (x,y), Up, Up) -> OnVerticalEdge (x, y-1)
-        | (OnVerticalEdge (x,y), Up, Left) -> OnHorizontalEdge (x, y-1)
-        | (OnVerticalEdge (x,y), Up, Right) -> OnHorizontalEdge (x+1, y-1)
-        | (OnVerticalEdge (x,y), Down, Down) -> OnVerticalEdge (x, y+1)
-        | (OnVerticalEdge (x,y), Down, Left) -> OnHorizontalEdge (x, y)
-        | (OnVerticalEdge (x,y), Down, Right) -> OnHorizontalEdge (x+1, y)
-        | _ ->
-            sprintf
-                "bug: invalid move from point %A and direction %A to direction %A"
-                fromPoint fromDirection toStepDirection
-            |> invalidOp
-    
-    
     /// Finds the next appropriate isoline step based on the specified current
     /// step. If no new steps are possible (when the isoline reaches the array
     /// edge, returns None.
@@ -276,8 +291,7 @@ let findIsolines
         
         allowedDirections
         |> Array.map (fun possibleDirection ->
-            (getIsolinePoint currentStep possibleDirection,
-             possibleDirection))
+            buildNextStep currentStep possibleDirection)
         // filter out directions that don't correspond to isoline paths
         |> Array.filter
                (isOnIsolinePath
@@ -298,18 +312,14 @@ let findIsolines
         | possibleSteps ->
             // if there are multiple possible steps, chose the first one
             possibleSteps |> Array.head |> Some
-            
+
+           
     /// Recursively moves one step of the isoline until it reaches its starting
     /// point, building the visited steps list.
     let rec moveIsoline searchDirection firstStep stepsSoFar
         : IsolineEndingType * IsolineStep list =
         let previousStep = List.head stepsSoFar 
-        let allowedDirections =
-            match previousStep with
-            | (_, Up) -> [| Left; Up; Right |]
-            | (_, Right) -> [| Up; Right; Down |]
-            | (_, Down) -> [| Right; Down; Left |]
-            | (_, Left) -> [| Down; Left; Up |]
+        let allowedDirections = allowedDirectionsForStep previousStep
     
         match findNextStep previousStep searchDirection allowedDirections with
         | Some nextStep ->
@@ -355,9 +365,7 @@ let findIsolines
                 invalidOp "bug: this point was already covered by an isoline"
     
     let drawIsolineOnCoverageArray (isoline: Isoline) =
-        match isoline with
-        | ClosedIsoline x -> x.Steps
-        | ClippedIsoline x -> x.Steps
+        isoline |> isolineSteps
         |> List.iter markIsolinePointAsCovered
     
     findIsolineStartingSteps()
