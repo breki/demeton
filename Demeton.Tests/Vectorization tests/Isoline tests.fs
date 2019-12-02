@@ -29,7 +29,7 @@ let ``Very small array``() =
     
     test <@ isolines = [ ClippedIsoline {
                 Steps = [
-                    (OnHorizontalEdge (0, 0), Right)
+                    HStep (OnHorizontalEdge (0, 0), Right)
                 ] } ]
             @>
 
@@ -51,10 +51,10 @@ let ``Simple peak``() =
     
     test <@ isolines = [ ClosedIsoline {
                 Steps = [
-                    (OnHorizontalEdge (1, 0), Right)
-                    (OnVerticalEdge (1, 1), Down)
-                    (OnHorizontalEdge (1, 1), Left)
-                    (OnVerticalEdge (0, 1), Up)
+                    HStep (OnHorizontalEdge (1, 0), Right)
+                    VStep (OnVerticalEdge (1, 1), Down)
+                    HStep (OnHorizontalEdge (1, 1), Left)
+                    VStep (OnVerticalEdge (0, 1), Up)
                 ] } ]
             @>
 
@@ -76,10 +76,10 @@ let ``Simple hole``() =
     
     test <@ isolines = [ ClosedIsoline {
                 Steps = [
-                    OnVerticalEdge (0, 1), Down
-                    OnHorizontalEdge (1, 1), Right
-                    OnVerticalEdge (1, 1), Up
-                    OnHorizontalEdge (1, 0), Left
+                    VStep (OnVerticalEdge (0, 1), Down)
+                    HStep (OnHorizontalEdge (1, 1), Right)
+                    VStep (OnVerticalEdge (1, 1), Up)
+                    HStep (OnHorizontalEdge (1, 0), Left)
                 ]
             } ] @>
 
@@ -102,9 +102,9 @@ let ``Simple horizontal line (right)``() =
     
     test <@ isolines = [ ClippedIsoline {
                 Steps = [
-                    OnHorizontalEdge (0, 0), Right
-                    OnHorizontalEdge (1, 0), Right
-                    OnHorizontalEdge (2, 0), Right
+                    HStep (OnHorizontalEdge (0, 0), Right)
+                    HStep (OnHorizontalEdge (1, 0), Right)
+                    HStep (OnHorizontalEdge (2, 0), Right)
                 ]
             } ] @>
 
@@ -126,9 +126,9 @@ let ``Simple horizontal line (left)``() =
     
     test <@ isolines = [ ClippedIsoline {
                 Steps = [
-                    OnHorizontalEdge (2, 0), Left
-                    OnHorizontalEdge (1, 0), Left
-                    OnHorizontalEdge (0, 0), Left
+                    HStep (OnHorizontalEdge (2, 0), Left)
+                    HStep (OnHorizontalEdge (1, 0), Left)
+                    HStep (OnHorizontalEdge (0, 0), Left)
                 ]
             } ] @>
 
@@ -150,9 +150,9 @@ let ``Simple vertical line (up)``() =
     
     test <@ isolines = [ ClippedIsoline {
                 Steps = [
-                    OnVerticalEdge (0, 2), Up
-                    OnVerticalEdge (0, 1), Up
-                    OnVerticalEdge (0, 0), Up
+                    VStep (OnVerticalEdge (0, 2), Up)
+                    VStep (OnVerticalEdge (0, 1), Up)
+                    VStep (OnVerticalEdge (0, 0), Up)
                 ]
             } ] @>
 
@@ -174,9 +174,9 @@ let ``Simple vertical line (down)``() =
     
     test <@ isolines = [ ClippedIsoline {
                 Steps = [
-                    OnVerticalEdge (0, 0), Down
-                    OnVerticalEdge (0, 1), Down
-                    OnVerticalEdge (0, 2), Down
+                    VStep (OnVerticalEdge (0, 0), Down)
+                    VStep (OnVerticalEdge (0, 1), Down)
+                    VStep (OnVerticalEdge (0, 2), Down)
                 ]
             } ] @>
 
@@ -197,8 +197,8 @@ let ``Simple bend``() =
     
     test <@ isolines = [ ClippedIsoline {
                 Steps = [
-                    OnVerticalEdge (0, 0), Down
-                    OnHorizontalEdge (0, 0), Left
+                    VStep (OnVerticalEdge (0, 0), Down)
+                    HStep (OnHorizontalEdge (0, 0), Left)
                 ]
             } ] @>
 
@@ -220,12 +220,12 @@ let ``Can handle multiple possible directions case``() =
     
     test <@ isolines = [
                 ClippedIsoline { Steps = [
-                    OnVerticalEdge (0, 0), Down
-                    OnHorizontalEdge (0, 0), Left
+                    VStep (OnVerticalEdge (0, 0), Down)
+                    HStep (OnHorizontalEdge (0, 0), Left)
                 ] }
                 ClippedIsoline { Steps = [
-                    OnVerticalEdge (0, 1), Up
-                    OnHorizontalEdge (1, 0), Right
+                    VStep (OnVerticalEdge (0, 1), Up)
+                    HStep (OnHorizontalEdge (1, 0), Right)
                 ] }
             ] @>
 
@@ -247,14 +247,14 @@ let ``Can identify multiple isolines``() =
     
     test <@ isolines = [
                 ClippedIsoline { Steps = [
-                    OnVerticalEdge (0, 0), Down
-                    OnVerticalEdge (0, 1), Down
-                    OnVerticalEdge (0, 2), Down
+                    VStep (OnVerticalEdge (0, 0), Down)
+                    VStep (OnVerticalEdge (0, 1), Down)
+                    VStep (OnVerticalEdge (0, 2), Down)
                 ] }
                 ClippedIsoline { Steps = [
-                    OnVerticalEdge (1, 2), Up
-                    OnVerticalEdge (1, 1), Up
-                    OnVerticalEdge (1, 0), Up
+                    VStep (OnVerticalEdge (1, 2), Up)
+                    VStep (OnVerticalEdge (1, 1), Up)
+                    VStep (OnVerticalEdge (1, 0), Up)
                 ] }
             ] @>
 
@@ -277,25 +277,25 @@ let ``More complex case``() =
     
     test <@ isolines = [
                 ClippedIsoline { Steps = [
-                    OnHorizontalEdge (0, 0), Right
-                    OnVerticalEdge (0, 0), Up
+                    HStep (OnHorizontalEdge (0, 0), Right)
+                    VStep (OnVerticalEdge (0, 0), Up)
                 ] }
                 ClippedIsoline { Steps = [
-                    (OnHorizontalEdge (2, 2), Left);
-                    (OnVerticalEdge (1, 2), Up);
-                    (OnHorizontalEdge (2, 1), Right)
+                    HStep (OnHorizontalEdge (2, 2), Left);
+                    VStep (OnVerticalEdge (1, 2), Up);
+                    HStep (OnHorizontalEdge (2, 1), Right)
                 ] }
                 ClippedIsoline { Steps = [
-                    (OnVerticalEdge (1, 0), Down);
-                    (OnVerticalEdge (1, 1), Down);
-                    (OnHorizontalEdge (1, 1), Left);
-                    (OnVerticalEdge (0, 2), Down);
-                    (OnHorizontalEdge (0, 2), Left)
+                    VStep (OnVerticalEdge (1, 0), Down);
+                    VStep (OnVerticalEdge (1, 1), Down);
+                    HStep (OnHorizontalEdge (1, 1), Left);
+                    VStep (OnVerticalEdge (0, 2), Down);
+                    HStep (OnHorizontalEdge (0, 2), Left)
                 ] }
                 ClippedIsoline { Steps = [
-                    (OnVerticalEdge (0, 3), Up);
-                    (OnHorizontalEdge (1, 2), Right);
-                    (OnVerticalEdge (1, 3), Down)
+                    VStep (OnVerticalEdge (0, 3), Up);
+                    HStep (OnHorizontalEdge (1, 2), Right);
+                    VStep (OnVerticalEdge (1, 3), Down)
                 ] }
             ] @>
 
@@ -318,15 +318,15 @@ let ``Can detect isolines clipping from bottom right``() =
     
     test <@ isolines = [
                 ClippedIsoline { Steps =
-                    [(OnVerticalEdge (0, 0), Down);
-                     (OnHorizontalEdge (0, 0), Left)] };
+                    [VStep (OnVerticalEdge (0, 0), Down);
+                     HStep (OnHorizontalEdge (0, 0), Left)] };
                 ClippedIsoline { Steps =
-                    [(OnHorizontalEdge (1, 1), Left);
-                     (OnVerticalEdge (0, 1), Up);
-                    (OnHorizontalEdge (1, 0), Right)] };
+                    [HStep (OnHorizontalEdge (1, 1), Left);
+                     VStep (OnVerticalEdge (0, 1), Up);
+                    HStep (OnHorizontalEdge (1, 0), Right)] };
                 ClippedIsoline { Steps =
-                    [(OnVerticalEdge (0, 3), Up);
-                     (OnHorizontalEdge (1, 2), Right)] }] @>
+                    [VStep (OnVerticalEdge (0, 3), Up);
+                     HStep (OnHorizontalEdge (1, 2), Right)] }] @>
   
 
 

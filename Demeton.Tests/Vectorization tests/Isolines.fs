@@ -1,16 +1,18 @@
 ﻿module Demeton.Vectorization.Isolines
 
-type IsolinePoint =
-    | OnHorizontalEdge of (int * int)
-    | OnVerticalEdge of (int * int)
+type IsolineHPoint = OnHorizontalEdge of (int * int) 
+type IsolineVPoint = OnVerticalEdge of (int * int) 
+
+type IsolineHorizontalStepDirection = Left | Right
+type IsolineVerticalStepDirection = Up | Down
 
 type IsolineStepDirection =
-    | Up
-    | Right
-    | Down
-    | Left
+    | HDirection of IsolineHorizontalStepDirection
+    | VDirection of IsolineVerticalStepDirection
     
-type IsolineStep = (IsolinePoint * IsolineStepDirection) 
+type IsolineStep =
+    | HStep of IsolineHPoint * IsolineHorizontalStepDirection
+    | VStep of IsolineVPoint * IsolineVerticalStepDirection
 
 type IsolineEndingType = ClippedEnding | ClosedEnding
 
@@ -36,48 +38,74 @@ let isolineSteps = function
 /// at the end.
 type SearchDirection = Forward | Backward
 
-let oppositeStepDirection =
-    function
-    | Up -> Down
-    | Right -> Left
-    | Down -> Up
-    | Left -> Right
+let oppositeStep = function
+    | VStep (point, Up) -> VStep (point, Down)
+    | VStep (point, Down) -> VStep (point, Up)
+    | HStep (point, Right) -> HStep (point, Left)
+    | HStep (point, Left) -> HStep (point, Right)
 
 /// For a given step, returns an array of possible next step directions
 /// (not taking into account whether it has reached an edge of the array). 
 let allowedDirectionsForStep = function
-    | (_, Up) -> [| Left; Up; Right |]
-    | (_, Right) -> [| Up; Right; Down |]
-    | (_, Down) -> [| Right; Down; Left |]
-    | (_, Left) -> [| Down; Left; Up |]
+    | VStep (_, Up) ->
+        [| HDirection Left; VDirection Up; HDirection Right |]
+    | HStep (_, Right) ->
+        [| VDirection Up; HDirection Right; VDirection Down |]
+    | VStep (_, Down) ->
+        [| HDirection Right; VDirection Down; HDirection Left |]
+    | HStep (_, Left) ->
+        [| VDirection Down; HDirection Left; VDirection Up |]
 
 /// Builds the next step given the current step and the direction of
 /// the next step.
 let buildNextStep
-    ((fromPoint, fromDirection): IsolineStep)
+    (fromStep: IsolineStep)
     (toStepDirection: IsolineStepDirection)
     : IsolineStep =
-        
-    let nextPoint = 
-        match fromPoint, fromDirection, toStepDirection with
-        | (OnHorizontalEdge (x,y), Left, Up) -> OnVerticalEdge (x-1, y)
-        | (OnHorizontalEdge (x,y), Left, Down) -> OnVerticalEdge (x-1, y+1)
-        | (OnHorizontalEdge (x,y), Left, Left) -> OnHorizontalEdge (x-1, y)
-        | (OnHorizontalEdge (x,y), Right, Up) -> OnVerticalEdge (x, y)
-        | (OnHorizontalEdge (x,y), Right, Down) -> OnVerticalEdge (x, y+1)
-        | (OnHorizontalEdge (x,y), Right, Right) -> OnHorizontalEdge (x+1, y)
-        | (OnVerticalEdge (x,y), Up, Up) -> OnVerticalEdge (x, y-1)
-        | (OnVerticalEdge (x,y), Up, Left) -> OnHorizontalEdge (x, y-1)
-        | (OnVerticalEdge (x,y), Up, Right) -> OnHorizontalEdge (x+1, y-1)
-        | (OnVerticalEdge (x,y), Down, Down) -> OnVerticalEdge (x, y+1)
-        | (OnVerticalEdge (x,y), Down, Left) -> OnHorizontalEdge (x, y)
-        | (OnVerticalEdge (x,y), Down, Right) -> OnHorizontalEdge (x+1, y)
+
+    match fromStep, toStepDirection with
+    | HStep (fromPoint, fromDirection), HDirection toDirection  ->
+        match fromPoint, fromDirection, toDirection with
+        | (OnHorizontalEdge (x,y), Left, Left) ->
+            HStep (OnHorizontalEdge (x-1, y), toDirection)
+        | (OnHorizontalEdge (x,y), Right, Right) ->
+            HStep (OnHorizontalEdge (x+1, y), toDirection)
         | _ ->
             sprintf
                 "bug: invalid move from point %A and direction %A to direction %A"
                 fromPoint fromDirection toStepDirection
             |> invalidOp
-    (nextPoint, toStepDirection)
+    | HStep (fromPoint, fromDirection), VDirection toDirection  ->
+        match fromPoint, fromDirection, toDirection with
+        | (OnHorizontalEdge (x,y), Left, Up) ->
+            VStep (OnVerticalEdge (x-1, y), toDirection)
+        | (OnHorizontalEdge (x,y), Left, Down) ->
+            VStep (OnVerticalEdge (x-1, y+1), toDirection)
+        | (OnHorizontalEdge (x,y), Right, Up) ->
+            VStep (OnVerticalEdge (x, y), toDirection)
+        | (OnHorizontalEdge (x,y), Right, Down) ->
+            VStep (OnVerticalEdge (x, y+1), toDirection)
+    | VStep (fromPoint, fromDirection), VDirection toDirection ->
+        match fromPoint, fromDirection, toDirection with
+        | (OnVerticalEdge (x,y), Up, Up) ->
+            VStep (OnVerticalEdge (x, y-1), toDirection)
+        | (OnVerticalEdge (x,y), Down, Down) ->
+            VStep (OnVerticalEdge (x, y+1), toDirection)
+        | _ ->
+            sprintf
+                "bug: invalid move from point %A and direction %A to direction %A"
+                fromPoint fromDirection toStepDirection
+            |> invalidOp        
+    | VStep (fromPoint, fromDirection), HDirection toDirection ->
+        match fromPoint, fromDirection, toDirection with
+        | (OnVerticalEdge (x,y), Up, Left) ->
+            HStep (OnHorizontalEdge (x, y-1), toDirection)
+        | (OnVerticalEdge (x,y), Up, Right) ->
+            HStep (OnHorizontalEdge (x+1, y-1), toDirection)
+        | (OnVerticalEdge (x,y), Down, Left) ->
+            HStep (OnHorizontalEdge (x, y), toDirection)
+        | (OnVerticalEdge (x,y), Down, Right) ->
+            HStep (OnHorizontalEdge (x+1, y), toDirection)
 
 /// Maximum X coordinate for horizontal isoline points.
 let maxHorizX width = width - 1
@@ -91,9 +119,9 @@ let maxVertY height = height - 1
 /// Determines whether the specified isoline point is on the edge of the
 /// array.
 let isStepOnArrayEdge width height = function
-    | (OnHorizontalEdge (x, y), _) ->
+    | HStep (OnHorizontalEdge (x, y), _) ->
         x = 0 || y = 0 || x = (maxHorizX width) || y = (maxHorizY height)  
-    | (OnVerticalEdge (x, y), _) -> 
+    | VStep (OnVerticalEdge (x, y), _) -> 
         x = 0 || y = 0 || x = (maxVertX width) || y = (maxVertY height)         
 
 /// Determines whether the isoline value is between the left and right
@@ -109,29 +137,26 @@ let isIsoValueBetween
 let isOnIsolinePath
     heights width height isolineValue searchDirection step: bool =
     match step with
-    | (OnVerticalEdge (x, y), Up) ->
+    | VStep (OnVerticalEdge (x, y), Up) ->
         if x >= 0 && x <= (maxVertX width)
            && y >= 0 && y <= (maxVertY height) then
             Some (heights x y, heights (x+1) y)
         else None
-    | (OnHorizontalEdge (x, y), Right) ->
+    | HStep (OnHorizontalEdge (x, y), Right) ->
         if x >= 0 && x <= (maxHorizX width)
            && y >= 0 && y <= (maxHorizY height) then
             Some (heights x y, heights x (y+1))
         else None
-    | (OnVerticalEdge (x, y), Down) ->
+    | VStep (OnVerticalEdge (x, y), Down) ->
         if x >= 0 && x <= (maxVertX width)
            && y >= 0 && y <= (maxVertY height) then
             Some (heights (x+1) y, heights x y)
         else None                
-    | (OnHorizontalEdge (x, y), Left) ->
+    | HStep (OnHorizontalEdge (x, y), Left) ->
         if x >= 0 && x <= (maxHorizX width)
            && y >= 0 && y <= (maxHorizY height) then
             Some (heights x (y+1), heights x y)
         else None
-    | (point, direction) ->
-        sprintf "bug: invalid step - point %A, direction %A" point direction
-        |> invalidOp
     |> function
     | Some (hLeft, hRight) ->
         match searchDirection with
@@ -167,9 +192,9 @@ let findIsolines
                 
         coverageArrayVertical.[array2dIndex x y] |> not
         
-    let isPointFree = function
-        | OnHorizontalEdge (x, y) -> isHorizEdgeFree x y
-        | OnVerticalEdge (x, y) -> isVertEdgeFree x y
+    let isEdgeFree = function
+        | HStep (OnHorizontalEdge (x, y), _) -> isHorizEdgeFree x y
+        | VStep (OnVerticalEdge (x, y), _) -> isVertEdgeFree x y
                     
     /// Lists all the horizontal points detected for an isoline at the specified
     /// array coordinates.
@@ -180,7 +205,7 @@ let findIsolines
             let stepDirectionWhenSearchingMaybe =
                 match x, maxHorizX width with
                 | (x, max) when x < max -> Some Right
-                | (x, max) when x = max -> Some Left
+                | (x, max) when x = max -> Some Left 
                 | _ -> None
 
             match stepDirectionWhenSearchingMaybe with
@@ -203,7 +228,8 @@ let findIsolines
                             else Backward
                             
                         yield
-                            ((OnHorizontalEdge (x, y), stepDirectionWhenSearching),
+                            (HStep (OnHorizontalEdge (x, y),
+                                    stepDirectionWhenSearching),
                             searchDirection)
                     | None -> ignore()
             | None -> ignore()
@@ -242,7 +268,8 @@ let findIsolines
                             else Backward
                             
                         yield
-                            ((OnVerticalEdge (x, y), stepDirectionWhenSearching),
+                            (VStep (OnVerticalEdge (x, y),
+                                    stepDirectionWhenSearching),
                             searchDirection)
                     | None -> ignore()
             | None -> ignore()
@@ -297,7 +324,7 @@ let findIsolines
                (isOnIsolinePath
                     heights width height isolineValue searchDirection)
         // filter out directions that were already covered by other isolines
-        |> Array.filter (fun (point, _) -> isPointFree point)
+        |> Array.filter isEdgeFree
         |> function
         | [| possibleStep |] -> Some possibleStep
         | [||] ->
@@ -316,7 +343,7 @@ let findIsolines
            
     /// Recursively moves one step of the isoline until it reaches its starting
     /// point, building the visited steps list.
-    let rec moveIsoline searchDirection firstStep stepsSoFar
+    let rec moveIsoline searchDirection firstStep (stepsSoFar: IsolineStep list)
         : IsolineEndingType * IsolineStep list =
         let previousStep = List.head stepsSoFar 
         let allowedDirections = allowedDirectionsForStep previousStep
@@ -342,8 +369,7 @@ let findIsolines
             | Forward -> isolineSteps |> List.rev               
             | Backward ->
                 isolineSteps
-                |> List.map (fun (point, stepDirection) ->
-                    (point, oppositeStepDirection stepDirection))
+                |> List.map oppositeStep
 
         match endingType with
         | ClosedEnding -> ClosedIsoline  { Steps = steps }
@@ -351,13 +377,13 @@ let findIsolines
          
     let markIsolinePointAsCovered step =
         match step with
-        | (OnHorizontalEdge (x, y), _) ->
+        | HStep (OnHorizontalEdge (x, y), _) ->
             let isEdgeFree = isHorizEdgeFree x y
             if isEdgeFree then
                 coverageArrayHorizontal.[array2dIndex x y] <- true
             else
                 invalidOp "bug: this point was already covered by an isoline"
-        | (OnVerticalEdge (x, y), _) ->
+        | VStep (OnVerticalEdge (x, y), _) ->
             let isEdgeFree = isVertEdgeFree x y
             if isEdgeFree then
                 coverageArrayVertical.[array2dIndex x y] <- true

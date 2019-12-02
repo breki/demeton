@@ -1,8 +1,10 @@
-- separate h and v step directions
+- dsl for isoline building?
 - refactor the code to avoid using height and isoline values directly and instead provide a comparison function
 
 
 ## Mon 02.12.
+- Separated isoline H and V coordinate types, directions and steps.
+- Separated horizontal from vertical isoline directions.
 - Added test property for asserting that iso point is present in one and only one isoline.
 - Added test property for checking that the closed isoline is really closed.
 - Added test property for checking whether the isoline steps follow previous ones.

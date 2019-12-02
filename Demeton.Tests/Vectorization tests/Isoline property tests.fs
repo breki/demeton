@@ -61,9 +61,7 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
         if isOnIsolinePath heights width height isoValue Forward step then
             isolines
             |> Array.filter (fun isoline ->
-                let stepPoint, stepDirection = step
-                let oppositeStep =
-                    (stepPoint, oppositeStepDirection stepDirection)
+                let oppositeStep = oppositeStep step
                     
                 isoline |> isolineSteps                       
                 |> List.exists (fun x -> x = step || x = oppositeStep)
@@ -123,7 +121,7 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
                         if x <= (maxHorizX width)
                            && y <= (maxHorizY height) then
                             findIsolinesCoveringStep
-                                isolines (OnHorizontalEdge (x, y), Left)
+                                isolines (HStep (OnHorizontalEdge (x, y), Left))
                             |> Option.map (fun coveringIsolines ->
                                 coveringIsolines.Length = 1)
                         else None
@@ -131,7 +129,7 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
                     let vertCovered =
                         if x <= (maxVertX width) && y <= (maxVertY height) then
                             findIsolinesCoveringStep
-                                isolines (OnVerticalEdge (x, y), Up)
+                                isolines (VStep (OnVerticalEdge (x, y), Up))
                             |> Option.map (fun coveringIsolines ->
                                 coveringIsolines.Length = 1)
                         else None
