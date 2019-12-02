@@ -141,40 +141,21 @@ let isIsoValueBetween
 
 /// Determines whether the given step lies on the isoline path. 
 let isOnIsolinePath
-    heights width height isolineValue searchDirection step: bool =
+    width height isolineFunc step: bool =
     match step with
-    | VStep (OnVerticalEdge (x, y), Up) ->
+    | VStep (OnVerticalEdge (x, y), _) ->
         if x >= 0 && x <= (maxVertX width)
            && y >= 0 && y <= (maxVertY height) then
-            Some (heights x y, heights (x+1) y)
-        else None
-    | HStep (OnHorizontalEdge (x, y), Right) ->
+            isolineFunc (IsolineVPoint (OnVerticalEdge (x, y))) |> Option.isSome
+        else false
+    | HStep (OnHorizontalEdge (x, y), _) ->
         if x >= 0 && x <= (maxHorizX width)
            && y >= 0 && y <= (maxHorizY height) then
-            Some (heights x y, heights x (y+1))
-        else None
-    | VStep (OnVerticalEdge (x, y), Down) ->
-        if x >= 0 && x <= (maxVertX width)
-           && y >= 0 && y <= (maxVertY height) then
-            Some (heights (x+1) y, heights x y)
-        else None                
-    | HStep (OnHorizontalEdge (x, y), Left) ->
-        if x >= 0 && x <= (maxHorizX width)
-           && y >= 0 && y <= (maxHorizY height) then
-            Some (heights x (y+1), heights x y)
-        else None
-    |> function
-    | Some (hLeft, hRight) ->
-        match searchDirection with
-        | Forward -> isIsoValueBetween isolineValue hLeft hRight
-        | Backward -> isIsoValueBetween isolineValue hRight hLeft
-    | None -> false
+            isolineFunc (IsolineHPoint (OnHorizontalEdge (x, y))) |> Option.isSome
+        else false
 
 /// For a given array, returns a sequence of identified isolines.
-let findIsolines
-    width height
-    (heights: int -> int -> float) isolineValue
-    (isolineFunc: IsolineFunc)
+let findIsolines width height (isolineFunc: IsolineFunc)
     : Isoline seq =
         
     let array2dIndex x y = y * width + x
@@ -206,80 +187,51 @@ let findIsolines
                     
     /// Lists all the horizontal points detected for an isoline at the specified
     /// array coordinates.
-    let listHorizIsolinePoints x y = seq {
-        let h00 = heights x y
-                
-        if y <= (maxHorizY height) then
-            let stepDirectionWhenSearchingMaybe =
+    let listHorizIsolinePoints x y = seq {               
+        if isHorizEdgeFree x y then
+            let stepDirectionWhenSearching =
                 match x, maxHorizX width with
-                | (x, max) when x < max -> Some Right
-                | (x, max) when x = max -> Some Left 
-                | _ -> None
+                | (x, max) when x < max -> Right
+                | (x, max) when x = max -> Left 
+                | _ -> invalidOp "bug"
 
-            match stepDirectionWhenSearchingMaybe with
-            | Some stepDirectionWhenSearching -> 
-                if isHorizEdgeFree x y then
-                    let h01 = heights x (y + 1)
-
-                    let actualStepDirectionMaybe =
-                        if isIsoValueBetween isolineValue h00 h01 then
-                            Some Right
-                        else if isIsoValueBetween isolineValue h01 h00 then
-                            Some Left
-                        else None
-
-                    match actualStepDirectionMaybe with
-                    | Some actualStepDirection ->
-                        let searchDirection =
-                            if stepDirectionWhenSearching = actualStepDirection then
-                                Forward
-                            else Backward
-                            
-                        yield
-                            (HStep (OnHorizontalEdge (x, y),
-                                    stepDirectionWhenSearching),
-                            searchDirection)
-                    | None -> ignore()
+            let stepPoint = OnHorizontalEdge (x, y)
+            let actualStepMaybe = isolineFunc (IsolineHPoint stepPoint)
+            match actualStepMaybe with
+            | Some (HStep (_, actualStepDirection)) ->
+                let searchDirection =
+                    if stepDirectionWhenSearching = actualStepDirection then
+                        Forward
+                    else Backward
+                    
+                yield (HStep (stepPoint, stepDirectionWhenSearching),
+                        searchDirection)
+            | Some _ -> invalidOp "bug"
             | None -> ignore()
     }
                     
     /// Lists all the vertical points detected for an isoline at the specified
     /// array coordinates.
     let listVertIsolinePoints x y = seq {
-        let h00 = heights x y
-        
-        // todo eliminate this case by not calling it with x > maxVertX width
-        if x <= (maxVertX width) then
-            let stepDirectionWhenSearchingMaybe =
+        if isVertEdgeFree x y then
+            let stepDirectionWhenSearching =
                 match y, maxVertY height with
-                | (y, max) when y < max -> Some Down
-                | (y, max) when y = max -> Some Up
-                | _ -> None
+                | (y, max) when y < max -> Down
+                | (y, max) when y = max -> Up
+                | _ -> invalidOp "bug"
             
-            match stepDirectionWhenSearchingMaybe with
-            | Some stepDirectionWhenSearching -> 
-                if isVertEdgeFree x y then
-                    let h10 = heights (x + 1) y
+            let stepPoint = OnVerticalEdge (x, y)
+            let actualStepMaybe = isolineFunc (IsolineVPoint stepPoint)
+            match actualStepMaybe with
+            | Some (VStep (_, actualStepDirection)) ->
+                let searchDirection =
+                    if stepDirectionWhenSearching = actualStepDirection then
+                        Forward
+                    else Backward
                     
-                    let actualStepDirectionMaybe =
-                        if isIsoValueBetween isolineValue h00 h10 then
-                            Some Up
-                        else if isIsoValueBetween isolineValue h10 h00 then
-                            Some Down
-                        else None
-                        
-                    match actualStepDirectionMaybe with
-                    | Some actualStepDirection ->
-                        let searchDirection =
-                            if stepDirectionWhenSearching = actualStepDirection then
-                                Forward
-                            else Backward
-                            
-                        yield
-                            (VStep (OnVerticalEdge (x, y),
-                                    stepDirectionWhenSearching),
-                            searchDirection)
-                    | None -> ignore()
+                yield (VStep (stepPoint, stepDirectionWhenSearching),
+                        searchDirection)
+            | Some _ -> invalidOp "bug"
             | None -> ignore()
     }
                           
@@ -318,10 +270,7 @@ let findIsolines
     /// Finds the next appropriate isoline step based on the specified current
     /// step. If no new steps are possible (when the isoline reaches the array
     /// edge, returns None.
-    let findNextStep
-        currentStep
-        searchDirection
-        (allowedDirections: IsolineStepDirection[])
+    let findNextStep currentStep (allowedDirections: IsolineStepDirection[])
         : IsolineStep option =
         
         allowedDirections
@@ -329,8 +278,7 @@ let findIsolines
             buildNextStep currentStep possibleDirection)
         // filter out directions that don't correspond to isoline paths
         |> Array.filter
-               (isOnIsolinePath
-                    heights width height isolineValue searchDirection)
+               (isOnIsolinePath width height isolineFunc)
         // filter out directions that were already covered by other isolines
         |> Array.filter isEdgeFree
         |> function
@@ -356,7 +304,7 @@ let findIsolines
         let previousStep = List.head stepsSoFar 
         let allowedDirections = allowedDirectionsForStep previousStep
     
-        match findNextStep previousStep searchDirection allowedDirections with
+        match findNextStep previousStep allowedDirections with
         | Some nextStep ->
             // did we reach the starting point, making a loop?
             if nextStep = firstStep then

@@ -13,10 +13,26 @@ let getHeight (array: float[]) width height x y =
     | _ when y >= height -> raise (System.ArgumentOutOfRangeException "y")
     | _ -> array.[y * width + x]
 
-let isolineFunc array: IsolineFunc = fun isolinePoint ->
+let isolineFunc array width height isoValue: IsolineFunc = fun isolinePoint ->
     match isolinePoint with
-    | IsolineHPoint (OnHorizontalEdge (x, y)) -> invalidOp "todo"
-    | IsolineVPoint (OnVerticalEdge (x, y)) -> invalidOp "todo"
+    | IsolineHPoint (OnHorizontalEdge (x, y)) ->
+        let hUp = getHeight array width height x y
+        let hDown = getHeight array width height x (y + 1)
+        match hUp, isoValue, hDown with
+        | _ when hUp <= isoValue && isoValue < hDown ->
+            HStep (OnHorizontalEdge (x, y), Right) |> Some
+        | _ when hUp > isoValue && isoValue >= hDown ->
+            HStep (OnHorizontalEdge (x, y), Left) |> Some
+        | _ -> None
+    | IsolineVPoint (OnVerticalEdge (x, y)) ->
+        let hLeft = getHeight array width height x y
+        let hRight = getHeight array width height (x + 1) y
+        match hLeft, isoValue, hRight with
+        | _ when hLeft <= isoValue && isoValue < hRight ->
+            VStep (OnVerticalEdge (x, y), Up) |> Some
+        | _ when hLeft > isoValue && isoValue >= hRight ->
+            VStep (OnVerticalEdge (x, y), Down) |> Some
+        | _ -> None
 
 
 [<Fact>]
@@ -28,10 +44,8 @@ let ``Very small array``() =
         10.
     |]
 
-    let heights = getHeight testArray width height
-
     let isolines =
-        findIsolines width height heights 5. (isolineFunc testArray)
+        findIsolines width height (isolineFunc testArray width height 5.)
         |> Seq.toList
     
     test <@ isolines = [ ClippedIsoline {
@@ -50,10 +64,8 @@ let ``Simple peak``() =
         0.; 0.; 0.
     |]
 
-    let heights = getHeight testArray width height
-
     let isolines =
-        findIsolines width height heights 50. (isolineFunc testArray)
+        findIsolines width height (isolineFunc testArray width height 50.)
         |> Seq.toList
     
     test <@ isolines = [ ClosedIsoline {
@@ -75,10 +87,10 @@ let ``Simple hole``() =
         100.; 100.; 100.
     |]
 
-    let heights = getHeight testArray width height
-
     let isolines =
-        findIsolines width height heights 50. (isolineFunc testArray)
+        findIsolines width height 
+            (isolineFunc testArray width height 50.)
+
         |> Seq.toList
     
     test <@ isolines = [ parseIsolineDef "o;v0,1;drul" ] @>
@@ -94,10 +106,9 @@ let ``Simple horizontal line (right)``() =
         100.; 100.; 100.
     |]
 
-    let heights = getHeight testArray width height
-
     let isolines =
-        findIsolines width height heights 50. (isolineFunc testArray)
+        findIsolines width height
+            (isolineFunc testArray width height 50.)
         |> Seq.toList
     
     test <@ isolines = [ ClippedIsoline {
@@ -118,10 +129,9 @@ let ``Simple horizontal line (left)``() =
         0.; 0.; 0.
     |]
 
-    let heights = getHeight testArray width height
-
     let isolines =
-        findIsolines width height heights 50. (isolineFunc testArray)
+        findIsolines width height
+            (isolineFunc testArray width height 50.)
         |> Seq.toList
     
     test <@ isolines = [ ClippedIsoline {
@@ -142,10 +152,9 @@ let ``Simple vertical line (up)``() =
         0.; 100.; 100.
     |]
 
-    let heights = getHeight testArray width height
-
     let isolines =
-        findIsolines width height heights 50. (isolineFunc testArray)
+        findIsolines width height
+            (isolineFunc testArray width height 50.)
         |> Seq.toList
     
     test <@ isolines = [ ClippedIsoline {
@@ -166,10 +175,9 @@ let ``Simple vertical line (down)``() =
         100.; 0.; 0.
     |]
 
-    let heights = getHeight testArray width height
-
     let isolines =
-        findIsolines width height heights 50. (isolineFunc testArray)
+        findIsolines width height
+            (isolineFunc testArray width height 50.)
         |> Seq.toList
     
     test <@ isolines = [ ClippedIsoline {
@@ -189,10 +197,9 @@ let ``Simple bend``() =
         0.; 0.
     |]
 
-    let heights = getHeight testArray width height
-
     let isolines =
-        findIsolines width height heights 50. (isolineFunc testArray)
+        findIsolines width height
+            (isolineFunc testArray width height 50.)
         |> Seq.toList
     
     test <@ isolines = [ ClippedIsoline {
@@ -212,10 +219,9 @@ let ``Can handle multiple possible directions case``() =
         0.; 100.
     |]
 
-    let heights = getHeight testArray width height
-
     let isolines =
-        findIsolines width height heights 50. (isolineFunc testArray)
+        findIsolines width height
+            (isolineFunc testArray width height 50.)
         |> Seq.toList
     
     test <@ isolines = [
@@ -239,10 +245,9 @@ let ``Can identify multiple isolines``() =
         100.; 0.; 100.
     |]
 
-    let heights = getHeight testArray width height
-
     let isolines =
-        findIsolines width height heights 50. (isolineFunc testArray)
+        findIsolines width height
+            (isolineFunc testArray width height 50.)
         |> Seq.toList
     
     test <@ isolines = [
@@ -269,10 +274,9 @@ let ``More complex case``() =
         0.; 100.; 0.
     |]
 
-    let heights = getHeight testArray width height
-
     let isolines =
-        findIsolines width height heights 50. (isolineFunc testArray)
+        findIsolines width height
+            (isolineFunc testArray width height 50.)
         |> Seq.toList
     
     test <@ isolines = [
@@ -310,10 +314,9 @@ let ``Can detect isolines clipping from bottom right``() =
         0.; 10.
     |]
 
-    let heights = getHeight testArray width height
-
     let isolines =
-        findIsolines width height heights 6. (isolineFunc testArray)
+        findIsolines width height
+            (isolineFunc testArray width height 6.)
         |> Seq.toList
     
     test <@ isolines = [

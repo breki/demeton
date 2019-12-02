@@ -37,8 +37,25 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
     
     let isolineFunc: IsolineFunc = fun isolinePoint ->
         match isolinePoint with
-        | IsolineHPoint (OnHorizontalEdge (x, y)) -> invalidOp "todo"
-        | IsolineVPoint (OnVerticalEdge (x, y)) -> invalidOp "todo"
+        | IsolineHPoint (OnHorizontalEdge (x, y)) ->
+            let hUp = heightsArray.[x, y]
+            let hDown = heightsArray.[x, y + 1]
+            match hUp, isoValue, hDown with
+            | _ when hUp <= isoValueInt && isoValueInt < hDown ->
+                HStep (OnHorizontalEdge (x, y), Right) |> Some
+            | _ when hUp > isoValueInt && isoValueInt >= hDown ->
+                HStep (OnHorizontalEdge (x, y), Left) |> Some
+            | _ -> None
+        | IsolineVPoint (OnVerticalEdge (x, y)) ->
+            let hLeft = heightsArray.[x, y]
+            let hRight = heightsArray.[x + 1, y]
+            match hLeft, isoValue, hRight with
+            | _ when hLeft <= isoValueInt && isoValueInt < hRight ->
+                VStep (OnVerticalEdge (x, y), Up) |> Some
+            | _ when hLeft > isoValueInt && isoValueInt >= hRight ->
+                VStep (OnVerticalEdge (x, y), Down) |> Some
+            | _ -> None
+
                
     let clippedIsolineEndsAtEdges (isoline: Isoline) =
         let steps = isoline |> isolineSteps
@@ -57,13 +74,12 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
     let isolineCorrectlyDividesTheSpace isoline =
         isoline |> isolineSteps
         |> List.forall (fun step ->
-            isOnIsolinePath
-                heights width height isoValue Forward step)    
+            isOnIsolinePath width height isolineFunc step)    
 
     /// For a given step, find any isolines that cover it. If the step does not
     /// represent an isoline edge, return None. 
     let findIsolinesCoveringStep isolines step =
-        if isOnIsolinePath heights width height isoValue Forward step then
+        if isOnIsolinePath width height isolineFunc step then
             isolines
             |> Array.filter (fun isoline ->
                 let oppositeStep = oppositeStep step
@@ -79,7 +95,7 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
     | (_, 0) -> true |> Prop.classify true "Empty array"
     | _ ->
         let isolines =
-            findIsolines width height heights isoValue isolineFunc
+            findIsolines width height isolineFunc
             |> Seq.toArray      
         
         let allIsolinesHaveCorrectlyConstructedStepsThatFollowPreviousOne() =
