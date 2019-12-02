@@ -43,11 +43,22 @@ let oppositeStepDirection =
     | Down -> Up
     | Left -> Right
 
+/// Maximum X coordinate for horizontal isoline points.
+let maxHorizX width = width - 1
+/// Maximum Y coordinate for horizontal isoline points.
+let maxHorizY height = height - 2
+/// Maximum X coordinate for vertical isoline points.
+let maxVertX width = width - 2
+/// Maximum Y coordinate for vertical isoline points.
+let maxVertY height = height - 1
+
+/// Determines whether the specified isoline point is on the edge of the
+/// array.
 let isStepOnArrayEdge width height = function
     | (OnHorizontalEdge (x, y), _) ->
-        x = 0 || y = 0 || x >= width - 1 || y >= height - 2  
+        x = 0 || y = 0 || x = (maxHorizX width) || y = (maxHorizY height)  
     | (OnVerticalEdge (x, y), _) -> 
-        x = 0 || y = 0 || x >= width - 2 || y >= height - 1         
+        x = 0 || y = 0 || x = (maxVertX width) || y = (maxVertY height)         
 
 /// Determines whether the isoline value is between the left and right
 /// height values.
@@ -55,7 +66,7 @@ let isIsoValueBetween
     isolineValue (heightToTheLeft: float) (heightToTheRight: float) =
     match heightToTheLeft, heightToTheRight with
     | (l, r) when l >= r -> false
-    | (l, r) when l <= isolineValue && isolineValue <= r -> true
+    | (l, r) when l <= isolineValue && isolineValue < r -> true
     | _ -> false
 
 /// Determines whether the given step lies on the isoline path. 
@@ -63,19 +74,23 @@ let isOnIsolinePath
     heights width height isolineValue searchDirection step: bool =
     match step with
     | (OnVerticalEdge (x, y), Up) ->
-        if x >= 0 && x + 1 < width && y >= 0 && y < height then
+        if x >= 0 && x <= (maxVertX width)
+           && y >= 0 && y <= (maxVertY height) then
             Some (heights x y, heights (x+1) y)
         else None
     | (OnHorizontalEdge (x, y), Right) ->
-        if x >= 0 && x < width && y >= 0 && y + 1 < height then
+        if x >= 0 && x <= (maxHorizX width)
+           && y >= 0 && y <= (maxHorizY height) then
             Some (heights x y, heights x (y+1))
         else None
     | (OnVerticalEdge (x, y), Down) ->
-        if x >= 0 && x + 1 < width && y >= 0 && y < height then
+        if x >= 0 && x <= (maxVertX width)
+           && y >= 0 && y <= (maxVertY height) then
             Some (heights (x+1) y, heights x y)
         else None                
     | (OnHorizontalEdge (x, y), Left) ->
-        if x >= 0 && x < width && y >= 0 && y + 1 < height then
+        if x >= 0 && x <= (maxHorizX width)
+           && y >= 0 && y <= (maxHorizY height) then
             Some (heights x (y+1), heights x y)
         else None
     | (point, direction) ->
@@ -88,7 +103,7 @@ let isOnIsolinePath
         | Backward -> isIsoValueBetween isolineValue hRight hLeft
     | None -> false
 
-
+/// For a given array, returns a sequence of identified isolines.
 let findIsolines
     width height (heights: int -> int -> float) isolineValue
     : Isoline seq =
@@ -101,17 +116,17 @@ let findIsolines
     let coverageArrayVertical = Array.init (width * height) (fun _ -> false)      
                       
     let isHorizEdgeFree x y =
-        if x < 0 || x >= width then
+        if x < 0 || x > (maxHorizX width) then
             raise (System.ArgumentOutOfRangeException "x")
-        if y < 0 || y >= height then
+        if y < 0 || y > (maxHorizY height) then
             raise (System.ArgumentOutOfRangeException "y")
         
         coverageArrayHorizontal.[array2dIndex x y] |> not
 
     let isVertEdgeFree x y =
-        if x < 0 || x >= width then
+        if x < 0 || x > (maxVertX width) then
             raise (System.ArgumentOutOfRangeException "x")
-        if y < 0 || y >= height then
+        if y < 0 || y > (maxVertY height) then
             raise (System.ArgumentOutOfRangeException "y")
                 
         coverageArrayVertical.[array2dIndex x y] |> not
@@ -120,23 +135,81 @@ let findIsolines
         | OnHorizontalEdge (x, y) -> isHorizEdgeFree x y
         | OnVerticalEdge (x, y) -> isVertEdgeFree x y
                     
-    /// Lists all the points detected for an isoline at the specified
+    /// Lists all the horizontal points detected for an isoline at the specified
     /// array coordinates.
-    let listIsolinePoints x y = seq {
+    let listHorizIsolinePoints x y = seq {
         let h00 = heights x y
-        let h10 = heights (x + 1) y
-        let h01 = heights x (y + 1)
-        if isVertEdgeFree x y then
-           if isIsoValueBetween isolineValue h00 h10 then
-                yield ((OnVerticalEdge (x, y), Down), Backward)
-           else if isIsoValueBetween isolineValue h10 h00 then
-                yield ((OnVerticalEdge (x, y), Down), Forward)
                 
-        if isHorizEdgeFree x y then
-           if isIsoValueBetween isolineValue h00 h01 then
-                yield ((OnHorizontalEdge (x, y), Right), Forward)
-           else if isIsoValueBetween isolineValue h01 h00 then
-                yield ((OnHorizontalEdge (x, y), Right), Backward)
+        if y <= (maxHorizY height) then
+            let stepDirectionWhenSearchingMaybe =
+                match x, maxHorizX width with
+                | (x, max) when x < max -> Some Right
+                | (x, max) when x = max -> Some Left
+                | _ -> None
+
+            match stepDirectionWhenSearchingMaybe with
+            | Some stepDirectionWhenSearching -> 
+                if isHorizEdgeFree x y then
+                    let h01 = heights x (y + 1)
+
+                    let actualStepDirectionMaybe =
+                        if isIsoValueBetween isolineValue h00 h01 then
+                            Some Right
+                        else if isIsoValueBetween isolineValue h01 h00 then
+                            Some Left
+                        else None
+
+                    match actualStepDirectionMaybe with
+                    | Some actualStepDirection ->
+                        let searchDirection =
+                            if stepDirectionWhenSearching = actualStepDirection then
+                                Forward
+                            else Backward
+                            
+                        yield
+                            ((OnHorizontalEdge (x, y), stepDirectionWhenSearching),
+                            searchDirection)
+                    | None -> ignore()
+            | None -> ignore()
+    }
+                    
+    /// Lists all the vertical points detected for an isoline at the specified
+    /// array coordinates.
+    let listVertIsolinePoints x y = seq {
+        let h00 = heights x y
+        
+        // todo eliminate this case by not calling it with x > maxVertX width
+        if x <= (maxVertX width) then
+            let stepDirectionWhenSearchingMaybe =
+                match y, maxVertY height with
+                | (y, max) when y < max -> Some Down
+                | (y, max) when y = max -> Some Up
+                | _ -> None
+            
+            match stepDirectionWhenSearchingMaybe with
+            | Some stepDirectionWhenSearching -> 
+                if isVertEdgeFree x y then
+                    let h10 = heights (x + 1) y
+                    
+                    let actualStepDirectionMaybe =
+                        if isIsoValueBetween isolineValue h00 h10 then
+                            Some Up
+                        else if isIsoValueBetween isolineValue h10 h00 then
+                            Some Down
+                        else None
+                        
+                    match actualStepDirectionMaybe with
+                    | Some actualStepDirection ->
+                        let searchDirection =
+                            if stepDirectionWhenSearching = actualStepDirection then
+                                Forward
+                            else Backward
+                            
+                        yield
+                            ((OnVerticalEdge (x, y), stepDirectionWhenSearching),
+                            searchDirection)
+                    | None -> ignore()
+            | None -> ignore()
     }
                           
     /// Returns a sequence of starting steps of isolines.
@@ -145,22 +218,30 @@ let findIsolines
             // First look for possible isoline points at the edges of the array.
             // This will identify all of the isolines that are clipped at the
             // edges of the array.
-            if width > 1 && height > 1 then
-                yield! listIsolinePoints 0 0
-                if width > 2 then
-                    yield! listIsolinePoints (width-2) 0
-                    
-                if height > 2 then
-                    yield! listIsolinePoints 0 (height-2)
-                    if width > 2 then
-                        yield! listIsolinePoints (width-2) (height-2)
             
+            // Start with horizontal edge points first
+            for y in 0 .. (maxHorizY height) do
+                yield! listHorizIsolinePoints 0 y
+                
+                if maxHorizX width > 0 then
+                    yield! listHorizIsolinePoints (maxHorizX width) y
+            
+            // Now do the vertical edge points
+            for x in 0 .. (maxVertX width) do
+                yield! listVertIsolinePoints x 0
+                
+                if maxVertY height > 0 then
+                    yield! listVertIsolinePoints x (maxVertY height)
+                            
             // Now look for array's inner points, identifying any remaining
             // isolines (which are not clipped at the edges of the array and
             // are thus closed (self-looping) isolines).
-            for y in 1 .. height-3 do
-                for x in 1 .. width-3 do                   
-                    yield! listIsolinePoints x y
+            for y in 0 .. (maxHorizY height) do
+                for x in 1 .. ((maxHorizX width) - 1) do
+                    yield! listHorizIsolinePoints x y
+            for x in 0 .. (maxVertX width) do
+                for y in 1 .. ((maxVertY height) - 1) do
+                    yield! listVertIsolinePoints x y
         }
     
     /// Calculates the step point given the current step and the direction of
@@ -239,7 +320,7 @@ let findIsolines
         | Some nextStep ->
             // did we reach the starting point, making a loop?
             if nextStep = firstStep then
-                (ClosedEnding,  stepsSoFar)
+                (ClosedEnding, stepsSoFar)
             else
                 moveIsoline searchDirection firstStep (nextStep :: stepsSoFar)
         // did we reach an edge of the array?
@@ -297,6 +378,27 @@ let getHeight (array: float[]) width height x y =
     | _ when y < 0 -> raise (System.ArgumentOutOfRangeException "y")
     | _ when y >= height -> raise (System.ArgumentOutOfRangeException "y")
     | _ -> array.[y * width + x]
+
+[<Fact>]
+let ``Very small array``() =
+    let width = 1
+    let height = 2
+    let testArray = [|
+        5.
+        10.
+    |]
+
+    let heights = getHeight testArray width height
+
+    let isolines =
+        findIsolines width height heights 5.
+        |> Seq.toList
+    
+    test <@ isolines = [ ClippedIsoline {
+                Steps = [
+                    (OnHorizontalEdge (0, 0), Right)
+                ] } ]
+            @>
 
 [<Fact>]
 let ``Simple peak``() =
@@ -486,11 +588,11 @@ let ``Can handle multiple possible directions case``() =
     test <@ isolines = [
                 ClippedIsoline { Steps = [
                     OnVerticalEdge (0, 0), Down
-                    OnHorizontalEdge (1, 0), Right
+                    OnHorizontalEdge (0, 0), Left
                 ] }
                 ClippedIsoline { Steps = [
                     OnVerticalEdge (0, 1), Up
-                    OnHorizontalEdge (0, 0), Left
+                    OnHorizontalEdge (1, 0), Right
                 ] }
             ] @>
 
@@ -546,26 +648,59 @@ let ``More complex case``() =
                     OnVerticalEdge (0, 0), Up
                 ] }
                 ClippedIsoline { Steps = [
-                    OnVerticalEdge (1, 0), Down
-                    OnVerticalEdge (1, 1), Down
-                    OnHorizontalEdge (2, 1), Right
-                ] }
-                ClosedIsoline { Steps = [
-                    OnVerticalEdge (0, 2), Down
-                    OnHorizontalEdge (1, 2), Right
-                    OnVerticalEdge (1, 2), Up
-                    OnHorizontalEdge (1, 1), Left
+                    (OnHorizontalEdge (2, 2), Left);
+                    (OnVerticalEdge (1, 2), Up);
+                    (OnHorizontalEdge (2, 1), Right)
                 ] }
                 ClippedIsoline { Steps = [
-                    OnVerticalEdge (0, 3), Up
-                    OnHorizontalEdge (0, 2), Left
+                    (OnVerticalEdge (1, 0), Down);
+                    (OnVerticalEdge (1, 1), Down);
+                    (OnHorizontalEdge (1, 1), Left);
+                    (OnVerticalEdge (0, 2), Down);
+                    (OnHorizontalEdge (0, 2), Left)
+                ] }
+                ClippedIsoline { Steps = [
+                    (OnVerticalEdge (0, 3), Up);
+                    (OnHorizontalEdge (1, 2), Right);
+                    (OnVerticalEdge (1, 3), Down)
                 ] }
             ] @>
+
+[<Fact>]
+let ``Can detect isolines clipping from bottom right``() =
+    let width = 2
+    let height = 4
+    let testArray = [|
+        7.; 3.
+        4.; 10.
+        1.; 0.
+        0.; 10.
+    |]
+
+    let heights = getHeight testArray width height
+
+    let isolines =
+        findIsolines width height heights 6.
+        |> Seq.toList
+    
+    test <@ isolines = [
+                ClippedIsoline { Steps =
+                    [(OnVerticalEdge (0, 0), Down);
+                     (OnHorizontalEdge (0, 0), Left)] };
+                ClippedIsoline { Steps =
+                    [(OnHorizontalEdge (1, 1), Left);
+                     (OnVerticalEdge (0, 1), Up);
+                    (OnHorizontalEdge (1, 0), Right)] };
+                ClippedIsoline { Steps =
+                    [(OnVerticalEdge (0, 3), Up);
+                     (OnHorizontalEdge (1, 2), Right)] }] @>
   
-let ``isolines properties``((heightsArray, isoValue): float[,] * float) =
-    let heights x y = heightsArray.[x,y]
+let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
+    let heights x y = heightsArray.[x,y] |> float
+    
     let width = heightsArray |> Array2D.length1
     let height = heightsArray |> Array2D.length2
+    let isoValue = float isoValueInt
     
     match width, height with
     | (0, _) -> true |> Prop.classify true "Empty array"
@@ -575,7 +710,7 @@ let ``isolines properties``((heightsArray, isoValue): float[,] * float) =
             findIsolines width height heights isoValue
             |> Seq.toArray
 
-        let isolineStepsIsValid isoline =
+        let isolineStepsAreValid isoline =
             match isoline with
             | ClosedIsoline isoline -> isoline.Steps
             | ClippedIsoline isoline -> isoline.Steps
@@ -590,26 +725,66 @@ let ``isolines properties``((heightsArray, isoValue): float[,] * float) =
                 (isoline.Steps.Head |> isStepOnArrayEdge width height)
                 && (isoline.Steps |> List.last |> isStepOnArrayEdge width height)
         
-        let allIsolineStepsAreValid =
+        let allIsolineStepsAreValid() =
             isolines
-            |> Seq.forall isolineStepsIsValid
+            |> Seq.forall isolineStepsAreValid
             |> Prop.label "all isolines are valid"
         
-        let allIsolinesAreProperlyCompleted =
+        let allIsolinesAreProperlyCompleted() =
             isolines
             |> Seq.forall isolineIsProperlyCompleted
             |> Prop.label "all isolines are properly completed"
             
+        let stepIsCovered step =
+            if isOnIsolinePath heights width height isoValue Forward step then
+                isolines
+                |> Array.exists (fun isoline ->
+                    let steps =
+                        match isoline with
+                        | ClosedIsoline x -> x.Steps
+                        | ClippedIsoline x -> x.Steps
+                        
+                    let stepPoint, stepDirection = step
+                    let oppositeStep = (stepPoint, oppositeStepDirection stepDirection)
+                        
+                    steps
+                    |> List.exists (fun x -> x = step || x = oppositeStep)
+                    )
+            else true
+            
+        let allArrayHasBeenCovered() =
+            let notCoveredPoints =
+                Array.allPairs [|0..width|] [|0..height|]
+                |> Array.filter (fun (x, y) ->
+                    let horizNotCovered =
+                        if x <= (maxHorizX width)
+                           && y <= (maxHorizY height) then
+                            stepIsCovered (OnHorizontalEdge (x, y), Left) |> not
+                        else false
+                        
+                    let vertNotCovered =
+                        if x <= (maxVertX width) && y <= (maxVertY height) then
+                            stepIsCovered (OnVerticalEdge (x, y), Up) |> not
+                        else false
+                        
+                    horizNotCovered || vertNotCovered)
+                
+            notCoveredPoints
+            |> Array.isEmpty
+            |> Prop.label "all isoline positions in the array have been covered"
+            |@ sprintf "isoline positions not covered: %A" notCoveredPoints
+            
         allIsolineStepsAreValid .&. allIsolinesAreProperlyCompleted
+            .&. allArrayHasBeenCovered
 
 [<Fact>]    
 let ``Test isoline properties``() =
-    let genHeight = floatInRange -100 100
+    let genHeight = Gen.choose(0, 10)
     let genArray = genHeight |> Gen.array2DOf
 
     Gen.zip genArray genHeight 
     |> Arb.fromGen
     |> Prop.forAll <| ``isolines properties``
-    //|> Check.QuickThrowOnFailure
-    |> replayPropertyCheck (1567451850,296676651) // not at the edge
+    |> Check.QuickThrowOnFailure
+//    |> replayPropertyCheck (1567451850,296676651) // not at the edge
      

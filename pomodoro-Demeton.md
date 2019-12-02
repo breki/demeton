@@ -1,9 +1,13 @@
-- use integers for heights so we can test scenario when isovalue is same as height
+- refactor the code to avoid using height and isoline values directly and instead provide a comparison function
 
 - run Europe on LCC
     - Could not open SRTM HTG file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip': ZIP file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip' does not have a file entry 'N44E048.hgt'.
 
+## Mon 02.12.
+- Finally (hopefully) fixed the isoline detection algorithm to pass all property tests. I still have to clean the code and refactor it to stop using height values directly.
+
 ## Sun 01.12.
+- Switched to using integers in isoline properties test.
 - Fixing various bugs in isoline detection algorithm.
 
 ## Sat 30.11.
