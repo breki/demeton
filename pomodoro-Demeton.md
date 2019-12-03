@@ -1,4 +1,6 @@
-- document the code
+## Tue 03.12.
+- Additionally documented the isoline code.
+- Moved the `Isolines` module to the production project.
 
 ## Mon 02.12.
 - Refactored the code to avoid using height and isoline values directly.

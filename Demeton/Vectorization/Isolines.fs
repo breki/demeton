@@ -1,49 +1,88 @@
-﻿module Demeton.Vectorization.Isolines
+﻿/// Contains types and functions for identifying isolines on a rectangular
+/// 2D array.
+module Demeton.Vectorization.Isolines
 
+/// A point on a horizontal edge between two array cells, one above the other.
 type IsolineHPoint = OnHorizontalEdge of (int * int) 
+/// A point on a vertical edge between two array cells, one to the left,
+/// the other to the right.
 type IsolineVPoint = OnVerticalEdge of (int * int) 
 
+/// A point in isoline coordinate system, which distinguishes between horizontal
+/// and vertical edges.
 type IsolinePoint =
-    | IsolineHPoint of IsolineHPoint 
+    /// A point on a horizontal edge between two array cells, one above the
+    /// other.
+    | IsolineHPoint of IsolineHPoint
+    /// A point on a vertical edge between two array cells, one to the left,
+    /// the other to the right.
     | IsolineVPoint of IsolineVPoint
 
+/// A direction of the isoline step on a horizontal edge.
 type IsolineHorizontalStepDirection = Left | Right
+/// A direction of the isoline step on a vertical edge.
 type IsolineVerticalStepDirection = Up | Down
 
+/// A direction of the isoline step.
 type IsolineStepDirection =
+    /// A direction of the isoline step on a horizontal edge.
     | HDirection of IsolineHorizontalStepDirection
+    /// A direction of the isoline step on a vertical edge.
     | VDirection of IsolineVerticalStepDirection
-    
+
+/// A single step of the isoline, consisting of the point on the isoline
+/// coordinate system and the direction of the step.
 type IsolineStep =
+    // An isoline step on the horizontal edge. 
     | HStep of IsolineHPoint * IsolineHorizontalStepDirection
+    // An isoline step on the vertical edge. 
     | VStep of IsolineVPoint * IsolineVerticalStepDirection
 
-type IsolineEndingType = ClippedEnding | ClosedEnding
-
+/// An isoline that closes on itself (in a loop).
 type ClosedIsoline = {
     Steps: IsolineStep list
 }
 
+/// An isoline that starts and ends on the edges of the array.
 type ClippedIsoline = {
     Steps: IsolineStep list
 }
 
+/// An isoline represented by its steps.
 type Isoline =
     | ClosedIsoline of ClosedIsoline
     | ClippedIsoline of ClippedIsoline
+
+/// A function that partitions the array cells into two distinct values,
+/// with isolines representing the boundaries between these two values.
+/// For the given point on the isoline coordinate system (the point
+/// separating two cells in the array), the function returns the isoline
+/// step needed to separate the two cells (if they each belong to a separate
+/// segmented value) or None if the two cells belong to the same segmented
+/// value.
+/// For example, when looking for elevation contours, the segmentation
+/// function would separate the array cells into two groups: one for the cells
+/// below the contour's elevation and the other for those above this elevation. 
+type SegmentationFunc = IsolinePoint -> IsolineStep option
+
+/// Describes whether the isoline is closed or clipped one.
+type private IsolineEndingType =
+    /// An isoline that closes on itself (in a loop).
+    | ClippedEnding
+    /// An isoline that starts and ends on the edges of the array.
+    | ClosedEnding
+
+/// Defines the direction of the isoline search. When Backward, we create
+/// isoline with reverse steps and directions, which are then reversed
+/// at the end.
+type private SearchDirection = Forward | Backward
 
 /// Gets the steps of the isoline.
 let isolineSteps = function
     | ClosedIsoline x -> x.Steps
     | ClippedIsoline x -> x.Steps
 
-/// Defines the direction of the isoline search. When Backward, we create
-/// isoline with reverse steps and directions, which are then reversed
-/// at the end.
-type SearchDirection = Forward | Backward
-
-type IsolineFunc = IsolinePoint -> IsolineStep option
-
+/// For a given step, returns the step in the opposite direction.
 let oppositeStep = function
     | VStep (point, Up) -> VStep (point, Down)
     | VStep (point, Down) -> VStep (point, Up)
@@ -130,41 +169,38 @@ let isStepOnArrayEdge width height = function
     | VStep (OnVerticalEdge (x, y), _) -> 
         x = 0 || y = 0 || x = (maxVertX width) || y = (maxVertY height)         
 
-/// Determines whether the isoline value is between the left and right
-/// height values.
-let isIsoValueBetween
-    isolineValue (heightToTheLeft: float) (heightToTheRight: float) =
-    match heightToTheLeft, heightToTheRight with
-    | (l, r) when l >= r -> false
-    | (l, r) when l <= isolineValue && isolineValue < r -> true
-    | _ -> false
-
-/// Determines whether the given step lies on the isoline path. 
-let isOnIsolinePath
-    width height isolineFunc step: bool =
+/// Determines whether the given step lies on an isoline path. 
+let isOnIsolinePath width height segmentationFunc step: bool =
     match step with
     | VStep (OnVerticalEdge (x, y), _) ->
         if x >= 0 && x <= (maxVertX width)
            && y >= 0 && y <= (maxVertY height) then
-            isolineFunc (IsolineVPoint (OnVerticalEdge (x, y))) |> Option.isSome
+            segmentationFunc (IsolineVPoint (OnVerticalEdge (x, y)))
+            |> Option.isSome
         else false
     | HStep (OnHorizontalEdge (x, y), _) ->
         if x >= 0 && x <= (maxHorizX width)
            && y >= 0 && y <= (maxHorizY height) then
-            isolineFunc (IsolineHPoint (OnHorizontalEdge (x, y))) |> Option.isSome
+            segmentationFunc (IsolineHPoint (OnHorizontalEdge (x, y)))
+            |> Option.isSome
         else false
 
 /// For a given array, returns a sequence of identified isolines.
-let findIsolines width height (isolineFunc: IsolineFunc)
+let findIsolines width height (segmentationFunc: SegmentationFunc)
     : Isoline seq =
         
     let array2dIndex x y = y * width + x
         
-    /// indicates whether each horizontal point was already covered by an isoline
+    /// hold a boolean flag for each horizontal point in the isoline coordinate
+    /// system indicating whether the point was already covered by an isoline 
     let coverageArrayHorizontal = Array.init (width * height) (fun _ -> false)
-    /// indicates whether each vertical point was already covered by an isoline
+
+    /// hold a boolean flag for each vertical point in the isoline coordinate
+    /// system indicating whether the point was already covered by an isoline 
     let coverageArrayVertical = Array.init (width * height) (fun _ -> false)      
-                      
+        
+    /// Indicates whether the horizontal point was already covered by an
+    /// isoline.
     let isHorizEdgeFree x y =
         if x < 0 || x > (maxHorizX width) then
             raise (System.ArgumentOutOfRangeException "x")
@@ -173,6 +209,8 @@ let findIsolines width height (isolineFunc: IsolineFunc)
         
         coverageArrayHorizontal.[array2dIndex x y] |> not
 
+    /// Indicates whether the vertical point was already covered by an
+    /// isoline.
     let isVertEdgeFree x y =
         if x < 0 || x > (maxVertX width) then
             raise (System.ArgumentOutOfRangeException "x")
@@ -181,13 +219,14 @@ let findIsolines width height (isolineFunc: IsolineFunc)
                 
         coverageArrayVertical.[array2dIndex x y] |> not
         
+    /// Indicates whether the point was already covered by an isoline.
     let isEdgeFree = function
         | HStep (OnHorizontalEdge (x, y), _) -> isHorizEdgeFree x y
         | VStep (OnVerticalEdge (x, y), _) -> isVertEdgeFree x y
                     
-    /// Lists all the horizontal points detected for an isoline at the specified
-    /// array coordinates.
-    let listHorizIsolinePoints x y = seq {               
+    /// If the specified horizontal point represents an isoline point, returns
+    /// its corresponding step as a single-item sequence.
+    let anyHorizIsolineStep x y = seq {               
         if isHorizEdgeFree x y then
             let stepDirectionWhenSearching =
                 match x, maxHorizX width with
@@ -196,7 +235,7 @@ let findIsolines width height (isolineFunc: IsolineFunc)
                 | _ -> invalidOp "bug"
 
             let stepPoint = OnHorizontalEdge (x, y)
-            let actualStepMaybe = isolineFunc (IsolineHPoint stepPoint)
+            let actualStepMaybe = segmentationFunc (IsolineHPoint stepPoint)
             match actualStepMaybe with
             | Some (HStep (_, actualStepDirection)) ->
                 let searchDirection =
@@ -210,9 +249,9 @@ let findIsolines width height (isolineFunc: IsolineFunc)
             | None -> ignore()
     }
                     
-    /// Lists all the vertical points detected for an isoline at the specified
-    /// array coordinates.
-    let listVertIsolinePoints x y = seq {
+    /// If the specified vertical point represents an isoline point, returns
+    /// its corresponding step as a single-item sequence.
+    let anyVertIsolineStep x y = seq {
         if isVertEdgeFree x y then
             let stepDirectionWhenSearching =
                 match y, maxVertY height with
@@ -221,7 +260,7 @@ let findIsolines width height (isolineFunc: IsolineFunc)
                 | _ -> invalidOp "bug"
             
             let stepPoint = OnVerticalEdge (x, y)
-            let actualStepMaybe = isolineFunc (IsolineVPoint stepPoint)
+            let actualStepMaybe = segmentationFunc (IsolineVPoint stepPoint)
             match actualStepMaybe with
             | Some (VStep (_, actualStepDirection)) ->
                 let searchDirection =
@@ -235,41 +274,42 @@ let findIsolines width height (isolineFunc: IsolineFunc)
             | None -> ignore()
     }
                           
-    /// Returns a sequence of starting steps of isolines.
-    let findIsolineStartingSteps(): (IsolineStep * SearchDirection) seq =
+    /// Returns the next segmentation point (edge) that has not yet been
+    /// covered by an isoline.
+    let findNextSegmentationEdge(): (IsolineStep * SearchDirection) seq =
         seq {
-            // First look for possible isoline points at the edges of the array.
-            // This will identify all of the isolines that are clipped at the
-            // edges of the array.
+            // First look for possible segmentation points at the edges of the
+            // array. This will identify all of the isolines that are clipped
+            // at the edges of the array.
             
             // Start with horizontal edge points first
             for y in 0 .. (maxHorizY height) do
-                yield! listHorizIsolinePoints 0 y
+                yield! anyHorizIsolineStep 0 y
                 
                 if maxHorizX width > 0 then
-                    yield! listHorizIsolinePoints (maxHorizX width) y
+                    yield! anyHorizIsolineStep (maxHorizX width) y
             
             // Now do the vertical edge points
             for x in 0 .. (maxVertX width) do
-                yield! listVertIsolinePoints x 0
+                yield! anyVertIsolineStep x 0
                 
                 if maxVertY height > 0 then
-                    yield! listVertIsolinePoints x (maxVertY height)
+                    yield! anyVertIsolineStep x (maxVertY height)
                             
             // Now look for array's inner points, identifying any remaining
             // isolines (which are not clipped at the edges of the array and
             // are thus closed (self-looping) isolines).
             for y in 0 .. (maxHorizY height) do
                 for x in 1 .. ((maxHorizX width) - 1) do
-                    yield! listHorizIsolinePoints x y
+                    yield! anyHorizIsolineStep x y
             for x in 0 .. (maxVertX width) do
                 for y in 1 .. ((maxVertY height) - 1) do
-                    yield! listVertIsolinePoints x y
+                    yield! anyVertIsolineStep x y
         }
     
     /// Finds the next appropriate isoline step based on the specified current
     /// step. If no new steps are possible (when the isoline reaches the array
-    /// edge, returns None.
+    /// edge), returns None.
     let findNextStep currentStep (allowedDirections: IsolineStepDirection[])
         : IsolineStep option =
         
@@ -278,7 +318,7 @@ let findIsolines width height (isolineFunc: IsolineFunc)
             buildNextStep currentStep possibleDirection)
         // filter out directions that don't correspond to isoline paths
         |> Array.filter
-               (isOnIsolinePath width height isolineFunc)
+               (isOnIsolinePath width height segmentationFunc)
         // filter out directions that were already covered by other isolines
         |> Array.filter isEdgeFree
         |> function
@@ -297,8 +337,9 @@ let findIsolines width height (isolineFunc: IsolineFunc)
             possibleSteps |> Array.head |> Some
 
            
-    /// Recursively moves one step of the isoline until it reaches its starting
-    /// point, building the visited steps list.
+    /// Recursively moves one step of the isoline at the time until it reaches
+    /// its starting point or the edge of the array, building the visited steps
+    /// list.
     let rec moveIsoline searchDirection firstStep (stepsSoFar: IsolineStep list)
         : IsolineEndingType * IsolineStep list =
         let previousStep = List.head stepsSoFar 
@@ -331,7 +372,8 @@ let findIsolines width height (isolineFunc: IsolineFunc)
         | ClosedEnding -> ClosedIsoline  { Steps = steps }
         | ClippedEnding -> ClippedIsoline  { Steps = steps }
          
-    let markIsolinePointAsCovered step =
+    /// For the given isoline step, marks the corresponding edge as covered.
+    let markSegmentationEdgeAsCovered step =
         match step with
         | HStep (OnHorizontalEdge (x, y), _) ->
             let isEdgeFree = isHorizEdgeFree x y
@@ -346,12 +388,13 @@ let findIsolines width height (isolineFunc: IsolineFunc)
             else
                 invalidOp "bug: this point was already covered by an isoline"
     
-    let drawIsolineOnCoverageArray (isoline: Isoline) =
+    /// Marks all of the edges visited by the specified isoline as covered.
+    let markEdgesCoveredByIsoline (isoline: Isoline) =
         isoline |> isolineSteps
-        |> List.iter markIsolinePointAsCovered
+        |> List.iter markSegmentationEdgeAsCovered
     
-    findIsolineStartingSteps()
+    findNextSegmentationEdge()
     |> Seq.map (fun x ->
         let isoline = traceIsoline x
-        drawIsolineOnCoverageArray isoline      
+        markEdgesCoveredByIsoline isoline      
         isoline)

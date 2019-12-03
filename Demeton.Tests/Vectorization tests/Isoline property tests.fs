@@ -1,4 +1,5 @@
-﻿module Tests.``Vectorization tests``.``Isoline property tests``
+﻿/// Property tests for isoline detection algorithm.
+module Tests.``Vectorization tests``.``Isoline property tests``
 
 open Demeton.Vectorization.Isolines
 open Xunit
@@ -29,13 +30,12 @@ let closedIsolineIsProperlyClosed (isoline: Isoline) =
     | ClippedIsoline _ -> true
 
 let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
-    let heights x y = heightsArray.[x,y] |> float
-    
     let width = heightsArray |> Array2D.length1
     let height = heightsArray |> Array2D.length2
     let isoValue = float isoValueInt
     
-    let isolineFunc: IsolineFunc = fun isolinePoint ->
+    /// Segmentation function implemented as a elevation contours identifier.
+    let segmentationFunc: SegmentationFunc = fun isolinePoint ->
         match isolinePoint with
         | IsolineHPoint (OnHorizontalEdge (x, y)) ->
             let hUp = heightsArray.[x, y]
@@ -56,7 +56,8 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
                 VStep (OnVerticalEdge (x, y), Down) |> Some
             | _ -> None
 
-               
+    /// Determines whether a clipped isoline really ends at the edges of the
+    /// array.
     let clippedIsolineEndsAtEdges (isoline: Isoline) =
         let steps = isoline |> isolineSteps
         let firstStep = steps.Head 
@@ -71,15 +72,18 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
                 
             bothEndsAreAtArrayEdges
 
-    let isolineCorrectlyDividesTheSpace isoline =
+    /// Determines whether the isoline is really moving in the way that
+    /// separates the space left and right of it in the way the segmentation
+    /// function specifies. 
+    let isolineCorrectlySegmentsTheSpace isoline =
         isoline |> isolineSteps
         |> List.forall (fun step ->
-            isOnIsolinePath width height isolineFunc step)    
+            isOnIsolinePath width height segmentationFunc step)    
 
     /// For a given step, find any isolines that cover it. If the step does not
     /// represent an isoline edge, return None. 
     let findIsolinesCoveringStep isolines step =
-        if isOnIsolinePath width height isolineFunc step then
+        if isOnIsolinePath width height segmentationFunc step then
             isolines
             |> Array.filter (fun isoline ->
                 let oppositeStep = oppositeStep step
@@ -95,7 +99,7 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
     | (_, 0) -> true |> Prop.classify true "Empty array"
     | _ ->
         let isolines =
-            findIsolines width height isolineFunc
+            findIsolines width height segmentationFunc
             |> Seq.toArray      
         
         let allIsolinesHaveCorrectlyConstructedStepsThatFollowPreviousOne() =
@@ -113,7 +117,7 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
         
         let allIsolinesCorrectlyDivideTheSpace() =
             isolines
-            |> Seq.forall isolineCorrectlyDividesTheSpace
+            |> Seq.forall isolineCorrectlySegmentsTheSpace
             |> Prop.label "all isolines correctly divide the space into two areas"
         
         let allClosedIsolinesAreProperlyClosed() =
