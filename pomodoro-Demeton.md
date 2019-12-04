@@ -1,3 +1,11 @@
+- SVG paths
+    - A command letter may be eliminated if an identical command letter would otherwise precede it
+    - "M 100-200"
+    - "M 0.6.5"
+
+## Wed 04.12.
+- Working on SVG path data serialization to string.
+
 ## Tue 03.12.
 - Additionally documented the isoline code.
 - Moved the `Isolines` module to the production project.

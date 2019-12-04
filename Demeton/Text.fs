@@ -20,6 +20,13 @@ let buildString() = StringBuilder()
 let append (text: string) (sb: StringBuilder) =
     sb.Append(text)
 
+/// <summary>
+/// Appends a character
+/// <see cref="System.Text.StringBuilder" /> instance.
+/// </summary>
+let appendChar (chr: char) (sb: StringBuilder) =
+    sb.Append(chr)
+
 let appendLine text (sb: StringBuilder) =
     sb.AppendLine(text)
 
