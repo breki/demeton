@@ -74,7 +74,8 @@ type PathDataRenderer() =
         
     member this.addNumber (number: float) =
         let numberStr =
-            number.ToString ("0.##", System.Globalization.CultureInfo.InvariantCulture)
+            number.ToString
+                ("0.##", System.Globalization.CultureInfo.InvariantCulture)
             
         match lastChar, number with
         | (_, _) when Char.IsLetter (lastChar()) || number < 0. ->

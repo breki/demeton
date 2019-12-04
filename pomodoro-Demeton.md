@@ -1,9 +1,5 @@
-- SVG paths
-    - create factory functions for all of the instructions
-        - they should check that at least one item was defined
-        - use them in the test
-
 ## Wed 04.12.
+- Started working on SVG writing.
 - Implemented SVG path data serialization to string.
 
 ## Tue 03.12.
