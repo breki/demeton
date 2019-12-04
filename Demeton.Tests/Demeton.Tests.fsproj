@@ -85,7 +85,8 @@
     <Compile Include="Vectorization tests\Isoline DSL.fs" />
     <Compile Include="Vectorization tests\Isoline tests.fs" />
     <Compile Include="Vectorization tests\Isoline property tests.fs" />
-    <Compile Include="Svg\Svg paths.fs" />
+    <Compile Include="Svg\Paths.fs" />
+    <Compile Include="Svg\SVG path tests.fs" />
     <Compile Include="Commands tests\ShadeCommand\Command line parsing.fs" />
     <Compile Include="Commands tests\ShadeCommand\Running the command.fs" />
     <Compile Include="Commands tests\ShadeCommand\Splitting into intervals.fs" />

@@ -1,11 +1,7 @@
-module Tests.Svg.``Svg paths``
+module Svg.Paths
 
 open Text
 open System
-open System.Text
-
-open Xunit
-open Swensen.Unquote
 
 type Coord = float
 
@@ -139,6 +135,34 @@ let renderCoords instructionChar coords renderer =
            (fun renderer coord -> renderer |> addNumber coord)
            (renderer |> beginNextInstruction instructionChar)
 
+let renderPoints instructionChar points renderer =
+    points
+    |> List.fold
+           (fun renderer point -> renderer |> addPoint point)
+           (renderer |> beginNextInstruction instructionChar)
+
+let renderQuadraticCurve renderer (curve: QuadraticCurveToParameters) =
+    renderer
+    |> addPoint curve.StartControlPoint
+    |> addPoint curve.Point
+
+let renderQuadraticCurves instructionChar curves renderer =
+    curves
+    |> List.fold
+           renderQuadraticCurve
+           (renderer |> beginNextInstruction instructionChar)
+
+let renderSmoothCurve renderer (curve: SmoothCurveToParameters) =
+    renderer
+    |> addPoint curve.EndControlPoint
+    |> addPoint curve.Point
+
+let renderSmoothCurves instructionChar curves renderer =
+    curves
+    |> List.fold
+           renderSmoothCurve
+           (renderer |> beginNextInstruction instructionChar)
+
 let renderPathInstruction renderer instruction =
     match instruction with
     | ClosePath -> renderer |> beginNextInstruction 'Z'
@@ -148,16 +172,16 @@ let renderPathInstruction renderer instruction =
     | EllipticalArcRel arcs -> renderer |> renderEllipticalArcs 'a' arcs
     | HorizLineToAbs coords -> renderer |> renderCoords 'H' coords
     | HorizLineToRel coords -> renderer |> renderCoords 'h' coords
-    | LineToAbs points -> renderer
-    | LineToRel points -> renderer
-    | MoveToAbs points -> renderer
-    | MoveToRel points -> renderer
-    | QuadraticCurveToAbs curves -> renderer
-    | QuadraticCurveToRel curves -> renderer
-    | SmoothCurveToAbs curves -> renderer
-    | SmoothCurveToRel curves -> renderer
-    | SmoothQuadraticCurveToAbs curves -> renderer
-    | SmoothQuadraticCurveToRel curves -> renderer
+    | LineToAbs points -> renderer |> renderPoints 'L' points
+    | LineToRel points -> renderer |> renderPoints 'l' points
+    | MoveToAbs points -> renderer |> renderPoints 'M' points
+    | MoveToRel points -> renderer |> renderPoints 'm' points
+    | QuadraticCurveToAbs curves -> renderer |> renderQuadraticCurves 'Q' curves
+    | QuadraticCurveToRel curves -> renderer |> renderQuadraticCurves 'q' curves
+    | SmoothCurveToAbs curves -> renderer |> renderSmoothCurves 'S' curves
+    | SmoothCurveToRel curves -> renderer |> renderSmoothCurves 's' curves
+    | SmoothQuadraticCurveToAbs points -> renderer |> renderPoints 'T' points
+    | SmoothQuadraticCurveToRel points -> renderer |> renderPoints 't' points
     | VertLineToAbs coords -> renderer |> renderCoords 'V' coords
     | VertLineToRel coords -> renderer |> renderCoords 'v' coords
 
@@ -168,75 +192,3 @@ let pathDataToString pathData =
     
     renderer.ToString()
     
-[<Fact(Skip="todo")>]
-let ``Can serialize path data to string``() =
-    let curveToParameters = [
-        { StartControlPoint = (10.2345,22.);
-          EndControlPoint = (-33.2, 44.2); Point = (12., 44.) }
-        { StartControlPoint = (12.2,22.);
-          EndControlPoint = (-34.2, 44.2); Point = (15., 44.) }
-    ]
-    
-    let ellipticalArcParameters = [
-        { Rx = 10.2; Ry = 55.3; XAxisRotation = 55.4; Arc = LargeArc;
-          Sweep = PositiveAngle; Point = (-22.4, 8.) }
-        { Rx = 11.2; Ry = 55.3; XAxisRotation = -55.4; Arc = SmallArc;
-          Sweep = NegativeAngle; Point = (22.4, 8.) }
-    ]
-    
-    let coords = [ 10.2; 12.2; -4.3 ]
-    let points = [ (1.2, 3.4); (5.6, 7.8) ]
-    
-    let quadCurveToParameters = [
-        { StartControlPoint = (10.2,22.); Point = (12., 44.) }
-        { StartControlPoint = (12.2,22.); Point = (15., 44.) }
-    ]
-    
-    let smoothCurveToParameters = [
-        { EndControlPoint = (10.2,22.); Point = (12., 44.) }
-        { EndControlPoint = (12.2,22.); Point = (15., 44.) }
-    ]
-    
-    let pathData = [
-        ClosePath
-        CurveToAbs curveToParameters
-        CurveToRel curveToParameters
-        EllipticalArcAbs ellipticalArcParameters
-        EllipticalArcRel ellipticalArcParameters
-        HorizLineToAbs coords
-        HorizLineToRel coords
-        LineToAbs points
-        LineToRel points
-        MoveToAbs points
-        MoveToRel points
-        QuadraticCurveToAbs quadCurveToParameters
-        QuadraticCurveToRel quadCurveToParameters
-        SmoothCurveToAbs smoothCurveToParameters
-        SmoothCurveToRel smoothCurveToParameters
-        SmoothQuadraticCurveToAbs points
-        SmoothQuadraticCurveToRel points
-        VertLineToAbs coords
-        VertLineToRel coords
-    ]
-    
-    let expectedString = 
-        "Z"
-        + "C10.23 22-33.2 44.2 12 44 12.2 22-34.2 44.2 15 44"
-        + "c10.23 22-33.2 44.2 12 44 12.2 22-34.2 44.2 15 44"
-        + "A10.2 55.3 55.4 1 1-22.4 8 11.2 55.3-55.4 0 0 22.4 8"
-        + "a10.2 55.3 55.4 1 1-22.4 8 11.2 55.3-55.4 0 0 22.4 8"
-        + "H10.2 12.2-4.3"
-        + "h10.2 12.2-4.3"
-        + "L1.2 3.4 5.6 7.8"
-        + "l1.2 3.4 5.6 7.8"
-        + "M1.2 3.4 5.6 7.8"
-        + "Q10.2 22 12 44 12.2 22 15 44"
-        + "q10.2 22 12 44 12.2 22 15 44"
-        + "S10.2 22 12 44 12.2 22 15 44"
-        + "s10.2 22 12 44 12.2 22 15 44"
-        + "T1.2 3.4 5.6 7.8"
-        + "t1.2 3.4 5.6 7.8"
-        + "V1.2 3.4 5.6 7.8"
-        + "v1.2 3.4 5.6 7.8"
-    
-    test <@ pathDataToString pathData = expectedString @>

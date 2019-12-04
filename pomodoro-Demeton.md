@@ -1,10 +1,10 @@
 - SVG paths
-    - A command letter may be eliminated if an identical command letter would otherwise precede it
-    - "M 100-200"
-    - "M 0.6.5"
+    - create factory functions for all of the instructions
+        - they should check that at least one item was defined
+        - use them in the test
 
 ## Wed 04.12.
-- Working on SVG path data serialization to string.
+- Implemented SVG path data serialization to string.
 
 ## Tue 03.12.
 - Additionally documented the isoline code.
