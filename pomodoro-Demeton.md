@@ -1,4 +1,6 @@
-- implement generating of isoline paths
+- transform marching squares isolines into ones with 9-way moves
+    - write property tests by implementing an inverse transformation
+        - additional property: same moves do not repeat in a sequence
 
 - run Europe on LCC
     - Could not open SRTM HTG file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip': ZIP file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip' does not have a file entry 'N44E048.hgt'.

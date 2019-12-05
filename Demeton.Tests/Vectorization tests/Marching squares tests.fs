@@ -1,4 +1,4 @@
-﻿module Tests.``Vectorization tests``.``Isoline tests``
+﻿module Tests.``Vectorization tests``.``Marching squares tests``
 
 open Demeton.Vectorization.MarchingSquares
 open Tests.``Vectorization tests``.``Isoline DSL``

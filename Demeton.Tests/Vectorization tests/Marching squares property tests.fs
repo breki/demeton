@@ -1,5 +1,5 @@
 ﻿/// Property tests for isoline detection algorithm.
-module Tests.``Vectorization tests``.``Isoline property tests``
+module Tests.``Vectorization tests``.``Marching squares property tests``
 
 open Demeton.Vectorization.MarchingSquares
 open Xunit
