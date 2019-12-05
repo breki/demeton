@@ -1,6 +1,7 @@
 ﻿module Demeton.Tests.Svg.``SVG path tests``
 
-open Svg.Paths
+open Svg.DocumentModel
+open Svg.PathDataFuncs
 
 open Xunit
 open Swensen.Unquote
