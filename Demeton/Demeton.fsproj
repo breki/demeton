@@ -72,6 +72,12 @@
     <Compile Include="Shaders\Pipeline\BuildingIgorHillshading.fs" />
     <Compile Include="Shaders\Pipeline\BuildingSlopeShader.fs" />
     <Compile Include="Shaders\Pipeline\BuildingAspectShader.fs" />
+    <Compile Include="Svg\DocumentModel.fs" />
+    <Compile Include="Svg\SvgLength.fs" />
+    <Compile Include="Svg\Path.fs" />
+    <Compile Include="Svg\Group.fs" />
+    <Compile Include="Svg\Document.fs" />
+    <Compile Include="Svg\PathDataFuncs.fs" />
     <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
     <Content Include="..\README.md">
