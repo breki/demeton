@@ -1,6 +1,6 @@
 ﻿module Tests.``Vectorization tests``.``Isoline tests``
 
-open Demeton.Vectorization.Isolines
+open Demeton.Vectorization.MarchingSquares
 open Tests.``Vectorization tests``.``Isoline DSL``
 open Xunit
 open Swensen.Unquote
@@ -16,7 +16,7 @@ let getHeight (array: float[]) width height x y =
 let segmentationFunc array width height isoValue: SegmentationFunc =
     fun isolinePoint ->
     match isolinePoint with
-    | IsolineHPoint (OnHorizontalEdge (x, y)) ->
+    | HPoint (OnHorizontalEdge (x, y)) ->
         let hUp = getHeight array width height x y
         let hDown = getHeight array width height x (y + 1)
         match hUp, isoValue, hDown with
@@ -25,7 +25,7 @@ let segmentationFunc array width height isoValue: SegmentationFunc =
         | _ when hUp > isoValue && isoValue >= hDown ->
             HStep (OnHorizontalEdge (x, y), Left) |> Some
         | _ -> None
-    | IsolineVPoint (OnVerticalEdge (x, y)) ->
+    | VPoint (OnVerticalEdge (x, y)) ->
         let hLeft = getHeight array width height x y
         let hRight = getHeight array width height (x + 1) y
         match hLeft, isoValue, hRight with

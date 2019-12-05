@@ -1,6 +1,6 @@
 ﻿module Tests.``Vectorization tests``.``Isoline DSL``
 
-open Demeton.Vectorization.Isolines
+open Demeton.Vectorization.MarchingSquares
 
 open FParsec
 open Xunit
@@ -33,11 +33,11 @@ let parseVStep = function
     | "d" -> Some Down
     | _ -> None
 
-let constructSteps (hOrV, x, y) (stepChars: string list): IsolineStep list =
+let constructSteps (hOrV, x, y) (stepChars: string list): Step list =
     let initialStepChar = stepChars |> List.head
     let restOfStepChars = stepChars |> List.tail
 
-    let buildSteps startingStep: IsolineStep list =
+    let buildSteps startingStep: Step list =
         let (steps, lastStep) =
             restOfStepChars
             |> List.mapFold (fun currentStep stepChar ->

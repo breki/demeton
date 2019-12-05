@@ -78,6 +78,7 @@
     <Compile Include="Svg\Group.fs" />
     <Compile Include="Svg\Document.fs" />
     <Compile Include="Svg\PathDataFuncs.fs" />
+    <Compile Include="Vectorization\MarchingSquares.fs" />
     <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
     <Content Include="..\README.md">
@@ -95,7 +96,6 @@
       <Link>download-sample-data.sh</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Vectorization\Isolines.fs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

@@ -1,13 +1,13 @@
 ﻿/// Property tests for isoline detection algorithm.
 module Tests.``Vectorization tests``.``Isoline property tests``
 
-open Demeton.Vectorization.Isolines
+open Demeton.Vectorization.MarchingSquares
 open Xunit
 open FsCheck
 
 /// Determines whether two steps are neighboring (i.e. the second one can
 /// follow the first one). 
-let canFollowStep (fromStep: IsolineStep) (toStep: IsolineStep) =
+let canFollowStep (fromStep: Step) (toStep: Step) =
     fromStep |> allowedDirectionsForStep
     |> Array.map (buildNextStep fromStep)
     |> Array.exists (fun step -> step = toStep)
@@ -37,7 +37,7 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
     /// Segmentation function implemented as a elevation contours identifier.
     let segmentationFunc: SegmentationFunc = fun isolinePoint ->
         match isolinePoint with
-        | IsolineHPoint (OnHorizontalEdge (x, y)) ->
+        | HPoint (OnHorizontalEdge (x, y)) ->
             let hUp = heightsArray.[x, y]
             let hDown = heightsArray.[x, y + 1]
             match hUp, isoValue, hDown with
@@ -46,7 +46,7 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
             | _ when hUp > isoValueInt && isoValueInt >= hDown ->
                 HStep (OnHorizontalEdge (x, y), Left) |> Some
             | _ -> None
-        | IsolineVPoint (OnVerticalEdge (x, y)) ->
+        | VPoint (OnVerticalEdge (x, y)) ->
             let hLeft = heightsArray.[x, y]
             let hRight = heightsArray.[x + 1, y]
             match hLeft, isoValue, hRight with

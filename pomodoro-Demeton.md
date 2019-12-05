@@ -1,7 +1,10 @@
+- implement generating of isoline paths
+
 - run Europe on LCC
     - Could not open SRTM HTG file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip': ZIP file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip' does not have a file entry 'N44E048.hgt'.
 
 ## Thu 05.12.
+- Renamed `Isoline` module to `MarchingSquares`, to distinguish it from other forms of isolines. Also simplified some naming of types in that module.
 - Implemented basic SVG XML writing.
 
 ## Wed 04.12.

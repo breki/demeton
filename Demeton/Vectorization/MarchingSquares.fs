@@ -1,54 +1,55 @@
 ﻿/// Contains types and functions for identifying isolines on a rectangular
-/// 2D array.
-module Demeton.Vectorization.Isolines
+/// 2D array using the Marching Squares algorithm
+/// (https://en.wikipedia.org/wiki/Marching_squares).
+module Demeton.Vectorization.MarchingSquares
 
 /// A point on a horizontal edge between two array cells, one above the other.
-type IsolineHPoint = OnHorizontalEdge of (int * int) 
+type HPoint = OnHorizontalEdge of (int * int) 
 /// A point on a vertical edge between two array cells, one to the left,
 /// the other to the right.
-type IsolineVPoint = OnVerticalEdge of (int * int) 
+type VPoint = OnVerticalEdge of (int * int) 
 
-/// A point in isoline coordinate system, which distinguishes between horizontal
-/// and vertical edges.
-type IsolinePoint =
+/// A point in marching squares coordinate system, which distinguishes between
+/// horizontal and vertical edges.
+type Point =
     /// A point on a horizontal edge between two array cells, one above the
     /// other.
-    | IsolineHPoint of IsolineHPoint
+    | HPoint of HPoint
     /// A point on a vertical edge between two array cells, one to the left,
     /// the other to the right.
-    | IsolineVPoint of IsolineVPoint
+    | VPoint of VPoint
 
-/// A direction of the isoline step on a horizontal edge.
-type IsolineHorizontalStepDirection = Left | Right
-/// A direction of the isoline step on a vertical edge.
-type IsolineVerticalStepDirection = Up | Down
+/// A direction of the marching squares step on a horizontal edge.
+type HorizontalStepDirection = Left | Right
+/// A direction of the marching squares step on a vertical edge.
+type VerticalStepDirection = Up | Down
 
-/// A direction of the isoline step.
-type IsolineStepDirection =
-    /// A direction of the isoline step on a horizontal edge.
-    | HDirection of IsolineHorizontalStepDirection
-    /// A direction of the isoline step on a vertical edge.
-    | VDirection of IsolineVerticalStepDirection
+/// A direction of the marching squares step.
+type StepDirection =
+    /// A direction of the marching squares step on a horizontal edge.
+    | HDirection of HorizontalStepDirection
+    /// A direction of the marching squares step on a vertical edge.
+    | VDirection of VerticalStepDirection
 
-/// A single step of the isoline, consisting of the point on the isoline
-/// coordinate system and the direction of the step.
-type IsolineStep =
+/// A single step of the isoline, consisting of the point on the marching
+/// squares coordinate system and the direction of the step.
+type Step =
     // An isoline step on the horizontal edge. 
-    | HStep of IsolineHPoint * IsolineHorizontalStepDirection
+    | HStep of HPoint * HorizontalStepDirection
     // An isoline step on the vertical edge. 
-    | VStep of IsolineVPoint * IsolineVerticalStepDirection
+    | VStep of VPoint * VerticalStepDirection
 
 /// An isoline that closes on itself (in a loop).
 type ClosedIsoline = {
-    Steps: IsolineStep list
+    Steps: Step list
 }
 
 /// An isoline that starts and ends on the edges of the array.
 type ClippedIsoline = {
-    Steps: IsolineStep list
+    Steps: Step list
 }
 
-/// An isoline represented by its steps.
+/// An isoline represented by its marching squares steps.
 type Isoline =
     | ClosedIsoline of ClosedIsoline
     | ClippedIsoline of ClippedIsoline
@@ -63,7 +64,7 @@ type Isoline =
 /// For example, when looking for elevation contours, the segmentation
 /// function would separate the array cells into two groups: one for the cells
 /// below the contour's elevation and the other for those above this elevation. 
-type SegmentationFunc = IsolinePoint -> IsolineStep option
+type SegmentationFunc = Point -> Step option
 
 /// Describes whether the isoline is closed or clipped one.
 type private IsolineEndingType =
@@ -104,9 +105,9 @@ let allowedDirectionsForStep = function
 /// Builds the next step given the current step and the direction of
 /// the next step.
 let buildNextStep
-    (fromStep: IsolineStep)
-    (toStepDirection: IsolineStepDirection)
-    : IsolineStep =
+    (fromStep: Step)
+    (toStepDirection: StepDirection)
+    : Step =
 
     match fromStep, toStepDirection with
     | HStep (fromPoint, fromDirection), HDirection toDirection  ->
@@ -152,17 +153,17 @@ let buildNextStep
         | (OnVerticalEdge (x,y), Down, Right) ->
             HStep (OnHorizontalEdge (x+1, y), toDirection)
 
-/// Maximum X coordinate for horizontal isoline points.
+/// Maximum X coordinate for horizontal marching squares points.
 let maxHorizX width = width - 1
-/// Maximum Y coordinate for horizontal isoline points.
+/// Maximum Y coordinate for horizontal marching squares points.
 let maxHorizY height = height - 2
-/// Maximum X coordinate for vertical isoline points.
+/// Maximum X coordinate for vertical marching squares points.
 let maxVertX width = width - 2
-/// Maximum Y coordinate for vertical isoline points.
+/// Maximum Y coordinate for vertical marching squares points.
 let maxVertY height = height - 1
 
-/// Determines whether the specified isoline point is on the edge of the
-/// array.
+/// Determines whether the specified marching squares point is on the edge
+/// of the array.
 let isStepOnArrayEdge width height = function
     | HStep (OnHorizontalEdge (x, y), _) ->
         x = 0 || y = 0 || x = (maxHorizX width) || y = (maxHorizY height)  
@@ -175,28 +176,31 @@ let isOnIsolinePath width height segmentationFunc step: bool =
     | VStep (OnVerticalEdge (x, y), _) ->
         if x >= 0 && x <= (maxVertX width)
            && y >= 0 && y <= (maxVertY height) then
-            segmentationFunc (IsolineVPoint (OnVerticalEdge (x, y)))
+            segmentationFunc (VPoint (OnVerticalEdge (x, y)))
             |> Option.isSome
         else false
     | HStep (OnHorizontalEdge (x, y), _) ->
         if x >= 0 && x <= (maxHorizX width)
            && y >= 0 && y <= (maxHorizY height) then
-            segmentationFunc (IsolineHPoint (OnHorizontalEdge (x, y)))
+            segmentationFunc (HPoint (OnHorizontalEdge (x, y)))
             |> Option.isSome
         else false
 
-/// For a given array, returns a sequence of identified isolines.
+/// For a given array and a segmentation function, returns a sequence
+/// of identified isolines.
 let findIsolines width height (segmentationFunc: SegmentationFunc)
     : Isoline seq =
         
     let array2dIndex x y = y * width + x
         
-    /// hold a boolean flag for each horizontal point in the isoline coordinate
-    /// system indicating whether the point was already covered by an isoline 
+    /// holds a boolean flag for each horizontal point in the marching squares
+    /// coordinate system indicating whether the point was already
+    /// covered by an isoline 
     let coverageArrayHorizontal = Array.init (width * height) (fun _ -> false)
 
-    /// hold a boolean flag for each vertical point in the isoline coordinate
-    /// system indicating whether the point was already covered by an isoline 
+    /// holds a boolean flag for each vertical point in the marching squares
+    /// coordinate system indicating whether the point was already
+    /// covered by an isoline 
     let coverageArrayVertical = Array.init (width * height) (fun _ -> false)      
         
     /// Indicates whether the horizontal point was already covered by an
@@ -235,7 +239,7 @@ let findIsolines width height (segmentationFunc: SegmentationFunc)
                 | _ -> invalidOp "bug"
 
             let stepPoint = OnHorizontalEdge (x, y)
-            let actualStepMaybe = segmentationFunc (IsolineHPoint stepPoint)
+            let actualStepMaybe = segmentationFunc (HPoint stepPoint)
             match actualStepMaybe with
             | Some (HStep (_, actualStepDirection)) ->
                 let searchDirection =
@@ -260,7 +264,7 @@ let findIsolines width height (segmentationFunc: SegmentationFunc)
                 | _ -> invalidOp "bug"
             
             let stepPoint = OnVerticalEdge (x, y)
-            let actualStepMaybe = segmentationFunc (IsolineVPoint stepPoint)
+            let actualStepMaybe = segmentationFunc (VPoint stepPoint)
             match actualStepMaybe with
             | Some (VStep (_, actualStepDirection)) ->
                 let searchDirection =
@@ -276,7 +280,7 @@ let findIsolines width height (segmentationFunc: SegmentationFunc)
                           
     /// Returns the next segmentation point (edge) that has not yet been
     /// covered by an isoline.
-    let findNextSegmentationEdge(): (IsolineStep * SearchDirection) seq =
+    let findNextSegmentationEdge(): (Step * SearchDirection) seq =
         seq {
             // First look for possible segmentation points at the edges of the
             // array. This will identify all of the isolines that are clipped
@@ -310,8 +314,8 @@ let findIsolines width height (segmentationFunc: SegmentationFunc)
     /// Finds the next appropriate isoline step based on the specified current
     /// step. If no new steps are possible (when the isoline reaches the array
     /// edge), returns None.
-    let findNextStep currentStep (allowedDirections: IsolineStepDirection[])
-        : IsolineStep option =
+    let findNextStep currentStep (allowedDirections: StepDirection[])
+        : Step option =
         
         allowedDirections
         |> Array.map (fun possibleDirection ->
@@ -340,8 +344,8 @@ let findIsolines width height (segmentationFunc: SegmentationFunc)
     /// Recursively moves one step of the isoline at the time until it reaches
     /// its starting point or the edge of the array, building the visited steps
     /// list.
-    let rec moveIsoline searchDirection firstStep (stepsSoFar: IsolineStep list)
-        : IsolineEndingType * IsolineStep list =
+    let rec moveIsoline searchDirection firstStep (stepsSoFar: Step list)
+        : IsolineEndingType * Step list =
         let previousStep = List.head stepsSoFar 
         let allowedDirections = allowedDirectionsForStep previousStep
     
