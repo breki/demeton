@@ -2,6 +2,7 @@
 module Tests.``Vectorization tests``.``Marching squares property tests``
 
 open Demeton.Vectorization.MarchingSquares
+open Tests.``Vectorization tests``.SampleSegmentation
 open Xunit
 open FsCheck
 
@@ -29,32 +30,9 @@ let closedIsolineIsProperlyClosed (isoline: Isoline) =
     | ClosedIsoline _ -> firstStep |> canFollowStep lastStep 
     | ClippedIsoline _ -> true
 
-let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
+let ``isolines properties``((heightsArray, isolineHeight): int[,] * int) =
     let width = heightsArray |> Array2D.length1
     let height = heightsArray |> Array2D.length2
-    let isoValue = float isoValueInt
-    
-    /// Segmentation function implemented as a elevation contours identifier.
-    let segmentationFunc: SegmentationFunc = fun isolinePoint ->
-        match isolinePoint with
-        | HPoint (OnHorizontalEdge (x, y)) ->
-            let hUp = heightsArray.[x, y]
-            let hDown = heightsArray.[x, y + 1]
-            match hUp, isoValue, hDown with
-            | _ when hUp <= isoValueInt && isoValueInt < hDown ->
-                HStep (OnHorizontalEdge (x, y), Right) |> Some
-            | _ when hUp > isoValueInt && isoValueInt >= hDown ->
-                HStep (OnHorizontalEdge (x, y), Left) |> Some
-            | _ -> None
-        | VPoint (OnVerticalEdge (x, y)) ->
-            let hLeft = heightsArray.[x, y]
-            let hRight = heightsArray.[x + 1, y]
-            match hLeft, isoValue, hRight with
-            | _ when hLeft <= isoValueInt && isoValueInt < hRight ->
-                VStep (OnVerticalEdge (x, y), Up) |> Some
-            | _ when hLeft > isoValueInt && isoValueInt >= hRight ->
-                VStep (OnVerticalEdge (x, y), Down) |> Some
-            | _ -> None
 
     /// Determines whether a clipped isoline really ends at the edges of the
     /// array.
@@ -78,12 +56,14 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
     let isolineCorrectlySegmentsTheSpace isoline =
         isoline |> isolineSteps
         |> List.forall (fun step ->
-            isOnIsolinePath width height segmentationFunc step)    
+            isOnIsolinePath width height
+                (heightsSegmentation heightsArray isolineHeight) step)    
 
     /// For a given step, find any isolines that cover it. If the step does not
     /// represent an isoline edge, return None. 
     let findIsolinesCoveringStep isolines step =
-        if isOnIsolinePath width height segmentationFunc step then
+        if isOnIsolinePath
+               width height (heightsSegmentation heightsArray isolineHeight) step then
             isolines
             |> Array.filter (fun isoline ->
                 let oppositeStep = oppositeStep step
@@ -99,8 +79,19 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
     | (_, 0) -> true |> Prop.classify true "Empty array"
     | _ ->
         let isolines =
-            findIsolines width height segmentationFunc
+            findIsolines
+                width height (heightsSegmentation heightsArray isolineHeight)
             |> Seq.toArray      
+        
+        let allIsolinesHaveAtLeastOneStep() =
+            let emptyIsolines =
+                isolines
+                |> Seq.filter (fun isoline ->
+                    isoline |> isolineSteps |> List.isEmpty)
+            
+            emptyIsolines |> Seq.isEmpty
+            |> Prop.label "all isolines have at least one step"
+            |@ sprintf "empty isolines: %A" emptyIsolines
         
         let allIsolinesHaveCorrectlyConstructedStepsThatFollowPreviousOne() =
             let isolinesWithWrongSteps =
@@ -176,7 +167,8 @@ let ``isolines properties``((heightsArray, isoValueInt): int[,] * int) =
                    "all isoline edges in the array have been covered once and exactly once"
             |@ sprintf "isoline edges not covered: %A" incorrectlyCoveredIsolineEdges
             
-        allIsolinesHaveCorrectlyConstructedStepsThatFollowPreviousOne
+        allIsolinesHaveAtLeastOneStep
+        .&. allIsolinesHaveCorrectlyConstructedStepsThatFollowPreviousOne
         .&. allIsolinesCorrectlyDivideTheSpace
         .&. allClosedIsolinesAreProperlyClosed
         .&. allClippedIsolinesEndAtEdges

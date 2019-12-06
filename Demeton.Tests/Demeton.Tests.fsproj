@@ -84,6 +84,7 @@
     <Compile Include="Shaders\Parsing shading scripts.fs" />
     <Compile Include="Vectorization tests\Isoline DSL.fs" />
     <Compile Include="Vectorization tests\Marching squares tests.fs" />
+    <Compile Include="Vectorization tests\SampleSegmentation.fs" />
     <Compile Include="Vectorization tests\Marching squares property tests.fs" />
     <Compile Include="Vectorization tests\Steps to moves transformation.fs" />
     <Compile Include="Svg\SVG path tests.fs" />
