@@ -1,11 +1,12 @@
-- use seq instead of list
-- extract common code
+- increase the test sample count and size
 - transform marching squares isolines into ones with 9-way moves
     - write property tests by implementing an inverse transformation
         - additional property: same moves do not repeat in a sequence
+- move to the production module
 - document
 
 ## Sat 07.12.
+- Extracted the common functions in the moves code. 
 - Implemented helper methods for property testing that support
 Xunit's `ITestOutputHelper`.
 - Isoline steps to movements transformation now passes property tests, but we need an additional property.

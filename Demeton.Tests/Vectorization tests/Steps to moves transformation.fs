@@ -65,48 +65,52 @@ let private directionsToMoves
         (moveToAdd :: movesSoFar, None, 0)
     | _ -> invalidOp "bug: this should never happen"
 
+    
+let private findNextMoveDirection previousStepMaybe directionsSoFar nextStep =
+    match previousStepMaybe, directionsSoFar with
+    | None, [] -> (Some nextStep, [])
+    | Some previousStep, _ ->
+        let nextDirection =
+            match previousStep, nextStep with
+            | HStep(_, Left), HStep(_, Left) -> W
+            | HStep(_, Left), VStep(_, Up) -> NW
+            | HStep(_, Left), VStep(_, Down) -> SW
+            | HStep(_, Right), HStep(_, Right) -> E 
+            | HStep(_, Right), VStep(_, Up) -> NE
+            | HStep(_, Right), VStep(_, Down) -> SE
+            | VStep(_, Up), VStep(_, Up) -> N
+            | VStep(_, Up), HStep(_, Left) -> NW
+            | VStep(_, Up), HStep(_, Right) -> NE
+            | VStep(_, Down), VStep(_, Down) -> S
+            | VStep(_, Down), HStep(_, Left) -> SW
+            | VStep(_, Down), HStep(_, Right) -> SE
+            | _ -> invalidOp "bug: invalid step sequence"
+        (Some nextStep, nextDirection :: directionsSoFar)
+    | _ -> invalidOp "bug: this should never happen"
+
 let private closedStepsToMoves (isoline: ClosedIsoline): IsolineMoves =
-    let processNextStep (previousStepMaybe, directionsSoFar) stepMaybe =
+    let processNextStep (previousStepMaybe, directionsSoFar) nextStepMaybe =
         let nextStep =
-            match stepMaybe with
+            match nextStepMaybe with
             | Some step -> step
-            | None -> isoline.Steps |> List.head
+            | None -> isoline.Steps |> Seq.head
         
-        match previousStepMaybe, directionsSoFar with
-        | None, [] -> (Some nextStep, [])
-        | Some previousStep, _ ->
-            let nextDirection =
-                match previousStep, nextStep with
-                | HStep(_, Left), HStep(_, Left) -> W
-                | HStep(_, Left), VStep(_, Up) -> NW
-                | HStep(_, Left), VStep(_, Down) -> SW
-                | HStep(_, Right), HStep(_, Right) -> E 
-                | HStep(_, Right), VStep(_, Up) -> NE
-                | HStep(_, Right), VStep(_, Down) -> SE
-                | VStep(_, Up), VStep(_, Up) -> N
-                | VStep(_, Up), HStep(_, Left) -> NW
-                | VStep(_, Up), HStep(_, Right) -> NE
-                | VStep(_, Down), VStep(_, Down) -> S
-                | VStep(_, Down), HStep(_, Left) -> SW
-                | VStep(_, Down), HStep(_, Right) -> SE
-                | _ -> invalidOp "bug: invalid step sequence"
-            (Some nextStep, nextDirection :: directionsSoFar)
-        | _ -> invalidOp "bug: this should never happen"
+        findNextMoveDirection previousStepMaybe directionsSoFar nextStep
     
     let (_, directions) =
         isoline.Steps
-        |> List.rev
-        |> List.map Option.Some
-        |> List.append [ None ]
-        |> List.rev
-        |> List.fold processNextStep (None, [])
+        |> Seq.rev
+        |> Seq.map Option.Some
+        |> Seq.append [ None ]
+        |> Seq.rev
+        |> Seq.fold processNextStep (None, [])
     
     let (completeMoves, _, _) =
         directions
-        |> List.map Option.Some
-        |> List.append [ None ]
-        |> List.rev
-        |> List.fold directionsToMoves ([], None, 0)
+        |> Seq.map Option.Some
+        |> Seq.append [ None ]
+        |> Seq.rev
+        |> Seq.fold directionsToMoves ([], None, 0)
     
     let startingPoint =
         match isoline.Steps.Head with
@@ -116,29 +120,10 @@ let private closedStepsToMoves (isoline: ClosedIsoline): IsolineMoves =
     ClosedIsolineMoves {
         StartingPoint2 = startingPoint; Moves = completeMoves |> List.rev
     }
-    
+        
 let private clippedStepsToMoves (isoline: ClippedIsoline): IsolineMoves =
-    let processNextStep (previousStepMaybe, directionsSoFar) step =
-        match previousStepMaybe, directionsSoFar with
-        | None, [] -> (Some step, [])
-        | Some previousStep, _ ->
-            let nextDirection =
-                match previousStep, step with
-                | HStep(_, Left), HStep(_, Left) -> W
-                | HStep(_, Left), VStep(_, Up) -> NW
-                | HStep(_, Left), VStep(_, Down) -> SW
-                | HStep(_, Right), HStep(_, Right) -> E 
-                | HStep(_, Right), VStep(_, Up) -> NE
-                | HStep(_, Right), VStep(_, Down) -> SE
-                | VStep(_, Up), VStep(_, Up) -> N
-                | VStep(_, Up), HStep(_, Left) -> NW
-                | VStep(_, Up), HStep(_, Right) -> NE
-                | VStep(_, Down), VStep(_, Down) -> S
-                | VStep(_, Down), HStep(_, Left) -> SW
-                | VStep(_, Down), HStep(_, Right) -> SE
-                | _ -> invalidOp "bug: invalid step sequence"
-            (Some step, nextDirection :: directionsSoFar)
-        | _ -> invalidOp "bug: this should never happen"
+    let processNextStep (previousStepMaybe, directionsSoFar) nextStep =        
+        findNextMoveDirection previousStepMaybe directionsSoFar nextStep
     
     let startingEdge =
         match isoline.Steps |> Seq.head with
@@ -156,14 +141,14 @@ let private clippedStepsToMoves (isoline: ClippedIsoline): IsolineMoves =
     
     let (_, directions) =
         isoline.Steps
-        |> List.fold processNextStep (None, [])
+        |> Seq.fold processNextStep (None, [])
        
     let (completeMoves, _, _) =
         directions
-        |> List.map Option.Some
-        |> List.append [ None ]
-        |> List.rev
-        |> List.fold directionsToMoves ([], None, 0)
+        |> Seq.map Option.Some
+        |> Seq.append [ None ]
+        |> Seq.rev
+        |> Seq.fold directionsToMoves ([], None, 0)
     
     ClippedIsolineMoves {
         StartingEdge = startingEdge
@@ -180,41 +165,41 @@ let private movesToDirections (moves: Move seq): MoveDirection seq =
     moves
     |> Seq.collect (fun move -> Seq.init move.Count (fun _ -> move.Direction))
 
-let closedMovesToSteps (moves: ClosedIsolineMoves): Isoline =
+let private processDirection (stepsSoFar, stepPoint: Point) direction =
+    let (step, nextStepPoint: Point) =
+        match direction, stepPoint with
+        | N, VPoint (OnVerticalEdge(x, y)) ->
+            (VStep (OnVerticalEdge(x, y), Up), OnVerticalEdge (x, y-1) |> VPoint)
+        | NE, VPoint (OnVerticalEdge(x, y)) ->
+            (VStep (OnVerticalEdge(x, y), Up), OnHorizontalEdge (x+1, y-1) |> HPoint)
+        | NE, HPoint (OnHorizontalEdge(x, y)) ->
+            (HStep (OnHorizontalEdge(x, y), Right), OnVerticalEdge (x, y) |> VPoint)
+        | E, HPoint (OnHorizontalEdge(x, y)) ->
+            (HStep (OnHorizontalEdge(x, y), Right), OnHorizontalEdge (x+1, y) |> HPoint)
+        | SE, VPoint (OnVerticalEdge(x, y)) ->
+            (VStep (OnVerticalEdge(x, y), Down), OnHorizontalEdge (x+1, y) |> HPoint)
+        | SE, HPoint (OnHorizontalEdge(x, y)) ->
+            (HStep (OnHorizontalEdge(x, y), Right), OnVerticalEdge (x, y + 1) |> VPoint)
+        | S, VPoint (OnVerticalEdge(x, y)) ->
+            (VStep (OnVerticalEdge(x, y), Down), OnVerticalEdge (x, y+1) |> VPoint)
+        | SW, VPoint (OnVerticalEdge(x, y)) ->
+            (VStep (OnVerticalEdge(x, y), Down), OnHorizontalEdge (x, y) |> HPoint)
+        | SW, HPoint (OnHorizontalEdge(x, y)) ->
+            (HStep (OnHorizontalEdge(x, y), Left), OnVerticalEdge (x-1, y+1) |> VPoint)
+        | W, HPoint (OnHorizontalEdge(x, y)) ->
+            (HStep (OnHorizontalEdge(x, y), Left), OnHorizontalEdge (x-1, y) |> HPoint)
+        | NW, VPoint (OnVerticalEdge(x, y)) ->
+            (VStep (OnVerticalEdge(x, y), Up), OnHorizontalEdge (x, y-1) |> HPoint)
+        | NW, HPoint (OnHorizontalEdge(x, y)) ->
+            (HStep (OnHorizontalEdge(x, y), Left), OnVerticalEdge (x-1, y) |> VPoint)
+        | _ -> invalidOp "bug: should never happen"
+    
+    (step :: stepsSoFar, nextStepPoint)
+
+let private closedMovesToSteps (moves: ClosedIsolineMoves): Isoline =
     let (sx2, sy2) = moves.StartingPoint2
     let sx = sx2 / 2
     let sy = sy2 / 2
-
-    let processDirection (stepsSoFar, stepPoint: Point) direction =
-        let (step, nextStepPoint: Point) =
-            match direction, stepPoint with
-            | N, VPoint (OnVerticalEdge(x, y)) ->
-                (VStep (OnVerticalEdge(x, y), Up), OnVerticalEdge (x, y-1) |> VPoint)
-            | NE, VPoint (OnVerticalEdge(x, y)) ->
-                (VStep (OnVerticalEdge(x, y), Up), OnHorizontalEdge (x+1, y-1) |> HPoint)
-            | NE, HPoint (OnHorizontalEdge(x, y)) ->
-                (HStep (OnHorizontalEdge(x, y), Right), OnVerticalEdge (x, y) |> VPoint)
-            | E, HPoint (OnHorizontalEdge(x, y)) ->
-                (HStep (OnHorizontalEdge(x, y), Right), OnHorizontalEdge (x+1, y) |> HPoint)
-            | SE, VPoint (OnVerticalEdge(x, y)) ->
-                (VStep (OnVerticalEdge(x, y), Down), OnHorizontalEdge (x+1, y) |> HPoint)
-            | SE, HPoint (OnHorizontalEdge(x, y)) ->
-                (HStep (OnHorizontalEdge(x, y), Right), OnVerticalEdge (x, y + 1) |> VPoint)
-            | S, VPoint (OnVerticalEdge(x, y)) ->
-                (VStep (OnVerticalEdge(x, y), Down), OnVerticalEdge (x, y+1) |> VPoint)
-            | SW, VPoint (OnVerticalEdge(x, y)) ->
-                (VStep (OnVerticalEdge(x, y), Down), OnHorizontalEdge (x, y) |> HPoint)
-            | SW, HPoint (OnHorizontalEdge(x, y)) ->
-                (HStep (OnHorizontalEdge(x, y), Left), OnVerticalEdge (x-1, y+1) |> VPoint)
-            | W, HPoint (OnHorizontalEdge(x, y)) ->
-                (HStep (OnHorizontalEdge(x, y), Left), OnHorizontalEdge (x-1, y) |> HPoint)
-            | NW, VPoint (OnVerticalEdge(x, y)) ->
-                (VStep (OnVerticalEdge(x, y), Up), OnHorizontalEdge (x, y-1) |> HPoint)
-            | NW, HPoint (OnHorizontalEdge(x, y)) ->
-                (HStep (OnHorizontalEdge(x, y), Left), OnVerticalEdge (x-1, y) |> VPoint)
-            | _ -> invalidOp "bug: should never happen"
-        
-        (step :: stepsSoFar, nextStepPoint)
         
     let xIsFraction = sx2 % 2 <> 0  
     let yIsFraction = sy2 % 2 <> 0
@@ -233,7 +218,7 @@ let closedMovesToSteps (moves: ClosedIsolineMoves): Isoline =
     let stepsOrdered = steps |> List.rev
     ClosedIsoline { Steps = stepsOrdered }
 
-let clippedMovesToSteps (moves: ClippedIsolineMoves): Isoline =
+let private clippedMovesToSteps (moves: ClippedIsolineMoves): Isoline =
     let startingStepPoint =
         match moves.StartingEdge with
         | TopEdge x2 -> OnVerticalEdge((x2 - 1) / 2, 0) |> VPoint
@@ -241,38 +226,6 @@ let clippedMovesToSteps (moves: ClippedIsolineMoves): Isoline =
         | BottomEdge (x2, y2) -> OnVerticalEdge ((x2 - 1) / 2, y2/2) |> VPoint
         | LeftEdge y2 -> OnHorizontalEdge (0, (y2 - 1) / 2) |> HPoint
         
-    let processDirection (stepsSoFar, stepPoint: Point) direction =
-        let (step, nextStepPoint: Point) =
-            match direction, stepPoint with
-            | N, VPoint (OnVerticalEdge(x, y)) ->
-                (VStep (OnVerticalEdge(x, y), Up), OnVerticalEdge (x, y-1) |> VPoint)
-            | NE, VPoint (OnVerticalEdge(x, y)) ->
-                (VStep (OnVerticalEdge(x, y), Up), OnHorizontalEdge (x+1, y-1) |> HPoint)
-            | NE, HPoint (OnHorizontalEdge(x, y)) ->
-                (HStep (OnHorizontalEdge(x, y), Right), OnVerticalEdge (x, y) |> VPoint)
-            | E, HPoint (OnHorizontalEdge(x, y)) ->
-                (HStep (OnHorizontalEdge(x, y), Right), OnHorizontalEdge (x+1, y) |> HPoint)
-            | SE, VPoint (OnVerticalEdge(x, y)) ->
-                (VStep (OnVerticalEdge(x, y), Down), OnHorizontalEdge (x+1, y) |> HPoint)
-            | SE, HPoint (OnHorizontalEdge(x, y)) ->
-                (HStep (OnHorizontalEdge(x, y), Right), OnVerticalEdge (x, y + 1) |> VPoint)
-            | S, VPoint (OnVerticalEdge(x, y)) ->
-                (VStep (OnVerticalEdge(x, y), Down), OnVerticalEdge (x, y+1) |> VPoint)
-            | SW, VPoint (OnVerticalEdge(x, y)) ->
-                (VStep (OnVerticalEdge(x, y), Down), OnHorizontalEdge (x, y) |> HPoint)
-            | SW, HPoint (OnHorizontalEdge(x, y)) ->
-                (HStep (OnHorizontalEdge(x, y), Left), OnVerticalEdge (x-1, y+1) |> VPoint)
-            | W, HPoint (OnHorizontalEdge(x, y)) ->
-                (HStep (OnHorizontalEdge(x, y), Left), OnHorizontalEdge (x-1, y) |> HPoint)
-            | NW, VPoint (OnVerticalEdge(x, y)) ->
-                (VStep (OnVerticalEdge(x, y), Up), OnHorizontalEdge (x, y-1) |> HPoint)
-            | NW, HPoint (OnHorizontalEdge(x, y)) ->
-                (HStep (OnHorizontalEdge(x, y), Left), OnVerticalEdge (x-1, y) |> VPoint)
-            | _ -> invalidOp "bug: should never happen"
-        
-        (step :: stepsSoFar, nextStepPoint)
-
-            
     let (steps, _) =
         moves.Moves
         |> movesToDirections
@@ -338,8 +291,6 @@ let ``Simplest closed isoline``() =
     
 
 type IsolineMovesPropertyTests(output: Xunit.Abstractions.ITestOutputHelper) =
-    let output = output
-  
     let ``isoline moves properties``((heightsArray, isolineHeight): int[,] * int) =
         let width = heightsArray |> Array2D.length1
         let height = heightsArray |> Array2D.length2
