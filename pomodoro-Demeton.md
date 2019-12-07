@@ -5,6 +5,7 @@
 - document
 
 ## Sat 07.12.
+- Finally managed to implement a proper FsCheck runner that outputs everything to Xunit.
 - Increased the max tests and end size of property tests for moves.
 - Extracted the common functions in the moves code. 
 - Implemented helper methods for property testing that support

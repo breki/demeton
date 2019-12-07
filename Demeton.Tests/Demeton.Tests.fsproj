@@ -20,6 +20,7 @@
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
     <Compile Include="TestHelp.fs" />
+    <Compile Include="BetterFsCheckRunner.fs" />
     <Compile Include="PropertiesHelp.fs" />
     <Compile Include="ColorGen.fs" />
     <Compile Include="ResultSeq tests.fs" />

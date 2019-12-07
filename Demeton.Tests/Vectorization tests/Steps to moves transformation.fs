@@ -295,22 +295,26 @@ type IsolineMovesPropertyTests(output: Xunit.Abstractions.ITestOutputHelper) =
         let width = heightsArray |> Array2D.length1
         let height = heightsArray |> Array2D.length2
 
+        let findIsolinesThatDoNotTransformToMovesAndBackToSameSteps() =
+            findIsolines
+                width height (heightsSegmentation heightsArray isolineHeight)
+            |> Seq.toArray
+            |> Array.map (fun isoline ->
+                let moves = stepsToMoves isoline
+                let isolineBack = movesToSteps moves
+                (isoline, moves, isolineBack))
+            |> Array.filter (fun (isoline, _, isolineBack) ->
+                isoline <> isolineBack)
+        
         match width, height with
         | (0, _) -> true |> Prop.classify true "Empty array"
         | (_, 0) -> true |> Prop.classify true "Empty array"
         | _ ->
             let offendingIsolines =
-                findIsolines
-                    width height (heightsSegmentation heightsArray isolineHeight)
-                |> Seq.toArray
-                |> Array.map (fun isoline ->
-                    let moves = stepsToMoves isoline
-                    let isolineBack = movesToSteps moves
-                    (isoline, moves, isolineBack))
-                |> Array.filter (fun (isoline, _, isolineBack) ->
-                    isoline <> isolineBack)
+                findIsolinesThatDoNotTransformToMovesAndBackToSameSteps()
             
             offendingIsolines |> Array.isEmpty
+            |> Prop.classify true "Non-empty array"
             |> Prop.label
                    "transformation from steps to moves and back produces the same steps"
             |@ sprintf "Offending isolines: %A" offendingIsolines
@@ -322,4 +326,4 @@ type IsolineMovesPropertyTests(output: Xunit.Abstractions.ITestOutputHelper) =
         let gen = Gen.zip genArray genHeight
 
         ``isoline moves properties``
-        |> checkPropertyVerboseWithTestSize gen 200 250 output 
+        |> checkPropertyWithTestSize gen output 200 250
