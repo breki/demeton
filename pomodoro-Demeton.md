@@ -1,11 +1,11 @@
-- increase the test sample count and size
-- transform marching squares isolines into ones with 9-way moves
-    - write property tests by implementing an inverse transformation
-        - additional property: same moves do not repeat in a sequence
+- additional properties:    
+    - same moves do not repeat in a sequence
+    - the number of moves must correspond to the number of steps
 - move to the production module
 - document
 
 ## Sat 07.12.
+- Increased the max tests and end size of property tests for moves.
 - Extracted the common functions in the moves code. 
 - Implemented helper methods for property testing that support
 Xunit's `ITestOutputHelper`.

@@ -63,6 +63,21 @@ let checkProperty generator property =
         
     Check.One(Config.QuickThrowOnFailure, property')
     
+/// Runs FsCheck on the specified property, using the specified generator
+/// and the provided max tests and end size values.
+/// Does not output debug information if the property check is successful.
+let checkPropertyWithTestSize generator maxTests endSize property =
+    let property' =
+        generator 
+        |> Arb.fromGen
+        |> Prop.forAll <| property
+        
+    Check.One(
+        { Config.QuickThrowOnFailure
+            with MaxTest = maxTests; EndSize = endSize },
+        property'
+    )
+    
 /// Runs FsCheck on the specified property, using the specified generator.
 /// Outputs verbose debug information even if the property check is successful,
 /// so it needs Xunit's ITestOutputHelper.
@@ -76,6 +91,24 @@ let checkPropertyVerbose
     Check.One(
         { (optionsWithVerboseXUnitOutput output) with 
             QuietOnSuccess = false
+        },
+        property')
+
+/// Runs FsCheck on the specified property, using the specified generator
+/// and the provided max tests and end size values.
+/// Outputs verbose debug information even if the property check is successful,
+/// so it needs Xunit's ITestOutputHelper.
+let checkPropertyVerboseWithTestSize
+    generator maxTests endSize
+    (output: Xunit.Abstractions.ITestOutputHelper) property =
+    let property' =
+        generator 
+        |> Arb.fromGen
+        |> Prop.forAll <| property
+        
+    Check.One(
+        { (optionsWithVerboseXUnitOutput output) with 
+            QuietOnSuccess = false; MaxTest = maxTests; EndSize = endSize
         },
         property')
     

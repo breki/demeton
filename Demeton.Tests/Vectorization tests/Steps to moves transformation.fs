@@ -322,5 +322,4 @@ type IsolineMovesPropertyTests(output: Xunit.Abstractions.ITestOutputHelper) =
         let gen = Gen.zip genArray genHeight
 
         ``isoline moves properties``
-        |> checkProperty gen 
-    //    |> replayPropertyCheck gen (748622426,296678893)
+        |> checkPropertyVerboseWithTestSize gen 200 250 output 
