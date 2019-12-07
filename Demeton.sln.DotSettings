@@ -2,6 +2,7 @@
 	<s:Int64 x:Key="/Default/CodeStyle/CodeFormatting/FSharpFormat/WRAP_LIMIT/@EntryValue">80</s:Int64>
 	<s:String x:Key="/Default/Environment/ContinuousTesting/TriggerMode/@EntryValue">OnSave</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/ExcludedCategoriesList/@EntryValue">slow</s:String>
+	<s:Boolean x:Key="/Default/Environment/UnitTesting/ShowNotificationOnFinish/@EntryValue">False</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Brejc/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=colorer/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=composited/@EntryIndexedValue">True</s:Boolean>
@@ -28,4 +29,5 @@
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=semimajor/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Semiminor/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Srtm/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=tmerc/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=tmerc/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=Xunit_0027s/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

@@ -40,15 +40,56 @@ let valueIsBetweenInclusive
     (min <= value && value <= max) 
         |@ sprintf "%s %A <= %A <= %A" name min value max
 
-/// <summary>
-/// Replays the FsCheck property check using the specified replay seed. Note
-/// that it does not throw an exception on falsifiable properties.
-/// </summary>
-let replayPropertyCheck replaySeed property =
+let (.=.) left right = left = right |@ sprintf "%A = %A" left right
+
+let private optionsWithVerboseXUnitOutput
+    (output: Xunit.Abstractions.ITestOutputHelper) =
+    // stolen from https://github.com/fscheck/FsCheck/blob/master/src/FsCheck.Xunit/PropertyAttribute.fs
+    { Config.QuickThrowOnFailure with
+            QuietOnSuccess = false
+            Every = fun n args ->
+                output.WriteLine (Config.Verbose.Every n args); ""
+            EveryShrink = fun args ->
+                output.WriteLine (Config.Verbose.EveryShrink args); ""
+    }
+
+/// Runs FsCheck on the specified property, using the specified generator.
+/// Does not output debug information if the property check is successful.
+let checkProperty generator property =
+    let property' =
+        generator 
+        |> Arb.fromGen
+        |> Prop.forAll <| property
+        
+    Check.One(Config.QuickThrowOnFailure, property')
+    
+/// Runs FsCheck on the specified property, using the specified generator.
+/// Outputs verbose debug information even if the property check is successful,
+/// so it needs Xunit's ITestOutputHelper.
+let checkPropertyVerbose
+    generator (output: Xunit.Abstractions.ITestOutputHelper) property =
+    let property' =
+        generator 
+        |> Arb.fromGen
+        |> Prop.forAll <| property
+        
     Check.One(
-        { Config.Quick with 
+        { (optionsWithVerboseXUnitOutput output) with 
+            QuietOnSuccess = false
+        },
+        property')
+    
+/// Replays the FsCheck property check using the specified replay seed.
+/// Outputs verbose debug information even if the property check is successful,
+/// so it needs Xunit's ITestOutputHelper.
+let replayPropertyCheck generator output replaySeed property =
+    let property' =
+        generator 
+        |> Arb.fromGen
+        |> Prop.forAll <| property
+    
+    Check.One(
+        { (optionsWithVerboseXUnitOutput output) with 
             Replay = Some <| Random.StdGen replaySeed; 
             QuietOnSuccess = false },
-        property)
-
-let (.=.) left right = left = right |@ sprintf "%A = %A" left right
+        property')

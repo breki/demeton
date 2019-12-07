@@ -1,9 +1,14 @@
+- use seq instead of list
+- extract common code
 - transform marching squares isolines into ones with 9-way moves
     - write property tests by implementing an inverse transformation
         - additional property: same moves do not repeat in a sequence
+- document
 
-- run Europe on LCC
-    - Could not open SRTM HTG file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip': ZIP file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip' does not have a file entry 'N44E048.hgt'.
+## Sat 07.12.
+- Implemented helper methods for property testing that support
+Xunit's `ITestOutputHelper`.
+- Isoline steps to movements transformation now passes property tests, but we need an additional property.
 
 ## Thu 05.12.
 - Renamed `Isoline` module to `MarchingSquares`, to distinguish it from other forms of isolines. Also simplified some naming of types in that module.

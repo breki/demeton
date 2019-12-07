@@ -1,3 +1,6 @@
+- run Europe on LCC
+    - Could not open SRTM HTG file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip': ZIP file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip' does not have a file entry 'N44E048.hgt'.
+
 
 - report ignored PROJ parameters in the console
 
