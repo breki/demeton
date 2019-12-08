@@ -7,16 +7,16 @@ open Xunit
 open FsCheck
 open PropertiesHelp
 
-let classifyTestArray width height property =
-    let classification = 
+let classifyTestArray width height =
+    let label = 
         match width, height with
-        | 0, _ -> Prop.classify true "Empty array"
-        | _, 0 -> Prop.classify true "Empty array"
-        | 1, _ -> Prop.classify true "1-width array"
-        | _, 1 -> Prop.classify true "1-width array"
-        | _ -> Prop.classify true "N-width array"
+        | 0, _ -> "Empty array"
+        | _, 0 -> "Empty array"
+        | 1, _ -> "1-width array"
+        | _, 1 -> "1-width array"
+        | _ -> "N-width array"
         
-    classification property
+    Prop.classify true label
 
 type MarchingSquaresPropertyTests(output: Xunit.Abstractions.ITestOutputHelper) =
     /// Determines whether two steps are neighboring (i.e. the second one can
