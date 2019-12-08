@@ -186,12 +186,11 @@ let isOnIsolinePath width height segmentationFunc step: bool =
             |> Option.isSome
         else false
 
-/// For a given array and a segmentation function, returns a sequence
-/// of identified isolines.
-let findIsolines width height (segmentationFunc: SegmentationFunc)
+/// Private implementation of findIsolines that does not check for the array size.
+let findIsolinesPrivate width height (segmentationFunc: SegmentationFunc)
     : Isoline seq =
-        
-    let array2dIndex x y = y * width + x
+
+    let array2dIndex x y = y * width + x   
         
     /// holds a boolean flag for each horizontal point in the marching squares
     /// coordinate system indicating whether the point was already
@@ -402,3 +401,12 @@ let findIsolines width height (segmentationFunc: SegmentationFunc)
         let isoline = traceIsoline x
         markEdgesCoveredByIsoline isoline      
         isoline)
+
+/// For a given array and a segmentation function, returns a sequence
+/// of identified isolines.
+let findIsolines width height (segmentationFunc: SegmentationFunc)
+    : Isoline seq =
+    match width, height with
+    | (0, _) -> Seq.empty
+    | (_, 0) -> Seq.empty
+    | _ -> findIsolinesPrivate width height segmentationFunc

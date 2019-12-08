@@ -1,8 +1,10 @@
-- additional properties:    
-    - same moves do not repeat in a sequence
-    - the number of moves must correspond to the number of steps
 - move to the production module
 - document
+
+## Sun 08.12.
+- Added "the number of moves must correspond to the number of steps" property.
+- Added "same moves do not repeat in a sequence" property.
+- Cleaned up the isoline property tests a bit.
 
 ## Sat 07.12.
 - Finally managed to implement a proper FsCheck runner that outputs everything to Xunit.

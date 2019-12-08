@@ -3,6 +3,7 @@
 open Demeton.Vectorization.MarchingSquares
 open Tests.``Vectorization tests``.SampleSegmentation
 open Tests.``Vectorization tests``.``Isoline DSL``
+open Tests.``Vectorization tests``.``Marching squares property tests``
 
 open Xunit
 open Swensen.Unquote
@@ -291,11 +292,65 @@ let ``Simplest closed isoline``() =
     
 
 type IsolineMovesPropertyTests(output: Xunit.Abstractions.ITestOutputHelper) =
+    let isolineMoves = function
+        | ClosedIsolineMoves isoline -> isoline.Moves
+        | ClippedIsolineMoves isoline -> isoline.Moves
+
+    let isolineMovesCount = function
+        | ClosedIsolineMoves isoline ->
+            isoline.Moves
+            |> Seq.sumBy (fun move -> move.Count)
+        | ClippedIsolineMoves isoline ->
+            isoline.Moves
+            |> Seq.sumBy (fun move -> move.Count)
+            |> (+) 1
+    
+    let findIsolinesThatDoNotTransformToMovesAndBackToSameSteps isolines =
+        isolines
+        |> Array.filter (fun (isoline, _, isolineBack) ->
+            isoline <> isolineBack)
+    
+    let findIsolinesThatHaveNonMergedMoves isolines =
+        isolines
+        |> Seq.filter (fun (_, moves, _) ->
+            moves
+            |> isolineMoves
+            |> Seq.pairwise
+            |> Seq.exists (fun (movePrev, moveNext) ->
+                    movePrev.Direction = moveNext.Direction))
+    
+    let findIsolinesThatHaveInconsistentMovesCount isolines =
+        isolines
+        |> Seq.filter (fun (isoline, moves, _) ->
+            (isolineSteps isoline).Length <> (isolineMovesCount moves))
+    
+    let isolineProperty findOffendingIsolinesFunc label isolines =
+        let offendingIsolines = findOffendingIsolinesFunc isolines
+        
+        offendingIsolines |> Seq.isEmpty
+        |> Prop.label label
+        |@ sprintf "Offending isolines: %A" offendingIsolines
+    
+    let propTransformationToMovesIsReversible =
+        isolineProperty
+            findIsolinesThatDoNotTransformToMovesAndBackToSameSteps
+           "transformation from steps to moves and back produces the same steps"
+    
+    let propMovesOfSameDirectionAreMerged =
+        isolineProperty
+            findIsolinesThatHaveNonMergedMoves
+            "all consecutive isoline moves of the same direction must be merged"
+    
+    let propMovesCountCorrespondsToStepsCount =
+        isolineProperty
+            findIsolinesThatHaveInconsistentMovesCount
+            "isoline moves count must correspond to the steps count"
+       
     let ``isoline moves properties``((heightsArray, isolineHeight): int[,] * int) =
         let width = heightsArray |> Array2D.length1
         let height = heightsArray |> Array2D.length2
 
-        let findIsolinesThatDoNotTransformToMovesAndBackToSameSteps() =
+        let isolines =
             findIsolines
                 width height (heightsSegmentation heightsArray isolineHeight)
             |> Seq.toArray
@@ -303,21 +358,11 @@ type IsolineMovesPropertyTests(output: Xunit.Abstractions.ITestOutputHelper) =
                 let moves = stepsToMoves isoline
                 let isolineBack = movesToSteps moves
                 (isoline, moves, isolineBack))
-            |> Array.filter (fun (isoline, _, isolineBack) ->
-                isoline <> isolineBack)
-        
-        match width, height with
-        | (0, _) -> true |> Prop.classify true "Empty array"
-        | (_, 0) -> true |> Prop.classify true "Empty array"
-        | _ ->
-            let offendingIsolines =
-                findIsolinesThatDoNotTransformToMovesAndBackToSameSteps()
-            
-            offendingIsolines |> Array.isEmpty
-            |> Prop.classify true "Non-empty array"
-            |> Prop.label
-                   "transformation from steps to moves and back produces the same steps"
-            |@ sprintf "Offending isolines: %A" offendingIsolines
+
+        (propTransformationToMovesIsReversible isolines)                           
+        .&. (propMovesOfSameDirectionAreMerged isolines)                           
+        .&. (propMovesCountCorrespondsToStepsCount isolines)                           
+        |> classifyTestArray width height
                 
     [<Fact>]    
     member this.``Test isoline moves properties``() =
