@@ -1,14 +1,25 @@
-﻿module Demeton.Vectorization.IsolineMoves
+﻿/// Contains types and functions for transforming isoline steps (calculated by
+/// Marching Squares algorithm) into a sequence of 8-direction moves.
+/// 
+/// Moves use a special coordinate system whose origin is the same as the
+/// original data array, but which counts both array cells and edges between
+/// cells (so, for example, the (1,1) cell has (2,2) coordinates, while the
+/// edge between cell (1,0) and cell (2,0) has (3,0) coordinates).
+module Demeton.Vectorization.IsolineMoves
 
 open Demeton.Vectorization.MarchingSquares
 
+/// The direction of the move.
 type MoveDirection = 
     | N  | NE | E | SE | S | SW | W | NW
 
+/// One or more movements of the isoline in one direction. 
 type Move = {
     Direction: MoveDirection
     Count: int 
 }
+
+// builders for moves 
 
 let moveN by = { Direction = N; Count = by }
 let moveNE by = { Direction = NE; Count = by }
@@ -19,27 +30,48 @@ let moveSW by = { Direction = SW; Count = by }
 let moveW by = { Direction = W; Count = by }
 let moveNW by = { Direction = NW; Count = by }
 
+/// Moves of a closed (self-looping) isoline.
 type ClosedIsolineMoves = {
+    /// Starting (and ending) point of the isoline, specified in the coordinate
+    /// system whose origin is the same as the original data array, but which
+    /// counts both pixels and edges between pixels.
     StartingPoint2: (int * int)
+    /// Moves of the isoline.
     Moves: Move list
 }
 
+/// Defines the starting or ending clipping edge for clipped isolines. 
 type ClippingEdge =
+    /// Isoline is clipped at the top edge of the array, with the X coordinate
+    /// of the clip (Y is 0).
     | TopEdge of int
+    /// Isoline is clipped at the right edge of the array, with the X and Y
+    /// coordinates of the clip.
     | RightEdge of (int * int)
+    /// Isoline is clipped at the bottom edge of the array, with the X and Y
+    /// coordinates of the clip.
     | BottomEdge of (int * int)
+    /// Isoline is clipped at the left edge of the array, with the Y coordinate
+    /// of the clip (X is 0).
     | LeftEdge of int
 
+// Moves of a clipped isoline.
 type ClippedIsolineMoves = {
+    /// Starting isoline clipping edge.
     StartingEdge: ClippingEdge
+    /// Ending isoline clipping edge.
     EndingEdge: ClippingEdge
+    /// Moves of the isoline.
     Moves: Move list
 }
 
+/// Isoline represented by its moves.
 type IsolineMoves =
     | ClosedIsolineMoves of ClosedIsolineMoves
     | ClippedIsolineMoves of ClippedIsolineMoves
 
+/// Given a move direction, a list of previous moves and a previous move's
+/// direction and repeat count, returns a new state for the folding function.
 let private directionsToMoves
     (movesSoFar, prevDirectionMaybe, prevMoveRepeatCount) directionMaybe =
     match movesSoFar, prevDirectionMaybe, directionMaybe with
@@ -58,7 +90,7 @@ let private directionsToMoves
         (moveToAdd :: movesSoFar, None, 0)
     | _ -> invalidOp "bug: this should never happen"
 
-    
+/// Determines the move direction based on the two consecutive steps.
 let private findNextMoveDirection previousStepMaybe directionsSoFar nextStep =
     match previousStepMaybe, directionsSoFar with
     | None, [] -> (Some nextStep, [])
@@ -81,6 +113,7 @@ let private findNextMoveDirection previousStepMaybe directionsSoFar nextStep =
         (Some nextStep, nextDirection :: directionsSoFar)
     | _ -> invalidOp "bug: this should never happen"
 
+/// Transforms closed isoline steps into moves.
 let private closedStepsToMoves (isoline: ClosedIsoline): IsolineMoves =
     let processNextStep (previousStepMaybe, directionsSoFar) nextStepMaybe =
         let nextStep =
@@ -114,6 +147,7 @@ let private closedStepsToMoves (isoline: ClosedIsoline): IsolineMoves =
         StartingPoint2 = startingPoint; Moves = completeMoves |> List.rev
     }
         
+/// Transforms clipped isoline steps into moves.
 let private clippedStepsToMoves (isoline: ClippedIsoline): IsolineMoves =
     let processNextStep (previousStepMaybe, directionsSoFar) nextStep =        
         findNextMoveDirection previousStepMaybe directionsSoFar nextStep
@@ -149,15 +183,19 @@ let private clippedStepsToMoves (isoline: ClippedIsoline): IsolineMoves =
         Moves = completeMoves |> List.rev
     }
     
+/// Transforms isoline steps into moves.
 let stepsToMoves (isoline: Isoline): IsolineMoves =
     match isoline with
     | ClosedIsoline closedIsoline -> closedStepsToMoves closedIsoline
     | ClippedIsoline clippedIsoline -> clippedStepsToMoves clippedIsoline
 
+/// Transforms isoline moves into a sequence of directions, with moves that
+/// have multiple counts transformed into multiple directions.
 let private movesToDirections (moves: Move seq): MoveDirection seq =
     moves
     |> Seq.collect (fun move -> Seq.init move.Count (fun _ -> move.Direction))
 
+/// Given a move direction, adds a corresponding step to the list of steps.  
 let private processDirection (stepsSoFar, stepPoint: Point) direction =
     let (step, nextStepPoint: Point) =
         match direction, stepPoint with
@@ -189,6 +227,7 @@ let private processDirection (stepsSoFar, stepPoint: Point) direction =
     
     (step :: stepsSoFar, nextStepPoint)
 
+/// Transforms moves of a closed isoline into steps.
 let private closedMovesToSteps (moves: ClosedIsolineMoves): Isoline =
     let (sx2, sy2) = moves.StartingPoint2
     let sx = sx2 / 2
@@ -211,6 +250,7 @@ let private closedMovesToSteps (moves: ClosedIsolineMoves): Isoline =
     let stepsOrdered = steps |> List.rev
     ClosedIsoline { Steps = stepsOrdered }
 
+/// Transforms moves of a clipped isoline into steps.
 let private clippedMovesToSteps (moves: ClippedIsolineMoves): Isoline =
     let startingStepPoint =
         match moves.StartingEdge with
@@ -236,6 +276,7 @@ let private clippedMovesToSteps (moves: ClippedIsolineMoves): Isoline =
     let stepsOrdered = (endingStep :: steps) |> List.rev
     ClippedIsoline { Steps = stepsOrdered }    
 
+/// Transforms isoline moves into steps.
 let movesToSteps (moves: IsolineMoves): Isoline =
     match moves with
     | ClosedIsolineMoves closedMoves -> closedMovesToSteps closedMoves

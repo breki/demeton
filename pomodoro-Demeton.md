@@ -1,7 +1,9 @@
-- document
+- implement line intersection function and tests
+- implement polygon self-intersection code
 
 ## Sun 08.12.
-- Moved isoline steps to a production module.
+- Documented isoline moves module.
+- Moved isoline moves to a production module.
 - Added "the number of moves must correspond to the number of steps" property.
 - Added "same moves do not repeat in a sequence" property.
 - Cleaned up the isoline property tests a bit.
