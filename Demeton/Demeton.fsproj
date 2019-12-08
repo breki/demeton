@@ -79,6 +79,7 @@
     <Compile Include="Svg\Document.fs" />
     <Compile Include="Svg\PathDataFuncs.fs" />
     <Compile Include="Vectorization\MarchingSquares.fs" />
+    <Compile Include="Vectorization\IsolineMoves.fs" />
     <Compile Include="Commands\ShadeCommand.fs" />
     <Compile Include="Commands\ImportSrtmTilesCommand.fs" />
     <Content Include="..\README.md">
