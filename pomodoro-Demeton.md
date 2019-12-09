@@ -1,5 +1,9 @@
 - implement line intersection function and tests
+    - it should return the status of intersection
 - implement polygon self-intersection code
+
+## Mon 09.12.
+- Started working on line segment intersection detection algorithm.
 
 ## Sun 08.12.
 - Documented isoline moves module.
