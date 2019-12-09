@@ -1,6 +1,7 @@
 - implement line intersection function and tests
-    - it should return the status of intersection
-- implement polygon self-intersection code
+    - test cases with integer points
+    - test cases with very large coordinate values
+    - can we permutate points for additional cases?
 
 ## Mon 09.12.
 - Started working on line segment intersection detection algorithm.
