@@ -37,26 +37,23 @@ type LineIntersectionPropertyTest
             
     let isCollinear p1 p2 p3 = left tolerance (area2 p1 p2 p3) = Collinear
             
-    let oneOfVerticesIsCollinear (p1, p2) (p3, p4) =
-        let collinear1 = p3 |> isCollinear p1 p2
-        let collinear2 = p4 |> isCollinear p1 p2
-        xor collinear1 collinear2 
-
     let sharingOneEndpoint line1 line2 =
         let ((p1, p2), (p3, p4)) = (line1, line2)
         ((p1 = p3 || p1 = p4 || p2 = p3 || p2 = p4)
          && not (areLineSegmentsOpposite line1 line2)
          && not (areLineSegmentsSame line1 line2))
-                
-    let oneSegmentEndpointIsOnOtherSegment line1 line2 =
-        (not (sharingOneEndpoint line1 line2))
-        && (
-            ((line2 |> oneOfVerticesIsCollinear line1)
-             || (line1 |> oneOfVerticesIsCollinear line2))
-        )
         
     let liesOnSegment (p1, p2) p3 =
         between (left tolerance (area2 p1 p2 p3)) p1 p2 p3
+                
+    let oneSegmentEndpointIsOnOtherSegment (p1, p2) (p3, p4) =
+        (not (sharingOneEndpoint (p1, p2) (p3, p4)))
+        && (
+            ((p3 |> liesOnSegment (p1, p2))
+            || (p4 |> liesOnSegment (p1, p2))
+            || (p1 |> liesOnSegment (p3, p4))
+            || (p2 |> liesOnSegment (p3, p4))
+        ))
         
     let isCollinearOverlappingWith (p1, p2) (p3, p4) =
         isCollinear p1 p2 p3 && isCollinear p1 p2 p4
@@ -70,7 +67,7 @@ type LineIntersectionPropertyTest
     let wrongOrNoIntersectionPoint() =
         false |> Prop.label "wrong (or no) intersection point"
             
-    let ``line intersection detection properties`` (line1, line2) =
+    let lineSegmentIntersectionProperties (line1, line2) =
         
         let intersectionResult = doLineSegmentsIntersect tolerance line1 line2
         let intersectionPoint =
@@ -80,6 +77,11 @@ type LineIntersectionPropertyTest
         
         let ``returned result matches the situation`` =
             match intersectionResult with
+            | LineSegmentsIntersectionDetectionResult.OneOrBothAreZeroLength ->
+                propDetection
+                    intersectionResult
+                    (p1 = p2 || p3 = p4)
+                    "one or both of segments have zero length"
             | Same ->
                 propDetection
                     intersectionResult
@@ -118,12 +120,16 @@ type LineIntersectionPropertyTest
 
         let ``intersection point matches the situation`` =
             match intersectionResult with
+            | LineSegmentsIntersectionDetectionResult.OneOrBothAreZeroLength ->
+                intersectionPoint = OneOrBothAreZeroLength
+                |> Prop.label
+                       "one or both of line segments have zero length, but the intersection point function did not detect that"                
             | Same ->
                 intersectionPoint = CollinearOverlapping p1
                 |> Prop.label
                        "intersection point when two line segments are the same"
             | Opposite ->
-                intersectionPoint = CollinearOverlapping p2
+                intersectionPoint = CollinearOverlapping p1
                 |> Prop.label "two line segments are opposites of each other"
             | LineSegmentsIntersectionDetectionResult.SharingOneEndpoint ->
                 match intersectionPoint with
@@ -158,6 +164,11 @@ type LineIntersectionPropertyTest
 
         let ``situation matches the returned result`` =
             match line1, line2 with
+            | _ when (p1 = p2 || p3 = p4) ->
+                intersectionResult =
+                    LineSegmentsIntersectionDetectionResult.OneOrBothAreZeroLength
+                |> Prop.label
+                       "one or both of line segments have zero length, but the intersection detection function did not detect that"                                
             | _ when areLineSegmentsSame line1 line2 ->
                 intersectionResult = Same
                 |> Prop.label
@@ -171,17 +182,17 @@ type LineIntersectionPropertyTest
                     LineSegmentsIntersectionDetectionResult.SharingOneEndpoint
                 |> Prop.label
                        "two line segments share one of the vertices, but the intersection function did not detect that"
-            | _ when oneSegmentEndpointIsOnOtherSegment line1 line2 ->
-                intersectionResult =
-                    LineSegmentsIntersectionDetectionResult.OneEndpointLiesOnOtherSegment
-                |> Prop.label
-                       "one (and only one) line segment's endpoints lies on other line segment, but the intersection function did not detect that"
             | _ when ((line1 |> isCollinearOverlappingWith line2)
                     || (line2 |> isCollinearOverlappingWith line1)) ->
                 intersectionResult =
                     LineSegmentsIntersectionDetectionResult.CollinearOverlapping
                 |> Prop.label
                        "two line segments are collinear and overlapping, but the intersection function did not detect that"
+            | _ when oneSegmentEndpointIsOnOtherSegment line1 line2 ->
+                intersectionResult =
+                    LineSegmentsIntersectionDetectionResult.OneEndpointLiesOnOtherSegment
+                |> Prop.label
+                       "one (and only one) line segment's endpoints lies on other line segment, but the intersection function did not detect that"
             | _ when ((line1 |> liesOnTheSameSideOf line2)
                     || (line2 |> liesOnTheSameSideOf line1)) ->
                 intersectionResult = NotIntersect
@@ -195,13 +206,24 @@ type LineIntersectionPropertyTest
         |@ sprintf
                "intersection detection function returned %A" intersectionResult
         |@ sprintf "intersection point function returned %A" intersectionPoint
-     
-    [<Fact>]
-    member this.``Test line intersection detection properties``() =
-        let genCoord = floatInRange 0 100
+
+    let ``line intersection properties`` ((p1, p2), (p3, p4)) =
+        // try out some combinations of points and lines order
+        lineSegmentIntersectionProperties ((p1, p2), (p3, p4))
+        .&. lineSegmentIntersectionProperties ((p2, p1), (p3, p4))
+        .&. lineSegmentIntersectionProperties ((p1, p2), (p4, p3))
+        .&. lineSegmentIntersectionProperties ((p2, p1), (p4, p3))
+        .&. lineSegmentIntersectionProperties ((p3, p4), (p1, p2))
+         
+    let runPropertyTests genCoord =
         let genPoint = Gen.zip genCoord genCoord
         let genLine = Gen.zip genPoint genPoint
         let genLinePair = Gen.zip genLine genLine
+        
+        let genZeroLengthCase =
+            genLinePair
+            |> Gen.map (fun (((x1, y1), _), ((x3, y3), (x4, y4))) ->
+                (((x1, y1), (x1, y1)), ((x3, y3), (x4, y4))) )
         
         let genSameCase =
             genLinePair
@@ -265,6 +287,7 @@ type LineIntersectionPropertyTest
         let genRandomCase = genLinePair
         
         let gen = Gen.frequency [
+            (1, genZeroLengthCase) 
             (1, genSameCase) 
             (1, genOppositeCase) 
             (2, genOneEndpointCollinearCase) 
@@ -274,12 +297,30 @@ type LineIntersectionPropertyTest
             (2, genParallelCase) 
             (2, genParallelHorizontalCase) 
             (2, genParallelVerticalCase)
-            (3, genRandomCase)
+            (5, genRandomCase)
         ]
         
-        ``line intersection detection properties``
-//        |> checkPropertyWithTestSize gen output 1000 1000 
-        |> replayPropertyCheck gen output (1096587499,296680144)
+        ``line intersection properties``
+        |> checkPropertyWithTestSize gen output 500 1000 
+//        |> replayPropertyCheck gen output (1096587499,296680144)
+     
+    [<Fact>]
+//    [<Trait("Category", "slow")>]
+    member this.``Test line intersection detection properties using small floats``() =
+        let genCoord = floatInRange -100 100
+        runPropertyTests genCoord
+     
+    [<Fact>]
+//    [<Trait("Category", "slow")>]
+    member this.``Test line intersection detection properties using dense integers``() =
+        let genCoord = Gen.choose(-10, 10) |> Gen.map float
+        runPropertyTests genCoord
+
+    [<Fact>]
+//    [<Trait("Category", "slow")>]
+    member this.``Test line intersection detection properties using big floats``() =
+        let genCoord = floatInRange 1000000000 1000000000
+        runPropertyTests genCoord
         
 [<Fact>]
 let ``Rounding error in t in findLineSegmentsIntersection function``() =
@@ -294,20 +335,3 @@ let ``Rounding error in t in findLineSegmentsIntersection function``() =
             | OneEndpointLiesOnOtherSegment _ -> true
             | _ -> false
     @>        
-
-// todo: remove when we no longer need it
-[<Fact>]
-let ``Bug test case``() =
-    let line1 = ((22.73, 82.47), (30.19, 32.53))
-    let line2 = ((33.92, 7.56), (45.11, -67.35))
-    let intersectionResult = doLineSegmentsIntersect tolerance line1 line2
-    test <@ intersectionResult =
-        LineSegmentsIntersectionDetectionResult.NotIntersect @>
-
-    test <@
-            match findLineSegmentsIntersection tolerance line1 line2 with
-            | DoNotIntersect ->
-                ((line1 |> liesOnTheSameSideOf line2)
-                     || (line2 |> liesOnTheSameSideOf line1))
-            | _ -> false
-    @>

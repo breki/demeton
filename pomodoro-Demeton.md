@@ -1,12 +1,8 @@
-- clean up property test setup
-- clean up `findLineSegmentsIntersection`
-
-- implement line intersection function and tests
-    - test cases with integer points
-    - test cases with very large coordinate values
-    - can we permutate points for additional cases?
+- extract tolerant numeric code into its own module
+- document line segment code
 
 ## Tue 10.12.
+- Added more test cases for line segment intersection code.
 - Cleaning and debugging the line segment intersection code.
 
 ## Mon 09.12.
