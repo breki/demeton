@@ -43,7 +43,6 @@
     <Compile Include="Geometry\Bounds tests.fs" />
     <Compile Include="Geometry\Mean of angles.fs" />
     <Compile Include="Geometry\Distance on Earth.fs" />
-    <Compile Include="Geometry\LineSegment.fs" />
     <Compile Include="Geometry\Line intersection tests.fs" />
     <Compile Include="Dem\Working with HeightsArrays.fs" />
     <Compile Include="Dem\Merging height arrays.fs" />

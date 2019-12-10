@@ -1,63 +1,10 @@
-﻿module Demeton.Geometry.LineSegment
+﻿module Demeton.Geometry.LineSegmentsIntersection
 
 open Demeton.Geometry.Common
-open System
+open Demeton.Geometry.Funcs
+open TolerantMath
 
 let xor (a: bool) (b: bool) = (not a) <> (not b)
-
-let isZero (tolerance: float) (value: float) = abs (value) < tolerance
-
-type LineSegment = (Point * Point)
-
-let (|Horizontal|Vertical|SinglePoint|Other|) = function
-    | ((x1, y1), (x2, y2)) when x1 = x2 && y1 = y2 -> SinglePoint
-    | ((x1, _), (x2, _)) when x1 = x2 -> Horizontal
-    | ((_, y1), (_, y2)) when y1 = y2 -> Vertical
-    | _ -> Other
-
-let midpoint ((x1, y1), (x2, y2)) = ((x1 + x2) / 2., (y1 + y2) / 2.)
-
-let length ((x1, y1), (x2, y2)) =
-    let dx = x2 - x1
-    let dy = y2 - y1
-    Math.Sqrt (dx * dx + dy * dy)
-
-let extend (factor: float) ((x1, y1), (x2, y2)) =
-    match (x1, y1), (x2, y2) with
-    | Horizontal ->
-        let x2' = (x2 - x1) * factor + x1
-        (x1, y1), (x2', y1)
-    | Vertical ->
-        let y2' = (y2 - y1) * factor + y1
-        (x1, y1), (x2, y2')
-    | SinglePoint -> (x1, y1), (x1, y1)
-    | Other ->
-        let ratio = (x2 - x1) / (y2 - y1)
-        let y2' = (y2 - y1) * factor + y1
-        let x2' = (y2' - y1) * ratio + x1
-        (x1, y1), (x2', y2')
-
-let area2 (x1, y1) (x2, y2) (x3, y3): float =
-    (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1)
-
-type LeftResult = Left | Collinear | Right
-
-let left tolerance area2 =
-    match area2 with
-    | x when isZero tolerance x -> Collinear
-    | x when x > 0. -> Left
-    | x when x < 0. -> Right
-    | _ -> invalidOp "bug: this should never happen"
-
-let between (left: LeftResult) (x1, y1) (x2, y2) (x3, y3) =
-    if left <> Collinear then false
-    else
-        // if p1-p2 is not vertical, check betweenness on X
-        if x1 <> x2 then
-            (x1 <= x3 && x3 <= x2) || (x1 >= x3 && x3 >= x2) 
-        // else on Y
-        else
-            (y1 <= y3 && y3 <= y2) || (y1 >= y3 && y3 >= y2)
 
 type LineSegmentsIntersectionDetectionResult =
     | Same
@@ -161,25 +108,6 @@ let findParallelLineSegmentsIntersection
             LineSegmentsIntersectionResult.CollinearOverlapping p2
         else
             DoNotIntersect
-    
-type ValuesComparisonResult = Below | Equal | Above
-    
-let compareTo tolerance value1 value2 =
-    if value2 < value1 - tolerance then Below
-    elif value2 < value1 + tolerance then Equal
-    else Above
-    
-type Value01Determinator = Is0Or1 | Between0And1 | Outside
-
-let determineValue01Status tolerance value =
-    match (value |> compareTo tolerance 0.),
-        (value |> compareTo tolerance 1.) with
-    | Equal, Below -> Is0Or1
-    | Above, Equal -> Is0Or1
-    | Below, Below -> Outside
-    | Above, Above -> Outside
-    | Above, Below -> Between0And1
-    | _ -> invalidOp "bug: this should never happen"
     
 let findLineSegmentsIntersection
     tolerance

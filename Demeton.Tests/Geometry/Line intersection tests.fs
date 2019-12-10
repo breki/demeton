@@ -1,6 +1,8 @@
 ﻿module Tests.Geometry.``Line intersection tests``
 
 open Demeton.Geometry.LineSegment
+open Demeton.Geometry.LineSegmentsIntersection
+open Demeton.Geometry.Funcs
 
 open System
 

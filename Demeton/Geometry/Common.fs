@@ -10,6 +10,8 @@ open System
 /// </summary>
 type Point = float * float
 
+type LineSegment = Point * Point
+
 /// <summary>
 /// Represents a bounding box in 2D space.
 /// </summary>

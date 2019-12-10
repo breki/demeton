@@ -1,7 +1,7 @@
-- extract tolerant numeric code into its own module
-- document line segment code
+- document new code
 
 ## Tue 10.12.
+- Moved the line segment intersection code into various production modules.
 - Added more test cases for line segment intersection code.
 - Cleaning and debugging the line segment intersection code.
 
