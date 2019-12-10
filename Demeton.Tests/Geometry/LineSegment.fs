@@ -59,12 +59,12 @@ let between (left: LeftResult) (x1, y1) (x2, y2) (x3, y3) =
         else
             (y1 <= y3 && y3 <= y2) || (y1 >= y3 && y3 >= y2)
 
-type LineSegmentsIntersectionResult =
+type LineSegmentsIntersectionDetectionResult =
     | Same
     | Opposite
     | NotIntersect
-    | SharingOneVertex
-    | OneVertexLiesOnOtherSegment
+    | SharingOneEndpoint
+    | OneEndpointLiesOnOtherSegment
     | CollinearOverlapping
     | Intersect
 
@@ -74,9 +74,9 @@ let doLineSegmentsIntersect tolerance
     let determineCollinearityStatus p1On p2On p1Collinear p2Collinear =
         match p1On, p2On, p1Collinear, p2Collinear with
         | (true, true, _, _) -> Some CollinearOverlapping
-        | (true, false, _, false) -> Some OneVertexLiesOnOtherSegment
+        | (true, false, _, false) -> Some OneEndpointLiesOnOtherSegment
         | (true, false, _, true) -> Some CollinearOverlapping
-        | (false, true, false, _) -> Some OneVertexLiesOnOtherSegment
+        | (false, true, false, _) -> Some OneEndpointLiesOnOtherSegment
         | (false, true, true, _) -> Some CollinearOverlapping
         | _ -> None
     
@@ -87,7 +87,7 @@ let doLineSegmentsIntersect tolerance
         
     if v13 && v24 then Same
     elif v14 && v23 then Opposite
-    elif v13 || v24 || v14 || v23 then SharingOneVertex
+    elif v13 || v24 || v14 || v23 then SharingOneEndpoint
     else
         let abc = area2 p1 p2 p3
         let abd = area2 p1 p2 p4
@@ -122,32 +122,85 @@ let doLineSegmentsIntersect tolerance
                 (determineCollinearityStatus p3On p4On p3Collinear p4Collinear,
                     determineCollinearityStatus p1On p2On p1Collinear p2Collinear) with
             | (None, None) -> NotIntersect
-            | (Some OneVertexLiesOnOtherSegment, None) ->
-                OneVertexLiesOnOtherSegment
+            | (Some OneEndpointLiesOnOtherSegment, None) ->
+                OneEndpointLiesOnOtherSegment
             | (Some CollinearOverlapping, _) -> CollinearOverlapping
-            | (None, Some OneVertexLiesOnOtherSegment) ->
-                OneVertexLiesOnOtherSegment
+            | (None, Some OneEndpointLiesOnOtherSegment) ->
+                OneEndpointLiesOnOtherSegment
             | (_, Some CollinearOverlapping) -> CollinearOverlapping
             | _ -> invalidOp "bug: this should never happen"
 
-type LineSegmentsIntersection =
-    
+type LineSegmentsIntersectionResult =
+    | IntersectProperly of Point
+    | SharingOneEndpoint of Point
+    | OneEndpointLiesOnOtherSegment of Point
+    | CollinearOverlapping of Point
+    | DoNotIntersect
 
+let findParallelLineSegmentsIntersection
+    tolerance (p1, p2) (p3, p4) =
+    
+    let left = left tolerance (area2 p1 p2 p3)
+    if left <> Collinear then DoNotIntersect
+    elif between Collinear p1 p2 p3 then
+        LineSegmentsIntersectionResult.CollinearOverlapping p3
+    elif between Collinear p1 p2 p4 then
+        LineSegmentsIntersectionResult.CollinearOverlapping p4
+    elif between Collinear p3 p4 p1 then
+        LineSegmentsIntersectionResult.CollinearOverlapping p1
+    elif between Collinear p3 p4 p2 then
+        LineSegmentsIntersectionResult.CollinearOverlapping p2
+    else
+        DoNotIntersect
+    
+type ValuesComparisonResult = Below | Equal | Above
+    
+let compareTo tolerance value1 value2 =
+    if value2 < value1 - tolerance then Below
+    elif value2 < value1 + tolerance then Equal
+    else Above
+    
+type Value01Determinator = Is0Or1 | Between0And1 | Outside
+
+let determineValue01Status tolerance value =
+    match (value |> compareTo tolerance 0.),
+        (value |> compareTo tolerance 1.) with
+    | Equal, Below -> Is0Or1
+    | Above, Equal -> Is0Or1
+    | Below, Below -> Outside
+    | Above, Above -> Outside
+    | Above, Below -> Between0And1
+    | _ -> invalidOp "bug: this should never happen"
+    
 let findLineSegmentsIntersection
     tolerance
-    (intersectionType: LineSegmentsIntersectionResult)
     (((x1, y1), (x2, y2)): LineSegment)
-    (((x3, y3), (x4, y4)): LineSegment) =
+    (((x3, y3), (x4, y4)): LineSegment)
+    : LineSegmentsIntersectionResult =
     
     let denom =
         x1 * (y4 - y3) + x2 * (y3 - y4)
-        + x3 * (y2 - y1) + x4 * (y1 - y2)
+        + x4 * (y2 - y1) + x3 * (y1 - y2)
     
-    if denom |> isZero tolerance then invalidOp "todo"
+    if denom |> isZero tolerance then
+        findParallelLineSegmentsIntersection
+            tolerance ((x1, y1), (x2, y2)) ((x3, y3), (x4, y4))
     else
-        let num =
-            x1 * (y4 - y3) + x3 * (y1 - y4)
-            + x4 * (y3 - y1)
+        let num1 = x1 * (y4 - y3) + x3 * (y1 - y4) + x4 * (y3 - y1)
+        let num2 = -(x1 * (y3 - y2) + x2 * (y1 - y3) + x3 * (y2 - y1))
+
+        let s = num1 / denom
+        let t = num2 / denom
+
+        let calcIntersectionPoint() = (x1 + s * (x2 - x1), y1 + s * (y2 - y1))
         
-    
-    None
+        match (determineValue01Status tolerance s),
+                (determineValue01Status tolerance t) with
+        | Is0Or1, Is0Or1 -> SharingOneEndpoint (calcIntersectionPoint())
+        | Is0Or1, Between0And1 ->
+            OneEndpointLiesOnOtherSegment (calcIntersectionPoint())
+        | Between0And1, Is0Or1 ->
+            OneEndpointLiesOnOtherSegment (calcIntersectionPoint())
+        | Between0And1, Between0And1 ->
+            IntersectProperly (calcIntersectionPoint())
+        | _ -> DoNotIntersect

@@ -1,7 +1,13 @@
+- clean up property test setup
+- clean up `findLineSegmentsIntersection`
+
 - implement line intersection function and tests
     - test cases with integer points
     - test cases with very large coordinate values
     - can we permutate points for additional cases?
+
+## Tue 10.12.
+- Cleaning and debugging the line segment intersection code.
 
 ## Mon 09.12.
 - Started working on line segment intersection detection algorithm.
