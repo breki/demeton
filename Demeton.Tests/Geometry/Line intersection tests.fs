@@ -116,7 +116,7 @@ type LineIntersectionPropertyTest
                     ((line1 |> liesOnTheSameSideOf line2)
                      || (line2 |> liesOnTheSameSideOf line1))
                     "two line segments intersect"
-            | Intersect ->
+            | LineSegmentsIntersectionDetectionResult.IntersectProperly ->
                 true // can't really verify this, so we just assume its true
                 |> Prop.classify true "Intersect"
 
@@ -156,7 +156,7 @@ type LineIntersectionPropertyTest
             | NotIntersect ->
                 intersectionPoint = DoNotIntersect
                 |> Prop.label "two line segments do not intersect"
-            | Intersect ->
+            | LineSegmentsIntersectionDetectionResult.IntersectProperly ->
                 match intersectionPoint with
                 | IntersectProperly point ->
                     ((point |> liesOnSegment line1)
@@ -303,8 +303,8 @@ type LineIntersectionPropertyTest
         ]
         
         ``line intersection properties``
-        |> checkPropertyWithTestSize gen output 500 1000 
-//        |> replayPropertyCheck gen output (1096587499,296680144)
+//        |> checkPropertyWithTestSize gen output 500 1000 
+        |> replayPropertyCheck gen output (1669481992,296680471)
      
     [<Fact>]
 //    [<Trait("Category", "slow")>]
@@ -319,7 +319,7 @@ type LineIntersectionPropertyTest
         runPropertyTests genCoord
 
     [<Fact>]
-//    [<Trait("Category", "slow")>]
+//    [<Trait("CategOry", "slow")>]
     member this.``Test line intersection detection properties using big floats``() =
         let genCoord = floatInRange 1000000000 1000000000
         runPropertyTests genCoord

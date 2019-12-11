@@ -10,6 +10,7 @@ open System
 /// </summary>
 type Point = float * float
 
+/// Represents a line segment between two points.
 type LineSegment = Point * Point
 
 /// <summary>

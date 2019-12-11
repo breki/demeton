@@ -1,4 +1,11 @@
+- Implement a testbed for polygons (and self-intersection checkes)
+- implement brute-force polygon self-intersection code
+
 - implement polygon self-intersection code
+    - https://en.wikipedia.org/wiki/Bentley%E2%80%93Ottmann_algorithm
+    - https://stackoverflow.com/questions/4876065/check-if-polygon-is-self-intersecting
+    - https://www.webcitation.org/6ahkPQIsN
+    - https://web.archive.org/web/20141211224415/http://www.lems.brown.edu/~wq/projects/cs252.html
 
 - run Europe on LCC
     - Could not open SRTM HTG file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip': ZIP file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip' does not have a file entry 'N44E048.hgt'.

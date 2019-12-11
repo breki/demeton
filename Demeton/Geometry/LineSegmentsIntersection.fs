@@ -1,24 +1,45 @@
-﻿module Demeton.Geometry.LineSegmentsIntersection
+﻿/// Contains functions for determining whether two line segments intersect
+/// and calculating the point of intersection.
+module Demeton.Geometry.LineSegmentsIntersection
 
 open Demeton.Geometry.Common
 open Demeton.Geometry.Funcs
 open TolerantMath
 
-let xor (a: bool) (b: bool) = (not a) <> (not b)
-
+/// Enumeration containing the possible results of the doLineSegmentsIntersect
+/// function. 
 type LineSegmentsIntersectionDetectionResult =
+    /// The two line segments are identical.
     | Same
+    /// The two line segments are opposites.
     | Opposite
+    /// The two line segments do not intersect.
     | NotIntersect
+    /// The two line segments share one endpoint (they are "connected").
     | SharingOneEndpoint
+    /// One of the endpoints of one line segment lies on the other line segment
+    /// (but not at its endpoints).
     | OneEndpointLiesOnOtherSegment
+    /// The two line segments are collinear and overlapping.
     | CollinearOverlapping
+    /// One or both of the line segments are of zero length.
     | OneOrBothAreZeroLength
-    | Intersect
+    /// The two line segments do intersect "properly", i.e. not at one of their
+    /// endpoints.
+    | IntersectProperly
 
+/// Determines whether the two specified line segments intersect and in what
+/// way.
+/// The basic algorithm checks whether each of the line segments has the other
+/// segment's endpoints at different sides (one left and one right). If this is
+/// true, we know the two segments intersect.
+/// The function was adapted from Joseph O'Rourke's
+/// "Computational Geometry in C" book (p. 29-33). 
 let doLineSegmentsIntersect tolerance
     ((p1, p2): LineSegment) ((p3, p4): LineSegment) =
 
+    let xor (a: bool) (b: bool) = (not a) <> (not b)
+    
     let determineCollinearityStatus p1On p2On p1Collinear p2Collinear =
         match p1On, p2On, p1Collinear, p2Collinear with
         | (true, true, _, _) -> Some CollinearOverlapping
@@ -61,7 +82,7 @@ let doLineSegmentsIntersect tolerance
                     (xor (abcLeft = Left) (abdLeft = Left))
                     && (xor (cdaLeft = Left) (cdbLeft = Left))
 
-            if doIntersectProper then Intersect
+            if doIntersectProper then IntersectProperly
             else
                 let p3On = between abcLeft p1 p2 p3
                 let p4On = between abdLeft p1 p2 p4
@@ -80,14 +101,26 @@ let doLineSegmentsIntersect tolerance
                 | (_, Some CollinearOverlapping) -> CollinearOverlapping
                 | _ -> invalidOp "bug: this should never happen"
 
+/// Possible results of the findLineSegmentsIntersection function. 
 type LineSegmentsIntersectionResult =
+    /// The two line segments do intersect "properly", i.e. not at one of their
+    /// endpoints.
     | IntersectProperly of Point
+    /// The two line segments share one endpoint (they are "connected").
     | SharingOneEndpoint of Point
+    /// One of the endpoints of one line segment lies on the other line segment
+    /// (but not at its endpoints).
     | OneEndpointLiesOnOtherSegment of Point
+    /// The two line segments are collinear and overlapping.
     | CollinearOverlapping of Point
+    /// One or both of the line segments are of zero length.
     | OneOrBothAreZeroLength
+    /// The two line segments do not intersect.
     | DoNotIntersect
 
+/// Calculates the intersection point (if any) of the two line segments when
+/// they are parallel. This function is used by findLineSegmentsIntersection
+/// function to handle the special case of parallel line segments.
 let findParallelLineSegmentsIntersection
     tolerance (p1, p2) (p3, p4) =
     
@@ -109,6 +142,9 @@ let findParallelLineSegmentsIntersection
         else
             DoNotIntersect
     
+/// Calculates the intersection point (if any) of the two line segments.
+/// The function was adapted from Joseph O'Rourke's
+/// "Computational Geometry in C" book (p. 220-226). 
 let findLineSegmentsIntersection
     tolerance
     (((x1, y1), (x2, y2)): LineSegment)

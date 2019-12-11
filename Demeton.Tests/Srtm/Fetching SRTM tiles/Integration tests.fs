@@ -67,20 +67,3 @@ let ``Supports fetching already cached tile``() =
                 writeTileToCache
         let result = finalState |> finalizeFetchSrtmTileProcessing
         test <@ result |> isOk @>
-
-[<Fact(Skip="todo currently not working")>]
-[<Trait("Category","slow")>]
-let ``Supports fetching higher level tile by creating it from lower level ones``() =
-    let finalState =
-        initializeProcessingState (srtmTileId 1 14 -46)
-        |> processCommandStack 
-            cacheDir
-            srtmDir
-            determineTileStatus
-            readPngTile
-            convertToPng
-            constructHigherLevelTile
-            writeTileToCache
-    let result = finalState |> finalizeFetchSrtmTileProcessing
-    test <@ result |> isOk @>
-

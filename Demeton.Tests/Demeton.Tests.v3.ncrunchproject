@@ -44,9 +44,6 @@
         <TestName>Tests.Acceptance tests.Generating hillshading rasters.Generate hillshade raster that requires SRTM level 1</TestName>
       </NamedTestSelector>
       <NamedTestSelector>
-        <TestName>Tests.Srtm.Fetching SRTM tiles.Integration tests.Supports fetching higher level tile by creating it from lower level ones</TestName>
-      </NamedTestSelector>
-      <NamedTestSelector>
         <TestName>Tests.Srtm.Fetching SRTM tiles.Integration tests.Supports fetching already cached tile</TestName>
       </NamedTestSelector>
     </IgnoredTests>
