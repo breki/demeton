@@ -1,9 +1,5 @@
-- bug Test line intersection detection properties using big floats
-    - (1669481992,296680471)
-    - System.InvalidOperationException: bug: this should never happen
-   at Demeton.Geometry.LineSegmentsIntersection.doLineSegmentsIntersect$cont@87-2(LeftResult abcLeft, LeftResult abdLeft, LeftResult cdaLeft, LeftResult cdbLeft, Boolean p3Collinear, Boolean p4Collinear, Boolean p1Collinear, Boolean p2Collinear, Tuple`2 _arg1_0, Tuple`2 _arg1_1, Tuple`2 _arg2_0, Tuple`2 _arg2_1, Unit unitVar) in E:\src\demeton\Demeton\Geometry\LineSegmentsIntersection.fs:line 102
-
 ## Wed 11.12.
+- Fixing some floating point precision problems in line segment intersection code.
 - Migrated to .NET Core 3.1.
 - Updated 3rd party libraries.
 - Removed the the ignored integration test that was never going to run.

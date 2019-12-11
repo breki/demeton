@@ -3,7 +3,8 @@
 module TolerantMath
 
 /// Determines whether the value is near zero.
-let isZero (tolerance: float) (value: float) = abs (value) < tolerance
+let isZero (tolerance: float) (value: float) =
+    abs (value) <= tolerance
 
 /// Possible results of the compareTo function.
 type ValuesComparisonResult = LessThan | Equal | GreaterThan

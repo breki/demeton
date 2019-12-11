@@ -103,6 +103,8 @@ let doLineSegmentsIntersect tolerance
                 | (None, Some OneEndpointLiesOnOtherSegment) ->
                     OneEndpointLiesOnOtherSegment
                 | (_, Some CollinearOverlapping) -> CollinearOverlapping
+                | (Some OneEndpointLiesOnOtherSegment,
+                   Some OneEndpointLiesOnOtherSegment) -> SharingOneEndpoint
                 | _ -> invalidOp "bug: this should never happen"
 
 /// Possible results of the findLineSegmentsIntersection function. 
