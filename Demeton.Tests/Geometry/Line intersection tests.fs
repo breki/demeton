@@ -304,7 +304,7 @@ type LineIntersectionPropertyTest
         
         ``line intersection properties``
 //        |> checkPropertyWithTestSize gen output 500 1000 
-        |> replayPropertyCheck gen output (1669481992,296680471)
+        |> replayPropertyCheck gen output (1543704735,296680478)
      
     [<Fact>]
 //    [<Trait("Category", "slow")>]

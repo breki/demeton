@@ -89,9 +89,13 @@ let doLineSegmentsIntersect tolerance
                 let p1On = between cdaLeft p3 p4 p1
                 let p2On = between cdbLeft p3 p4 p2
                 
-                match
-                    (determineCollinearityStatus p3On p4On p3Collinear p4Collinear,
-                        determineCollinearityStatus p1On p2On p1Collinear p2Collinear) with
+                let p34Collinearity =
+                    determineCollinearityStatus
+                        p3On p4On p3Collinear p4Collinear
+                let p12Collinearity =
+                    determineCollinearityStatus
+                        p1On p2On p1Collinear p2Collinear
+                match p34Collinearity, p12Collinearity with
                 | (None, None) -> NotIntersect
                 | (Some OneEndpointLiesOnOtherSegment, None) ->
                     OneEndpointLiesOnOtherSegment
