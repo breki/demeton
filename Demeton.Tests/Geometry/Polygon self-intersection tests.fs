@@ -2,20 +2,14 @@
 
 open Demeton.Geometry.Common
 open Demeton.Geometry.LineSegmentsIntersection
+open Demeton.Geometry.PolygonSelfIntersection
 
 open Xunit
 open FsCheck
 open PropertiesHelp
 
-type Polygon = {
-    Vertices: Point list
-}
-
-type PolygonSelfIntersectionResult =
-    | Intersecting
-    | NonIntersecting
-    | InvalidPolygon
-
+/// A brute-force (O(n^2)) implementation of polygon self-intersection
+/// detection, used as a test oracle for the more efficient implementation.
 let isPolygonSelfIntersectingBrute tolerance polygon =
     match polygon.Vertices with
     | vertices when vertices.Length < 3 -> InvalidPolygon
@@ -63,25 +57,31 @@ let ``polygon properties`` (vertices: Point[]) =
     let verticesCount = vertices.Length
         
     let polygon = { Vertices = vertices |> Array.toList }
-    let result = isPolygonSelfIntersectingBrute tolerance polygon
+    let resultBrute = isPolygonSelfIntersectingBrute tolerance polygon
+    let result = isPolygonSelfIntersecting tolerance polygon
 
     let ``polygon with less than 3 vertices is invalid`` =
         if verticesCount < 3 then
-            result = InvalidPolygon
+            resultBrute = InvalidPolygon
             |> Prop.classify true "invalid polygon"
             |> Prop.label "the function did not detect an invalid polygon"
         else 
-            (result <> InvalidPolygon)
+            (resultBrute <> InvalidPolygon)
             |> Prop.label
                    "the function reported an invalid polygon even though it has 3 vertices or more"
 
+    let ``polygon self-intersection detection is correct`` =
+        result = resultBrute
+        |> Prop.label "the production function result does not match the brute function"
+
     ``polygon with less than 3 vertices is invalid``
+    .&. ``polygon self-intersection detection is correct``
     |> Prop.classify (verticesCount = 3) "triangle"
     |> Prop.classify (verticesCount > 3 && verticesCount < 20)
            "polygon with < 20 vertices"
     |> Prop.classify (verticesCount >= 20) "polygon with >= 20 vertices"
-    |> Prop.classify (result = Intersecting) "self-intersecting"
-    |> Prop.classify (result = NonIntersecting) "non-self-intersecting"
+    |> Prop.classify (resultBrute = Intersecting) "self-intersecting"
+    |> Prop.classify (resultBrute = NonIntersecting) "non-self-intersecting"
 
 type SelfIntersectingPolygonTests (output: Xunit.Abstractions.ITestOutputHelper) =
     let genLikelyIntersectingPolygon() = 
@@ -108,7 +108,7 @@ type SelfIntersectingPolygonTests (output: Xunit.Abstractions.ITestOutputHelper)
                 let y = radius * sin angle
                 (x, y) ) )
     
-    [<Fact>]
+    [<Fact(Skip="todo")>]
     member  this.``Test polygon self-intersecting properties``() =
         let gen =
             Gen.frequency[

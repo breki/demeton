@@ -1,3 +1,6 @@
+- add test case for integers
+- add test case for axis-aligned rectangles and X
+
 ## Thu 12.12.
 - Added an algorithm to generate non-self-intersecting polygons to the testbed.
 - Implemented a simple testbed for testing polygons self-intersection, but it mostly generates self-intersecting polygons. 

@@ -13,6 +13,11 @@ type Point = float * float
 /// Represents a line segment between two points.
 type LineSegment = Point * Point
 
+/// Represents a polygon.
+type Polygon = {
+    Vertices: Point list
+}
+
 /// <summary>
 /// Represents a bounding box in 2D space.
 /// </summary>
