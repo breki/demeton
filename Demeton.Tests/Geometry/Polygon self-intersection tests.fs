@@ -8,7 +8,7 @@ open FsCheck
 open PropertiesHelp
 
 type Polygon = {
-    Points: Point list
+    Vertices: Point list
 }
 
 type PolygonSelfIntersectionResult =
@@ -16,13 +16,13 @@ type PolygonSelfIntersectionResult =
     | NonIntersecting
     | InvalidPolygon
 
-let isPolygonSelfIntersecting tolerance polygon =
-    match polygon.Points with
-    | points when points.Length < 3 -> InvalidPolygon
-    | points -> 
+let isPolygonSelfIntersectingBrute tolerance polygon =
+    match polygon.Vertices with
+    | vertices when vertices.Length < 3 -> InvalidPolygon
+    | vertices -> 
         let indexedEdges =
-            [ points |> List.head ]
-            |> List.append points 
+            [ vertices |> List.head ]
+            |> List.append vertices 
             |> List.pairwise
             |> List.mapi (fun i line -> (i, line))
 
@@ -54,37 +54,67 @@ let isPolygonSelfIntersecting tolerance polygon =
         let isSelfIntersecting =
             indexedEdges
             |> List.exists (fun e1 ->
-                indexedEdges
-                |> List.exists (fun e2 -> edgesIntersect e1 e2))
+                indexedEdges |> List.exists (edgesIntersect e1))
         if isSelfIntersecting then Intersecting
         else NonIntersecting
 
-let ``polygon properties`` (points: Point[]) =
+let ``polygon properties`` (vertices: Point[]) =
     let tolerance = 0.00001
-    
-    let polygon = { Points = points |> Array.toList }
-    let result = isPolygonSelfIntersecting tolerance polygon
+    let verticesCount = vertices.Length
+        
+    let polygon = { Vertices = vertices |> Array.toList }
+    let result = isPolygonSelfIntersectingBrute tolerance polygon
 
-    let ``polygon with less than 3 points is invalid`` =
-        if points.Length < 3 then
+    let ``polygon with less than 3 vertices is invalid`` =
+        if verticesCount < 3 then
             result = InvalidPolygon
             |> Prop.classify true "invalid polygon"
             |> Prop.label "the function did not detect an invalid polygon"
-        else
-            true |> Prop.classify true "valid polygon"
+        else 
+            (result <> InvalidPolygon)
+            |> Prop.label
+                   "the function reported an invalid polygon even though it has 3 vertices or more"
 
-    ``polygon with less than 3 points is invalid``
-    |> Prop.classify (points.Length = 3) "triangle"
+    ``polygon with less than 3 vertices is invalid``
+    |> Prop.classify (verticesCount = 3) "triangle"
+    |> Prop.classify (verticesCount > 3 && verticesCount < 20)
+           "polygon with < 20 vertices"
+    |> Prop.classify (verticesCount >= 20) "polygon with >= 20 vertices"
     |> Prop.classify (result = Intersecting) "self-intersecting"
     |> Prop.classify (result = NonIntersecting) "non-self-intersecting"
 
 type SelfIntersectingPolygonTests (output: Xunit.Abstractions.ITestOutputHelper) =
-    [<Fact>]
-    member  this.``Icebreaker``() =
+    let genLikelyIntersectingPolygon() = 
         let genCoord = floatInRange -100 100
         let genPoint = Gen.zip genCoord genCoord
-
-        let genPoints = Gen.arrayOf genPoint
+        Gen.arrayOf genPoint
     
+    /// Generates vertices for a non-intersecting polygon (in most cases)
+    /// by generating a set of points on a circle (with each point having
+    /// a random angle and a random radius). The points are then sorted by
+    /// angle and converted to cartesian coordinates.
+    /// Source for the idea:
+    /// https://stackoverflow.com/questions/8997099/algorithm-to-generate-random-2d-polygon
+    let genLikelyNonIntersectingPolygon() =
+        let genAngle = floatInRange 0 360 |> Gen.map degToRad
+        let genRadius = floatInRange 0 100
+        let genPointOnCircle = Gen.zip genAngle genRadius
+        Gen.arrayOf genPointOnCircle
+        |> Gen.map (fun unorderedPoints ->
+            unorderedPoints
+            |> Array.sortBy (fun (angle, _) -> angle)
+            |> Array.map (fun (angle, radius) ->
+                let x = radius * cos angle
+                let y = radius * sin angle
+                (x, y) ) )
+    
+    [<Fact>]
+    member  this.``Test polygon self-intersecting properties``() =
+        let gen =
+            Gen.frequency[
+                (1, genLikelyIntersectingPolygon())
+                (1, genLikelyNonIntersectingPolygon())
+            ]
+        
         ``polygon properties``    
-        |> PropertiesHelp.checkPropertyWithTestSize genPoints output 1000 100  
+        |> PropertiesHelp.checkPropertyWithTestSize gen output 1000 100  
