@@ -1,3 +1,6 @@
+## Thu 12.12.
+- Implemented a simple testbed for testing polygons self-intersection, but it mostly generates self-intersecting polygons. 
+
 ## Wed 11.12.
 - Fixing some floating point precision problems in line segment intersection code.
 - Migrated to .NET Core 3.1.
