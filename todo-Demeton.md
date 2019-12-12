@@ -1,6 +1,3 @@
-- Implement a testbed for polygons (and self-intersection checkes)
-- implement brute-force polygon self-intersection code
-
 - implement polygon self-intersection code
     - https://en.wikipedia.org/wiki/Bentley%E2%80%93Ottmann_algorithm
     - https://stackoverflow.com/questions/4876065/check-if-polygon-is-self-intersecting

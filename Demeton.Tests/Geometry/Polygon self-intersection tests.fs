@@ -13,29 +13,15 @@ open PropertiesHelp
 let isPolygonSelfIntersectingBrute tolerance polygon =
     match polygon.Vertices with
     | vertices when vertices.Length < 3 -> InvalidPolygon
-    | vertices -> 
-        let indexedEdges =
-            [ vertices |> List.head ]
-            |> List.append vertices 
-            |> List.pairwise
-            |> List.mapi (fun i line -> (i, line))
+    | _ -> 
+        let indexedEdges = polygon |> indexedEdges
 
-        let edgesCount = indexedEdges.Length
-        
-        let areEdgesNeighbors edge1Id edge2Id =
-            match abs (edge1Id - edge2Id) with
-            | 1 -> true
-            | diff when diff = edgesCount - 1 -> true
-            | diff when diff > edgesCount - 1 ->
-                invalidOp "bug: this should never happen"
-            | _ -> false
-        
         let edgesIntersect
             ((edge1Id, edge1): (int * LineSegment))
             ((edge2Id, edge2): (int * LineSegment)) =
             match edge1Id, edge2Id with
             | _ when edge1Id = edge2Id -> false
-            | _ when areEdgesNeighbors edge1Id edge2Id -> false
+            | _ when areEdgesNeighbors polygon edge1Id edge2Id -> false
             | _ ->
                 match doLineSegmentsIntersect tolerance edge1 edge2 with
                 | LineSegmentsIntersectionDetectionResult.IntersectProperly ->
@@ -108,7 +94,7 @@ type SelfIntersectingPolygonTests (output: Xunit.Abstractions.ITestOutputHelper)
                 let y = radius * sin angle
                 (x, y) ) )
     
-    [<Fact(Skip="todo")>]
+    [<Fact>]
     member  this.``Test polygon self-intersecting properties``() =
         let gen =
             Gen.frequency[

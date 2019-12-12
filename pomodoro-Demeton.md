@@ -1,7 +1,9 @@
 - add test case for integers
 - add test case for axis-aligned rectangles and X
+- implement a binary search tree
 
 ## Thu 12.12.
+- Implemented a somewhat better self-intersecting polygon detection algorithm, but we really need a binary search tree. 
 - Added an algorithm to generate non-self-intersecting polygons to the testbed.
 - Implemented a simple testbed for testing polygons self-intersection, but it mostly generates self-intersecting polygons. 
 
