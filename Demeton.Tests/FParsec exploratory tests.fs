@@ -13,7 +13,7 @@ let parseSuccess parser str =
 
 let parseFailure parser str expectedError =
     match run parser str with
-    | Success(_, _, _)   -> invalidOp "Expected failure"
+    | Success _ -> invalidOp "Expected failure"
     | Failure(errorMsg, _, _) -> 
         Assert.Contains(expectedError, errorMsg)
         true

@@ -131,8 +131,8 @@ let writeSvg (doc: Document) (writer: XmlWriter) =
 
 let writeSvgXml (stream: Stream) doc =
     let xmlWriterSettings =
-        new XmlWriterSettings(
-            Encoding = new UTF8Encoding(false),
+        XmlWriterSettings(
+            Encoding = UTF8Encoding(false),
             Indent = true,
             IndentChars = "\t",
             NewLineOnAttributes = false,

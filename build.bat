@@ -21,6 +21,12 @@ dotnet test --configuration %CONFIG% --verbosity minimal ^
 	--filter Category!=acceptance
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+ECHO RUNNING THE F# LINT...
+
+dotnet tool install --tool-path tools\fsharplint dotnet-fsharplint
+tools\fsharplint\dotnet-fsharplint.exe -sol Demeton.sln
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 ECHO.
 ECHO MAKING THE CONSOLE PACKAGE...
 

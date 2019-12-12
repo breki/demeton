@@ -10,7 +10,7 @@ open System
 open System.Threading.Tasks
 
 /// <summary>
-/// Calculates the bytes per pixel number based on the specified bith depth 
+/// Calculates the bytes per pixel number based on the specified bit depth 
 /// value.
 /// </summary>
 /// <remarks>
@@ -153,9 +153,9 @@ let filterFirstScanline
 
     // Also calculate the min sum of absolute diffs for those two filters
     sumsOfAbsDiffs.[0] <-
-        filteredScanlinesBuffer.[0] |> Array.sumBy (fun x -> int x)
+        filteredScanlinesBuffer.[0] |> Array.sumBy int
     sumsOfAbsDiffs.[2] <-
-        filteredScanlinesBuffer.[2] |> Array.sumBy (fun x -> int x)
+        filteredScanlinesBuffer.[2] |> Array.sumBy int
 
     for scanlineByteIndex in 0 .. (scanline.Length - 1) do
         let raw = scanline.[scanlineByteIndex]
@@ -209,7 +209,7 @@ let filterNonFirstScanline
 
     // Also calculate the min sum of absolute diffs for None filter type.
     sumsOfAbsDiffs.[0] <-
-        filteredScanlinesBuffer.[0] |> Array.sumBy (fun x -> int x)
+        filteredScanlinesBuffer.[0] |> Array.sumBy int
 
     for scanlineByteIndex in 0 .. (scanline.Length - 1) do
         let raw = scanline.[scanlineByteIndex]

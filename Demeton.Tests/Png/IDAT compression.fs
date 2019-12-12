@@ -1,12 +1,10 @@
 ﻿module Demeton.Tests.``IDAT compression``
 
 open Png.Chunks
-open Demeton.Srtm
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 
 open System.IO
-open System.Reflection
 
 open FsUnit
 open FsCheck
@@ -46,7 +44,7 @@ let ``Determining the compression rate``() =
 
     use hgtStream = sampleFileStream hgtFileNameOnly
 
-    let clock = new System.Diagnostics.Stopwatch()
+    let clock = System.Diagnostics.Stopwatch()
     clock.Start()
 
     printfn ("Reading the heights array...")

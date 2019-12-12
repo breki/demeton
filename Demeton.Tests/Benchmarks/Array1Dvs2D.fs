@@ -1,7 +1,6 @@
 ﻿module Demeton.Benchmarks.Array1Dvs2D
 
 open BenchmarkDotNet.Attributes
-open System
 
 type Array1Dvs2DComparison() = 
 
@@ -10,12 +9,12 @@ type Array1Dvs2DComparison() =
 
     [<Benchmark>]
     member self.Access1DArray() =
-        let rnd = new System.Random(234)
+        let rnd = System.Random(234)
         let width = int (sqrt (float self.ArraySize))
         let height = width
 
         let array = 
-            Array.init self.ArraySize (fun i -> byte (rnd.Next(255)))
+            Array.init self.ArraySize (fun _ -> byte (rnd.Next(255)))
 
         let mutable sum = 0
         for y in 0 .. (height-1) do
@@ -25,7 +24,7 @@ type Array1Dvs2DComparison() =
 
     [<Benchmark>]
     member self.Access2DArray() =
-        let rnd = new System.Random(234)
+        let rnd = System.Random(234)
 
         let width = int (sqrt (float self.ArraySize))
         let height = width

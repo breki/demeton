@@ -108,7 +108,7 @@ let compress data (outputStream: Stream) : unit =
     // Using the default compression level since I experimented with 
     // BEST_COMPRESSION but it did not improve the compression rate 
     // significantly, while it was much slower to execute.
-    let deflater = new Deflater(Deflater.DEFAULT_COMPRESSION)
+    let deflater = Deflater(Deflater.DEFAULT_COMPRESSION)
     // Using the default deflate strategy since the alternatives did not 
     // produce any better results.
     deflater.SetStrategy(DeflateStrategy.Default);
@@ -130,7 +130,7 @@ let compress data (outputStream: Stream) : unit =
 /// <param name="outputStream">
 /// The output stream the decompressed data should be written to.</param>
 let decompress compressedData (outputStream: Stream) : unit =
-    let inflater = new Inflater()
+    let inflater = Inflater()
     inflater.SetInput(compressedData)
 
     while not inflater.IsFinished do

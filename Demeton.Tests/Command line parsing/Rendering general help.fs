@@ -48,9 +48,9 @@ let ``Without arguments it returns normally``() =
 let ``Without arguments it lists available commands and their descriptions``() =
     initOutput()
 
-    let _ = 
-        HelpCommand.run "someapp" supportedCommands 
-            writeHelpOutput writeErrorOutput []
+    HelpCommand.run "someapp" supportedCommands 
+        writeHelpOutput writeErrorOutput []
+    |> ignore
     test <@ helpOutput() = @"USAGE: someapp <command> {<command parameters>}
 
 AVAILABLE COMMANDS:

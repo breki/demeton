@@ -5,7 +5,6 @@ open Png.Types
 open System
 open System.IO
 
-
 let pngSignature = 
     [| 0x89uy; 0x50uy; 0x4euy; 0x47uy; 0x0duy; 0x0auy; 0x1auy; 0x0auy |]
 
@@ -21,7 +20,7 @@ let readSignature (stream: Stream): Stream =
     let signatureLength = pngSignature.Length
 
     let signatureRead = 
-        [| for i in 0 .. (signatureLength-1) -> Bnry.readByte stream |]
+        [| for _ in 0 .. (signatureLength-1) -> Bnry.readByte stream |]
 
     if signatureRead = pngSignature then stream
     else invalidOp "Invalid PNG signature"

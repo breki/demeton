@@ -8,9 +8,9 @@ type ArrayAccessComparison() =
     member val public ArraySize = 0 with get, set
 
     member self.PrepareArray() =
-        let rnd = new System.Random(234)
+        let rnd = System.Random(234)
 
-        Array.init self.ArraySize (fun i -> byte (rnd.Next(255)))
+        Array.init self.ArraySize (fun _ -> byte (rnd.Next(255)))
 
     [<Benchmark>]
     member self.AccessArrayViaIndexer() =

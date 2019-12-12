@@ -51,7 +51,7 @@ let removeNoneFromString (scaleString: string) =
 let indexesOfChar chr (value: string): int [] =
     value |> Seq.toArray
     |> Array.indexed
-    |> Array.filter (fun (index, strChr) -> strChr = chr)
+    |> Array.filter (fun (_, strChr) -> strChr = chr)
     |> Array.map (fun (index, _) -> index)
 
 let insertIntoString (textToInsert: string) index (text: string) =
@@ -68,10 +68,10 @@ let ``Testing properties of elevation color scale parsing``() =
         (1, ColorGen.colorWith1Alpha); (8, ColorGen.color)]
 
     let genInvalidScale = 
-        Arb.generate<string> |> Gen.map (fun x -> InvalidScale x)
+        Arb.generate<string> |> Gen.map InvalidScale
 
     let genElevation = 
-        Gen.choose (-1000, 5000) |> Gen.map (fun x -> DemHeight (int16 x))
+        Gen.choose (-1000, 5000) |> Gen.map (int16 >> DemHeight)
     let genMark = 
         Gen.zip genElevation genColor 
         |> Gen.map (fun (elevation, color) -> 

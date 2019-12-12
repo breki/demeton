@@ -1,0 +1,29 @@
+{
+  "typography": {
+    "maxCharactersOnLine": {
+      "enabled": false,
+      "config": {
+        "maxCharactersOnLine": 80
+      }
+    }
+  },
+  "conventions": {
+    "naming": {
+      "memberNames": {
+        "enabled": false,
+        "config": {
+          "naming": "PascalCase",
+          "underscores": "AllowPrefix"
+        }
+      }
+    }
+  },
+  "hints": {
+    "ignore": [
+      "x = null ===> isNull x",
+      "null = x ===> isNull x",
+      "x <> null ===> not (isNull x)",
+      "null <> x ===> not (isNull x)"
+    ]
+  }
+}

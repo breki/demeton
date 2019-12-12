@@ -23,7 +23,7 @@ let parseAndExecuteCommandLine args supportedCommands =
     initErrorOutput()
 
     Shell.parseAndExecuteCommandLine 
-        (fun _ -> ())
+        ignore
         writeErrorOutput
         ""
         args 

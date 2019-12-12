@@ -13,7 +13,7 @@ type PngFilterComparison() =
 
     [<IterationSetup>]
     member self.CreateImageData(): unit = 
-        let rnd = new System.Random(34545)
+        let rnd = System.Random(34545)
         imageData <- 
             Array.init 
                 (self.ImageSize * self.ImageSize * 2) 

@@ -9,14 +9,14 @@ open TestHelp
 open PropertiesHelp
 
 [<Literal>]
-let tolerance = 1.E-10
+let Tolerance = 1.E-10
 
 let addAngles angle1 angle2 =
     normalizeAngle (angle1 + angle2) (Math.PI * 2.)
 
 let ``averaging single value returns the same value`` (angles: float[]) =
     angles.Length = 1 ==> lazy
-        let meanAngle = angles |> meanOfAngles tolerance
+        let meanAngle = angles |> meanOfAngles Tolerance
         let normalizedMean = normalizeAngle meanAngle (Math.PI * 2.)
         let normalizedSingle = normalizeAngle angles.[0] (Math.PI * 2.)
         
@@ -27,9 +27,9 @@ let ``adding before averaging or after is same`` (angles, angleToAdd) =
     let additionBefore = 
         angles 
         |> Array.map (fun x -> addAngles x angleToAdd)
-        |> meanOfAngles tolerance
+        |> meanOfAngles Tolerance
     let additionAfter =
-        addAngles (meanOfAngles tolerance angles) angleToAdd
+        addAngles (meanOfAngles Tolerance angles) angleToAdd
 
     match (Double.IsNaN additionBefore, Double.IsNaN additionAfter) with
     | (true, true) -> true |@ sprintf ""
@@ -54,7 +54,7 @@ let ``mean of opposing angles is NaN`` angles =
     let oppositeAngles = angles |> Array.map (fun angle -> angle + Math.PI)
     let combinedAngles = Array.append angles oppositeAngles
 
-    Double.IsNaN(meanOfAngles tolerance combinedAngles)
+    Double.IsNaN(meanOfAngles Tolerance combinedAngles)
     |> Prop.label "mean of opposing angles is NaN"
 
 [<Fact>]

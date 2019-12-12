@@ -75,7 +75,7 @@ let ``Properties of merging height arrays``
                         yield mergedCellHeight = mergingCellsHeight
             |]
             
-            comparison |> Array.exists (fun x -> x = false) |> not
+            comparison |> Array.exists not |> not
             |> Prop.label
                    "final array's cells have values of one of the merging arrays or None"
                     

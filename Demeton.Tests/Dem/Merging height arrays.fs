@@ -44,7 +44,7 @@ let ``Merging several DEM data arrays results in a merged array``() =
     let mbr = Demeton.Dem.mbrOfHeightsArrays arrays 
     let mergedMaybe = Dem.merge mbr arrays
 
-    test <@ (mergedMaybe |> Option.isSome) = true @>
+    test <@ (mergedMaybe |> Option.isSome) @>
 
     let merged = mergedMaybe.Value
 

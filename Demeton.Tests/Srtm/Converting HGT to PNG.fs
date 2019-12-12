@@ -12,7 +12,6 @@ open FsCheck.Xunit
 open Swensen.Unquote
 
 open System.IO
-open System.Reflection
 open TestHelp
 
 
@@ -45,7 +44,7 @@ let ``Can convert HeightsArray to 16-bit grayscale``() =
     let arrayWidth = 100
     let arrayHeight = 150
     let heightsArray = 
-        new HeightsArray(
+        HeightsArray(
             10, 15, arrayWidth, arrayHeight, HeightsArrayInitializer1D (
                 fun _ ->  (int16)(rnd.Next(-100, 3000))))
 
@@ -76,7 +75,7 @@ let ``Can convert a HGT file into PNG image``() =
 
     use hgtStream = sampleFileStream hgtFileNameOnly
 
-    let clock = new System.Diagnostics.Stopwatch()
+    let clock = System.Diagnostics.Stopwatch()
     clock.Start()
 
     printfn ("Reading the heights array...")
@@ -96,10 +95,7 @@ let ``Can convert a HGT file into PNG image``() =
 
     printfn "%d Reading the image." clock.ElapsedMilliseconds
 
-    let readSrtmImageData imageData = ignore()
-
     use pngReadStream = File.OpenRead(pngFileName)
-    let (ihdr, imageData) =
-        pngReadStream |> loadPngFromStream
+    pngReadStream |> loadPngFromStream |> ignore
 
     printfn "%d DONE." clock.ElapsedMilliseconds

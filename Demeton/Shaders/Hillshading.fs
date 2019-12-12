@@ -2,7 +2,6 @@
 module Demeton.Shaders.Hillshading
 
 open Demeton.Shaders.Types
-open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Geometry.Common
 open Demeton.Srtm
@@ -96,7 +95,7 @@ let shadeRaster
         match allCoordsAreAvailable with
         | true -> 
             neighborCoords 
-            |> Array.map (fun heightMaybe -> heightOf (Option.get heightMaybe))
+            |> Array.map (Option.get >> heightOf)
             |> Some
         | false -> None
 

@@ -125,7 +125,7 @@ let parseShadingScriptOption: OptionValueParser = fun value ->
         buildString()
         |> newLine
         |> appendLine value
-        |> appendLine (sprintf "%s^" (new String(' ', parsingError.Location)))
+        |> appendLine (sprintf "%s^" (String(' ', parsingError.Location)))
         |> append parsingError.Message
         |> append "."
         |> toString
@@ -379,9 +379,8 @@ let runWithProjection
         |> List.map (
             fun (lonDegrees, latDegrees) ->
                 mapProjection.Proj (degToRad lonDegrees) (degToRad latDegrees))
-        |> List.filter (fun p -> Option.isSome p)
-        |> List.map (fun p -> Option.get p)
-        |> List.map (fun (x, y) -> (x, -y))
+        |> List.filter Option.isSome
+        |> List.map (Option.get >> (fun (x, y) -> (x, -y)))
 
     // calculate the minimum bounding rectangle of all the projected points
     let rasterMbr = Bounds.mbrOf projectedPoints

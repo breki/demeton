@@ -34,7 +34,7 @@ let ``Can filter scanlines``() =
 let ``Filtering large images``() =
     let imageSize = 2000
 
-    let rnd = new System.Random(34545)
+    let rnd = System.Random(34545)
     let imageData = 
         Array.init 
             (imageSize * imageSize * 2) 
@@ -127,7 +127,7 @@ let ``Filtering and unfiltering using None filter type returns the same scanline
 
     let filtered = 
         filterScanlineUsingFilterType 
-            (fun r l u ul -> r) 
+            (fun r _ _ _ -> r) 
             ((byte)FilterType.FilterNone) 
             bpp 
             prevScanlineSpan

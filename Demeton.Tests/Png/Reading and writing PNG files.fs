@@ -21,7 +21,7 @@ open System.IO
 
 let givenA8BitGrayscaleImage rndSeed imageWidth imageHeight 
     : RawImageData =
-    let rnd = new Random(rndSeed)
+    let rnd = Random(rndSeed)
 
     Array.init (imageWidth*imageHeight) (fun _ -> ((byte)(rnd.Next 256)))
 
@@ -42,7 +42,7 @@ let ``Writes chunk into a stream``() =
     let givenSomeChunkData (): byte[] =
         use stream = new MemoryStream()
         stream 
-        |> writeChunkType (new ChunkType("TEST"))
+        |> writeChunkType (ChunkType("TEST"))
         |> Bnry.writeBigEndianInt32 1212234 |> ignore
         stream.ToArray();
 
@@ -110,7 +110,7 @@ let ``Deserializing serialized IDAT chunk data results in the original image dat
     let (bytesPerPixel, imageWidth, imageHeight) = testImageData
     let bpp = bytesPerPixel * 8
 
-    let rnd = new System.Random()
+    let rnd = System.Random()
     let rawImageData = 
         Array.init 
             (imageWidth * imageHeight * bytesPerPixel)
@@ -222,7 +222,7 @@ let ``Can generate and read a valid 16-bit grayscale PNG``() =
 [<Trait("Category", "slow")>]
 let ``Can decode 16-bit grayscale image generated from a SRTM tile``() =
     use pngReadStream = sampleFileStream "N46E015.png"    
-    let clock = new System.Diagnostics.Stopwatch()
+    let clock = System.Diagnostics.Stopwatch()
     clock.Start()
 
     printfn "Decoding the PNG..."

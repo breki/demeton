@@ -77,11 +77,11 @@ let private pParName: Parser<string, unit> =
 
 let private pParStringValue: Parser<PROJParameterValue, unit> =
     many1SatisfyL isAlphanumeric "string value"
-    |>> (fun strValue -> StringValue strValue)
+    |>> StringValue
 
 let private pParNumericValue: Parser<PROJParameterValue, unit> =
     pfloat <?> "numeric value"
-    |>> (fun floatValue -> NumericValue floatValue)
+    |>> NumericValue
 
 let private pParValue: Parser<PROJParameterValue, unit> =
     (pParNumericValue <|> pParStringValue) <?> "parameter value"

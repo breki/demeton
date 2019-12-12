@@ -20,7 +20,7 @@ let private byteAbsDiff (value1: byte) (value2: byte): byte =
 let ``Igor shading properties`` 
     (parameters: IgorHillshader.ShaderParameters, aspect1, aspect2) =
     let sunAzimuth = parameters.SunAzimuth
-    let sunAltitude = degToRad 45.
+//    let sunAltitude = degToRad 45.
     let slope45 = degToRad 45.
 
     let colorOfFlatFace = IgorHillshader.shadePixel parameters 0. 0. aspect1 
@@ -42,9 +42,9 @@ let ``Igor shading properties``
     
     let prop4 =
         if aspect1SunAzimuthDiff <= aspect2SunAzimuthDiff then
-            not (aspect1Darkness > aspect2Darkness)
+            aspect1Darkness <= aspect2Darkness
         else 
-            not (aspect1Darkness < aspect2Darkness)
+            aspect1Darkness >= aspect2Darkness
         |> Prop.label "aspect closer to sun azimuth should not be darker"
         |@ sprintf 
             "Sun azimuth: %g, aspect1 = %g (diff %g), aspect2 = %g (diff %g), darkness1 = %d, darkness2 = %d"
@@ -86,13 +86,13 @@ let ``Igor shading properties test``() =
     let genParameters =
         Gen.zip genSunAzimuth ColorGen.color |> Gen.map generateParameters
 
-    let genAspect =
-        genCircleAngle
-        |> optionOfWithFrequency 5
-        |> Gen.map (fun angleMaybe ->
-            match angleMaybe with
-            | None -> Double.NaN
-            | Some angle -> angle)
+//    let genAspect =
+//        genCircleAngle
+//        |> optionOfWithFrequency 5
+//        |> Gen.map (fun angleMaybe ->
+//            match angleMaybe with
+//            | None -> Double.NaN
+//            | Some angle -> angle)
 
     let genSlope = floatInRange 0 90 |> Gen.map degToRad
 

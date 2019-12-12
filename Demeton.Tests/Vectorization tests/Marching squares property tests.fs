@@ -95,8 +95,7 @@ type MarchingSquaresPropertyTests(output: Xunit.Abstractions.ITestOutputHelper) 
         let allIsolinesHaveAtLeastOneStep() =
             let emptyIsolines =
                 isolines
-                |> Seq.filter (fun isoline ->
-                    isoline |> isolineSteps |> List.isEmpty)
+                |> Seq.filter (isolineSteps >> List.isEmpty)
             
             emptyIsolines |> Seq.isEmpty
             |> Prop.label "all isolines have at least one step"
@@ -106,8 +105,7 @@ type MarchingSquaresPropertyTests(output: Xunit.Abstractions.ITestOutputHelper) 
             let isolinesWithWrongSteps =
                 isolines
                 |> Seq.map isolineStepsThatDoNotFollowsPrevious
-                |> Seq.filter (fun illegalSteps ->
-                    illegalSteps |> Seq.isEmpty |> not) 
+                |> Seq.filter (Seq.isEmpty >> not) 
                 
             isolinesWithWrongSteps |> Seq.isEmpty
             |> Prop.label

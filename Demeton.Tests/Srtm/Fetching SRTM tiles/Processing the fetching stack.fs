@@ -133,7 +133,7 @@ let ``When a level > 0 tile is not cached, fills the command stack with children
         |> Array.map (fun (x, y) -> srtmTileId 1 x y)
 
     let childItems =
-        childTiles |> Array.map (fun tile -> DetermineStatus tile)
+        childTiles |> Array.map DetermineStatus
     let expectedCommands = 
         Array.append 
             childItems 
@@ -284,7 +284,7 @@ let ``Testing the tail recursion``() =
             initialState
 
     // there should be no more commands in the stack
-    test <@ finalCommandStack = [] @>
+    test <@ finalCommandStack |> Seq.isEmpty @>
     // ensure all of the tiles are in the tiles stack
     test <@ finalTilesStack = 
                 (someTiles |> Array.rev 

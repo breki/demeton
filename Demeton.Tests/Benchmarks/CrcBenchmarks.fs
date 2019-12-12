@@ -10,7 +10,7 @@ type Crc32Comparison() =
 
     [<IterationSetup>]
     member self.CreateArray(): unit = 
-        let rnd = new System.Random(34545)
+        let rnd = System.Random(34545)
         array <- Array.init self.ArraySize (fun _ -> byte (rnd.Next(256)))
 
     [<Benchmark>]

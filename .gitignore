@@ -45,3 +45,5 @@ _NCrunch_*
 build
 *.fsx.lock
 .ionide
+
+tools/fsharplint

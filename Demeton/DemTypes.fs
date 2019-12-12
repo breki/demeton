@@ -77,9 +77,9 @@ type HeightsArray
     #if DEBUG
         match (x, y) with
         | _ when x < this.MinX || x > this.MaxX ->
-            raise <| new ArgumentOutOfRangeException("x")
+            raise <| ArgumentOutOfRangeException("x")
         | _ when y < this.MinY || y > this.MaxY ->
-            raise <| new ArgumentOutOfRangeException("y")
+            raise <| ArgumentOutOfRangeException("y")
         | _ -> ignore()
     #endif
 

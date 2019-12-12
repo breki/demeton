@@ -25,8 +25,8 @@ let ``Returns HeightArray when at least one tile was found``() =
              HeightsArrayInitializer1D (fun _ -> DemHeightNone))
 
     let srtmHeights = 
-        fetchSrtmHeights 
-            (fun x -> Ok (Some (returnSomeHeightArray x)))
+        fetchSrtmHeights
+            (returnSomeHeightArray >> Some >> Ok)
             tilesToUse
             
     test <@ isOk srtmHeights @>
