@@ -39,6 +39,8 @@
     <Compile Include="Geometry\Funcs.fs" />
     <Compile Include="Geometry\LineSegment.fs" />
     <Compile Include="Geometry\LineSegmentsIntersection.fs" />
+    <Compile Include="Geometry\Polygon.fs" />
+    <Compile Include="Geometry\PolygonSelfIntersection.fs" />
     <Compile Include="Geometry\D3.fs" />
     <Compile Include="Png\Types.fs" />
     <Compile Include="Png\Filters.fs" />

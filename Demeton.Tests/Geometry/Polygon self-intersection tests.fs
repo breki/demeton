@@ -1,6 +1,7 @@
 ﻿module Tests.Geometry.``Polygon self intersection tests``
 
 open Demeton.Geometry.Common
+open Demeton.Geometry.Polygon
 open Demeton.Geometry.PolygonSelfIntersection
 
 open Xunit
@@ -13,7 +14,7 @@ let isPolygonSelfIntersectingBrute edgesIntersectFunc polygon =
     match polygon.Vertices with
     | vertices when vertices.Length < 3 -> InvalidPolygon
     | _ -> 
-        let indexedEdges = polygon |> indexedEdges
+        let edges = polygon |> polygonEdges
 
         let edgesIntersect
             ((edge1Id, edge1): (int * LineSegment))
@@ -24,9 +25,9 @@ let isPolygonSelfIntersectingBrute edgesIntersectFunc polygon =
             | _ -> edgesIntersectFunc edge1 edge2
         
         let isSelfIntersecting =
-            indexedEdges
-            |> List.exists (fun e1 ->
-                indexedEdges |> List.exists (edgesIntersect e1))
+            edges
+            |> Seq.exists (fun e1 ->
+                edges |> Seq.exists (edgesIntersect e1))
         if isSelfIntersecting then Intersecting
         else NonIntersecting
 
@@ -98,7 +99,8 @@ type SelfIntersectingPolygonTests (output: Xunit.Abstractions.ITestOutputHelper)
         |> Gen.map (fun ((x, y), w, h) ->
             [| (x, y); (x + w, y); (x + w, y + h); (x, y + h) |])
 
-    /// Generates a shape that has an intersection with one edge being horizontal.
+    /// Generates a shape that has an intersection with one edge being
+    /// horizontal.
     let genHorizontalIntersection genCoord =
         let genX = genCoord
         let genY = genCoord
