@@ -1,6 +1,9 @@
-- add test case for integers
-- add test case for axis-aligned rectangles and X
+- document the code
 - implement a binary search tree
+
+## Fri 13.12.
+- Added test case for axis-aligned rectangles and horizontal intersection.
+- Extracted logic for determining whether to treat a certain intersection result as intersecting or not.
 
 ## Thu 12.12.
 - Implemented a somewhat better self-intersecting polygon detection algorithm, but we really need a binary search tree. 

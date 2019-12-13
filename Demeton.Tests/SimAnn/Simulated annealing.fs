@@ -10,11 +10,9 @@ open Swensen.Unquote
 let sampleNeighbor: NeighborFunc<float> = fun x rnd ->
     x + (rnd.NextDouble() - 0.5) / 10.
 
-let negative value = -value
-
 let sampleEnergy: EnergyFunc<float> = 
     // minus is because we are looking for the highest sin value, not lowest
-    sin >> negative
+    (fun x -> -sin x)
 
 [<Fact>]
 let ``Run simulated annealing on a sinusoide``() =

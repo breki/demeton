@@ -11,6 +11,7 @@ let indexedEdges polygon: PolygonEdge list =
     [ polygon.Vertices |> List.head ]
     |> List.append polygon.Vertices 
     |> List.pairwise
+    |> List.filter (fun edge -> edge |> LineSegment.length > 0.)
     |> List.mapi (fun i line -> (i, line))
 
 let areEdgesNeighbors polygon edge1Id edge2Id =
@@ -35,7 +36,24 @@ type PolygonSelfIntersectionResult =
     | NonIntersecting
     | InvalidPolygon
 
-let isPolygonSelfIntersecting tolerance polygon =
+/// A function that determines whether the two polygon edges (represented by
+/// their line segments) intersect or not.
+type EdgesIntersectFunc = LineSegment -> LineSegment -> bool
+
+/// The default implementation of EdgesIntersectFunc. 
+let edgesIntersectDefaultFunc tolerance: EdgesIntersectFunc =
+    fun edge1Segment edge2Segment ->
+    match doLineSegmentsIntersect tolerance edge1Segment edge2Segment with
+    | LineSegmentsIntersectionDetectionResult.IntersectProperly ->
+        true
+    | LineSegmentsIntersectionDetectionResult.NotIntersect -> false
+    | LineSegmentsIntersectionDetectionResult.OneEndpointLiesOnOtherSegment ->
+        false
+    | LineSegmentsIntersectionDetectionResult.SharingOneEndpoint ->
+        false
+    | result -> invalidOp (sprintf "todo: handle case %A" result) 
+
+let isPolygonSelfIntersecting edgesIntersectFunc polygon =
     let enterEvent edge: EdgeEvent =
         let (_, ((_, y1), (_, y2))) = edge
         EdgeEnters { Y = min y1 y2; Edge = edge }
@@ -50,11 +68,11 @@ let isPolygonSelfIntersecting tolerance polygon =
         | EdgeEnters a, EdgeExits b ->
             let c = a.Y.CompareTo b.Y
             if c <> 0 then c
-            else 1
+            else -1
         | EdgeExits a, EdgeEnters b ->
             let c = a.Y.CompareTo b.Y
             if c <> 0 then c
-            else -1
+            else 1
     
     let removeEdgeFromList ((edgeIdToRemove, _): PolygonEdge) activeEdges =
         activeEdges
@@ -72,14 +90,7 @@ let isPolygonSelfIntersecting tolerance polygon =
         edges
         |> Seq.exists (fun (otherEdgeId, otherEdgeSegment) ->
             if areEdgesNeighbors polygon edgeId otherEdgeId then false
-            else
-                match doLineSegmentsIntersect
-                          tolerance edgeSegment otherEdgeSegment with
-                | LineSegmentsIntersectionDetectionResult.IntersectProperly ->
-                    true
-                | LineSegmentsIntersectionDetectionResult.NotIntersect -> false
-                | result -> invalidOp (sprintf "todo: handle case %A" result) 
-            )
+            else edgesIntersectFunc edgeSegment otherEdgeSegment)
     
     let processEvent (activeEdges, foundIntersection) event =
         match foundIntersection with

@@ -1,7 +1,6 @@
 ﻿module Tests.Geometry.``Polygon self intersection tests``
 
 open Demeton.Geometry.Common
-open Demeton.Geometry.LineSegmentsIntersection
 open Demeton.Geometry.PolygonSelfIntersection
 
 open Xunit
@@ -10,7 +9,7 @@ open PropertiesHelp
 
 /// A brute-force (O(n^2)) implementation of polygon self-intersection
 /// detection, used as a test oracle for the more efficient implementation.
-let isPolygonSelfIntersectingBrute tolerance polygon =
+let isPolygonSelfIntersectingBrute edgesIntersectFunc polygon =
     match polygon.Vertices with
     | vertices when vertices.Length < 3 -> InvalidPolygon
     | _ -> 
@@ -22,14 +21,7 @@ let isPolygonSelfIntersectingBrute tolerance polygon =
             match edge1Id, edge2Id with
             | _ when edge1Id = edge2Id -> false
             | _ when areEdgesNeighbors polygon edge1Id edge2Id -> false
-            | _ ->
-                match doLineSegmentsIntersect tolerance edge1 edge2 with
-                | LineSegmentsIntersectionDetectionResult.IntersectProperly ->
-                    true
-                | LineSegmentsIntersectionDetectionResult.NotIntersect ->
-                    false
-                | result ->
-                    invalidOp (sprintf "todo: intersect result: %A" result)
+            | _ -> edgesIntersectFunc edge1 edge2
         
         let isSelfIntersecting =
             indexedEdges
@@ -43,8 +35,12 @@ let ``polygon properties`` (vertices: Point[]) =
     let verticesCount = vertices.Length
         
     let polygon = { Vertices = vertices |> Array.toList }
-    let resultBrute = isPolygonSelfIntersectingBrute tolerance polygon
-    let result = isPolygonSelfIntersecting tolerance polygon
+    let resultBrute =
+        isPolygonSelfIntersectingBrute
+            (edgesIntersectDefaultFunc tolerance) polygon
+    let result =
+        isPolygonSelfIntersecting
+            (edgesIntersectDefaultFunc tolerance) polygon
 
     let ``polygon with less than 3 vertices is invalid`` =
         if verticesCount < 3 then
@@ -70,8 +66,7 @@ let ``polygon properties`` (vertices: Point[]) =
     |> Prop.classify (resultBrute = NonIntersecting) "non-self-intersecting"
 
 type SelfIntersectingPolygonTests (output: Xunit.Abstractions.ITestOutputHelper) =
-    let genLikelyIntersectingPolygon() = 
-        let genCoord = floatInRange -100 100
+    let genLikelyIntersectingPolygon genCoord = 
         let genPoint = Gen.zip genCoord genCoord
         Gen.arrayOf genPoint
     
@@ -81,9 +76,9 @@ type SelfIntersectingPolygonTests (output: Xunit.Abstractions.ITestOutputHelper)
     /// angle and converted to cartesian coordinates.
     /// Source for the idea:
     /// https://stackoverflow.com/questions/8997099/algorithm-to-generate-random-2d-polygon
-    let genLikelyNonIntersectingPolygon() =
+    let genLikelyNonIntersectingPolygon genCoord =
         let genAngle = floatInRange 0 360 |> Gen.map degToRad
-        let genRadius = floatInRange 0 100
+        let genRadius = genCoord
         let genPointOnCircle = Gen.zip genAngle genRadius
         Gen.arrayOf genPointOnCircle
         |> Gen.map (fun unorderedPoints ->
@@ -93,14 +88,47 @@ type SelfIntersectingPolygonTests (output: Xunit.Abstractions.ITestOutputHelper)
                 let x = radius * cos angle
                 let y = radius * sin angle
                 (x, y) ) )
+
+    let genAxisAlignedRectangle genCoord =
+        let genX = genCoord
+        let genY = genCoord
+        let genWidth = genCoord
+        let genHeight = genCoord
+        Gen.zip3 (Gen.zip genX genY) genWidth genHeight
+        |> Gen.map (fun ((x, y), w, h) ->
+            [| (x, y); (x + w, y); (x + w, y + h); (x, y + h) |])
+
+    /// Generates a shape that has an intersection with one edge being horizontal.
+    let genHorizontalIntersection genCoord =
+        let genX = genCoord
+        let genY = genCoord
+        let genDX = genCoord
+        let genDY = genCoord
+        Gen.zip3 (Gen.zip genX genY) genDX genDY
+        |> Gen.map (fun ((x, y), dx, dy) ->
+            [| (x, y); (x, dy * 2.)
+               (x + dx * 2., y + dy); (x - dx * 2., y + dy) |])
     
-    [<Fact>]
-    member  this.``Test polygon self-intersecting properties``() =
+    member this.runTests genCoord =
         let gen =
             Gen.frequency[
-                (1, genLikelyIntersectingPolygon())
-                (1, genLikelyNonIntersectingPolygon())
+                (10, genLikelyIntersectingPolygon genCoord)
+                (10, genLikelyNonIntersectingPolygon genCoord)
+                (1, genAxisAlignedRectangle genCoord)
+                (1, genHorizontalIntersection genCoord)
             ]
         
         ``polygon properties``    
         |> PropertiesHelp.checkPropertyWithTestSize gen output 1000 100  
+        
+    [<Fact>]
+    member  this.``Test polygon self-intersecting properties (small floats)``() =
+        this.runTests (floatInRange 0 100)
+        
+    [<Fact>]
+    member  this.``Test polygon self-intersecting properties (dense ints)``() =
+        this.runTests (Gen.choose (0, 100) |> (Gen.map float))
+        
+    [<Fact>]
+    member  this.``Test polygon self-intersecting properties (big floats)``() =
+        this.runTests (floatInRange 1000000000 1000000000)
