@@ -1,7 +1,7 @@
-- document the code
 - implement a binary search tree
 
 ## Fri 13.12.
+- Documented the polygon self-intersection detection code.
 - Added test case for axis-aligned rectangles and horizontal intersection.
 - Extracted logic for determining whether to treat a certain intersection result as intersecting or not.
 

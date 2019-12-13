@@ -46,7 +46,10 @@ type PolygonSelfIntersectionResult =
 /// their line segments) intersect or not.
 type EdgesIntersectFunc = LineSegment -> LineSegment -> bool
 
-/// The default implementation of EdgesIntersectFunc. 
+/// The default implementation of EdgesIntersectFunc which treats all
+/// intersection results except IntersectProperly as non-intersecting. This may
+/// need to be changed in the future, once this code starts being used in
+/// other algorithms. 
 let edgesIntersectDefaultFunc tolerance: EdgesIntersectFunc =
     fun edge1Segment edge2Segment ->
     match doLineSegmentsIntersect tolerance edge1Segment edge2Segment with
@@ -93,9 +96,8 @@ let isPolygonSelfIntersecting edgesIntersectFunc polygon =
                 activeEdges |> List.splitAt index
             after |> List.tail |> List.append before 
         | None -> invalidOp "bug: the edge was expected in the list"
-//        |> Seq.filter (fun (edgeId, _) -> edgeId = edgeIdToRemove)
 
-    /// Determines whether the given sequence of edges contains an edge that
+    /// Determines whether the given sequence of edges contains any edge that
     /// intersects with a specified edge.
     let doesContainEdgeThatIntersectsWith
         (edgeId, edgeSegment) edges =
@@ -104,6 +106,11 @@ let isPolygonSelfIntersecting edgesIntersectFunc polygon =
             if areEdgesNeighbors polygon edgeId otherEdgeId then false
             else edgesIntersectFunc edgeSegment otherEdgeSegment)
     
+    /// Processes the next plane sweep event, based on the current state.
+    /// The current state consists of a list of "active" edges (the ones in the
+    /// plane sweep status) and "foundIntersection" flag that serves as way
+    /// to exit the plane sweep algorithm early (once we have found an
+    /// intersection, we do not need to examine the remaining events). 
     let processEvent (activeEdges, foundIntersection) event =
         match foundIntersection with
         | true -> ([], true)
@@ -121,13 +128,17 @@ let isPolygonSelfIntersecting edgesIntersectFunc polygon =
     | vertices when vertices.Length < 3 -> InvalidPolygon
     | _ ->
         let edges = polygon |> polygonEdges
+        
+        // creates enter and exit events...
         let enterEvents = edges |> Seq.map enterEvent
         let exitEvents = edges |> Seq.map exitEvent
         
+        /// ...merges them together and sorts them
         let allEvents =
             Seq.append enterEvents exitEvents
             |> Seq.sortWith compareEvents
         
+        // runs the main plane sweep algorithm
         let (_, isSelfIntersecting) =
             allEvents |> Seq.fold processEvent ([], false)
         

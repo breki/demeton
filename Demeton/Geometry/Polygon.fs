@@ -11,6 +11,8 @@ type PolygonEdge = (int * LineSegment)
 let edgesCount polygon = polygon.Vertices.Length
 
 /// Returns edges of a given polygon.
+/// Note that this function skips any edges that have zero length (and thus
+/// are formed from duplicate consecutive vertices).
 let polygonEdges polygon: PolygonEdge seq =
     [ polygon.Vertices |> Seq.head ]
     |> Seq.append polygon.Vertices 
