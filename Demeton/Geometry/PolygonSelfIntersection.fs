@@ -1,13 +1,20 @@
 ﻿/// Contains code for determining whether a polygon is self-intersecting.
 ///
 /// The isPolygonSelfIntersecting function uses a modification of the
+/// Shamos-Hoey Algorithm, which itself is a simplification of
 /// Bentley–Ottmann algorithm
 /// (https://en.wikipedia.org/wiki/Bentley%E2%80%93Ottmann_algorithm),
 /// basically running a horizontal sweep line over the polygon which
 /// reduces the needed number of intersection checks between edges.
 /// 
 /// Note that currently the algorithm uses a list instead of a binary search
-/// tree to keep the edges in the status, so the efficiency is still O(n^2). 
+/// tree to keep the edges in the status, so the efficiency is still O(n^2).
+///
+/// Some relevant links:
+/// - https://stackoverflow.com/questions/4876065/check-if-polygon-is-self-intersecting
+/// - https://www.webcitation.org/6ahkPQIsN
+/// - http://geomalgorithms.com/a09-_intersect-3.html
+/// - https://web.archive.org/web/20141211224415/http://www.lems.brown.edu/~wq/projects/cs252.html
 module Demeton.Geometry.PolygonSelfIntersection
 
 open Demeton.Geometry.Common

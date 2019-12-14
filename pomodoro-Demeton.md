@@ -1,4 +1,5 @@
 - implement a binary search tree
+    - first implement a testbed
 
 ## Fri 13.12.
 - Documented the polygon self-intersection detection code.

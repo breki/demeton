@@ -1,8 +1,12 @@
-- implement polygon self-intersection code
-    - https://en.wikipedia.org/wiki/Bentley%E2%80%93Ottmann_algorithm
-    - https://stackoverflow.com/questions/4876065/check-if-polygon-is-self-intersecting
-    - https://www.webcitation.org/6ahkPQIsN
-    - https://web.archive.org/web/20141211224415/http://www.lems.brown.edu/~wq/projects/cs252.html
+- implement a binary search tree
+    - first implement a testbed
+        - property function that uses a list as a test oracle and also calls insert and delete functions on the BST
+        - test case function that creates generators
+            - generate a random sequence of insert and remove calls (with greater frequency of insert)
+            - insert an integer
+            - remove one of the items from the tree
+                - how do we generate a random value between 1 and the tree size?
+        - we also need to validate behavior of remove when the element does not exist
 
 - run Europe on LCC
     - Could not open SRTM HTG file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip': ZIP file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip' does not have a file entry 'N44E048.hgt'.
