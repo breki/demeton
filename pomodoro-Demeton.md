@@ -1,5 +1,9 @@
-- implement a binary search tree
-    - first implement a testbed
+- also check the result of tryRemove
+- we also need to validate behavior of remove when the element does not exist
+- add BST property for asserting the tree is balanced.
+
+## Sun 15.12.
+- Implemented a first (unbalanced) version of BST.
 
 ## Fri 13.12.
 - Documented the polygon self-intersection detection code.

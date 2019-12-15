@@ -1,12 +1,4 @@
 - implement a binary search tree
-    - first implement a testbed
-        - property function that uses a list as a test oracle and also calls insert and delete functions on the BST
-        - test case function that creates generators
-            - generate a random sequence of insert and remove calls (with greater frequency of insert)
-            - insert an integer
-            - remove one of the items from the tree
-                - how do we generate a random value between 1 and the tree size?
-        - we also need to validate behavior of remove when the element does not exist
 
 - run Europe on LCC
     - Could not open SRTM HTG file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip': ZIP file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip' does not have a file entry 'N44E048.hgt'.
@@ -24,7 +16,14 @@
         - pixel coordinates of the top left corner  
         - also lon/lat coordinates of the top left corner
 
+- some other links:
+    - https://github.com/osm2vectortiles/dem2vectorterrain
+    - https://stackoverflow.com/questions/28189107/algorithm-for-smoothing-the-edges-of-a-polygon
+    - https://gis.stackexchange.com/questions/24827/smoothing-polygons-in-contour-map
+    - https://stackoverflow.com/questions/31464345/fitting-a-closed-curve-to-a-set-of-points
+
 - image tracing: 
+    - https://en.wikipedia.org/wiki/Image_segmentation
     - http://potrace.sourceforge.net/#dual
     - An Algorithm for Automatically Fitting Digitized Curves
     - http://www.imageprocessingplace.com/downloads_V3/root_downloads/tutorials/contour_tracing_Abeer_George_Ghuneim/alg.html

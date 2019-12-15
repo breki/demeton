@@ -2,7 +2,6 @@
 
 open Png.Types
 
-open System
 open System.IO
 
 let pngSignature = 
@@ -12,7 +11,7 @@ let pngSignature =
 /// <param name="stream">The stream the signature should be written to.</param>
 /// <returns>The same instance of the stream.</returns>
 let writeSignature (stream: Stream): Stream =
-    Array.ForEach(pngSignature, (fun x -> stream.WriteByte x))
+    pngSignature |> Array.iter stream.WriteByte
     stream
 
 
