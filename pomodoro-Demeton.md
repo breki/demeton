@@ -1,8 +1,13 @@
-- also check the result of tryRemove
-- we also need to validate behavior of remove when the element does not exist
-- add BST property for asserting the tree is balanced.
+- add more functions to BST and test them
+- document BST
+
+## Mon 16.12.
+- Decided to leave `BinarySearchTree` with the unbalanced implementation and implement a specialed balanced variants (AVL, red-black tree) separately.
+- Made the `BinarySearchTree` generic and renamed `Value` to `Item`.
 
 ## Sun 15.12.
+- Classified tests based on the tree size.
+- Added BST property for asserting the tree is balanced.
 - Implemented a first (unbalanced) version of BST.
 
 ## Fri 13.12.
