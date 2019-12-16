@@ -1,16 +1,14 @@
 ﻿module Tests.``Data structures``.``Binary search tree tests``
 
-open Demeton.DataStructures.BinarySearchTree
+open DataStructures.BinarySearchTree
+open DataStructures.ListEx
 
 open Xunit
 open FsCheck
 open PropertiesHelp
-open Text
 
-let private removeAt itemIndex list =
-    let (left, right) = list |> List.splitAt itemIndex
-    List.append left (right |> List.tail)
-
+/// Determines whether the tree is balanced (in terms of AVL tree balance
+/// or not). 
 let rec private isBalanced tree =
     match tree with
     | None -> true
@@ -24,88 +22,43 @@ let rec private isBalanced tree =
             let rightHeight = node.Right |> height
             abs (leftHeight - rightHeight) <= 1
 
-let private nodeToDot (node: BinarySearchTree<'T>) (nodeCounter: int) output =
-    match node with
-    | Some node ->
-        let nodeId = sprintf "%d" nodeCounter
-        output
-        |> appendFormat "{0} [label={1}]" [| nodeId; node.Item |]
-        |> newLine |> ignore        
-        nodeId
-    | None ->
-        let nodeId = sprintf "null%d" nodeCounter
-        output
-        |> appendFormat "{0} [shape=point]" [| nodeId |]
-        |> newLine |> ignore
-        nodeId
-
-let rec private subtreeToDot
-    (node: BinarySearchTree<'T>) nodeId (nodeCounter: int) output: int =
-  
-    match node with
-    | None -> nodeCounter
-    | Some node ->
-        let nodeCounterBeforeLeft = nodeCounter + 1
-        
-        let leftNodeId = nodeToDot (node.Left) nodeCounterBeforeLeft output
-
-        output
-        |> appendFormat "{0} -> {1}" [| nodeId; leftNodeId |]
-        |> newLine |> ignore
-
-        let nodeCounterBeforeRight =
-            match node.Left with
-            | None -> nodeCounterBeforeLeft + 1
-            | Some _ ->
-                output
-                |> subtreeToDot node.Left leftNodeId (nodeCounterBeforeLeft + 1)
-
-        let rightNodeId = nodeToDot (node.Right) nodeCounterBeforeRight output
-        output
-        |> appendFormat "{0} -> {1}" [| nodeId; rightNodeId |]
-        |> newLine |> ignore
-
-        let nodeCounterAfterRight =
-            match node.Right with
-            | None -> nodeCounterBeforeRight + 1
-            | Some _ ->
-                output
-                |> subtreeToDot node.Right rightNodeId (nodeCounterBeforeRight + 1)
-
-        nodeCounterAfterRight
-
-let treeToDot (tree: BinarySearchTree<'T>) =
-    match tree with
-    | None -> ""
-    | Some _ ->
-        let builder =
-            buildString()
-            |> appendLine "digraph BST {"
-        
-        let nodeId = builder |> nodeToDot tree 0
-        builder |> subtreeToDot tree nodeId 0 |> ignore
-        
-        builder
-        |> appendLine "}"
-        |> toString
-
+/// The operation to perform on the tree.
 type private TreeOperation =
+    /// Insert a new item into the tree.
     | Insert of int
+    /// Remove an item from the tree. The float value from 0 to 1 is
+    /// multiplied by the current size of the tree to calculate the index of
+    /// the item to be removed. 
     | Remove of float
+    /// Try to remove an item from the tree. There is no guarantee the item
+    /// is present in the tree.
     | TryRemove of int
 
+/// The current state of the binary search tree property test.
 type TreeTestCurrent = {
+    /// The list which serves as a test oracle. The tree should contain the same
+    /// items as this list (and in the same order).
     List: int list
+    /// The tree under the test.
     Tree: BinarySearchTree<int>
+    /// Count of the tree operations performed so far.
     OperationsPerformed: int
 }
 
+/// Represents both the intermediate and final results of the binary search tree
+/// property test. 
 type TreeTestResult =
+    /// Currently the tree corresponds to the test oracle.
     | Correct of TreeTestCurrent
+    /// The tree no longer corresponds to the test oracle. No further operations
+    /// will be performed on it.
     | Incorrect of TreeTestCurrent
+    /// The tree is not balanced (this is not used when testing BinarySearchTree
+    /// since it is not maintaining balance).
     | Unbalanced of TreeTestCurrent
 
 let private ``binary search tree properties`` operations =
+    /// Executes a test operation on the tree.
     let processOperation (state: TreeTestResult) operation: TreeTestResult =
         match state with
         | Correct state -> 
@@ -147,6 +100,7 @@ let private ``binary search tree properties`` operations =
         | Incorrect state -> Incorrect state
         | Unbalanced state -> Unbalanced state
             
+    /// Checks whether the current tree corresponds to its test oracle.
     let checkOperationResults (state: TreeTestResult): TreeTestResult =
         match state with
         | Correct state ->
@@ -162,7 +116,8 @@ let private ``binary search tree properties`` operations =
         | Incorrect state -> Incorrect state
         | Unbalanced state -> Unbalanced state
 
-    let foldFunc operation = (processOperation operation) >> checkOperationResults
+    let foldFunc operation =
+        (processOperation operation) >> checkOperationResults
     
     let classifyByTreeSize size property =
         property
@@ -171,7 +126,8 @@ let private ``binary search tree properties`` operations =
         |> Prop.classify (size > 10 && size <= 20) "final tree size 11-20 elements"
         |> Prop.classify (size > 20) "final tree size >= 20 elements"
         
-    let initialState = { List = []; Tree = None; OperationsPerformed = 0 } |> Correct
+    let initialState =
+        { List = []; Tree = None; OperationsPerformed = 0 } |> Correct
     let finalState = operations |> Seq.fold foldFunc initialState
      
     match finalState with

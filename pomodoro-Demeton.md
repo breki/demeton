@@ -1,7 +1,9 @@
+- test the behavior of remove if the item does not exist
 - add more functions to BST and test them
 - document BST
 
 ## Mon 16.12.
+- Added documentation for the BST and BST property tests.
 - Decided to leave `BinarySearchTree` with the unbalanced implementation and implement a specialed balanced variants (AVL, red-black tree) separately.
 - Made the `BinarySearchTree` generic and renamed `Value` to `Item`.
 

@@ -99,9 +99,7 @@ let isPolygonSelfIntersecting edgesIntersectFunc polygon =
         |> List.tryFindIndex(fun (edgeId, _) -> edgeId = edgeIdToRemove)
         |> function
         | Some index ->
-            let (before, after) = 
-                activeEdges |> List.splitAt index
-            after |> List.tail |> List.append before 
+            activeEdges |> DataStructures.ListEx.removeAt index
         | None -> invalidOp "bug: the edge was expected in the list"
 
     /// Determines whether the given sequence of edges contains any edge that
