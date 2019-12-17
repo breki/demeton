@@ -1,6 +1,7 @@
-- test the behavior of remove if the item does not exist
-- add more functions to BST and test them
-- document BST
+- Implement red-black tree
+
+## Tue 17.12.
+- Started working on red-black trees.
 
 ## Mon 16.12.
 - Added documentation for the BST and BST property tests.

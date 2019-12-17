@@ -1,8 +1,10 @@
 ﻿module Tests.``Data structures``.``Binary search tree tests``
 
 open DataStructures.BinarySearchTree
+open DataStructures.RedBlackTree
 open DataStructures.ListEx
 
+open DataStructures
 open Xunit
 open FsCheck
 open PropertiesHelp
@@ -33,6 +35,7 @@ type private TreeOperation =
     /// Try to remove an item from the tree. There is no guarantee the item
     /// is present in the tree.
     | TryRemove of int
+    | Contains of int 
 
 /// The current state of the binary search tree property test.
 type TreeTestCurrent = {
@@ -40,7 +43,8 @@ type TreeTestCurrent = {
     /// items as this list (and in the same order).
     List: int list
     /// The tree under the test.
-    Tree: BinarySearchTree<int>
+    BSTree: BinarySearchTree<int>
+    RBTree: RedBlackTree<int>
     /// Count of the tree operations performed so far.
     OperationsPerformed: int
 }
@@ -56,27 +60,30 @@ type TreeTestResult =
     /// The tree is not balanced (this is not used when testing BinarySearchTree
     /// since it is not maintaining balance).
     | Unbalanced of TreeTestCurrent
+    | ContainsFailed of (int * TreeTestCurrent)
 
 let private ``binary search tree properties`` operations =
     /// Executes a test operation on the tree.
     let processOperation (state: TreeTestResult) operation: TreeTestResult =
         match state with
         | Correct state -> 
-            let newState list tree =
+            let newState list bst rbt =
                 {
-                    List = list; Tree = tree
+                    List = list; BSTree = bst; RBTree = rbt
                     OperationsPerformed = state.OperationsPerformed + 1
                 } |> Correct 
 
             let list = state.List
-            let tree = state.Tree
+            let bst = state.BSTree
+            let rbt = state.RBTree
                     
             match operation with
             | Insert item ->
                 let list' = (item :: list) |> List.sort
-                let tree' = tree |> insert item
+                let bst' = bst |> BinarySearchTree.insert item
+                let rbt' = rbt |> RedBlackTree.insert item
                 
-                newState list' tree'
+                newState list' bst' rbt'
             | Remove vector ->
                 let itemIndex =
                     ((list.Length |> float) - 1.) * vector
@@ -84,30 +91,40 @@ let private ``binary search tree properties`` operations =
                 if itemIndex >= 0 && itemIndex < (list.Length - 1) then
                     let itemToRemove = list.[itemIndex]
                     let list' = list |> removeAt itemIndex
-                    let tree' = tree |> remove itemToRemove
-                    newState list' tree'
+                    let bst' = bst |> BinarySearchTree.remove itemToRemove
+                    let rbt' = rbt |> RedBlackTree.remove itemToRemove
+                    newState list' bst' rbt'
                 else
-                    newState list tree
+                    newState list bst rbt
             | TryRemove item ->
                 list
                 |> List.tryFindIndex (fun x -> x = item)
                 |> function
                 | Some itemIndex ->
                     let list' = list |> removeAt itemIndex
-                    let tree' = tree |> tryRemove item
-                    newState list' tree'
-                | None -> newState list tree
+                    let bst' = bst |> BinarySearchTree.tryRemove item
+                    let rbt' = rbt |> RedBlackTree.tryRemove item
+                    newState list' bst' rbt'
+                | None -> newState list bst rbt
+            | Contains item ->
+                if list
+                   |> List.contains item = (bst |> BinarySearchTree.contains item) then
+                    newState list bst rbt 
+                else
+                    ContainsFailed(item, state)
         | Incorrect state -> Incorrect state
         | Unbalanced state -> Unbalanced state
+        | ContainsFailed state -> ContainsFailed state
             
     /// Checks whether the current tree corresponds to its test oracle.
     let checkOperationResults (state: TreeTestResult): TreeTestResult =
         match state with
         | Correct state ->
             let list = state.List
-            let tree = state.Tree
+            let tree = state.BSTree
 
-            let treeElements = tree |> items |> Seq.toList
+            let treeElements =
+                tree |> BinarySearchTree.items |> Seq.toList
             if treeElements <> list then state |> Incorrect
             // todo: we do not check the balance for BST since it is not
             // maintaining balance
@@ -115,6 +132,7 @@ let private ``binary search tree properties`` operations =
             else state |> Correct
         | Incorrect state -> Incorrect state
         | Unbalanced state -> Unbalanced state
+        | ContainsFailed state -> ContainsFailed state
 
     let foldFunc operation =
         (processOperation operation) >> checkOperationResults
@@ -127,30 +145,40 @@ let private ``binary search tree properties`` operations =
         |> Prop.classify (size > 20) "final tree size >= 20 elements"
         
     let initialState =
-        { List = []; Tree = None; OperationsPerformed = 0 } |> Correct
+        { List = []; BSTree = None; RBTree = None; OperationsPerformed = 0 } |> Correct
     let finalState = operations |> Seq.fold foldFunc initialState
      
     match finalState with
     | Correct finalStateOk ->
-        let finalTreeElements = finalStateOk.Tree |> items |> Seq.toList   
+        let finalTreeElements =
+            finalStateOk.BSTree |> BinarySearchTree.items |> Seq.toList   
         (finalTreeElements = finalStateOk.List)
         |> classifyByTreeSize (finalStateOk.List |> List.length)
         |> Prop.label "the final tree does not have expected elements"
         |@ sprintf "%A <> %A" finalTreeElements finalStateOk.List
     | Incorrect errorState -> 
-        let errorTreeElements = errorState.Tree |> items |> Seq.toList   
+        let errorTreeElements =
+            errorState.BSTree |> BinarySearchTree.items |> Seq.toList   
         false
         |> Prop.label "the intermediate tree does not have expected elements"
         |@ sprintf
                "after %d operations, %A <> %A, tree:\n%s"
                errorState.OperationsPerformed errorTreeElements errorState.List
-               (errorState.Tree |> treeToDot)
+               (errorState.BSTree |> BinarySearchTree.treeToDot)
     | Unbalanced errorState ->
         false
         |> Prop.label "the tree is unbalanced"
         |@ sprintf
                "after %d operations, tree:\n%s"
-               errorState.OperationsPerformed  (errorState.Tree |> treeToDot)
+               errorState.OperationsPerformed
+               (errorState.BSTree |> BinarySearchTree.treeToDot)
+    | ContainsFailed (item, state) ->
+        false
+        |> Prop.label "contains function is incorrect"
+        |@ sprintf
+               "contains %d function is incorrect, tree:\n%s"
+               item (state.BSTree |> BinarySearchTree.treeToDot)
+
 
 type BinarySearchTreePropertyTest
     (output: Xunit.Abstractions.ITestOutputHelper) =
@@ -159,9 +187,10 @@ type BinarySearchTreePropertyTest
         let genInsert = Arb.generate<int> |> Gen.map Insert
         let genRemove = (floatFrom0To1Inclusive 1000) |> Gen.map Remove
         let genTryRemove = Arb.generate<int> |> Gen.map TryRemove
+        let genContains = Arb.generate<int> |> Gen.map Contains
         
         let genOperation = Gen.frequency [
-            (20, genInsert); (1, genRemove); (1, genTryRemove)
+            (20, genInsert); (1, genRemove); (1, genTryRemove); (3, genContains)
         ]
         
         let gen = Gen.arrayOf genOperation
@@ -170,3 +199,4 @@ type BinarySearchTreePropertyTest
         |> checkPropertyWithTestSize gen output 200 100
 //        |> checkPropertyVerboseWithTestSize gen output 200 100
 //        |> replayPropertyCheck gen output (109530125,296682337)
+    
