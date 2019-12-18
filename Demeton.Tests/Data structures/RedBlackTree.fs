@@ -4,6 +4,7 @@
 /// - https://en.wikipedia.org/wiki/Binary_search_tree
 /// - https://www.geeksforgeeks.org/binary-search-tree-data-structure/
 /// - https://en.wikipedia.org/wiki/Persistent_data_structure#Trees
+[<RequireQualifiedAccess>]
 module DataStructures.RedBlackTree
 
 open System.Collections.Generic
@@ -17,7 +18,7 @@ type Node<'T when 'T:comparison> = {
 }
 
 /// The root of the binary search tree.
-type RedBlackTree<'T when 'T:comparison> = Node<'T> option
+type Tree<'T when 'T:comparison> = Node<'T> option
 
 /// Contains internal implementation for inserting and removing of items from
 /// the tree.
@@ -147,7 +148,7 @@ module private Node =
                 | NotFound -> NotFound
 
     /// Outputs node ID (and any other attributes) in DOT language.
-    let nodeToDot (node: RedBlackTree<'T>) (nodeCounter: int) output =
+    let nodeToDot (node: Tree<'T>) (nodeCounter: int) output =
         match node with
         | Some node ->
             let nodeId = sprintf "%d" nodeCounter
@@ -199,7 +200,7 @@ module private Node =
             nodeCounterAfterRight
 
 /// Inserts an item into the tree and returns a new version of the tree.
-let insert item (tree: RedBlackTree<'T>) =
+let insert item (tree: Tree<'T>) =
     match tree with
     | None -> Node.createLeaf item |> Some
     | Some rootNode -> rootNode |> Node.insert item
@@ -250,7 +251,7 @@ let rec height tree =
         max (node.Left |> height) (node.Right |> height) + 1
 
 /// Serializes the tree into string using the DOT language.
-let treeToDot (tree: RedBlackTree<'T>) =
+let treeToDot (tree: Tree<'T>) =
     match tree with
     | None -> ""
     | Some _ ->

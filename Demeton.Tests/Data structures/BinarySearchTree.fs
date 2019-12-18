@@ -4,6 +4,7 @@
 /// - https://en.wikipedia.org/wiki/Binary_search_tree
 /// - https://www.geeksforgeeks.org/binary-search-tree-data-structure/
 /// - https://en.wikipedia.org/wiki/Persistent_data_structure#Trees
+[<RequireQualifiedAccess>]
 module DataStructures.BinarySearchTree
 
 open System.Collections.Generic
