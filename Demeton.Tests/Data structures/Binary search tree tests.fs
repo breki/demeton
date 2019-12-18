@@ -150,12 +150,15 @@ let private ``binary search tree properties`` operations =
      
     match finalState with
     | Correct finalStateOk ->
-        let finalTreeElements =
+        let finalBstElements =
             finalStateOk.BSTree |> BinarySearchTree.items |> Seq.toList   
-        (finalTreeElements = finalStateOk.List)
+        let finalRbtElements =
+            finalStateOk.RBTree |> RedBlackTree.items |> Seq.toList   
+        (finalBstElements = finalStateOk.List
+          && finalRbtElements = finalStateOk.List)
         |> classifyByTreeSize (finalStateOk.List |> List.length)
         |> Prop.label "the final tree does not have expected elements"
-        |@ sprintf "%A <> %A" finalTreeElements finalStateOk.List
+        |@ sprintf "%A <> %A" finalBstElements finalStateOk.List
     | Incorrect errorState -> 
         let errorTreeElements =
             errorState.BSTree |> BinarySearchTree.items |> Seq.toList   
