@@ -14,6 +14,7 @@ type Color = Red | Black
 /// A node of the binary search tree.
 type Node<'T when 'T:comparison> = {
     Item: 'T
+    Color: Color
     Left: Node<'T> option
     Right: Node<'T> option
 }
@@ -30,10 +31,12 @@ module private Node =
     type Subtree<'T when 'T:comparison> = Node<'T> option
     
     /// Creates a leaf node.
-    let createLeaf item = { Item = item; Left = None; Right = None }
+    let createLeaf item color =
+        { Item = item; Color = color; Left = None; Right = None }
     
     /// Creates a node.
-    let create item left right = { Item = item; Left = left; Right = right }
+    let create item color left right =
+        { Item = item; Color = color; Left = left; Right = right }
     
     /// Creates a copy of the node with a different left child.
     let updateLeft leftNode node = { node with Left = leftNode }
@@ -45,13 +48,13 @@ module private Node =
         if item < node.Item then
             let leftNode' = 
                 match node.Left with
-                | None -> createLeaf item |> Some
+                | None -> createLeaf item Black |> Some
                 | Some leftNode -> leftNode |> insert item
             node |> updateLeft leftNode' |> Some
         else
             let rightNode' =
                 match node.Right with
-                | None -> createLeaf item |> Some
+                | None -> createLeaf item Black |> Some
                 | Some rightNode -> rightNode |> insert item
             node |> updateRight rightNode' |> Some
 
@@ -91,7 +94,7 @@ module private Node =
         | Some right -> 
             let (successorNodeItem, newRightChild) =
                 right |> removeSuccessor
-            create successorNodeItem node.Left newRightChild |> Some
+            create successorNodeItem Black node.Left newRightChild |> Some
 
     /// Removes an item from the subtree. If the item was not found,
     /// throws an exception.
@@ -203,7 +206,7 @@ module private Node =
 /// Inserts an item into the tree and returns a new version of the tree.
 let insert item (tree: Tree<'T>) =
     match tree with
-    | None -> Node.createLeaf item |> Some
+    | None -> Node.createLeaf item Black |> Some
     | Some rootNode -> rootNode |> Node.insert item
    
 /// Removes an item from the tree and returns a new version of the tree.

@@ -51,13 +51,9 @@ type TreeTestCurrent<'Tree> = {
 type TreeTestResult<'Tree> =
     /// Currently the tree corresponds to the test oracle.
     | Correct of TreeTestCurrent<'Tree>
-    /// The tree no longer corresponds to the test oracle. No further operations
-    /// will be performed on it.
-    | Incorrect of TreeTestCurrent<'Tree>
-    /// The tree is not balanced (this is not used when testing BinarySearchTree
-    /// since it is not maintaining balance).
-    | Unbalanced of TreeTestCurrent<'Tree>
-    | ContainsFailed of (int * TreeTestCurrent<'Tree>)
+    /// One or more properties of the tree are no longer valid.
+    /// No further operations will be performed on it.
+    | Incorrect of (TreeTestCurrent<'Tree> * string)
 
 let private ``binary search tree properties``
     items contains insert remove tryRemove treeToDot
@@ -108,10 +104,12 @@ let private ``binary search tree properties``
                    |> List.contains item = (tree |> contains item) then
                     newState list tree 
                 else
-                    ContainsFailed(item, state)
+                    Incorrect
+                        (state,
+                        sprintf
+                            "The contains function returned a wrong result for item %d"
+                            item) 
         | Incorrect state -> Incorrect state
-        | Unbalanced state -> Unbalanced state
-        | ContainsFailed state -> ContainsFailed state
             
     /// Checks whether the current tree corresponds to its test oracle.
     let checkOperationResults (state: TreeTestResult<'Tree>): TreeTestResult<'Tree> =
@@ -121,14 +119,11 @@ let private ``binary search tree properties``
             let tree = state.Tree
 
             let treeElements = tree |> items |> Seq.toList
-            if treeElements <> list then state |> Incorrect
-            // todo: we do not check the balance for BST since it is not
-            // maintaining balance
-//            elif tree |> isBalanced |> not then state |> Unbalanced
+            if treeElements <> list then
+                Incorrect
+                    (state, "The tree no longer corresponds to the test oracle")
             else state |> Correct
         | Incorrect state -> Incorrect state
-        | Unbalanced state -> Unbalanced state
-        | ContainsFailed state -> ContainsFailed state
 
     let foldFunc operation =
         (processOperation operation) >> checkOperationResults
@@ -151,28 +146,14 @@ let private ``binary search tree properties``
         |> classifyByTreeSize (finalStateOk.List |> List.length)
         |> Prop.label "the final tree does not have expected elements"
         |@ sprintf "%A <> %A" finalTreeElements finalStateOk.List
-    | Incorrect errorState -> 
+    | Incorrect (errorState, message) -> 
         let errorTreeElements = errorState.Tree |> items |> Seq.toList   
         false
-        |> Prop.label "the intermediate tree does not have expected elements"
+        |> Prop.label message
         |@ sprintf
                "after %d operations, %A <> %A, tree:\n%s"
                errorState.OperationsPerformed errorTreeElements errorState.List
                (errorState.Tree |> treeToDot)
-    | Unbalanced errorState ->
-        false
-        |> Prop.label "the tree is unbalanced"
-        |@ sprintf
-               "after %d operations, tree:\n%s"
-               errorState.OperationsPerformed
-               (errorState.Tree |> treeToDot)
-    | ContainsFailed (item, state) ->
-        false
-        |> Prop.label "contains function is incorrect"
-        |@ sprintf
-               "contains %d function is incorrect, tree:\n%s"
-               item (state.Tree |> treeToDot)
-
 
 type BinarySearchTreePropertyTest
     (output: Xunit.Abstractions.ITestOutputHelper) =

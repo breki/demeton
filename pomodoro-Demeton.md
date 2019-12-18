@@ -1,6 +1,8 @@
 - Implement red-black tree
+    - define properties of RBT that need to be tested
 
 ## Wed 18.12.
+- Simplified `TreeTestResult` so it only has correct and incorrect results.
 - Generalized the binary search tree test code so it can be reused both for unbalanced BST and red-black tree.
 
 ## Tue 17.12.
