@@ -1,4 +1,5 @@
 - Implement red-black tree
+    - reuse as much of the testbed code as possible
 
 ## Tue 17.12.
 - Started working on red-black trees.

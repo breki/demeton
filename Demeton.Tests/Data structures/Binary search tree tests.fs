@@ -44,7 +44,6 @@ type TreeTestCurrent = {
     List: int list
     /// The tree under the test.
     BSTree: BinarySearchTree<int>
-    RBTree: RedBlackTree<int>
     /// Count of the tree operations performed so far.
     OperationsPerformed: int
 }
@@ -67,23 +66,21 @@ let private ``binary search tree properties`` operations =
     let processOperation (state: TreeTestResult) operation: TreeTestResult =
         match state with
         | Correct state -> 
-            let newState list bst rbt =
+            let newState list tree =
                 {
-                    List = list; BSTree = bst; RBTree = rbt
+                    List = list; BSTree = tree
                     OperationsPerformed = state.OperationsPerformed + 1
                 } |> Correct 
 
             let list = state.List
-            let bst = state.BSTree
-            let rbt = state.RBTree
+            let tree = state.BSTree
                     
             match operation with
             | Insert item ->
                 let list' = (item :: list) |> List.sort
-                let bst' = bst |> BinarySearchTree.insert item
-                let rbt' = rbt |> RedBlackTree.insert item
+                let tree' = tree |> BinarySearchTree.insert item
                 
-                newState list' bst' rbt'
+                newState list' tree'
             | Remove vector ->
                 let itemIndex =
                     ((list.Length |> float) - 1.) * vector
@@ -91,25 +88,23 @@ let private ``binary search tree properties`` operations =
                 if itemIndex >= 0 && itemIndex < (list.Length - 1) then
                     let itemToRemove = list.[itemIndex]
                     let list' = list |> removeAt itemIndex
-                    let bst' = bst |> BinarySearchTree.remove itemToRemove
-                    let rbt' = rbt |> RedBlackTree.remove itemToRemove
-                    newState list' bst' rbt'
+                    let tree' = tree |> BinarySearchTree.remove itemToRemove
+                    newState list' tree'
                 else
-                    newState list bst rbt
+                    newState list tree
             | TryRemove item ->
                 list
                 |> List.tryFindIndex (fun x -> x = item)
                 |> function
                 | Some itemIndex ->
                     let list' = list |> removeAt itemIndex
-                    let bst' = bst |> BinarySearchTree.tryRemove item
-                    let rbt' = rbt |> RedBlackTree.tryRemove item
-                    newState list' bst' rbt'
-                | None -> newState list bst rbt
+                    let tree' = tree |> BinarySearchTree.tryRemove item
+                    newState list' tree'
+                | None -> newState list tree
             | Contains item ->
                 if list
-                   |> List.contains item = (bst |> BinarySearchTree.contains item) then
-                    newState list bst rbt 
+                   |> List.contains item = (tree |> BinarySearchTree.contains item) then
+                    newState list tree 
                 else
                     ContainsFailed(item, state)
         | Incorrect state -> Incorrect state
@@ -145,20 +140,17 @@ let private ``binary search tree properties`` operations =
         |> Prop.classify (size > 20) "final tree size >= 20 elements"
         
     let initialState =
-        { List = []; BSTree = None; RBTree = None; OperationsPerformed = 0 } |> Correct
+        { List = []; BSTree = None; OperationsPerformed = 0 } |> Correct
     let finalState = operations |> Seq.fold foldFunc initialState
      
     match finalState with
     | Correct finalStateOk ->
-        let finalBstElements =
+        let finalTreeElements =
             finalStateOk.BSTree |> BinarySearchTree.items |> Seq.toList   
-        let finalRbtElements =
-            finalStateOk.RBTree |> RedBlackTree.items |> Seq.toList   
-        (finalBstElements = finalStateOk.List
-          && finalRbtElements = finalStateOk.List)
+        (finalTreeElements = finalStateOk.List)
         |> classifyByTreeSize (finalStateOk.List |> List.length)
         |> Prop.label "the final tree does not have expected elements"
-        |@ sprintf "%A <> %A" finalBstElements finalStateOk.List
+        |@ sprintf "%A <> %A" finalTreeElements finalStateOk.List
     | Incorrect errorState -> 
         let errorTreeElements =
             errorState.BSTree |> BinarySearchTree.items |> Seq.toList   
