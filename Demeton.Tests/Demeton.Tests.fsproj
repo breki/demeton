@@ -38,7 +38,7 @@
     <Compile Include="Png\Parsing color hex triplets and quadruplets.fs" />
     <Compile Include="Png\Mixing Rgba8Bit colors.fs" />
     <Compile Include="Png\Alpha compositing.fs" />
-    <Compile Include="Data structures\BinarySearchTree.fs" />
+    <Compile Include="Data structures\UnbalancedBinarySearchTree.fs" />
     <Compile Include="Data structures\RedBlackTree.fs" />
     <Compile Include="Data structures\Binary search tree tests.fs" />
     <Compile Include="Geometry\GeometryTestHelp.fs" />

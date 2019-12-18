@@ -136,8 +136,10 @@ let private ``binary search tree properties``
     let classifyByTreeSize size property =
         property
         |> Prop.classify (size <= 5) "final tree size <= 5 elements"
-        |> Prop.classify (size > 5 && size <= 10) "final tree size 6-10 elements"
-        |> Prop.classify (size > 10 && size <= 20) "final tree size 11-20 elements"
+        |> Prop.classify
+               (size > 5 && size <= 10) "final tree size 6-10 elements"
+        |> Prop.classify
+               (size > 10 && size <= 20) "final tree size 11-20 elements"
         |> Prop.classify (size > 20) "final tree size >= 20 elements"
         
     let finalState = operations |> Seq.fold foldFunc initialState
@@ -174,8 +176,33 @@ let private ``binary search tree properties``
 
 type BinarySearchTreePropertyTest
     (output: Xunit.Abstractions.ITestOutputHelper) =
-    [<Fact>]
-    member this.``Binary search tree property test``() =
+    let unbalancedBinarySearchTreeProperties =
+        let initialState =
+            { List = []; Tree = None; OperationsPerformed = 0 } |> Correct
+        
+        (``binary search tree properties``
+            UnbalancedBinarySearchTree.items
+            UnbalancedBinarySearchTree.contains
+            UnbalancedBinarySearchTree.insert
+            UnbalancedBinarySearchTree.remove
+            UnbalancedBinarySearchTree.tryRemove
+            UnbalancedBinarySearchTree.treeToDot
+            initialState)
+    
+    let redBlackTreeProperties =
+        let initialState =
+            { List = []; Tree = None; OperationsPerformed = 0 } |> Correct
+        
+        (``binary search tree properties``
+            RedBlackTree.items
+            RedBlackTree.contains
+            RedBlackTree.insert
+            RedBlackTree.remove
+            RedBlackTree.tryRemove
+            RedBlackTree.treeToDot
+            initialState)
+    
+    let runTreePropertyTests properties =
         let genInsert = Arb.generate<int> |> Gen.map Insert
         let genRemove = (floatFrom0To1Inclusive 1000) |> Gen.map Remove
         let genTryRemove = Arb.generate<int> |> Gen.map TryRemove
@@ -187,18 +214,15 @@ type BinarySearchTreePropertyTest
         
         let gen = Gen.arrayOf genOperation
         
-        let initialState =
-            { List = []; Tree = None; OperationsPerformed = 0 } |> Correct
-        
-        (``binary search tree properties``
-            BinarySearchTree.items
-            BinarySearchTree.contains
-            BinarySearchTree.insert
-            BinarySearchTree.remove
-            BinarySearchTree.tryRemove
-            BinarySearchTree.treeToDot
-            initialState)
+        properties
         |> checkPropertyWithTestSize gen output 200 100
 //        |> checkPropertyVerboseWithTestSize gen output 200 100
 //        |> replayPropertyCheck gen output (109530125,296682337)
     
+    [<Fact>]
+    member this.``Unbalanced binary search tree properties``() =
+        runTreePropertyTests unbalancedBinarySearchTreeProperties
+    
+    [<Fact>]
+    member this.``Red-black tree properties``() =
+        runTreePropertyTests redBlackTreeProperties

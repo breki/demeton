@@ -1,8 +1,7 @@
 - Implement red-black tree
-    - reuse as much of the testbed code as possible
 
 ## Wed 18.12.
-- Started generalizing the binary search tree test code.
+- Generalized the binary search tree test code so it can be reused both for unbalanced BST and red-black tree.
 
 ## Tue 17.12.
 - Started working on red-black trees.

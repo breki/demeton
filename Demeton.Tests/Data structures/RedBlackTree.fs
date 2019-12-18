@@ -1,4 +1,4 @@
-﻿/// Implementation of a persistent unbalanced binary search tree (BST).
+﻿/// Implementation of a persistent red-black tree.
 ///
 /// Useful links:
 /// - https://en.wikipedia.org/wiki/Binary_search_tree

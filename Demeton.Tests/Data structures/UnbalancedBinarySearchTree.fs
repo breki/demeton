@@ -1,11 +1,11 @@
-﻿/// Implementation of a persistent red-black tree.
+﻿/// Implementation of a persistent unbalanced binary search tree (BST).
 ///
 /// Useful links:
 /// - https://en.wikipedia.org/wiki/Binary_search_tree
 /// - https://www.geeksforgeeks.org/binary-search-tree-data-structure/
 /// - https://en.wikipedia.org/wiki/Persistent_data_structure#Trees
 [<RequireQualifiedAccess>]
-module DataStructures.BinarySearchTree
+module DataStructures.UnbalancedBinarySearchTree
 
 open System.Collections.Generic
 open Text
