@@ -49,11 +49,7 @@ type TreeTestCurrent<'Tree> = {
 /// Represents both the intermediate and final results of the binary search tree
 /// property test. 
 type TreeTestResult<'Tree> =
-    /// Currently the tree corresponds to the test oracle.
-    | Correct of TreeTestCurrent<'Tree>
-    /// One or more properties of the tree are no longer valid.
-    /// No further operations will be performed on it.
-    | Incorrect of (TreeTestCurrent<'Tree> * string)
+    Result<TreeTestCurrent<'Tree>, TreeTestCurrent<'Tree> * string>
 
 let private ``binary search tree properties``
     items contains insert remove tryRemove treeToDot
@@ -61,72 +57,69 @@ let private ``binary search tree properties``
     operations =
     /// Executes a test operation on the tree.
     let processOperation
-        (state: TreeTestResult<'Tree>) operation: TreeTestResult<'Tree> =
-        match state with
-        | Correct state -> 
-            let newState list tree =
-                {
-                    List = list; Tree = tree
-                    OperationsPerformed = state.OperationsPerformed + 1
-                } |> Correct 
+        (state: TreeTestCurrent<'Tree>) operation: TreeTestResult<'Tree> =
+        let newState list tree =
+            {
+                List = list; Tree = tree
+                OperationsPerformed = state.OperationsPerformed + 1
+            } |> Ok 
 
-            let list = state.List
-            let tree = state.Tree
-                    
-            match operation with
-            | Insert item ->
-                let list' = (item :: list) |> List.sort
-                let tree' = tree |> insert item
+        let list = state.List
+        let tree = state.Tree
                 
+        match operation with
+        | Insert item ->
+            let list' = (item :: list) |> List.sort
+            let tree' = tree |> insert item
+            
+            newState list' tree'
+        | Remove vector ->
+            let itemIndex =
+                ((list.Length |> float) - 1.) * vector
+                |> System.Math.Round |> int
+            if itemIndex >= 0 && itemIndex < (list.Length - 1) then
+                let itemToRemove = list.[itemIndex]
+                let list' = list |> removeAt itemIndex
+                let tree' = tree |> remove itemToRemove
                 newState list' tree'
-            | Remove vector ->
-                let itemIndex =
-                    ((list.Length |> float) - 1.) * vector
-                    |> System.Math.Round |> int
-                if itemIndex >= 0 && itemIndex < (list.Length - 1) then
-                    let itemToRemove = list.[itemIndex]
-                    let list' = list |> removeAt itemIndex
-                    let tree' = tree |> remove itemToRemove
-                    newState list' tree'
-                else
-                    newState list tree
-            | TryRemove item ->
-                list
-                |> List.tryFindIndex (fun x -> x = item)
-                |> function
-                | Some itemIndex ->
-                    let list' = list |> removeAt itemIndex
-                    let tree' = tree |> tryRemove item
-                    newState list' tree'
-                | None -> newState list tree
-            | Contains item ->
-                if list
-                   |> List.contains item = (tree |> contains item) then
-                    newState list tree 
-                else
-                    Incorrect
-                        (state,
-                        sprintf
-                            "The contains function returned a wrong result for item %d"
-                            item) 
-        | Incorrect state -> Incorrect state
+            else
+                newState list tree
+        | TryRemove item ->
+            list
+            |> List.tryFindIndex (fun x -> x = item)
+            |> function
+            | Some itemIndex ->
+                let list' = list |> removeAt itemIndex
+                let tree' = tree |> tryRemove item
+                newState list' tree'
+            | None -> newState list tree
+        | Contains item ->
+            if list
+               |> List.contains item = (tree |> contains item) then
+                newState list tree 
+            else
+                (state,
+                    sprintf
+                        "The contains function returned a wrong result for item %d"
+                        item)
+                |> Error
             
     /// Checks whether the current tree corresponds to its test oracle.
-    let checkOperationResults (state: TreeTestResult<'Tree>): TreeTestResult<'Tree> =
-        match state with
-        | Correct state ->
-            let list = state.List
-            let tree = state.Tree
+    let checkOperationResults (state: TreeTestCurrent<'Tree>): TreeTestResult<'Tree> =
+        let list = state.List
+        let tree = state.Tree
 
-            let treeElements = tree |> items |> Seq.toList
-            if treeElements <> list then
-                Incorrect
-                    (state, "The tree no longer corresponds to the test oracle")
-            else state |> Correct
-        | Incorrect state -> Incorrect state
-
-    let foldFunc operation =
-        (processOperation operation) >> checkOperationResults
+        let treeElements = tree |> items |> Seq.toList
+        if treeElements <> list then
+            (state, "The tree no longer corresponds to the test oracle")
+            |> Error
+        else state |> Ok
+    
+    let foldFunc (resultState: TreeTestResult<'Tree>) operation: TreeTestResult<'Tree> =
+        match resultState with
+        | Ok state -> processOperation state operation
+        | Error error -> Error error
+        |> Result.bind checkOperationResults
     
     let classifyByTreeSize size property =
         property
@@ -140,13 +133,13 @@ let private ``binary search tree properties``
     let finalState = operations |> Seq.fold foldFunc initialState
      
     match finalState with
-    | Correct finalStateOk ->
+    | Result.Ok finalStateOk ->
         let finalTreeElements = finalStateOk.Tree |> items |> Seq.toList   
         (finalTreeElements = finalStateOk.List)
         |> classifyByTreeSize (finalStateOk.List |> List.length)
         |> Prop.label "the final tree does not have expected elements"
         |@ sprintf "%A <> %A" finalTreeElements finalStateOk.List
-    | Incorrect (errorState, message) -> 
+    | Result.Error (errorState, message) -> 
         let errorTreeElements = errorState.Tree |> items |> Seq.toList   
         false
         |> Prop.label message
@@ -159,7 +152,7 @@ type BinarySearchTreePropertyTest
     (output: Xunit.Abstractions.ITestOutputHelper) =
     let unbalancedBinarySearchTreeProperties =
         let initialState =
-            { List = []; Tree = None; OperationsPerformed = 0 } |> Correct
+            { List = []; Tree = None; OperationsPerformed = 0 } |> Ok
         
         (``binary search tree properties``
             UnbalancedBinarySearchTree.items
@@ -172,7 +165,7 @@ type BinarySearchTreePropertyTest
     
     let redBlackTreeProperties =
         let initialState =
-            { List = []; Tree = None; OperationsPerformed = 0 } |> Correct
+            { List = []; Tree = None; OperationsPerformed = 0 } |> Ok
         
         (``binary search tree properties``
             RedBlackTree.items
