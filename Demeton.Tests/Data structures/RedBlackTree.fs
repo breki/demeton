@@ -1,14 +1,15 @@
 ﻿/// Implementation of a persistent red-black tree.
 ///
 /// Useful links:
-/// - https://en.wikipedia.org/wiki/Binary_search_tree
-/// - https://www.geeksforgeeks.org/binary-search-tree-data-structure/
-/// - https://en.wikipedia.org/wiki/Persistent_data_structure#Trees
+/// - https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
+/// - http://matt.might.net/articles/red-black-delete/
 [<RequireQualifiedAccess>]
 module DataStructures.RedBlackTree
 
 open System.Collections.Generic
 open Text
+
+type Color = Red | Black
 
 /// A node of the binary search tree.
 type Node<'T when 'T:comparison> = {
