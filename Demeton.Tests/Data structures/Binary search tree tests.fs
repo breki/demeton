@@ -4,8 +4,10 @@ open DataStructures.ListEx
 
 open DataStructures
 open Xunit
+open Swensen.Unquote
 open FsCheck
 open PropertiesHelp
+open TestHelp
 
 /// Determines whether the tree is balanced (in terms of AVL tree balance
 /// or not). 
@@ -51,10 +53,69 @@ type TreeTestCurrent<'Tree> = {
 type TreeTestResult<'Tree> =
     Result<TreeTestCurrent<'Tree>, TreeTestCurrent<'Tree> * string>
 
+type TreePropertyVerificationFunc<'Tree> =
+    TreeTestCurrent<'Tree> -> TreeTestResult<'Tree>
+
+/// Checks whether the current tree corresponds to its test oracle.
+let verifyWithTestOracle items: TreePropertyVerificationFunc<'Tree> =
+    fun (state: TreeTestCurrent<'Tree>) ->
+    let list = state.List
+    let tree = state.Tree
+
+    let treeElements = tree |> items |> Seq.toList
+    if treeElements <> list then
+        (state, "The tree no longer corresponds to the test oracle")
+        |> Error
+    else state |> Ok
+
+let rootIsBlack (state: TreeTestCurrent<RedBlackTree.Tree<'T>>) =
+    if state.Tree |> RedBlackTree.isBlack then state |> Ok
+    else (state, "Root node should be black") |> Error
+
+let redNodesDoNotHaveRedChildren
+    (state: TreeTestCurrent<RedBlackTree.Tree<'T>>) =
+    let rec allNodesSatisfy (node: RedBlackTree.Tree<'T>) =
+        match node with
+        | None -> true
+        | Some node ->
+            match node.Color with
+            | RedBlackTree.Black ->
+                (node.Left |> allNodesSatisfy) &&
+                    (node.Right |> allNodesSatisfy)
+            | RedBlackTree.Red ->
+                (node.Left |> RedBlackTree.isBlack)
+                && (node.Right |> RedBlackTree.isBlack)
+                && (node.Left |> allNodesSatisfy)
+                && (node.Right |> allNodesSatisfy)
+    
+    if state.Tree |> allNodesSatisfy then state |> Ok
+    else (state, "One or more red nodes has red children") |> Error
+    
+let rec countNumberOfBlacksInPath (tree: RedBlackTree.Tree<'T>) =
+    match tree with
+    | None -> (0, 0)
+    | Some tree ->
+        let (leftMin, leftMax) = tree.Left |> countNumberOfBlacksInPath
+        let (rightMin, rightMax) = tree.Right |> countNumberOfBlacksInPath
+        match tree.Color with
+        | RedBlackTree.Red -> (min leftMin rightMin, max leftMax rightMax)
+        | RedBlackTree.Black -> (1 + min leftMin rightMin, 1 + max leftMax rightMax)
+    
+let allPathsHaveSameNumberOfBlacks
+    (state: TreeTestCurrent<RedBlackTree.Tree<'T>>) =
+
+    let (minBlacks, maxBlacks) = countNumberOfBlacksInPath state.Tree
+    if minBlacks = maxBlacks then state |> Ok
+    else (state,
+          sprintf
+              "Paths have different number of blacks (from %d to %d)"
+              minBlacks maxBlacks)
+        |> Error
+
 let private ``binary search tree properties``
     items contains insert remove tryRemove treeToDot
-    initialState
-    operations =
+    (additionalProperties: TreePropertyVerificationFunc<'Tree> list)
+    initialState operations =
     /// Executes a test operation on the tree.
     let processOperation
         (state: TreeTestCurrent<'Tree>) operation: TreeTestResult<'Tree> =
@@ -104,22 +165,22 @@ let private ``binary search tree properties``
                         item)
                 |> Error
             
-    /// Checks whether the current tree corresponds to its test oracle.
-    let checkOperationResults (state: TreeTestCurrent<'Tree>): TreeTestResult<'Tree> =
-        let list = state.List
-        let tree = state.Tree
-
-        let treeElements = tree |> items |> Seq.toList
-        if treeElements <> list then
-            (state, "The tree no longer corresponds to the test oracle")
-            |> Error
-        else state |> Ok
-    
-    let foldFunc (resultState: TreeTestResult<'Tree>) operation: TreeTestResult<'Tree> =
-        match resultState with
-        | Ok state -> processOperation state operation
-        | Error error -> Error error
-        |> Result.bind checkOperationResults
+    let foldFunc
+        (verifyProperties: TreePropertyVerificationFunc<'Tree> list) 
+        (resultState: TreeTestResult<'Tree>)
+        operation: TreeTestResult<'Tree> =
+            
+        let operationResult =
+            match resultState with
+            | Ok state -> processOperation state operation
+            | Error error -> Error error
+            
+        verifyProperties
+        |> List.fold (fun result property ->
+            match result with
+            | Ok state -> property state
+            | Error error -> Error error)
+            operationResult
     
     let classifyByTreeSize size property =
         property
@@ -130,7 +191,9 @@ let private ``binary search tree properties``
                (size > 10 && size <= 20) "final tree size 11-20 elements"
         |> Prop.classify (size > 20) "final tree size >= 20 elements"
         
-    let finalState = operations |> Seq.fold foldFunc initialState
+    let finalState =
+        operations
+        |> Seq.fold (foldFunc additionalProperties) initialState
      
     match finalState with
     | Result.Ok finalStateOk ->
@@ -144,7 +207,7 @@ let private ``binary search tree properties``
         false
         |> Prop.label message
         |@ sprintf
-               "after %d operations, %A <> %A, tree:\n%s"
+               "after %d operations, tree=%A, oracle=%A, tree:\n\n%s"
                errorState.OperationsPerformed errorTreeElements errorState.List
                (errorState.Tree |> treeToDot)
 
@@ -161,6 +224,7 @@ type BinarySearchTreePropertyTest
             UnbalancedBinarySearchTree.remove
             UnbalancedBinarySearchTree.tryRemove
             UnbalancedBinarySearchTree.treeToDot
+            [ (verifyWithTestOracle UnbalancedBinarySearchTree.items) ]
             initialState)
     
     let redBlackTreeProperties =
@@ -174,6 +238,10 @@ type BinarySearchTreePropertyTest
             RedBlackTree.remove
             RedBlackTree.tryRemove
             RedBlackTree.treeToDot
+            [ (verifyWithTestOracle RedBlackTree.items)
+              rootIsBlack
+              redNodesDoNotHaveRedChildren
+              allPathsHaveSameNumberOfBlacks ]
             initialState)
     
     let runTreePropertyTests properties =
@@ -189,10 +257,10 @@ type BinarySearchTreePropertyTest
         let gen = Gen.arrayOf genOperation
         
         properties
-        |> checkPropertyWithTestSize gen output 200 100
+//        |> checkPropertyWithTestSize gen output 200 100
 //        |> checkPropertyVerboseWithTestSize gen output 200 100
-//        |> replayPropertyCheck gen output (109530125,296682337)
-    
+        |> replayPropertyCheck gen output (9157400,296683675)
+   
     [<Fact>]
     member this.``Unbalanced binary search tree properties``() =
         runTreePropertyTests unbalancedBinarySearchTreeProperties
@@ -200,3 +268,9 @@ type BinarySearchTreePropertyTest
     [<Fact>]
     member this.``Red-black tree properties``() =
         runTreePropertyTests redBlackTreeProperties
+
+    [<Fact>]
+    member this.``Sample case 1``() =
+        redBlackTreeProperties
+            [| Insert -1; Insert 1; Insert -1; Insert 0; Insert 0 |]
+        |> Check.QuickThrowOnFailure

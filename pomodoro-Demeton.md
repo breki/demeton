@@ -1,5 +1,5 @@
 - Implement red-black tree
-    - how to integrate custom properties for RBT?
+    - extract repair procedure?
     - define properties of RBT that need to be tested
 
 ## Wed 18.12.

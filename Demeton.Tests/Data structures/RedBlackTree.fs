@@ -22,6 +22,21 @@ type Node<'T when 'T:comparison> = {
 /// The root of the binary search tree.
 type Tree<'T when 'T:comparison> = Node<'T> option
 
+
+let isBlack (node: Tree<'T>) =
+    match node with
+    | None -> true
+    | Some node ->
+        match node.Color with
+        | Black -> true
+        | Red -> false
+
+let isRed (node: Tree<'T>) = node |> isBlack |> not
+
+let color (node: Tree<'T>) =
+    if node |> isBlack then Black
+    else Red
+
 /// Contains internal implementation for inserting and removing of items from
 /// the tree.
 [<RequireQualifiedAccess>]
@@ -29,6 +44,25 @@ module private Node =
     /// Represents a subtree (basically just an optional node representing the
     /// root of the subtree. 
     type Subtree<'T when 'T:comparison> = Node<'T> option
+    
+    type ParentRelation<'T when 'T:comparison> =
+        | LeftChildOf of Node<'T>
+        | RightChildOf of Node<'T>
+        | NoParent
+    
+    type InsertNodeResult<'T when 'T:comparison> =
+        | RepairParent of Node<'T>
+        | LeftRotate of Node<'T>
+        | RepaintGrandparentAndAunt of Node<'T>
+    
+    let leftChildOf node = LeftChildOf node 
+    let rightChildOf node = RightChildOf node 
+    
+    let aunt grandparent =
+        match grandparent with
+        | LeftChildOf grandparent -> grandparent.Right
+        | RightChildOf grandparent -> grandparent.Left
+        | NoParent -> None
     
     /// Creates a leaf node.
     let createLeaf item color =
@@ -40,23 +74,77 @@ module private Node =
     
     /// Creates a copy of the node with a different left child.
     let updateLeft leftNode node = { node with Left = leftNode }
+    
+    let updateLeftAndColor leftNode color node =
+        { node with Left = leftNode; Color = color }
+    
     /// Creates a copy of the node with a different right child.
     let updateRight rightNode node = { node with Right = rightNode }
     
+    let updateRightAndColor rightNode color node =
+        { node with Right = rightNode; Color = color }
+
+    let updateLeftRightAndColor leftNode rightNode color node =
+        { node with Left = leftNode; Right = rightNode; Color = color }
+    
+    let repaint color node =
+        match node with
+        | Some node -> { node with Color = color }
+        | None -> invalidOp "bug: trying repaint a null node"
+    
     /// Inserts an item into the subtree).
-    let rec insert item node =
-        if item < node.Item then
-            let leftNode' = 
-                match node.Left with
-                | None -> createLeaf item Black |> Some
-                | Some leftNode -> leftNode |> insert item
-            node |> updateLeft leftNode' |> Some
+    let rec insert
+        item
+        (grandparent: ParentRelation<'T>)
+        parent:
+        InsertNodeResult<'T> =
+        if item < parent.Item then
+            match parent.Left with
+            | None ->
+                match parent.Color with
+                | Black ->
+                    let leftNode = createLeaf item Red |> Some
+                    parent |> updateLeft leftNode |> RepairParent
+                | Red ->
+                    match grandparent |> aunt |> color with
+                    | Red ->
+                        let leftNode = createLeaf item Red |> Some
+                        parent
+                        |> updateLeftAndColor leftNode Black
+                        |> RepaintGrandparentAndAunt
+                    | Black ->
+                        create item Red None (Some parent) |> LeftRotate
+            | Some leftNode ->
+                match leftNode |> insert item (leftChildOf parent) with
+                | RepairParent leftNode' ->
+                    parent |> updateLeft (Some leftNode') |> RepairParent
+                | LeftRotate leftNode' ->
+                    invalidOp "todo: left rotate on left node"
+                | RepaintGrandparentAndAunt leftNode' ->
+                    invalidOp "todo: repaint of left node"
         else
-            let rightNode' =
-                match node.Right with
-                | None -> createLeaf item Black |> Some
-                | Some rightNode -> rightNode |> insert item
-            node |> updateRight rightNode' |> Some
+            match parent.Right with
+            | None ->
+                let rightNode = createLeaf item Red |> Some
+                parent |> updateRight rightNode |> RepairParent
+            | Some rightNode ->
+                match rightNode |> insert item (rightChildOf parent) with
+                | RepairParent rightNode' ->
+                    parent |> updateRight (Some rightNode') |> RepairParent
+                | LeftRotate rightNode' ->
+                    let parentRotatedToLeft: Subtree<'T> =
+                        parent
+                        |> updateRightAndColor None Red |> Some
+                    let rightNodeRotatedToTop =
+                        rightNode'
+                        |> updateLeftAndColor parentRotatedToLeft Black
+                    rightNodeRotatedToTop |> RepairParent
+                | RepaintGrandparentAndAunt rightNode' ->
+                    let repaintedAunt = parent.Left |> repaint Black |> Some
+                    parent
+                    |> updateLeftRightAndColor
+                           repaintedAunt (rightNode' |> Some) Red
+                    |> RepairParent
 
     /// Determines whether the tree contains the specified item. 
     let rec contains item node =
@@ -157,7 +245,10 @@ module private Node =
         | Some node ->
             let nodeId = sprintf "%d" nodeCounter
             output
-            |> appendFormat "{0} [label={1}]" [| nodeId; node.Item |]
+            |> appendFormat "{0} [label={1}" [| nodeId; node.Item |]
+            |> appendFormat
+                   " color={0} fontcolor=white style=filled]"
+                   [| if node.Color = Black then "black" else "red" |]
             |> newLine |> ignore        
             nodeId
         | None ->
@@ -207,7 +298,14 @@ module private Node =
 let insert item (tree: Tree<'T>) =
     match tree with
     | None -> Node.createLeaf item Black |> Some
-    | Some rootNode -> rootNode |> Node.insert item
+    | Some rootNode ->
+        match rootNode |> Node.insert item Node.NoParent with
+        | Node.RepairParent rootNode' ->
+            match rootNode'.Color with
+            | Black -> rootNode' |> Some
+            | Red -> rootNode' |> Some |> Node.repaint Black |> Some
+        | Node.LeftRotate rootNode' -> invalidOp "todo"
+        | Node.RepaintGrandparentAndAunt rootNode' -> invalidOp "todo"
    
 /// Removes an item from the tree and returns a new version of the tree.
 /// If the item was not found, throws an exception.
