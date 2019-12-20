@@ -53,6 +53,7 @@ module private Node =
     type InsertNodeResult<'T when 'T:comparison> =
         | RepairParent of Node<'T>
         | LeftRotate of Node<'T>
+        | RightRotate of Node<'T>
         | RepaintGrandparentAndAunt of Node<'T>
     
     let leftChildOf node = LeftChildOf node 
@@ -113,20 +114,54 @@ module private Node =
                         |> updateLeftAndColor leftNode Black
                         |> RepaintGrandparentAndAunt
                     | Black ->
-                        create item Red None (Some parent) |> LeftRotate
+                        match grandparent with
+                        | LeftChildOf _ ->
+                            let leftChild = createLeaf item Red |> Some
+                            parent |> updateLeft leftChild |> RightRotate
+                        | RightChildOf _ ->
+                            create item Red None (Some parent) |> LeftRotate
+                        | NoParent -> invalidOp "todo: NoParent"
             | Some leftNode ->
                 match leftNode |> insert item (leftChildOf parent) with
                 | RepairParent leftNode' ->
                     parent |> updateLeft (Some leftNode') |> RepairParent
-                | LeftRotate leftNode' ->
-                    invalidOp "todo: left rotate on left node"
+                | LeftRotate leftNode' -> invalidOp "todo: left rotate on left node"
+                | RightRotate leftNode' ->
+                    let parentRotatedToRight: Subtree<'T> =
+                        parent
+                        |> updateLeftAndColor None Red |> Some
+                    let leftNodeRotatedToTop =
+                        leftNode'
+                        |> updateRightAndColor parentRotatedToRight Black
+                    leftNodeRotatedToTop |> RepairParent
                 | RepaintGrandparentAndAunt leftNode' ->
-                    invalidOp "todo: repaint of left node"
+                    let repaintedAunt = parent.Right |> repaint Black |> Some
+                    parent
+                    |> updateLeftRightAndColor
+                           (leftNode' |> Some) repaintedAunt Red
+                    |> RepairParent
         else
             match parent.Right with
             | None ->
-                let rightNode = createLeaf item Red |> Some
-                parent |> updateRight rightNode |> RepairParent
+                match parent.Color with
+                | Black ->
+                    let rightNode = createLeaf item Red |> Some
+                    parent |> updateRight rightNode |> RepairParent
+                | Red ->
+                    match grandparent |> aunt |> color with
+                    | Red ->
+                        let rightNode = createLeaf item Red |> Some
+                        parent
+                        |> updateRightAndColor rightNode Black
+                        |> RepaintGrandparentAndAunt
+                    | Black ->
+                        match grandparent with
+                        | LeftChildOf _ ->
+                            create item Red (Some parent) None |> RightRotate
+                        | RightChildOf _ ->
+                            let rightChild = createLeaf item Red |> Some
+                            parent |> updateRight rightChild |> LeftRotate
+                        | NoParent -> invalidOp "todo: NoParent"
             | Some rightNode ->
                 match rightNode |> insert item (rightChildOf parent) with
                 | RepairParent rightNode' ->
@@ -138,6 +173,14 @@ module private Node =
                     let rightNodeRotatedToTop =
                         rightNode'
                         |> updateLeftAndColor parentRotatedToLeft Black
+                    rightNodeRotatedToTop |> RepairParent
+                | RightRotate rightNode' ->
+                    let parentRotatedToRight: Subtree<'T> =
+                        parent
+                        |> updateLeftAndColor None Red |> Some
+                    let rightNodeRotatedToTop =
+                        rightNode'
+                        |> updateRightAndColor parentRotatedToRight Black
                     rightNodeRotatedToTop |> RepairParent
                 | RepaintGrandparentAndAunt rightNode' ->
                     let repaintedAunt = parent.Left |> repaint Black |> Some
@@ -305,6 +348,7 @@ let insert item (tree: Tree<'T>) =
             | Black -> rootNode' |> Some
             | Red -> rootNode' |> Some |> Node.repaint Black |> Some
         | Node.LeftRotate rootNode' -> invalidOp "todo"
+        | Node.RightRotate rootNode' -> invalidOp "todo"
         | Node.RepaintGrandparentAndAunt rootNode' -> invalidOp "todo"
    
 /// Removes an item from the tree and returns a new version of the tree.
