@@ -113,6 +113,7 @@ let allPathsHaveSameNumberOfBlacks
         |> Error
 
 let private ``binary search tree properties``
+    (output: Xunit.Abstractions.ITestOutputHelper)
     items contains insert remove tryRemove treeToDot
     (additionalProperties: TreePropertyVerificationFunc<'Tree> list)
     initialState operations =
@@ -175,12 +176,21 @@ let private ``binary search tree properties``
             | Ok state -> processOperation state operation
             | Error error -> Error error
             
-        verifyProperties
-        |> List.fold (fun result property ->
-            match result with
-            | Ok state -> property state
-            | Error error -> Error error)
-            operationResult
+        let result =
+            verifyProperties
+            |> List.fold (fun result property ->
+                match result with
+                | Ok state -> property state
+                | Error error -> Error error)
+                operationResult
+                
+        match result with
+        | Ok state ->
+            output.WriteLine (state.Tree |> treeToDot) |> ignore
+        | Error (state, _) ->
+            output.WriteLine (state.Tree |> treeToDot) |> ignore
+        
+        result
     
     let classifyByTreeSize size property =
         property
@@ -218,6 +228,7 @@ type BinarySearchTreePropertyTest
             { List = []; Tree = None; OperationsPerformed = 0 } |> Ok
         
         (``binary search tree properties``
+            output
             UnbalancedBinarySearchTree.items
             UnbalancedBinarySearchTree.contains
             UnbalancedBinarySearchTree.insert
@@ -232,6 +243,7 @@ type BinarySearchTreePropertyTest
             { List = []; Tree = None; OperationsPerformed = 0 } |> Ok
         
         (``binary search tree properties``
+            output
             RedBlackTree.items
             RedBlackTree.contains
             RedBlackTree.insert
@@ -266,6 +278,7 @@ type BinarySearchTreePropertyTest
         runTreePropertyTests unbalancedBinarySearchTreeProperties
     
     [<Fact (Skip="todo")>]
+//    [<Fact>]
     member this.``Red-black tree properties``() =
         runTreePropertyTests redBlackTreeProperties
 
@@ -288,9 +301,25 @@ type BinarySearchTreePropertyTest
                Insert -1; Contains 0; Insert 2; Insert 0 |]
         |> Check.QuickThrowOnFailure
 
-    [<Fact (Skip="todo")>]
+    [<Fact>]
     member this.``Sample case 4``() =
         redBlackTreeProperties
             [| Insert -1; Insert 0; Insert 0; Insert -1; Insert 1; Insert -1; Insert 1;
               Insert 1; Insert -1; Insert 2; Insert 0; Insert 1; Insert 0 |]
+        |> Check.QuickThrowOnFailure
+
+    [<Fact>]
+    member this.``Sample case 5``() =
+        redBlackTreeProperties
+            [| Insert 0; Insert 0; Contains 0; Contains 16; Insert 0; Insert 0; Contains 0;
+              Insert 0; Insert 0; Insert 0; Insert 0; Insert 0; Contains 0; Insert 0;
+              Insert 0 |]
+        |> Check.QuickThrowOnFailure
+
+    [<Fact (Skip="todo")>]
+//    [<Fact>]
+    member this.``Sample case 6``() =
+        redBlackTreeProperties
+            [| Insert 0; Insert 4; Insert 0; Insert -3; Insert 1; Insert 0;
+                Insert 0; Insert 0; Insert 0 |]
         |> Check.QuickThrowOnFailure

@@ -1,6 +1,10 @@
-- Implement red-black tree
-    - extract repair procedure?
-    - define properties of RBT that need to be tested
+- exclude removing for RBT for now
+- how do we approach the failing test case?
+    1. check what needs to be done to repair the tree
+        - parent and uncle need to be repainted black
+    2. implement this in the code
+
+- how to implement repair?
 
 ## Wed 18.12.
 - Replaced custom TreeTestResult DU with Result.
