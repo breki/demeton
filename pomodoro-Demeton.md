@@ -1,10 +1,10 @@
 - AVL trees
-    - simplify the structure code
-        - should functions return Node or Tree?
+    - generic dot functions that can work on all types of binary trees
     - implement removal
     - introduce it into polygon-self intersection detection code so we can identify any missing functions
 
 ## Sat 21.12.
+- Simplified some of the trees functions to return `Tree`, not `Node`.
 - Replaced the trees representation as optional nodes with dedicated DUs.
 - Implemented AVL tree inserting.
 - Added a testbed for AVL tree property testing.

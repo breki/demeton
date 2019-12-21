@@ -34,15 +34,16 @@ let rec height tree =
 [<RequireQualifiedAccess>]
 module private Node =  
     /// Creates a leaf node.
-    let createLeaf item = { Item = item; Left = None; Right = None }
+    let createLeaf item = { Item = item; Left = None; Right = None } |> Node
     
     /// Creates a node.
-    let create item left right = { Item = item; Left = left; Right = right }
+    let create item left right =
+        Node { Item = item; Left = left; Right = right }
     
     /// Creates a copy of the node with a different left child.
-    let updateLeft leftNode node = { node with Left = leftNode }
+    let updateLeft leftNode node = Node { node with Left = leftNode }
     /// Creates a copy of the node with a different right child.
-    let updateRight rightNode node = { node with Right = rightNode }
+    let updateRight rightNode node = Node { node with Right = rightNode }
     
     /// Determines whether the tree contains the specified item. 
     let rec contains item node =
@@ -67,7 +68,7 @@ module private Node =
         | Node left ->
             // find the successor and the new left child
             let (successorNodeItem, newLeftChild) = left |> removeSuccessor
-            let node' = node |> updateLeft newLeftChild |> Node
+            let node' = node |> updateLeft newLeftChild
             (successorNodeItem, node')
     
     /// Replaces (or, better, put, creates a new node of) the successor node of
@@ -80,7 +81,7 @@ module private Node =
         | Node right -> 
             let (successorNodeItem, newRightChild) =
                 right |> removeSuccessor
-            create successorNodeItem node.Left newRightChild |> Node
+            create successorNodeItem node.Left newRightChild
 
     /// Removes an item from the subtree. If the item was not found,
     /// throws an exception.
@@ -96,13 +97,13 @@ module private Node =
             | None -> None
             | Node leftNode ->
                 let left' = leftNode |> remove item
-                node |> updateLeft left' |> Node
+                node |> updateLeft left'
         else
             match node.Right with
             | None -> None
             | Node rightNode ->
                 let right' = rightNode |> remove item
-                node |> updateRight right' |> Node
+                node |> updateRight right'
     
     /// The result type of the tryRemove function.
     type TryRemoveResult<'T when 'T:comparison> =
@@ -126,7 +127,7 @@ module private Node =
             | Node leftNode ->
                 match tryRemove item leftNode with
                 | Found newLeftNode ->
-                    node |> updateLeft newLeftNode |> Node |> Found
+                    node |> updateLeft newLeftNode |> Found
                 | NotFound -> NotFound
         else
             match node.Right with
@@ -134,7 +135,7 @@ module private Node =
             | Node rightNode ->
                 match tryRemove item rightNode with
                 | Found newRightNode ->
-                    node |> updateRight newRightNode |> Node |> Found
+                    node |> updateRight newRightNode |> Found
                 | NotFound -> NotFound
 
     /// Outputs node ID (and any other attributes) in DOT language.
@@ -198,23 +199,23 @@ module private Node =
         match node with
         | Node { Left = left; Right = Node { Left = rl; Right = rr; Item = ri }
                  Item = item } ->
-            let left' = create item left rl |> Node
-            create ri left' rr |> Node
+            let left' = create item left rl
+            create ri left' rr
         | node -> node
 
     let rotateRight (node: Tree<'T>): Tree<'T> =
         match node with
         | Node { Left = Node { Left = ll; Right = lr; Item = li }
                  Right = right; Item = item } ->
-            let right' = create item lr right |> Node
-            create li ll right' |> Node
+            let right' = create item lr right
+            create li ll right'
         | node -> node
     
     let doubleRotateLeft (node: Tree<'T>): Tree<'T> =
         match node with
         | Node node ->
             let right': Tree<'T> = node.Right |> rotateRight
-            let node' = node |> updateRight right' |> Node
+            let node' = node |> updateRight right'
             node' |> rotateLeft
         | node -> node
         
@@ -222,7 +223,7 @@ module private Node =
         match node with
         | Node node ->
             let left' = node.Left |> rotateLeft
-            let node' = node |> updateLeft left' |> Node
+            let node' = node |> updateLeft left'
             node' |> rotateRight
         | node -> node        
     
@@ -239,15 +240,15 @@ module private Node =
 /// Inserts an item into the tree and returns a new version of the tree.
 let rec insert item (tree: Tree<'T>) =
     match tree with
-    | None -> Node.createLeaf item |> Node
+    | None -> Node.createLeaf item
     | Node node ->
         let node' =
             if item < node.Item then
                 let left' = insert item node.Left
-                node |> Node.updateLeft left' |> Node
+                node |> Node.updateLeft left'
             else
                 let right' = insert item node.Right
-                node |> Node.updateRight right' |> Node
+                node |> Node.updateRight right'
         Node.balance node'
    
 /// Removes an item from the tree and returns a new version of the tree.
