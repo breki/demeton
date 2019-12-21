@@ -8,7 +8,6 @@
 module DataStructures.RedBlackTree
 
 open System.Collections.Generic
-open Text
 
 type Color = Red | Black
 
@@ -41,78 +40,31 @@ let color (node: Tree<'T>) =
 
 type LoggingFunc = int -> string -> unit
 
-[<RequireQualifiedAccess>]
-module private Dot =    
-    /// Outputs node ID (and any other attributes) in DOT language.
-    let nodeToDot (node: Tree<'T>) (nodeCounter: int) output =
-        match node with
-        | Node node ->
-            let nodeId = sprintf "%d" nodeCounter
-            output
-            |> appendFormat "{0} [label={1}" [| nodeId; node.Item |]
-            |> appendFormat
-                   " color={0} fontcolor=white style=filled]"
-                   [| if node.Color = Black then "black" else "red" |]
-            |> newLine |> ignore        
-            nodeId
-        | None ->
-            let nodeId = sprintf "null%d" nodeCounter
-            output
-            |> appendFormat "{0} [shape=point]" [| nodeId |]
-            |> newLine |> ignore
-            nodeId
-
-        /// Outputs the subtree in DOT language. 
-    let rec subtreeToDot
-        (node: Tree<'T>) nodeId (nodeCounter: int) output: int =
-      
-        match node with
-        | None -> nodeCounter
-        | Node node ->
-            let nodeCounterBeforeLeft = nodeCounter + 1
-            
-            let leftNodeId = nodeToDot (node.Left) nodeCounterBeforeLeft output
-
-            output
-            |> appendFormat "{0} -> {1}" [| nodeId; leftNodeId |]
-            |> newLine |> ignore
-
-            let nodeCounterBeforeRight =
-                match node.Left with
-                | None -> nodeCounterBeforeLeft + 1
-                | Node _ ->
-                    output
-                    |> subtreeToDot node.Left leftNodeId (nodeCounterBeforeLeft + 1)
-
-            let rightNodeId = nodeToDot (node.Right) nodeCounterBeforeRight output
-            output
-            |> appendFormat "{0} -> {1}" [| nodeId; rightNodeId |]
-            |> newLine |> ignore
-
-            let nodeCounterAfterRight =
-                match node.Right with
-                | None -> nodeCounterBeforeRight + 1
-                | Node _ ->
-                    output
-                    |> subtreeToDot node.Right rightNodeId (nodeCounterBeforeRight + 1)
-
-            nodeCounterAfterRight
-
 /// Serializes the tree into string using the DOT language.
 let treeToDot (tree: Tree<'T>) =
-    match tree with
-    | None -> ""
-    | Node _ ->
-        let builder =
-            buildString()
-            |> appendLine "digraph BST {"
+    let isNode = function
+        | Node _ -> true
+        | None -> false
         
-        let nodeId = builder |> Dot.nodeToDot tree 0
-        builder |> Dot.subtreeToDot tree nodeId 0 |> ignore
-        
-        builder
-        |> appendLine "}"
-        |> toString
+    let nodeAttributes = function
+        | Node node ->
+            sprintf
+                "label=%A color=%s fontcolor=white style=filled"
+                node.Item
+                (if node.Color = Black then "black" else "red")
+        | None -> ""
+
+    let leftChild = function
+        | Node ({Left = left}) -> left
+        | _ -> None
+    
+    let rightChild = function
+        | Node ({Right = right}) -> right
+        | _ -> None
+    
+    tree
+    |> DataStructures.BinaryTreeToDot.treeToDot
+           isNode nodeAttributes leftChild rightChild
 
 /// Contains internal implementation for inserting and removing of items from
 /// the tree.

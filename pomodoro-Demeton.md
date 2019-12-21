@@ -1,9 +1,9 @@
 - AVL trees
-    - generic dot functions that can work on all types of binary trees
     - implement removal
     - introduce it into polygon-self intersection detection code so we can identify any missing functions
 
 ## Sat 21.12.
+- Extracted generic functions for visualizing binary trees in DOT language.
 - Simplified some of the trees functions to return `Tree`, not `Node`.
 - Replaced the trees representation as optional nodes with dedicated DUs.
 - Implemented AVL tree inserting.
