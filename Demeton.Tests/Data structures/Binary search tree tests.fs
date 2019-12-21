@@ -3,11 +3,17 @@
 open DataStructures.ListEx
 
 open DataStructures
+open Tests.``Data structures``.``Binary search tree testbed``
+open Tests.``Data structures``.``Red black tree properties``
 open Xunit
 open Swensen.Unquote
 open FsCheck
+open FsUnit
 open PropertiesHelp
 open TestHelp
+
+let log (output: Xunit.Abstractions.ITestOutputHelper) depth message =
+    output.WriteLine message
 
 /// Determines whether the tree is balanced (in terms of AVL tree balance
 /// or not). 
@@ -24,38 +30,6 @@ let rec private isBalanced (tree: DataStructures.RedBlackTree.Tree<'T>) =
             let rightHeight = node.Right |> RedBlackTree.height
             abs (leftHeight - rightHeight) <= 1
 
-/// The operation to perform on the tree.
-type private TreeOperation =
-    /// Insert a new item into the tree.
-    | Insert of int
-    /// Remove an item from the tree. The float value from 0 to 1 is
-    /// multiplied by the current size of the tree to calculate the index of
-    /// the item to be removed. 
-    | Remove of float
-    /// Try to remove an item from the tree. There is no guarantee the item
-    /// is present in the tree.
-    | TryRemove of int
-    | Contains of int 
-
-/// The current state of the binary search tree property test.
-type TreeTestCurrent<'Tree> = {
-    /// The list which serves as a test oracle. The tree should contain the same
-    /// items as this list (and in the same order).
-    List: int list
-    /// The tree under the test.
-    Tree: 'Tree
-    /// Count of the tree operations performed so far.
-    OperationsPerformed: int
-}
-
-/// Represents both the intermediate and final results of the binary search tree
-/// property test. 
-type TreeTestResult<'Tree> =
-    Result<TreeTestCurrent<'Tree>, TreeTestCurrent<'Tree> * string>
-
-type TreePropertyVerificationFunc<'Tree> =
-    TreeTestCurrent<'Tree> -> TreeTestResult<'Tree>
-
 /// Checks whether the current tree corresponds to its test oracle.
 let verifyWithTestOracle items: TreePropertyVerificationFunc<'Tree> =
     fun (state: TreeTestCurrent<'Tree>) ->
@@ -67,50 +41,6 @@ let verifyWithTestOracle items: TreePropertyVerificationFunc<'Tree> =
         (state, "The tree no longer corresponds to the test oracle")
         |> Error
     else state |> Ok
-
-let rootIsBlack (state: TreeTestCurrent<RedBlackTree.Tree<'T>>) =
-    if state.Tree |> RedBlackTree.isBlack then state |> Ok
-    else (state, "Root node should be black") |> Error
-
-let redNodesDoNotHaveRedChildren
-    (state: TreeTestCurrent<RedBlackTree.Tree<'T>>) =
-    let rec allNodesSatisfy (node: RedBlackTree.Tree<'T>) =
-        match node with
-        | None -> true
-        | Some node ->
-            match node.Color with
-            | RedBlackTree.Black ->
-                (node.Left |> allNodesSatisfy) &&
-                    (node.Right |> allNodesSatisfy)
-            | RedBlackTree.Red ->
-                (node.Left |> RedBlackTree.isBlack)
-                && (node.Right |> RedBlackTree.isBlack)
-                && (node.Left |> allNodesSatisfy)
-                && (node.Right |> allNodesSatisfy)
-    
-    if state.Tree |> allNodesSatisfy then state |> Ok
-    else (state, "One or more red nodes has red children") |> Error
-    
-let rec countNumberOfBlacksInPath (tree: RedBlackTree.Tree<'T>) =
-    match tree with
-    | None -> (0, 0)
-    | Some tree ->
-        let (leftMin, leftMax) = tree.Left |> countNumberOfBlacksInPath
-        let (rightMin, rightMax) = tree.Right |> countNumberOfBlacksInPath
-        match tree.Color with
-        | RedBlackTree.Red -> (min leftMin rightMin, max leftMax rightMax)
-        | RedBlackTree.Black -> (1 + min leftMin rightMin, 1 + max leftMax rightMax)
-    
-let allPathsHaveSameNumberOfBlacks
-    (state: TreeTestCurrent<RedBlackTree.Tree<'T>>) =
-
-    let (minBlacks, maxBlacks) = countNumberOfBlacksInPath state.Tree
-    if minBlacks = maxBlacks then state |> Ok
-    else (state,
-          sprintf
-              "Paths have different number of blacks (from %d to %d)"
-              minBlacks maxBlacks)
-        |> Error
 
 let private ``binary search tree properties``
     (output: Xunit.Abstractions.ITestOutputHelper)
@@ -184,11 +114,11 @@ let private ``binary search tree properties``
                 | Error error -> Error error)
                 operationResult
                 
-        match result with
-        | Ok state ->
-            output.WriteLine (state.Tree |> treeToDot) |> ignore
-        | Error (state, _) ->
-            output.WriteLine (state.Tree |> treeToDot) |> ignore
+//        match result with
+//        | Ok state ->
+//            output.WriteLine (state.Tree |> treeToDot) |> ignore
+//        | Error (state, _) ->
+//            output.WriteLine (state.Tree |> treeToDot) |> ignore
         
         result
     
@@ -246,7 +176,7 @@ type BinarySearchTreePropertyTest
             output
             RedBlackTree.items
             RedBlackTree.contains
-            RedBlackTree.insert
+            (RedBlackTree.insert (log output))
             RedBlackTree.remove
             RedBlackTree.tryRemove
             RedBlackTree.treeToDot

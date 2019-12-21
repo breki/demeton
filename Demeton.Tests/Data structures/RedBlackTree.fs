@@ -3,9 +3,12 @@
 /// Useful links:
 /// - https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
 /// - http://matt.might.net/articles/red-black-delete/
+/// - https://www.cs.usfca.edu/~galles/visualization/RedBlack.html
 [<RequireQualifiedAccess>]
 module DataStructures.RedBlackTree
 
+open DataStructures
+open DataStructures
 open System.Collections.Generic
 open Text
 
@@ -22,7 +25,6 @@ type Node<'T when 'T:comparison> = {
 /// The root of the binary search tree.
 type Tree<'T when 'T:comparison> = Node<'T> option
 
-
 let isBlack (node: Tree<'T>) =
     match node with
     | None -> true
@@ -37,6 +39,81 @@ let color (node: Tree<'T>) =
     if node |> isBlack then Black
     else Red
 
+type LoggingFunc = int -> string -> unit
+
+[<RequireQualifiedAccess>]
+module private Dot =    
+    /// Outputs node ID (and any other attributes) in DOT language.
+    let nodeToDot (node: Tree<'T>) (nodeCounter: int) output =
+        match node with
+        | Some node ->
+            let nodeId = sprintf "%d" nodeCounter
+            output
+            |> appendFormat "{0} [label={1}" [| nodeId; node.Item |]
+            |> appendFormat
+                   " color={0} fontcolor=white style=filled]"
+                   [| if node.Color = Black then "black" else "red" |]
+            |> newLine |> ignore        
+            nodeId
+        | None ->
+            let nodeId = sprintf "null%d" nodeCounter
+            output
+            |> appendFormat "{0} [shape=point]" [| nodeId |]
+            |> newLine |> ignore
+            nodeId
+
+        /// Outputs the subtree in DOT language. 
+    let rec subtreeToDot
+        (node: Node<'T> option) nodeId (nodeCounter: int) output: int =
+      
+        match node with
+        | None -> nodeCounter
+        | Some node ->
+            let nodeCounterBeforeLeft = nodeCounter + 1
+            
+            let leftNodeId = nodeToDot (node.Left) nodeCounterBeforeLeft output
+
+            output
+            |> appendFormat "{0} -> {1}" [| nodeId; leftNodeId |]
+            |> newLine |> ignore
+
+            let nodeCounterBeforeRight =
+                match node.Left with
+                | None -> nodeCounterBeforeLeft + 1
+                | Some _ ->
+                    output
+                    |> subtreeToDot node.Left leftNodeId (nodeCounterBeforeLeft + 1)
+
+            let rightNodeId = nodeToDot (node.Right) nodeCounterBeforeRight output
+            output
+            |> appendFormat "{0} -> {1}" [| nodeId; rightNodeId |]
+            |> newLine |> ignore
+
+            let nodeCounterAfterRight =
+                match node.Right with
+                | None -> nodeCounterBeforeRight + 1
+                | Some _ ->
+                    output
+                    |> subtreeToDot node.Right rightNodeId (nodeCounterBeforeRight + 1)
+
+            nodeCounterAfterRight
+
+/// Serializes the tree into string using the DOT language.
+let treeToDot (tree: Tree<'T>) =
+    match tree with
+    | None -> ""
+    | Some _ ->
+        let builder =
+            buildString()
+            |> appendLine "digraph BST {"
+        
+        let nodeId = builder |> Dot.nodeToDot tree 0
+        builder |> Dot.subtreeToDot tree nodeId 0 |> ignore
+        
+        builder
+        |> appendLine "}"
+        |> toString
+
 /// Contains internal implementation for inserting and removing of items from
 /// the tree.
 [<RequireQualifiedAccess>]
@@ -44,7 +121,19 @@ module private Node =
     /// Represents a subtree (basically just an optional node representing the
     /// root of the subtree. 
     type Subtree<'T when 'T:comparison> = Node<'T> option
+
+    let nodeId (node: Node<'T> option) =
+        match node with
+        | Some node -> sprintf "(%A)" node.Item
+        | None -> "None"
     
+    let nodeDesc (node: Node<'T> option) =
+        match node with
+        | Some node ->
+            sprintf "(%A) L=(%A) R=(%A)"
+                node.Item (node.Left |> nodeId) (node.Right |> nodeId)
+        | None -> "None"
+        
     type ParentRelation<'T when 'T:comparison> =
         | LeftChildOf of Node<'T>
         | RightChildOf of Node<'T>
@@ -99,10 +188,15 @@ module private Node =
     
     /// Inserts an item into the subtree.
     let rec insert
-        item
+        (log: LoggingFunc)
+        (depth: int)
+        (item: 'T)
         (grandparent: ParentRelation<'T>)
-        parent:
-        InsertNodeResult<'T> =
+        (parent: Node<'T>)
+        : InsertNodeResult<'T> =
+        let msg = sprintf "visiting node %s" (parent |> Some |> nodeDesc)
+        log depth msg
+            
         if item < parent.Item then
             match parent.Left with
             | None ->
@@ -123,10 +217,13 @@ module private Node =
                             let leftChild = createLeaf item Red |> Some
                             parent |> updateLeft leftChild |> RightRotate
                         | RightChildOf _ ->
+                            log depth "left rotate 1"
                             create item Red None (Some parent) |> LeftRotate
                         | NoParent -> invalidOp "todo: NoParent"
             | Some leftNode ->
-                match leftNode |> insert item (leftChildOf parent) with
+                log depth "moving left..."
+                match leftNode
+                      |> insert log (depth+1) item (leftChildOf parent) with
                 | RepairParent leftNode' ->
                     match parent.Color with
                     | Black ->
@@ -141,10 +238,20 @@ module private Node =
                             match grandparent with
                             | LeftChildOf _ -> invalidOp "todo: LeftChildOf"
                             | RightChildOf _ ->
+                                log depth "left rotate 2"
                                 parent |> updateLeft (Some leftNode') |> LeftRotate
                             | NoParent -> invalidOp "todo: NoParent"
 //                            parent |> updateLeft (Some leftNode') |> RightRotate
-                | LeftRotate leftNode' -> invalidOp "todo: left rotate on left node"
+                | LeftRotate leftNode' ->
+                    log depth
+                        (sprintf "left rotate on left node:\n%A" (leftNode' |> Some |> treeToDot ))
+                    let parentRotatedToLeft: Subtree<'T> =
+                        parent
+                        |> updateRightAndColor leftNode'.Left Red |> Some
+                    let leftNodeRotatedToTop =
+                        leftNode'
+                        |> updateLeftAndColor parentRotatedToLeft Black
+                    leftNodeRotatedToTop |> RepairParent
                 | RightRotate leftNode' ->
                     let parentRotatedToRight: Subtree<'T> =
                         parent
@@ -183,11 +290,14 @@ module private Node =
                         | LeftChildOf _ ->
                             create item Red (Some parent) None |> RightRotate
                         | RightChildOf _ ->
+                            log depth "left rotate 3"
                             let rightChild = createLeaf item Red |> Some
                             parent |> updateRight rightChild |> LeftRotate
                         | NoParent -> invalidOp "todo: NoParent"
             | Some rightNode ->
-                match rightNode |> insert item (rightChildOf parent) with
+                log depth "moving right..."
+                match rightNode
+                      |> insert log (depth+1) item (rightChildOf parent) with
                 | RepairParent rightNode' ->
                     match parent.Color with
                     | Black -> 
@@ -199,6 +309,7 @@ module private Node =
                             |> updateRightAndColor (Some rightNode') Black
                             |> RepaintAunt
                         | Black ->
+                            log depth "left rotate 4"                            
                             parent |> updateRight (Some rightNode') |> LeftRotate
                 | LeftRotate rightNode' ->
                     let parentRotatedToLeft: Subtree<'T> =
@@ -321,67 +432,15 @@ module private Node =
                     node |> updateRight newRightNode |> Some |> Found
                 | NotFound -> NotFound
 
-    /// Outputs node ID (and any other attributes) in DOT language.
-    let nodeToDot (node: Tree<'T>) (nodeCounter: int) output =
-        match node with
-        | Some node ->
-            let nodeId = sprintf "%d" nodeCounter
-            output
-            |> appendFormat "{0} [label={1}" [| nodeId; node.Item |]
-            |> appendFormat
-                   " color={0} fontcolor=white style=filled]"
-                   [| if node.Color = Black then "black" else "red" |]
-            |> newLine |> ignore        
-            nodeId
-        | None ->
-            let nodeId = sprintf "null%d" nodeCounter
-            output
-            |> appendFormat "{0} [shape=point]" [| nodeId |]
-            |> newLine |> ignore
-            nodeId
-
-    /// Outputs the subtree in DOT language. 
-    let rec subtreeToDot
-        (node: Subtree<'T>) nodeId (nodeCounter: int) output: int =
-      
-        match node with
-        | None -> nodeCounter
-        | Some node ->
-            let nodeCounterBeforeLeft = nodeCounter + 1
-            
-            let leftNodeId = nodeToDot (node.Left) nodeCounterBeforeLeft output
-
-            output
-            |> appendFormat "{0} -> {1}" [| nodeId; leftNodeId |]
-            |> newLine |> ignore
-
-            let nodeCounterBeforeRight =
-                match node.Left with
-                | None -> nodeCounterBeforeLeft + 1
-                | Some _ ->
-                    output
-                    |> subtreeToDot node.Left leftNodeId (nodeCounterBeforeLeft + 1)
-
-            let rightNodeId = nodeToDot (node.Right) nodeCounterBeforeRight output
-            output
-            |> appendFormat "{0} -> {1}" [| nodeId; rightNodeId |]
-            |> newLine |> ignore
-
-            let nodeCounterAfterRight =
-                match node.Right with
-                | None -> nodeCounterBeforeRight + 1
-                | Some _ ->
-                    output
-                    |> subtreeToDot node.Right rightNodeId (nodeCounterBeforeRight + 1)
-
-            nodeCounterAfterRight
 
 /// Inserts an item into the tree and returns a new version of the tree.
-let insert item (tree: Tree<'T>) =
+let insert (log: LoggingFunc) item (tree: Tree<'T>) =
+    log 0 (sprintf "Insert %A into tree: \n%A" item (tree |> treeToDot))
+    
     match tree with
     | None -> Node.createLeaf item Black |> Some
     | Some rootNode ->
-        match rootNode |> Node.insert item Node.NoParent with
+        match rootNode |> Node.insert log 0 item Node.NoParent with
         | Node.RepairParent rootNode' ->
             match rootNode'.Color with
             | Black -> rootNode' |> Some
@@ -436,18 +495,11 @@ let rec height tree =
     | Some node ->
         max (node.Left |> height) (node.Right |> height) + 1
 
-/// Serializes the tree into string using the DOT language.
-let treeToDot (tree: Tree<'T>) =
-    match tree with
-    | None -> ""
-    | Some _ ->
-        let builder =
-            buildString()
-            |> appendLine "digraph BST {"
-        
-        let nodeId = builder |> Node.nodeToDot tree 0
-        builder |> Node.subtreeToDot tree nodeId 0 |> ignore
-        
-        builder
-        |> appendLine "}"
-        |> toString
+//
+//let insert2 (log: LoggingFunc) item (tree: Tree<'T>) =
+//    match tree with
+//    | None -> Node.createLeaf item Black |> Some
+//    | Some tree ->
+//        let child = Node.createLeaf item Red
+//        tree |> Node.updateLeft child
+//        

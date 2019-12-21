@@ -39,7 +39,10 @@
     <Compile Include="Png\Mixing Rgba8Bit colors.fs" />
     <Compile Include="Png\Alpha compositing.fs" />
     <Compile Include="Data structures\UnbalancedBinarySearchTree.fs" />
+    <Compile Include="Data structures\AvlTree.fs" />
     <Compile Include="Data structures\RedBlackTree.fs" />
+    <Compile Include="Data structures\Binary search tree testbed.fs" />
+    <Compile Include="Data structures\Red black tree properties.fs" />
     <Compile Include="Data structures\Binary search tree tests.fs" />
     <Compile Include="Geometry\GeometryTestHelp.fs" />
     <Compile Include="Geometry\Common tests.fs" />

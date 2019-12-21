@@ -1,10 +1,8 @@
-- exclude removing for RBT for now
-- how do we approach the failing test case?
-    1. check what needs to be done to repair the tree
-        - parent and uncle need to be repainted black
-    2. implement this in the code
+- AVL trees
 
-- how to implement repair?
+## Sat 21.12.
+- Split up the binary search tree test code into separate modules, so it's more maintainable.
+- After struggling with red/black trees, I've decided to implement AVL trees first.
 
 ## Wed 18.12.
 - Replaced custom TreeTestResult DU with Result.

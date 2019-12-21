@@ -1,3 +1,12 @@
+- red/black trees
+    - exclude removing for RBT for now
+    - how do we approach the failing test case?
+        1. check what needs to be done to repair the tree
+            - parent and uncle need to be repainted black
+        2. implement this in the code
+    
+    - how to implement repair?
+
 - Implement tree balancing (AVL and red-black)
 
 - run Europe on LCC
