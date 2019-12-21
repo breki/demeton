@@ -11,8 +11,8 @@ let redNodesDoNotHaveRedChildren
     (state: TreeTestCurrent<RedBlackTree.Tree<'T>>) =
     let rec allNodesSatisfy (node: RedBlackTree.Tree<'T>) =
         match node with
-        | None -> true
-        | Some node ->
+        | RedBlackTree.None -> true
+        | RedBlackTree.Node node ->
             match node.Color with
             | RedBlackTree.Black ->
                 (node.Left |> allNodesSatisfy) &&
@@ -28,8 +28,8 @@ let redNodesDoNotHaveRedChildren
     
 let rec countNumberOfBlacksInPath (tree: RedBlackTree.Tree<'T>) =
     match tree with
-    | None -> (0, 0)
-    | Some tree ->
+    | RedBlackTree.None -> (0, 0)
+    | RedBlackTree.Node tree ->
         let (leftMin, leftMax) = tree.Left |> countNumberOfBlacksInPath
         let (rightMin, rightMax) = tree.Right |> countNumberOfBlacksInPath
         match tree.Color with

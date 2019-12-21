@@ -1,8 +1,11 @@
 - AVL trees
     - simplify the structure code
+        - should functions return Node or Tree?
     - implement removal
+    - introduce it into polygon-self intersection detection code so we can identify any missing functions
 
 ## Sat 21.12.
+- Replaced the trees representation as optional nodes with dedicated DUs.
 - Implemented AVL tree inserting.
 - Added a testbed for AVL tree property testing.
 - Split up the binary search tree test code into separate modules, so it's more maintainable.

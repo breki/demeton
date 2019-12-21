@@ -139,7 +139,8 @@ type BinarySearchTreePropertyTest
     (output: Xunit.Abstractions.ITestOutputHelper) =
     let unbalancedBinarySearchTreeProperties =
         let initialState =
-            { List = []; Tree = None; OperationsPerformed = 0 } |> Ok
+            { List = []; Tree = UnbalancedBinarySearchTree.None
+              OperationsPerformed = 0 } |> Ok
         
         (``binary search tree properties``
             output
@@ -154,7 +155,7 @@ type BinarySearchTreePropertyTest
 
     let avlTreeProperties =
         let initialState =
-            { List = []; Tree = None; OperationsPerformed = 0 } |> Ok
+            { List = []; Tree = AvlTree.None; OperationsPerformed = 0 } |> Ok
         
         (``binary search tree properties``
             output
@@ -170,7 +171,8 @@ type BinarySearchTreePropertyTest
     
     let redBlackTreeProperties =
         let initialState =
-            { List = []; Tree = None; OperationsPerformed = 0 } |> Ok
+            { List = []; Tree = RedBlackTree.None; OperationsPerformed = 0 }
+            |> Ok
         
         (``binary search tree properties``
             output

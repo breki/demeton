@@ -7,8 +7,6 @@
 [<RequireQualifiedAccess>]
 module DataStructures.RedBlackTree
 
-open DataStructures
-open DataStructures
 open System.Collections.Generic
 open Text
 
@@ -18,17 +16,19 @@ type Color = Red | Black
 type Node<'T when 'T:comparison> = {
     Item: 'T
     Color: Color
-    Left: Node<'T> option
-    Right: Node<'T> option
+    Left: Tree<'T>
+    Right: Tree<'T>
 }
 
 /// The root of the binary search tree.
-type Tree<'T when 'T:comparison> = Node<'T> option
+and Tree<'T when 'T:comparison> =
+    | Node of Node<'T>
+    | None
 
 let isBlack (node: Tree<'T>) =
     match node with
     | None -> true
-    | Some node ->
+    | Node node ->
         match node.Color with
         | Black -> true
         | Red -> false
@@ -46,7 +46,7 @@ module private Dot =
     /// Outputs node ID (and any other attributes) in DOT language.
     let nodeToDot (node: Tree<'T>) (nodeCounter: int) output =
         match node with
-        | Some node ->
+        | Node node ->
             let nodeId = sprintf "%d" nodeCounter
             output
             |> appendFormat "{0} [label={1}" [| nodeId; node.Item |]
@@ -64,11 +64,11 @@ module private Dot =
 
         /// Outputs the subtree in DOT language. 
     let rec subtreeToDot
-        (node: Node<'T> option) nodeId (nodeCounter: int) output: int =
+        (node: Tree<'T>) nodeId (nodeCounter: int) output: int =
       
         match node with
         | None -> nodeCounter
-        | Some node ->
+        | Node node ->
             let nodeCounterBeforeLeft = nodeCounter + 1
             
             let leftNodeId = nodeToDot (node.Left) nodeCounterBeforeLeft output
@@ -80,7 +80,7 @@ module private Dot =
             let nodeCounterBeforeRight =
                 match node.Left with
                 | None -> nodeCounterBeforeLeft + 1
-                | Some _ ->
+                | Node _ ->
                     output
                     |> subtreeToDot node.Left leftNodeId (nodeCounterBeforeLeft + 1)
 
@@ -92,7 +92,7 @@ module private Dot =
             let nodeCounterAfterRight =
                 match node.Right with
                 | None -> nodeCounterBeforeRight + 1
-                | Some _ ->
+                | Node _ ->
                     output
                     |> subtreeToDot node.Right rightNodeId (nodeCounterBeforeRight + 1)
 
@@ -102,7 +102,7 @@ module private Dot =
 let treeToDot (tree: Tree<'T>) =
     match tree with
     | None -> ""
-    | Some _ ->
+    | Node _ ->
         let builder =
             buildString()
             |> appendLine "digraph BST {"
@@ -118,18 +118,14 @@ let treeToDot (tree: Tree<'T>) =
 /// the tree.
 [<RequireQualifiedAccess>]
 module private Node =
-    /// Represents a subtree (basically just an optional node representing the
-    /// root of the subtree. 
-    type Subtree<'T when 'T:comparison> = Node<'T> option
-
-    let nodeId (node: Node<'T> option) =
+    let nodeId (node: Tree<'T>) =
         match node with
-        | Some node -> sprintf "(%A)" node.Item
+        | Node node -> sprintf "(%A)" node.Item
         | None -> "None"
     
-    let nodeDesc (node: Node<'T> option) =
+    let nodeDesc (node: Tree<'T>) =
         match node with
-        | Some node ->
+        | Node node ->
             sprintf "(%A) L=(%A) R=(%A)"
                 node.Item (node.Left |> nodeId) (node.Right |> nodeId)
         | None -> "None"
@@ -183,7 +179,7 @@ module private Node =
     
     let repaint color node =
         match node with
-        | Some node -> { node with Color = color }
+        | Node node -> { node with Color = color }
         | None -> invalidOp "bug: trying repaint a null node"
     
     /// Inserts an item into the subtree.
@@ -194,7 +190,7 @@ module private Node =
         (grandparent: ParentRelation<'T>)
         (parent: Node<'T>)
         : InsertNodeResult<'T> =
-        let msg = sprintf "visiting node %s" (parent |> Some |> nodeDesc)
+        let msg = sprintf "visiting node %s" (parent |> Node |> nodeDesc)
         log depth msg
             
         if item < parent.Item then
@@ -202,141 +198,141 @@ module private Node =
             | None ->
                 match parent.Color with
                 | Black ->
-                    let leftNode = createLeaf item Red |> Some
+                    let leftNode = createLeaf item Red |> Node
                     parent |> updateLeft leftNode |> RepairParent
                 | Red ->
                     match grandparent |> aunt |> color with
                     | Red ->
-                        let leftNode = createLeaf item Red |> Some
+                        let leftNode = createLeaf item Red |> Node
                         parent
                         |> updateLeftAndColor leftNode Black
                         |> RepaintGrandparentAndAunt
                     | Black ->
                         match grandparent with
                         | LeftChildOf _ ->
-                            let leftChild = createLeaf item Red |> Some
+                            let leftChild = createLeaf item Red |> Node
                             parent |> updateLeft leftChild |> RightRotate
                         | RightChildOf _ ->
                             log depth "left rotate 1"
-                            create item Red None (Some parent) |> LeftRotate
+                            create item Red None (Node parent) |> LeftRotate
                         | NoParent -> invalidOp "todo: NoParent"
-            | Some leftNode ->
+            | Node leftNode ->
                 log depth "moving left..."
                 match leftNode
                       |> insert log (depth+1) item (leftChildOf parent) with
                 | RepairParent leftNode' ->
                     match parent.Color with
                     | Black ->
-                        parent |> updateLeft (Some leftNode') |> RepairParent
+                        parent |> updateLeft (Node leftNode') |> RepairParent
                     | Red ->
                         match grandparent |> aunt |> color with
                         | Red ->
                             parent
-                            |> updateLeftAndColor (Some leftNode') Black
+                            |> updateLeftAndColor (Node leftNode') Black
                             |> RepaintAunt
                         | Black ->
                             match grandparent with
                             | LeftChildOf _ -> invalidOp "todo: LeftChildOf"
                             | RightChildOf _ ->
                                 log depth "left rotate 2"
-                                parent |> updateLeft (Some leftNode') |> LeftRotate
+                                parent |> updateLeft (Node leftNode') |> LeftRotate
                             | NoParent -> invalidOp "todo: NoParent"
-//                            parent |> updateLeft (Some leftNode') |> RightRotate
+//                            parent |> updateLeft (Node leftNode') |> RightRotate
                 | LeftRotate leftNode' ->
                     log depth
-                        (sprintf "left rotate on left node:\n%A" (leftNode' |> Some |> treeToDot ))
-                    let parentRotatedToLeft: Subtree<'T> =
+                        (sprintf "left rotate on left node:\n%A" (leftNode' |> Node |> treeToDot ))
+                    let parentRotatedToLeft: Tree<'T> =
                         parent
-                        |> updateRightAndColor leftNode'.Left Red |> Some
+                        |> updateRightAndColor leftNode'.Left Red |> Node
                     let leftNodeRotatedToTop =
                         leftNode'
                         |> updateLeftAndColor parentRotatedToLeft Black
                     leftNodeRotatedToTop |> RepairParent
                 | RightRotate leftNode' ->
-                    let parentRotatedToRight: Subtree<'T> =
+                    let parentRotatedToRight: Tree<'T> =
                         parent
-                        |> updateLeftAndColor leftNode.Right Red |> Some
+                        |> updateLeftAndColor leftNode.Right Red |> Node
                     let leftNodeRotatedToTop =
                         leftNode'
                         |> updateRightAndColor parentRotatedToRight Black
                     leftNodeRotatedToTop |> RepairParent
                 | RepaintAunt leftNode' ->
-                    let repaintedAunt = parent.Right |> repaint Black |> Some
+                    let repaintedAunt = parent.Right |> repaint Black |> Node
                     parent
-                    |> updateLeftAndRight (leftNode' |> Some) repaintedAunt
+                    |> updateLeftAndRight (leftNode' |> Node) repaintedAunt
                     |> RepairParent                    
                 | RepaintGrandparentAndAunt leftNode' ->
-                    let repaintedAunt = parent.Right |> repaint Black |> Some
+                    let repaintedAunt = parent.Right |> repaint Black |> Node
                     parent
                     |> updateLeftRightAndColor
-                           (leftNode' |> Some) repaintedAunt Red
+                           (leftNode' |> Node) repaintedAunt Red
                     |> RepairParent
         else
             match parent.Right with
             | None ->
                 match parent.Color with
                 | Black ->
-                    let rightNode = createLeaf item Red |> Some
+                    let rightNode = createLeaf item Red |> Node
                     parent |> updateRight rightNode |> RepairParent
                 | Red ->
                     match grandparent |> aunt |> color with
                     | Red ->
-                        let rightNode = createLeaf item Red |> Some
+                        let rightNode = createLeaf item Red |> Node
                         parent
                         |> updateRightAndColor rightNode Black
                         |> RepaintGrandparentAndAunt
                     | Black ->
                         match grandparent with
                         | LeftChildOf _ ->
-                            create item Red (Some parent) None |> RightRotate
+                            create item Red (Node parent) None |> RightRotate
                         | RightChildOf _ ->
                             log depth "left rotate 3"
-                            let rightChild = createLeaf item Red |> Some
+                            let rightChild = createLeaf item Red |> Node
                             parent |> updateRight rightChild |> LeftRotate
                         | NoParent -> invalidOp "todo: NoParent"
-            | Some rightNode ->
+            | Node rightNode ->
                 log depth "moving right..."
                 match rightNode
                       |> insert log (depth+1) item (rightChildOf parent) with
                 | RepairParent rightNode' ->
                     match parent.Color with
                     | Black -> 
-                        parent |> updateRight (Some rightNode') |> RepairParent
+                        parent |> updateRight (Node rightNode') |> RepairParent
                     | Red ->
                         match grandparent |> aunt |> color with
                         | Red ->
                             parent
-                            |> updateRightAndColor (Some rightNode') Black
+                            |> updateRightAndColor (Node rightNode') Black
                             |> RepaintAunt
                         | Black ->
                             log depth "left rotate 4"                            
-                            parent |> updateRight (Some rightNode') |> LeftRotate
+                            parent |> updateRight (Node rightNode') |> LeftRotate
                 | LeftRotate rightNode' ->
-                    let parentRotatedToLeft: Subtree<'T> =
+                    let parentRotatedToLeft: Tree<'T> =
                         parent
-                        |> updateRightAndColor rightNode'.Left Red |> Some
+                        |> updateRightAndColor rightNode'.Left Red |> Node
                     let rightNodeRotatedToTop =
                         rightNode'
                         |> updateLeftAndColor parentRotatedToLeft Black
                     rightNodeRotatedToTop |> RepairParent
                 | RightRotate rightNode' ->
-                    let parentRotatedToRight: Subtree<'T> =
+                    let parentRotatedToRight: Tree<'T> =
                         parent
-                        |> updateLeftAndColor rightNode'.Left Red |> Some
+                        |> updateLeftAndColor rightNode'.Left Red |> Node
                     let rightNodeRotatedToTop =
                         rightNode'
                         |> updateRightAndColor parentRotatedToRight Black
                     rightNodeRotatedToTop |> RepairParent
                 | RepaintAunt rightNode' ->
-                    let repaintedAunt = parent.Left |> repaint Black |> Some
+                    let repaintedAunt = parent.Left |> repaint Black |> Node
                     parent
-                    |> updateLeftAndRight repaintedAunt (rightNode' |> Some)
+                    |> updateLeftAndRight repaintedAunt (rightNode' |> Node)
                     |> RepairParent                    
                 | RepaintGrandparentAndAunt rightNode' ->
-                    let repaintedAunt = parent.Left |> repaint Black |> Some
+                    let repaintedAunt = parent.Left |> repaint Black |> Node
                     parent
                     |> updateLeftRightAndColor
-                           repaintedAunt (rightNode' |> Some) Red
+                           repaintedAunt (rightNode' |> Node) Red
                     |> RepairParent
 
     /// Determines whether the tree contains the specified item. 
@@ -344,25 +340,25 @@ module private Node =
         if item = node.Item then true
         elif item < node.Item then
             match node.Left with
-            | Some left -> left |> contains item
+            | Node left -> left |> contains item
             | None -> false
         else
             match node.Right with
-            | Some right -> right |> contains item
+            | Node right -> right |> contains item
             | None -> false
     
     /// Looks for the successor (the leftest descendant) node and returns its item and a
     /// replacement node (recursively).
-    let rec private removeSuccessor (node: Node<'T>): 'T * Subtree<'T> =
+    let rec private removeSuccessor (node: Node<'T>): 'T * Tree<'T> =
         match node.Left with
         // if we found the successor node, save its item and give its right child
         // to the successor parent
         | None -> (node.Item, node.Right)
         // if there are still some nodes to the left...
-        | Some left ->
+        | Node left ->
             // find the successor and the new left child
             let (successorNodeItem, newLeftChild) = left |> removeSuccessor
-            let node' = node |> updateLeft newLeftChild |> Some
+            let node' = node |> updateLeft newLeftChild |> Node
             (successorNodeItem, node')
     
     /// Replaces (or, better, put, creates a new node of) the successor node of
@@ -372,10 +368,10 @@ module private Node =
         | None ->
             invalidOp
                 "bug: this function should not be called on a node without the right child"
-        | Some right -> 
+        | Node right -> 
             let (successorNodeItem, newRightChild) =
                 right |> removeSuccessor
-            create successorNodeItem Black node.Left newRightChild |> Some
+            create successorNodeItem Black node.Left newRightChild |> Node
 
     /// Removes an item from the subtree. If the item was not found,
     /// throws an exception.
@@ -383,26 +379,26 @@ module private Node =
         if item = node.Item then
             match node.Left, node.Right with
             | None, None -> None
-            | Some left, None -> Some left
-            | None, Some right -> Some right
-            | Some _, Some _ -> node |> replaceWithSuccessor
+            | Node left, None -> Node left
+            | None, Node right -> Node right
+            | Node _, Node _ -> node |> replaceWithSuccessor
         elif item < node.Item then
             match node.Left with
             | None -> None
-            | Some leftNode ->
+            | Node leftNode ->
                 let left' = leftNode |> remove item
-                node |> updateLeft left' |> Some
+                node |> updateLeft left' |> Node
         else
             match node.Right with
             | None -> None
-            | Some rightNode ->
+            | Node rightNode ->
                 let right' = rightNode |> remove item
-                node |> updateRight right' |> Some
+                node |> updateRight right' |> Node
     
     /// The result type of the tryRemove function.
     type TryRemoveResult<'T when 'T:comparison> =
         /// The item was found in the specific subtree.
-        | Found of Subtree<'T>
+        | Found of Tree<'T>
         /// The item was not found.
         | NotFound
     
@@ -412,24 +408,24 @@ module private Node =
         if item = node.Item then
             match node.Left, node.Right with
             | None, None -> Found None
-            | Some left, None -> Some left |> Found
-            | None, Some right -> Some right |> Found
-            | Some _, Some _ -> node |> replaceWithSuccessor |> Found
+            | Node left, None -> Node left |> Found
+            | None, Node right -> Node right |> Found
+            | Node _, Node _ -> node |> replaceWithSuccessor |> Found
         elif item < node.Item then
             match node.Left with
             | None -> NotFound
-            | Some leftNode ->
+            | Node leftNode ->
                 match tryRemove item leftNode with
                 | Found newLeftNode ->
-                    node |> updateLeft newLeftNode |> Some |> Found
+                    node |> updateLeft newLeftNode |> Node |> Found
                 | NotFound -> NotFound
         else
             match node.Right with
             | None -> NotFound
-            | Some rightNode ->
+            | Node rightNode ->
                 match tryRemove item rightNode with
                 | Found newRightNode ->
-                    node |> updateRight newRightNode |> Some |> Found
+                    node |> updateRight newRightNode |> Node |> Found
                 | NotFound -> NotFound
 
 
@@ -438,13 +434,13 @@ let insert (log: LoggingFunc) item (tree: Tree<'T>) =
     log 0 (sprintf "Insert %A into tree: \n%A" item (tree |> treeToDot))
     
     match tree with
-    | None -> Node.createLeaf item Black |> Some
-    | Some rootNode ->
+    | None -> Node.createLeaf item Black |> Node
+    | Node rootNode ->
         match rootNode |> Node.insert log 0 item Node.NoParent with
         | Node.RepairParent rootNode' ->
             match rootNode'.Color with
-            | Black -> rootNode' |> Some
-            | Red -> rootNode' |> Some |> Node.repaint Black |> Some
+            | Black -> rootNode' |> Node
+            | Red -> rootNode' |> Node |> Node.repaint Black |> Node
         | Node.LeftRotate rootNode' -> invalidOp "todo"
         | Node.RightRotate rootNode' -> invalidOp "todo"
         | Node.RepaintAunt rootNode' -> invalidOp "todo"
@@ -457,7 +453,7 @@ let remove item tree =
     | None ->
         KeyNotFoundException "The item was not found in the tree."
         |> raise
-    | Some rootNode -> rootNode |> Node.remove item
+    | Node rootNode -> rootNode |> Node.remove item
 
 /// Tries to remove an item from the tree. If the item was found and removed,
 /// returns a new version of the tree. If the item was not found, returns the
@@ -465,7 +461,7 @@ let remove item tree =
 let tryRemove item tree =
     match tree with
     | None -> None
-    | Some rootNode ->
+    | Node rootNode ->
         rootNode |> Node.tryRemove item
         |> function
         | Node.Found newTree -> newTree
@@ -474,14 +470,14 @@ let tryRemove item tree =
 let contains item tree =
     match tree with
     | None -> false
-    | Some rootNode -> rootNode |> Node.contains item
+    | Node rootNode -> rootNode |> Node.contains item
         
 /// Returns a sequence containing all of the items in the tree, sorted by
 /// item keys. 
 let rec items tree =
     match tree with
     | None -> seq []
-    | Some node ->
+    | Node node ->
         let leftItems = node.Left |> items
         let rightItems = node.Right |> items
         rightItems
@@ -492,14 +488,14 @@ let rec items tree =
 let rec height tree =
     match tree with
     | None -> 0
-    | Some node ->
+    | Node node ->
         max (node.Left |> height) (node.Right |> height) + 1
 
 //
 //let insert2 (log: LoggingFunc) item (tree: Tree<'T>) =
 //    match tree with
-//    | None -> Node.createLeaf item Black |> Some
-//    | Some tree ->
+//    | None -> Node.createLeaf item Black |> Node
+//    | Node tree ->
 //        let child = Node.createLeaf item Red
 //        tree |> Node.updateLeft child
 //        

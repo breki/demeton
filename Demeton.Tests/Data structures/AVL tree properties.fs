@@ -5,10 +5,10 @@ open Tests.``Data structures``.``Binary search tree testbed``
 
 /// Determines whether the tree is balanced (in terms of AVL tree balance
 /// or not). 
-let rec private isBalanced (tree: DataStructures.AvlTree.Tree<'T>) =
+let rec private isBalanced (tree: AvlTree.Tree<'T>) =
     match tree with
-    | None -> true
-    | Some node ->
+    | AvlTree.None -> true
+    | AvlTree.Node node ->
         if node.Left |> isBalanced |> not then
             false
         elif node.Right |> isBalanced |> not then

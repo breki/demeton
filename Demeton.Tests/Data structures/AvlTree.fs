@@ -7,35 +7,32 @@
 [<RequireQualifiedAccess>]
 module DataStructures.AvlTree
 
-open DataStructures
 open System.Collections.Generic
 open Text
 
 /// A node of the binary search tree.
 type Node<'T when 'T:comparison> = {
     Item: 'T
-    Left: Node<'T> option
-    Right: Node<'T> option
+    Left: Tree<'T>
+    Right: Tree<'T>
 }
 
 /// The root of the binary search tree.
-type Tree<'T when 'T:comparison> = Node<'T> option
+and Tree<'T when 'T:comparison> =
+    | Node of Node<'T>
+    | None
 
 /// Returns the height of the tree.
 let rec height tree =
     match tree with
     | None -> 0
-    | Some node ->
+    | Node node ->
         max (node.Left |> height) (node.Right |> height) + 1
 
 /// Contains internal implementation for inserting and removing of items from
 /// the tree.
 [<RequireQualifiedAccess>]
-module private Node =
-    /// Represents a subtree (basically just an optional node representing the
-    /// root of the subtree. 
-    type Subtree<'T when 'T:comparison> = Node<'T> option
-    
+module private Node =  
     /// Creates a leaf node.
     let createLeaf item = { Item = item; Left = None; Right = None }
     
@@ -52,25 +49,25 @@ module private Node =
         if item = node.Item then true
         elif item < node.Item then
             match node.Left with
-            | Some left -> left |> contains item
+            | Node left -> left |> contains item
             | None -> false
         else
             match node.Right with
-            | Some right -> right |> contains item
+            | Node right -> right |> contains item
             | None -> false
     
     /// Looks for the successor (the leftest descendant) node and returns its item and a
     /// replacement node (recursively).
-    let rec private removeSuccessor (node: Node<'T>): 'T * Subtree<'T> =
+    let rec private removeSuccessor (node: Node<'T>): 'T * Tree<'T> =
         match node.Left with
         // if we found the successor node, save its item and give its right child
         // to the successor parent
         | None -> (node.Item, node.Right)
         // if there are still some nodes to the left...
-        | Some left ->
+        | Node left ->
             // find the successor and the new left child
             let (successorNodeItem, newLeftChild) = left |> removeSuccessor
-            let node' = node |> updateLeft newLeftChild |> Some
+            let node' = node |> updateLeft newLeftChild |> Node
             (successorNodeItem, node')
     
     /// Replaces (or, better, put, creates a new node of) the successor node of
@@ -80,10 +77,10 @@ module private Node =
         | None ->
             invalidOp
                 "bug: this function should not be called on a node without the right child"
-        | Some right -> 
+        | Node right -> 
             let (successorNodeItem, newRightChild) =
                 right |> removeSuccessor
-            create successorNodeItem node.Left newRightChild |> Some
+            create successorNodeItem node.Left newRightChild |> Node
 
     /// Removes an item from the subtree. If the item was not found,
     /// throws an exception.
@@ -91,26 +88,26 @@ module private Node =
         if item = node.Item then
             match node.Left, node.Right with
             | None, None -> None
-            | Some left, None -> Some left
-            | None, Some right -> Some right
-            | Some _, Some _ -> node |> replaceWithSuccessor
+            | Node left, None -> Node left
+            | None, Node right -> Node right
+            | Node _, Node _ -> node |> replaceWithSuccessor
         elif item < node.Item then
             match node.Left with
             | None -> None
-            | Some leftNode ->
+            | Node leftNode ->
                 let left' = leftNode |> remove item
-                node |> updateLeft left' |> Some
+                node |> updateLeft left' |> Node
         else
             match node.Right with
             | None -> None
-            | Some rightNode ->
+            | Node rightNode ->
                 let right' = rightNode |> remove item
-                node |> updateRight right' |> Some
+                node |> updateRight right' |> Node
     
     /// The result type of the tryRemove function.
     type TryRemoveResult<'T when 'T:comparison> =
         /// The item was found in the specific subtree.
-        | Found of Subtree<'T>
+        | Found of Tree<'T>
         /// The item was not found.
         | NotFound
     
@@ -120,30 +117,30 @@ module private Node =
         if item = node.Item then
             match node.Left, node.Right with
             | None, None -> Found None
-            | Some left, None -> Some left |> Found
-            | None, Some right -> Some right |> Found
-            | Some _, Some _ -> node |> replaceWithSuccessor |> Found
+            | Node left, None -> Node left |> Found
+            | None, Node right -> Node right |> Found
+            | Node _, Node _ -> node |> replaceWithSuccessor |> Found
         elif item < node.Item then
             match node.Left with
             | None -> NotFound
-            | Some leftNode ->
+            | Node leftNode ->
                 match tryRemove item leftNode with
                 | Found newLeftNode ->
-                    node |> updateLeft newLeftNode |> Some |> Found
+                    node |> updateLeft newLeftNode |> Node |> Found
                 | NotFound -> NotFound
         else
             match node.Right with
             | None -> NotFound
-            | Some rightNode ->
+            | Node rightNode ->
                 match tryRemove item rightNode with
                 | Found newRightNode ->
-                    node |> updateRight newRightNode |> Some |> Found
+                    node |> updateRight newRightNode |> Node |> Found
                 | NotFound -> NotFound
 
     /// Outputs node ID (and any other attributes) in DOT language.
     let nodeToDot (node: Tree<'T>) (nodeCounter: int) output =
         match node with
-        | Some node ->
+        | Node node ->
             let nodeId = sprintf "%d" nodeCounter
             output
             |> appendFormat "{0} [label={1}]" [| nodeId; node.Item |]
@@ -158,11 +155,11 @@ module private Node =
 
     /// Outputs the subtree in DOT language. 
     let rec subtreeToDot
-        (node: Subtree<'T>) nodeId (nodeCounter: int) output: int =
+        (node: Tree<'T>) nodeId (nodeCounter: int) output: int =
       
         match node with
         | None -> nodeCounter
-        | Some node ->
+        | Node node ->
             let nodeCounterBeforeLeft = nodeCounter + 1
             
             let leftNodeId = nodeToDot (node.Left) nodeCounterBeforeLeft output
@@ -174,7 +171,7 @@ module private Node =
             let nodeCounterBeforeRight =
                 match node.Left with
                 | None -> nodeCounterBeforeLeft + 1
-                | Some _ ->
+                | Node _ ->
                     output
                     |> subtreeToDot node.Left leftNodeId (nodeCounterBeforeLeft + 1)
 
@@ -186,7 +183,7 @@ module private Node =
             let nodeCounterAfterRight =
                 match node.Right with
                 | None -> nodeCounterBeforeRight + 1
-                | Some _ ->
+                | Node _ ->
                     output
                     |> subtreeToDot node.Right rightNodeId (nodeCounterBeforeRight + 1)
 
@@ -195,46 +192,46 @@ module private Node =
     let balanceFactor node =
         match node with
         | None -> 0
-        | Some node -> (height node.Left) - (height node.Right)
+        | Node node -> (height node.Left) - (height node.Right)
     
     let rotateLeft (node: Tree<'T>): Tree<'T> =
         match node with
-        | Some { Left = left; Right = Some { Left = rl; Right = rr; Item = ri }
+        | Node { Left = left; Right = Node { Left = rl; Right = rr; Item = ri }
                  Item = item } ->
-            let left' = create item left rl |> Some
-            create ri left' rr |> Some
+            let left' = create item left rl |> Node
+            create ri left' rr |> Node
         | node -> node
 
     let rotateRight (node: Tree<'T>): Tree<'T> =
         match node with
-        | Some { Left = Some { Left = ll; Right = lr; Item = li }
+        | Node { Left = Node { Left = ll; Right = lr; Item = li }
                  Right = right; Item = item } ->
-            let right' = create item lr right |> Some
-            create li ll right' |> Some
+            let right' = create item lr right |> Node
+            create li ll right' |> Node
         | node -> node
     
     let doubleRotateLeft (node: Tree<'T>): Tree<'T> =
         match node with
-        | Some node ->
-            let right': Node<'T> option = node.Right |> rotateRight
-            let node' = node |> updateRight right' |> Some
+        | Node node ->
+            let right': Tree<'T> = node.Right |> rotateRight
+            let node' = node |> updateRight right' |> Node
             node' |> rotateLeft
         | node -> node
         
     let doubleRotateRight (node: Tree<'T>): Tree<'T> =
         match node with
-        | Some node ->
+        | Node node ->
             let left' = node.Left |> rotateLeft
-            let node' = node |> updateLeft left' |> Some
+            let node' = node |> updateLeft left' |> Node
             node' |> rotateRight
         | node -> node        
     
     let balance (node: Tree<'T>): Tree<'T>  =
         match node with
-        | Some n when node |> balanceFactor >= 2 ->
+        | Node n when node |> balanceFactor >= 2 ->
             if n.Left |> balanceFactor >= 1 then node |> rotateRight
             else node |> doubleRotateRight
-        | Some n when node |> balanceFactor <= -2 ->
+        | Node n when node |> balanceFactor <= -2 ->
             if n.Right |> balanceFactor <= -1 then node |> rotateLeft 
             else node |> doubleRotateLeft
         | node -> node
@@ -242,15 +239,15 @@ module private Node =
 /// Inserts an item into the tree and returns a new version of the tree.
 let rec insert item (tree: Tree<'T>) =
     match tree with
-    | None -> Node.createLeaf item |> Some
-    | Some node ->
+    | None -> Node.createLeaf item |> Node
+    | Node node ->
         let node' =
             if item < node.Item then
                 let left' = insert item node.Left
-                node |> Node.updateLeft left' |> Some
+                node |> Node.updateLeft left' |> Node
             else
                 let right' = insert item node.Right
-                node |> Node.updateRight right' |> Some
+                node |> Node.updateRight right' |> Node
         Node.balance node'
    
 /// Removes an item from the tree and returns a new version of the tree.
@@ -260,7 +257,7 @@ let remove item tree =
     | None ->
         KeyNotFoundException "The item was not found in the tree."
         |> raise
-    | Some rootNode -> rootNode |> Node.remove item
+    | Node rootNode -> rootNode |> Node.remove item
 
 /// Tries to remove an item from the tree. If the item was found and removed,
 /// returns a new version of the tree. If the item was not found, returns the
@@ -268,7 +265,7 @@ let remove item tree =
 let tryRemove item tree =
     match tree with
     | None -> None
-    | Some rootNode ->
+    | Node rootNode ->
         rootNode |> Node.tryRemove item
         |> function
         | Node.Found newTree -> newTree
@@ -277,14 +274,14 @@ let tryRemove item tree =
 let contains item tree =
     match tree with
     | None -> false
-    | Some rootNode -> rootNode |> Node.contains item
+    | Node rootNode -> rootNode |> Node.contains item
         
 /// Returns a sequence containing all of the items in the tree, sorted by
 /// item keys. 
 let rec items tree =
     match tree with
     | None -> seq []
-    | Some node ->
+    | Node node ->
         let leftItems = node.Left |> items
         let rightItems = node.Right |> items
         rightItems
@@ -295,7 +292,7 @@ let rec items tree =
 let treeToDot (tree: Tree<'T>) =
     match tree with
     | None -> ""
-    | Some _ ->
+    | Node _ ->
         let builder =
             buildString()
             |> appendLine "digraph BST {"
