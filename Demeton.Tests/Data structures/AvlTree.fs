@@ -1,6 +1,13 @@
-﻿[<RequireQualifiedAccess>]
+﻿/// Implementation of a persistent AVL tree.
+///
+/// Useful links:
+/// - https://en.wikipedia.org/wiki/AVL_tree
+/// - https://en.wikibooks.org/wiki/F_Sharp_Programming/Advanced_Data_Structures#AVL_Trees
+/// - https://two-wrongs.com/purely-functional-avl-trees-in-common-lisp
+[<RequireQualifiedAccess>]
 module DataStructures.AvlTree
 
+open DataStructures
 open System.Collections.Generic
 open Text
 
@@ -13,6 +20,13 @@ type Node<'T when 'T:comparison> = {
 
 /// The root of the binary search tree.
 type Tree<'T when 'T:comparison> = Node<'T> option
+
+/// Returns the height of the tree.
+let rec height tree =
+    match tree with
+    | None -> 0
+    | Some node ->
+        max (node.Left |> height) (node.Right |> height) + 1
 
 /// Contains internal implementation for inserting and removing of items from
 /// the tree.
@@ -33,21 +47,6 @@ module private Node =
     /// Creates a copy of the node with a different right child.
     let updateRight rightNode node = { node with Right = rightNode }
     
-    /// Inserts an item into the subtree).
-    let rec insert item node =
-        if item < node.Item then
-            let leftNode' = 
-                match node.Left with
-                | None -> createLeaf item |> Some
-                | Some leftNode -> leftNode |> insert item
-            node |> updateLeft leftNode' |> Some
-        else
-            let rightNode' =
-                match node.Right with
-                | None -> createLeaf item |> Some
-                | Some rightNode -> rightNode |> insert item
-            node |> updateRight rightNode' |> Some
-
     /// Determines whether the tree contains the specified item. 
     let rec contains item node =
         if item = node.Item then true
@@ -193,11 +192,66 @@ module private Node =
 
             nodeCounterAfterRight
 
+    let balanceFactor node =
+        match node with
+        | None -> 0
+        | Some node -> (height node.Left) - (height node.Right)
+    
+    let rotateLeft (node: Tree<'T>): Tree<'T> =
+        match node with
+        | Some { Left = left; Right = Some { Left = rl; Right = rr; Item = ri }
+                 Item = item } ->
+            let left' = create item left rl |> Some
+            create ri left' rr |> Some
+        | node -> node
+
+    let rotateRight (node: Tree<'T>): Tree<'T> =
+        match node with
+        | Some { Left = Some { Left = ll; Right = lr; Item = li }
+                 Right = right; Item = item } ->
+            let right' = create item lr right |> Some
+            create li ll right' |> Some
+        | node -> node
+    
+    let doubleRotateLeft (node: Tree<'T>): Tree<'T> =
+        match node with
+        | Some node ->
+            let right': Node<'T> option = node.Right |> rotateRight
+            let node' = node |> updateRight right' |> Some
+            node' |> rotateLeft
+        | node -> node
+        
+    let doubleRotateRight (node: Tree<'T>): Tree<'T> =
+        match node with
+        | Some node ->
+            let left' = node.Left |> rotateLeft
+            let node' = node |> updateLeft left' |> Some
+            node' |> rotateRight
+        | node -> node        
+    
+    let balance (node: Tree<'T>): Tree<'T>  =
+        match node with
+        | Some n when node |> balanceFactor >= 2 ->
+            if n.Left |> balanceFactor >= 1 then node |> rotateRight
+            else node |> doubleRotateRight
+        | Some n when node |> balanceFactor <= -2 ->
+            if n.Right |> balanceFactor <= -1 then node |> rotateLeft 
+            else node |> doubleRotateLeft
+        | node -> node
+
 /// Inserts an item into the tree and returns a new version of the tree.
-let insert item (tree: Tree<'T>) =
+let rec insert item (tree: Tree<'T>) =
     match tree with
     | None -> Node.createLeaf item |> Some
-    | Some rootNode -> rootNode |> Node.insert item
+    | Some node ->
+        let node' =
+            if item < node.Item then
+                let left' = insert item node.Left
+                node |> Node.updateLeft left' |> Some
+            else
+                let right' = insert item node.Right
+                node |> Node.updateRight right' |> Some
+        Node.balance node'
    
 /// Removes an item from the tree and returns a new version of the tree.
 /// If the item was not found, throws an exception.
@@ -236,13 +290,6 @@ let rec items tree =
         rightItems
         |> Seq.append [ node.Item ]
         |> Seq.append leftItems
-
-/// Returns the height of the tree.
-let rec height tree =
-    match tree with
-    | None -> 0
-    | Some node ->
-        max (node.Left |> height) (node.Right |> height) + 1
 
 /// Serializes the tree into string using the DOT language.
 let treeToDot (tree: Tree<'T>) =

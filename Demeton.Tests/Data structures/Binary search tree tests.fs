@@ -202,15 +202,30 @@ type BinarySearchTreePropertyTest
 //        |> checkPropertyWithTestSize gen output 200 100
 //        |> checkPropertyVerboseWithTestSize gen output 200 100
         |> replayPropertyCheck gen output (9157400,296683675)
+    
+    let runInsertOnlyTreePropertyTests properties =
+        let genInsert = Arb.generate<int> |> Gen.map Insert
+        let genContains = Arb.generate<int> |> Gen.map Contains
+        
+        let genOperation = Gen.frequency [
+            (20, genInsert); (3, genContains)
+        ]
+        
+        let gen = Gen.arrayOf genOperation
+        
+        properties
+        |> checkPropertyWithTestSize gen output 200 100
+//        |> checkPropertyVerboseWithTestSize gen output 200 100
+//        |> replayPropertyCheck gen output (9157400,296683675)
    
     [<Fact>]
     member this.``Unbalanced binary search tree properties``() =
         runTreePropertyTests unbalancedBinarySearchTreeProperties
     
-    [<Fact (Skip="todo")>]
-//    [<Fact>]
+//    [<Fact (Skip="todo")>]
+    [<Fact>]
     member this.``AVL tree properties``() =
-        runTreePropertyTests avlTreeProperties
+        runInsertOnlyTreePropertyTests avlTreeProperties
     
     [<Fact (Skip="todo")>]
 //    [<Fact>]

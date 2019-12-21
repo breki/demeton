@@ -1,7 +1,9 @@
 - AVL trees
-    - implement insert balancing
+    - simplify the structure code
+    - implement removal
 
 ## Sat 21.12.
+- Implemented AVL tree inserting.
 - Added a testbed for AVL tree property testing.
 - Split up the binary search tree test code into separate modules, so it's more maintainable.
 - After struggling with red/black trees, I've decided to implement AVL trees first.
