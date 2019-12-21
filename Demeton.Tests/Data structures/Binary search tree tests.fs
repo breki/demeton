@@ -4,31 +4,15 @@ open DataStructures.ListEx
 
 open DataStructures
 open Tests.``Data structures``.``Binary search tree testbed``
+open Tests.``Data structures``.``AVL tree properties``
 open Tests.``Data structures``.``Red black tree properties``
 open Xunit
-open Swensen.Unquote
 open FsCheck
 open FsUnit
 open PropertiesHelp
-open TestHelp
 
 let log (output: Xunit.Abstractions.ITestOutputHelper) depth message =
     output.WriteLine message
-
-/// Determines whether the tree is balanced (in terms of AVL tree balance
-/// or not). 
-let rec private isBalanced (tree: DataStructures.RedBlackTree.Tree<'T>) =
-    match tree with
-    | None -> true
-    | Some node ->
-        if node.Left |> isBalanced |> not then
-            false
-        elif node.Right |> isBalanced |> not then
-            false
-        else
-            let leftHeight = node.Left |> RedBlackTree.height
-            let rightHeight = node.Right |> RedBlackTree.height
-            abs (leftHeight - rightHeight) <= 1
 
 /// Checks whether the current tree corresponds to its test oracle.
 let verifyWithTestOracle items: TreePropertyVerificationFunc<'Tree> =
@@ -167,6 +151,22 @@ type BinarySearchTreePropertyTest
             UnbalancedBinarySearchTree.treeToDot
             [ (verifyWithTestOracle UnbalancedBinarySearchTree.items) ]
             initialState)
+
+    let avlTreeProperties =
+        let initialState =
+            { List = []; Tree = None; OperationsPerformed = 0 } |> Ok
+        
+        (``binary search tree properties``
+            output
+            AvlTree.items
+            AvlTree.contains
+            AvlTree.insert
+            AvlTree.remove
+            AvlTree.tryRemove
+            AvlTree.treeToDot
+            [ (verifyWithTestOracle AvlTree.items)
+              avlTreeIsBalanced ]
+            initialState)
     
     let redBlackTreeProperties =
         let initialState =
@@ -206,6 +206,11 @@ type BinarySearchTreePropertyTest
     [<Fact>]
     member this.``Unbalanced binary search tree properties``() =
         runTreePropertyTests unbalancedBinarySearchTreeProperties
+    
+    [<Fact (Skip="todo")>]
+//    [<Fact>]
+    member this.``AVL tree properties``() =
+        runTreePropertyTests avlTreeProperties
     
     [<Fact (Skip="todo")>]
 //    [<Fact>]
