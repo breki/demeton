@@ -182,9 +182,9 @@ type BinarySearchTreePropertyTest
             output
             AvlTree.items
             AvlTree.contains
-            AvlTree.insert
-            AvlTree.remove
-            AvlTree.tryRemove
+            (AvlTree.insert (log output 0))
+            (AvlTree.remove (log output 0))
+            (AvlTree.tryRemove (log output 0))
             AvlTree.treeToDot
             [ (verifyWithTestOracle AvlTree.items)
               avlTreeIsBalanced ]

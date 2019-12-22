@@ -1,4 +1,6 @@
 - how and where to log the steps?
+    - is there a F#-specific logging library?
+    
     
 - fix the latest AVL removal bug
     - print out the tree before removing
