@@ -13,6 +13,7 @@ open PropertiesHelp
 
 let log (output: Xunit.Abstractions.ITestOutputHelper) depth message =
     output.WriteLine message
+       
 
 /// Checks whether the current tree corresponds to its test oracle.
 let verifyWithTestOracle items: TreePropertyVerificationFunc<'Tree> =
@@ -31,6 +32,14 @@ let private ``binary search tree properties``
     items contains insert remove tryRemove treeToDot
     (additionalProperties: TreePropertyVerificationFunc<'Tree> list)
     initialState operations =
+        
+    let mutable nextItemTag = 'A'
+        
+    let newItem itemValue =
+        let item = { Value = itemValue; Tag = nextItemTag |> string }
+        nextItemTag <- ((nextItemTag |> int) + 1) |> char
+        item
+        
     /// Executes a test operation on the tree.
     let processOperation
         (state: TreeTestCurrent<'Tree>) operation: TreeTestResult<'Tree> =
@@ -44,7 +53,9 @@ let private ``binary search tree properties``
         let tree = state.Tree
                 
         match operation with
-        | Insert item ->
+        | Insert itemValue ->
+            let item = newItem itemValue
+            
             let list' = (item :: list) |> List.sort
             let tree' = tree |> insert item
             
@@ -60,16 +71,18 @@ let private ``binary search tree properties``
                 newState list' tree'
             else
                 newState list tree
-        | TryRemove item ->
+        | TryRemove itemValue ->
             list
-            |> List.tryFindIndex (fun x -> x = item)
+            |> List.tryFindIndex (fun x -> x.Value = itemValue)
             |> function
             | Some itemIndex ->
                 let list' = list |> removeAt itemIndex
-                let tree' = tree |> tryRemove item
+                let tree' = tree |> tryRemove { Value = itemValue; Tag = "" }
                 newState list' tree'
             | None -> newState list tree
-        | Contains item ->
+        | Contains itemValue ->
+            let item = { Value = itemValue; Tag = "" }
+            
             if list
                |> List.contains item = (tree |> contains item) then
                 newState list tree 
@@ -77,7 +90,7 @@ let private ``binary search tree properties``
                 (state,
                     sprintf
                         "The contains function returned a wrong result for item %d"
-                        item)
+                        itemValue)
                 |> Error
             
     let foldFunc

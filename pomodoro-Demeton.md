@@ -1,8 +1,12 @@
+- binary tree testing - items should consist of a value and a tag, so they can be debugged more easily
+    - when writing out contents of the tree vs the oracle list, print values only
+    
 - fix the latest AVL removal bug
     - print out the tree before removing
     - trace removal steps
 
 ## Sun 22.12.
+- Tests for binary search trees now use `TestItem` as an item. This is so we can include some debugging information into the tests.
 - Trying to fix the AVL removal bug, but coming to realization step-by-step debugging will not cut it.
 
 ## Sat 21.12.
