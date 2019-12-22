@@ -7,6 +7,7 @@
 [<RequireQualifiedAccess>]
 module DataStructures.AvlTree
 
+open DataStructures
 open System.Collections.Generic
 
 /// A node of the binary search tree.
@@ -32,6 +33,11 @@ let rec height tree =
 /// the tree.
 [<RequireQualifiedAccess>]
 module private Node =  
+    let balanceFactor node =
+        match node with
+        | None -> 0
+        | Node node -> (height node.Left) - (height node.Right)
+
     /// Creates a leaf node.
     let createLeaf item = { Item = item; Left = None; Right = None } |> Node
     
@@ -43,7 +49,7 @@ module private Node =
     let updateLeft leftNode node = Node { node with Left = leftNode }
     /// Creates a copy of the node with a different right child.
     let updateRight rightNode node = Node { node with Right = rightNode }
-    
+        
     /// Determines whether the tree contains the specified item. 
     let rec contains item node =
         if item = node.Item then true
@@ -55,93 +61,7 @@ module private Node =
             match node.Right with
             | Node right -> right |> contains item
             | None -> false
-    
-    /// Looks for the successor (the leftest descendant) node and returns its item and a
-    /// replacement node (recursively).
-    let rec private removeSuccessor (node: Node<'T>): 'T * Tree<'T> =
-        match node.Left with
-        // if we found the successor node, save its item and give its right child
-        // to the successor parent
-        | None -> (node.Item, node.Right)
-        // if there are still some nodes to the left...
-        | Node left ->
-            // find the successor and the new left child
-            let (successorNodeItem, newLeftChild) = left |> removeSuccessor
-            let node' = node |> updateLeft newLeftChild
-            (successorNodeItem, node')
-    
-    /// Replaces (or, better, put, creates a new node of) the successor node of
-    /// the right child.
-    let private replaceWithSuccessor node =
-        match node.Right with
-        | None ->
-            invalidOp
-                "bug: this function should not be called on a node without the right child"
-        | Node right -> 
-            let (successorNodeItem, newRightChild) =
-                right |> removeSuccessor
-            create successorNodeItem node.Left newRightChild
 
-    /// Removes an item from the subtree. If the item was not found,
-    /// throws an exception.
-    let rec remove item node =
-        if item = node.Item then
-            match node.Left, node.Right with
-            | None, None -> None
-            | Node left, None -> Node left
-            | None, Node right -> Node right
-            | Node _, Node _ -> node |> replaceWithSuccessor
-        elif item < node.Item then
-            match node.Left with
-            | None -> None
-            | Node leftNode ->
-                let left' = leftNode |> remove item
-                node |> updateLeft left'
-        else
-            match node.Right with
-            | None -> None
-            | Node rightNode ->
-                let right' = rightNode |> remove item
-                node |> updateRight right'
-    
-    /// The result type of the tryRemove function.
-    type TryRemoveResult<'T when 'T:comparison> =
-        /// The item was found in the specific subtree.
-        | Found of Tree<'T>
-        /// The item was not found.
-        | NotFound
-    
-    /// Tries to remove an item from the subtree. If the item was not found,
-    /// just returns NotFound result.
-    let rec tryRemove item node: TryRemoveResult<'T> =
-        if item = node.Item then
-            match node.Left, node.Right with
-            | None, None -> Found None
-            | Node left, None -> Node left |> Found
-            | None, Node right -> Node right |> Found
-            | Node _, Node _ -> node |> replaceWithSuccessor |> Found
-        elif item < node.Item then
-            match node.Left with
-            | None -> NotFound
-            | Node leftNode ->
-                match tryRemove item leftNode with
-                | Found newLeftNode ->
-                    node |> updateLeft newLeftNode |> Found
-                | NotFound -> NotFound
-        else
-            match node.Right with
-            | None -> NotFound
-            | Node rightNode ->
-                match tryRemove item rightNode with
-                | Found newRightNode ->
-                    node |> updateRight newRightNode |> Found
-                | NotFound -> NotFound
-
-    let balanceFactor node =
-        match node with
-        | None -> 0
-        | Node node -> (height node.Left) - (height node.Right)
-    
     let rotateLeft (node: Tree<'T>): Tree<'T> =
         match node with
         | Node { Left = left; Right = Node { Left = rl; Right = rr; Item = ri }
@@ -183,6 +103,109 @@ module private Node =
             if n.Right |> balanceFactor <= -1 then node |> rotateLeft 
             else node |> doubleRotateLeft
         | node -> node
+    
+    /// Looks for the successor (the leftest descendant) node and returns its item and a
+    /// replacement node (recursively).
+    let rec private removeSuccessor (node: Node<'T>): 'T * Tree<'T> =
+        match node.Left with
+        // if we found the successor node, save its item and give its right child
+        // to the successor parent
+        | None -> (node.Item, node.Right)
+        // if there are still some nodes to the left...
+        | Node left ->
+            // find the successor and the new left child
+            let (successorNodeItem, newLeftChild) = left |> removeSuccessor
+            let node' =
+                node
+                |> updateLeft newLeftChild
+                |> balance
+            
+//            let balanceFactor = node' |> balanceFactor
+//            if balanceFactor <= -2 || balanceFactor >= 2 then
+//                invalidOp "todo: successor unbalanced"            
+            
+            (successorNodeItem, node')
+    
+    /// Replaces (or, better, put, creates a new node of) the successor node of
+    /// the right child.
+    let private replaceWithSuccessor node =
+        match node.Right with
+        | None ->
+            invalidOp
+                "bug: this function should not be called on a node without the right child"
+        | Node right -> 
+            let (successorNodeItem, newRightChild) =
+                right |> removeSuccessor
+            create successorNodeItem node.Left newRightChild
+            |> balance
+
+    /// Removes an item from the subtree. If the item was not found,
+    /// throws an exception.
+    let rec remove item node =
+        if item = node.Item then
+            match node.Left, node.Right with
+            | None, None -> None
+            | Node left, None -> Node left
+            | None, Node right -> Node right
+            | Node _, Node _ ->
+                node
+                |> replaceWithSuccessor
+                |> balance
+        elif item < node.Item then
+            match node.Left with
+            | None -> None
+            | Node leftNode ->
+                let left' = leftNode |> remove item
+                node |> updateLeft left' |> balance
+        else
+            match node.Right with
+            | None -> None
+            | Node rightNode ->
+                let right' = rightNode |> remove item
+                node |> updateRight right' |> balance
+    
+    /// The result type of the tryRemove function.
+    type TryRemoveResult<'T when 'T:comparison> =
+        /// The item was found in the specific subtree.
+        | Found of Tree<'T>
+        /// The item was not found.
+        | NotFound
+    
+    /// Tries to remove an item from the subtree. If the item was not found,
+    /// just returns NotFound result.
+    let rec tryRemove item node: TryRemoveResult<'T> =
+        if item = node.Item then
+            match node.Left, node.Right with
+            | None, None -> Found None
+            | Node left, None -> Node left |> Found
+            | None, Node right -> Node right |> Found
+            | Node _, Node _ ->
+                node
+                |> replaceWithSuccessor
+                |> balance
+                |> Found
+        elif item < node.Item then
+            match node.Left with
+            | None -> NotFound
+            | Node leftNode ->
+                match tryRemove item leftNode with
+                | Found newLeftNode ->
+                    node
+                    |> updateLeft newLeftNode
+                    |> balance
+                    |> Found
+                | NotFound -> NotFound
+        else
+            match node.Right with
+            | None -> NotFound
+            | Node rightNode ->
+                match tryRemove item rightNode with
+                | Found newRightNode ->
+                    node
+                    |> updateRight newRightNode
+                    |> balance
+                    |> Found
+                | NotFound -> NotFound
 
 /// Inserts an item into the tree and returns a new version of the tree.
 let rec insert item (tree: Tree<'T>) =

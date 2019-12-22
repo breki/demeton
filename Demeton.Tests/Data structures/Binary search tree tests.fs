@@ -98,11 +98,11 @@ let private ``binary search tree properties``
                 | Error error -> Error error)
                 operationResult
                 
-//        match result with
-//        | Ok state ->
-//            output.WriteLine (state.Tree |> treeToDot) |> ignore
-//        | Error (state, _) ->
-//            output.WriteLine (state.Tree |> treeToDot) |> ignore
+        match result with
+        | Ok state ->
+            output.WriteLine (state.Tree |> treeToDot) |> ignore
+        | Error (state, _) ->
+            output.WriteLine (state.Tree |> treeToDot) |> ignore
         
         result
     
@@ -201,9 +201,9 @@ type BinarySearchTreePropertyTest
         let gen = Gen.arrayOf genOperation
         
         properties
-//        |> checkPropertyWithTestSize gen output 200 100
+        |> checkPropertyWithTestSize gen output 200 100
 //        |> checkPropertyVerboseWithTestSize gen output 200 100
-        |> replayPropertyCheck gen output (9157400,296683675)
+//        |> replayPropertyCheck gen output (9157400,296683675)
     
     let runInsertOnlyTreePropertyTests properties =
         let genInsert = Arb.generate<int> |> Gen.map Insert
@@ -224,16 +224,49 @@ type BinarySearchTreePropertyTest
     member this.``Unbalanced binary search tree properties``() =
         runTreePropertyTests unbalancedBinarySearchTreeProperties
     
-//    [<Fact (Skip="todo")>]
-    [<Fact>]
+    [<Fact (Skip="todo")>]
+//    [<Fact>]
     member this.``AVL tree properties``() =
-        runInsertOnlyTreePropertyTests avlTreeProperties
+        runTreePropertyTests avlTreeProperties
     
     [<Fact (Skip="todo")>]
 //    [<Fact>]
     member this.``Red-black tree properties``() =
         runTreePropertyTests redBlackTreeProperties
 
+    [<Fact>]
+    member this.``AVL sample case 1``() =
+        avlTreeProperties
+            [| Insert -1; Insert 0; Insert 1; Insert 0; Insert 0; Insert 0; Insert 0;
+                Insert 0; Contains 0; Insert 0; Remove 0.182; Insert 0; Insert -3 |]
+        |> Check.QuickThrowOnFailure
+
+    [<Fact>]
+    member this.``AVL sample case 2``() =
+        avlTreeProperties
+            [| Insert 0; Insert 0; Insert -1; Insert -1;
+              Insert 0; Insert 0; Insert 0; Insert 0;
+              TryRemove -1 |]
+        |> Check.QuickThrowOnFailure
+
+    [<Fact>]
+    member this.``AVL sample case 3``() =
+        avlTreeProperties
+            [| Insert 0; Insert 0; Insert -9; Insert 0
+               Remove 0.134; Insert 0 |]
+        |> Check.QuickThrowOnFailure
+
+    [<Fact (Skip="todo")>]
+//    [<Fact>]
+    member this.``AVL sample case 4``() =
+        avlTreeProperties
+            [| Insert 0; Insert 0; Insert 0;
+                Insert 0; Insert 0; Insert 0; Insert 0; Insert 0; 
+              Insert 8; Insert 0; Insert 0; Insert 0; Insert 0;
+              Insert 0; Remove 0.377; Insert 0; Insert 0; Insert 20; Insert 0;
+              TryRemove 0 |]
+        |> Check.QuickThrowOnFailure
+        
     [<Fact>]
     member this.``Sample case 1``() =
         redBlackTreeProperties

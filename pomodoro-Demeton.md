@@ -1,6 +1,9 @@
-- AVL trees
-    - implement removal
-    - introduce it into polygon-self intersection detection code so we can identify any missing functions
+- fix the latest AVL removal bug
+    - print out the tree before removing
+    - trace removal steps
+
+## Sun 22.12.
+- Trying to fix the AVL removal bug, but coming to realization step-by-step debugging will not cut it.
 
 ## Sat 21.12.
 - Extracted generic functions for visualizing binary trees in DOT language.
