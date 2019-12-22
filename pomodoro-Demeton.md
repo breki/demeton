@@ -1,5 +1,4 @@
-- binary tree testing - items should consist of a value and a tag, so they can be debugged more easily
-    - when writing out contents of the tree vs the oracle list, print values only
+- how and where to log the steps?
     
 - fix the latest AVL removal bug
     - print out the tree before removing

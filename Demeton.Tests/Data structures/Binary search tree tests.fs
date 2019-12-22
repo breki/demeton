@@ -14,6 +14,9 @@ open PropertiesHelp
 let log (output: Xunit.Abstractions.ITestOutputHelper) depth message =
     output.WriteLine message
        
+/// Writes out the values of a sequence of test items.
+let testItemsToString (list: TestItem seq) =
+    list |> Seq.map (fun item -> item.Value)
 
 /// Checks whether the current tree corresponds to its test oracle.
 let verifyWithTestOracle items: TreePropertyVerificationFunc<'Tree> =
@@ -138,14 +141,19 @@ let private ``binary search tree properties``
         (finalTreeElements = finalStateOk.List)
         |> classifyByTreeSize (finalStateOk.List |> List.length)
         |> Prop.label "the final tree does not have expected elements"
-        |@ sprintf "%A <> %A" finalTreeElements finalStateOk.List
+        |@ sprintf
+               "%A <> %A"
+               (finalTreeElements |> testItemsToString)
+               (finalStateOk.List |> testItemsToString)
     | Result.Error (errorState, message) -> 
         let errorTreeElements = errorState.Tree |> items |> Seq.toList   
         false
         |> Prop.label message
         |@ sprintf
                "after %d operations, tree=%A, oracle=%A, tree:\n\n%s"
-               errorState.OperationsPerformed errorTreeElements errorState.List
+               errorState.OperationsPerformed
+               (errorTreeElements |> testItemsToString)
+               (errorState.List |> testItemsToString)
                (errorState.Tree |> treeToDot)
 
 type BinarySearchTreePropertyTest
@@ -269,8 +277,8 @@ type BinarySearchTreePropertyTest
                Remove 0.134; Insert 0 |]
         |> Check.QuickThrowOnFailure
 
-    [<Fact (Skip="todo")>]
-//    [<Fact>]
+//    [<Fact (Skip="todo")>]
+    [<Fact>]
     member this.``AVL sample case 4``() =
         avlTreeProperties
             [| Insert 0; Insert 0; Insert 0;

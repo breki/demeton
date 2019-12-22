@@ -7,6 +7,7 @@ open System
 /// nodes for debugging purposes.
 [<CustomEquality>]
 [<CustomComparison>]
+[<StructuredFormatDisplay("\"{Value} {Tag}\"")>]
 type TestItem = {
     Value: int
     Tag: string
@@ -17,6 +18,8 @@ type TestItem = {
     override x.GetHashCode() = hash(x.Value)
     override x.Equals(y) =
         x.Value.Equals (y :?> TestItem).Value
+    
+    override x.ToString() = sprintf "%d (%s)" x.Value x.Tag
     
     interface IComparable with
         member x.CompareTo y = x.Value.CompareTo (y :?> TestItem).Value
