@@ -2,6 +2,7 @@
     - visit each node, based on its level and path from the root, decide into which level list to add and which index
 
 ## Mon 23.12.
+- Added some experimental logging to file in the binary trees test code (using Serilog).
 - Started working on ASCII visualization of binary trees.
 
 ## Sun 22.12.
