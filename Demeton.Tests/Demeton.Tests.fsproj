@@ -46,6 +46,7 @@
     <Compile Include="Data structures\AVL tree properties.fs" />
     <Compile Include="Data structures\Red black tree properties.fs" />
     <Compile Include="Data structures\Binary search tree tests.fs" />
+    <Compile Include="Data structures\Binary tree to ASCII tests.fs" />
     <Compile Include="Geometry\GeometryTestHelp.fs" />
     <Compile Include="Geometry\Common tests.fs" />
     <Compile Include="Geometry\Bounds tests.fs" />

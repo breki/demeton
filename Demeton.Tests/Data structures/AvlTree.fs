@@ -8,6 +8,7 @@
 module DataStructures.AvlTree
 
 open System.Collections.Generic
+open Text
 
 type LogFunc = string -> unit
 
@@ -22,6 +23,10 @@ type Node<'T when 'T:comparison> = {
 and Tree<'T when 'T:comparison> =
     | Node of Node<'T>
     | None
+
+let nodeItem = function
+    | Node node -> node.Item
+    | None -> invalidOp "Node is None"
 
 /// Returns the height of the tree.
 let rec height tree =
@@ -64,6 +69,8 @@ module private Node =
             | None -> false
 
     let rotateLeft (log: LogFunc) (node: Tree<'T>): Tree<'T> =
+        log (sprintf "rotateLeft %A" (node |> nodeItem))
+        
         match node with
         | Node { Left = left; Right = Node { Left = rl; Right = rr; Item = ri }
                  Item = item } ->
@@ -72,6 +79,8 @@ module private Node =
         | node -> node
 
     let rotateRight (log: LogFunc) (node: Tree<'T>): Tree<'T> =
+        log (sprintf "rotateRight %A" (node |> nodeItem))
+        
         match node with
         | Node { Left = Node { Left = ll; Right = lr; Item = li }
                  Right = right; Item = item } ->
@@ -80,6 +89,8 @@ module private Node =
         | node -> node
     
     let doubleRotateLeft (log: LogFunc) (node: Tree<'T>): Tree<'T> =
+        log (sprintf "doubleRotateLeft %A" (node |> nodeItem))
+        
         match node with
         | Node node ->
             let right': Tree<'T> = node.Right |> rotateRight log
@@ -88,6 +99,8 @@ module private Node =
         | node -> node
         
     let doubleRotateRight (log: LogFunc) (node: Tree<'T>): Tree<'T> =
+        log (sprintf "doubleRotateRight %A" (node |> nodeItem))
+        
         match node with
         | Node node ->
             let left' = node.Left |> rotateLeft log
@@ -96,6 +109,8 @@ module private Node =
         | node -> node        
     
     let balance (log: LogFunc) (node: Tree<'T>): Tree<'T>  =
+//        log (sprintf "balance %A" (node |> nodeItem))
+        
         match node with
         | Node n when node |> balanceFactor >= 2 ->
             if n.Left |> balanceFactor >= 1 then node |> rotateRight log
@@ -109,6 +124,9 @@ module private Node =
     /// replacement node (recursively).
     let rec private removeSuccessor
         (log: LogFunc) (node: Node<'T>): 'T * Tree<'T> =
+
+        log (sprintf "removeSuccessor %A" node.Item)
+
         match node.Left with
         // if we found the successor node, save its item and give its right child
         // to the successor parent
@@ -131,6 +149,8 @@ module private Node =
     /// Replaces (or, better, put, creates a new node of) the successor node of
     /// the right child.
     let private replaceWithSuccessor (log: LogFunc) node =
+        log (sprintf "replaceWithSuccessor %A" node.Item)
+
         match node.Right with
         | None ->
             invalidOp
@@ -144,6 +164,8 @@ module private Node =
     /// Removes an item from the subtree. If the item was not found,
     /// throws an exception.
     let rec remove (log: LogFunc) item node =
+        log (sprintf "remove item %A from %A" item node.Item)
+
         if item = node.Item then
             match node.Left, node.Right with
             | None, None -> None
@@ -176,6 +198,8 @@ module private Node =
     /// Tries to remove an item from the subtree. If the item was not found,
     /// just returns NotFound result.
     let rec tryRemove (log: LogFunc) item node: TryRemoveResult<'T> =
+        log (sprintf "tryRemove item %A from %A" item node)
+
         if item = node.Item then
             match node.Left, node.Right with
             | None, None -> Found None
@@ -226,6 +250,8 @@ let rec insert (log: LogFunc) item (tree: Tree<'T>) =
 /// Removes an item from the tree and returns a new version of the tree.
 /// If the item was not found, throws an exception.
 let remove (log: LogFunc) item tree =
+    log (sprintf "remove item %A" item)
+
     match tree with
     | None ->
         KeyNotFoundException "The item was not found in the tree."
@@ -236,6 +262,8 @@ let remove (log: LogFunc) item tree =
 /// returns a new version of the tree. If the item was not found, returns the
 /// original tree.
 let tryRemove (log: LogFunc) item tree =
+    log (sprintf "tryRemove item %A" item)
+
     match tree with
     | None -> None
     | Node rootNode ->

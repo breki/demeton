@@ -1,10 +1,8 @@
-- how and where to log the steps?
-    - is there a F#-specific logging library?
-    
-    
-- fix the latest AVL removal bug
-    - print out the tree before removing
-    - trace removal steps
+- tree to ASCII
+    - visit each node, based on its level and path from the root, decide into which level list to add and which index
+
+## Mon 23.12.
+- Started working on ASCII visualization of binary trees.
 
 ## Sun 22.12.
 - Tests for binary search trees now use `TestItem` as an item. This is so we can include some debugging information into the tests.
