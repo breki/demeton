@@ -1,5 +1,10 @@
 - tree to ASCII
     - visit each node, based on its level and path from the root, decide into which level list to add and which index
+    - move common tree methods to a separate production module
+    - remove logging
+
+## Tue 24.12.
+- Finally implemented the ASCII representation of binary trees.
 
 ## Mon 23.12.
 - Added some experimental logging to file in the binary trees test code (using Serilog).

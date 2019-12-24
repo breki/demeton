@@ -9,6 +9,11 @@ open Swensen.Unquote
 open Tests.``Data structures``.``Binary search tree testbed``
 
 type BinaryTreeBranch = Left | Right
+
+let otherBranch = function
+    | Left -> Right
+    | Right -> Left
+
 type BinaryTreePath = BinaryTreeBranch list
 
 type VisitedNode<'Tree> = ('Tree * int * BinaryTreePath)
@@ -73,6 +78,7 @@ let private addNodeToTreeLevels (treeLevels: TreeLevels<'Tree>) (node, depth, pa
                 path
                 |> Seq.rev
                 |> Seq.fold indexFold (0, 0)
+            log (sprintf "index for path %A is %d" path index)
             index
     
     let nodeIndexInLevel = path |> nodePathToIndex
@@ -108,7 +114,7 @@ let toAscii
             log levelText)
                 
         // find the widest node and use its width as the standard node width
-        let nodeWidth =
+        let maxNodeWidth =
             treeInLevels
             |> Seq.fold (fun maxWidth nodesInLevel ->
                 let maxNodeWidthInLevel =
@@ -120,50 +126,66 @@ let toAscii
                         max nodeWidth maxWidth) 0
                 max maxNodeWidthInLevel maxWidth) 0
     
-        log (sprintf "max node width = %d" nodeWidth)
+        log (sprintf "max node width = %d" maxNodeWidth)
         
         let numberOfNodesOnBottom = treeInLevels |> Seq.last |> Seq.length
         
         // 1 is for the separator space between two adjacent nodes
-        let treeAsciiWidth = numberOfNodesOnBottom * (1 + nodeWidth)
+        let treeAsciiWidth = numberOfNodesOnBottom * (1 + maxNodeWidth)
+        
+        log (sprintf "treeAsciiWidth=%d" treeAsciiWidth)
         
         let treeText =
             treeInLevels
             |> Seq.fold (fun treeText nodes ->
                 let nodesInLevel = nodes.Length
                 let spaceForEachNode = treeAsciiWidth / nodesInLevel
+                let isFirstLevel = nodesInLevel = 1
                 
-                let lineText = 
+                let connectorsLine =
+                    if isFirstLevel then ""
+                    else
+                        let (connectorsLineText, _) =
+                            nodes
+                            |> Seq.fold (fun (line, branch) node ->
+                                let connector =
+                                    match (isNode node, branch) with
+                                    | false, _ -> ""
+                                    | _, Left -> "/"
+                                    | _, Right -> "\\"
+                                    
+                                let connectorWidth = connector.Length
+                                let oddPrefixPadding = 
+                                    if connectorWidth % 2 = 0 then ""
+                                    else " "
+                                let paddingNeeded =
+                                    (spaceForEachNode - connectorWidth) / 2
+                                let padding = padding paddingNeeded
+                                (line + padding + oddPrefixPadding + connector + padding, otherBranch branch)
+                                ) ("", Left)
+                        connectorsLineText + Environment.NewLine
+                
+                let nodesLineText = 
                     nodes
                     |> Seq.fold (fun line node ->
                         let nodeToString = node |> nodeToString
-                        let paddingNeeded = (spaceForEachNode - nodeToString.Length) / 2 + 1
+                        let nodeWidth = nodeToString.Length
+                        let oddPrefixPadding = 
+                            if nodeWidth % 2 = 0 then ""
+                            else " "
+                        let paddingNeeded = (spaceForEachNode - nodeWidth) / 2
                         let padding = padding paddingNeeded
-                        line + padding + nodeToString + padding) ""
-                treeText + Environment.NewLine + lineText
-    //            log (sprintf "space for level %d nodes: %d" level spaceForEachNode)
+                        log (sprintf "'%s' paddingNeeded=%d" nodeToString paddingNeeded)
+                        line + padding + oddPrefixPadding + nodeToString + padding) ""
+                    
+                treeText + Environment.NewLine
+                    + connectorsLine
+                    + nodesLineText
                 ) ""
 
         log treeText
                 
-        invalidOp "todo"
-//    let renderTreeRow level maxLeaves nodes output =
-//        let nodesCount = 1 <<< level
-//        let maxWidth = maxLeaves * nodeWidth
-//        let indent = (maxWidth / (1 <<< level) - nodeWidth) / 2
-//        
-//        nodes
-//        |> Seq.fo
-//    
-//    match tree with
-//    | None -> "[empty tree]"
-//    | Node node ->
-//        let output = buildString()
-//        
-//        let height = height node
-//        let maxLeaves = 2 <<< (height - 1)
-//        
-//        output |> renderTreeRow 0 maxLeaves [ node ] 
+        treeText
 
 let height = UnbalancedBinarySearchTree.height
 
@@ -204,9 +226,9 @@ let ``Single node tree``() =
     let stringTree =
         toAscii height emptyNode isNode itemToString leftChild rightChild tree
        
-    test <@ stringTree = @" 10 (A) " @>
+    test <@ stringTree = @"
+""10 A""" @>
     
-//[<Fact(Skip="todo")>]
 [<Fact>]
 let ``Tree with height of 2``() =
     log "test"
@@ -220,11 +242,11 @@ let ``Tree with height of 2``() =
     let stringTree =
         toAscii height emptyNode isNode itemToString leftChild rightChild tree
 
-    test <@ stringTree = @"       10 (A)    
-    |        |
-   2 (A)  122 (A) " @>
+    test <@ stringTree = @"
+     ""10 A""     
+    /       \   
+  ""2 B""  ""122 C""" @>
 
-//[<Fact(Skip="todo")>]
 [<Fact>]
 let ``Tree with height of 3``() =
     log "test"
@@ -233,13 +255,17 @@ let ``Tree with height of 3``() =
         UnbalancedBinarySearchTree.None
         |> UnbalancedBinarySearchTree.insert { Value = 10; Tag = "A" }
         |> UnbalancedBinarySearchTree.insert { Value = 2; Tag = "B" }
-        |> UnbalancedBinarySearchTree.insert { Value = 122; Tag = "C" }
-        |> UnbalancedBinarySearchTree.insert { Value = 111; Tag = "E" }
-        |> UnbalancedBinarySearchTree.insert { Value = 144; Tag = "D" }
+        |> UnbalancedBinarySearchTree.insert { Value = 1; Tag = "D" }
+        |> UnbalancedBinarySearchTree.insert { Value = 122; Tag = "E" }
+        |> UnbalancedBinarySearchTree.insert { Value = 111; Tag = "F" }
+        |> UnbalancedBinarySearchTree.insert { Value = 144; Tag = "G" }
 
     let stringTree =
         toAscii height emptyNode isNode itemToString leftChild rightChild tree
 
-    test <@ stringTree = @"       10 (A)    
-    |        |
-   2 (A)  122 (A) " @>
+    test <@ stringTree = @"
+             ""10 A""             
+        /               \       
+      ""2 B""          ""122 E""    
+    /       \               \   
+  ""1 D""  ""111 F""         ""144 G""" @>
