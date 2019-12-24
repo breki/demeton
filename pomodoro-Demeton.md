@@ -4,6 +4,7 @@
     - remove logging
 
 ## Tue 24.12.
+- Extracted common binary tree data types and functions for binary trees.
 - Finally implemented the ASCII representation of binary trees.
 
 ## Mon 23.12.

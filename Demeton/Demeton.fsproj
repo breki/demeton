@@ -35,6 +35,7 @@
     <Compile Include="CRC.fs" />
     <Compile Include="Raster.fs" />
     <Compile Include="DataStructures\ListEx.fs" />
+    <Compile Include="DataStructures\BinaryTrees\BinaryTree.fs" />
     <Compile Include="Geometry\Common.fs" />
     <Compile Include="Geometry\Bounds.fs" />
     <Compile Include="Geometry\Funcs.fs" />

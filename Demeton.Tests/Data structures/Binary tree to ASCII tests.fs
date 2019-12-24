@@ -1,6 +1,7 @@
 ﻿module Tests.``Data structures``.``Binary tree to ASCII tests``
 
 open DataStructures
+open DataStructures.BinaryTrees.BinaryTree
 open Serilog
 
 open System
@@ -8,15 +9,6 @@ open Xunit
 open Swensen.Unquote
 open Tests.``Data structures``.``Binary search tree testbed``
 
-type BinaryTreeBranch = Left | Right
-
-let otherBranch = function
-    | Left -> Right
-    | Right -> Left
-
-type BinaryTreePath = BinaryTreeBranch list
-
-type VisitedNode<'Tree> = ('Tree * int * BinaryTreePath)
 
 let logger =
     let outputTemplate =
@@ -33,24 +25,6 @@ let logger =
 
 let log message = logger.Information message 
     
-let visitAllNodes<'Tree>
-    isNode leftChild rightChild
-    tree
-    : VisitedNode<'Tree> seq =
-        
-    let rec visitPrivate node level path: VisitedNode<'Tree> seq =
-        seq { 
-            match isNode node with
-            | false -> ignore()
-            | true ->
-                yield (node, level, path)
-                yield! visitPrivate
-                    (node |> leftChild) (level + 1) (Left :: path)
-                yield! visitPrivate
-                    (node |> rightChild) (level + 1) (Right :: path)
-        }
-            
-    visitPrivate tree 0 []
 
 type TreeLevels<'Tree> = 'Tree [] []
 
@@ -98,7 +72,7 @@ let toAscii
         
         let treeInLevels =
             tree
-            |> visitAllNodes isNode leftChild rightChild
+            |> allNodes isNode leftChild rightChild
             |> Seq.fold addNodeToTreeLevels emptyTreeLevels
 
         // todo: remove this after the method works
