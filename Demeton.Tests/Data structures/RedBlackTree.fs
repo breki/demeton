@@ -7,6 +7,7 @@
 [<RequireQualifiedAccess>]
 module DataStructures.RedBlackTree
 
+open DataStructures.BinaryTrees.BinaryTree
 open System.Collections.Generic
 
 type Color = Red | Black
@@ -40,12 +41,26 @@ let color (node: Tree<'T>) =
 
 type LoggingFunc = int -> string -> unit
 
+/// Returns true if the provided tree position represents a node or false if it
+/// is None.
+let isNode = function
+    | Node _ -> true
+    | None -> false
+
+/// Returns the left child of the tree position or None if the position is None
+/// or if it does not have the left child.
+let leftChild = function
+    | Node ({Left = left}) -> left
+    | _ -> None
+
+/// Returns the right child of the tree position or None if the position is None
+/// or if it does not have the right child.
+let rightChild = function
+    | Node ({Right = right}) -> right
+    | _ -> None
+
 /// Serializes the tree into string using the DOT language.
 let treeToDot (tree: Tree<'T>) =
-    let isNode = function
-        | Node _ -> true
-        | None -> false
-        
     let nodeAttributes = function
         | Node node ->
             sprintf
@@ -54,17 +69,8 @@ let treeToDot (tree: Tree<'T>) =
                 (if node.Color = Black then "black" else "red")
         | None -> ""
 
-    let leftChild = function
-        | Node ({Left = left}) -> left
-        | _ -> None
-    
-    let rightChild = function
-        | Node ({Right = right}) -> right
-        | _ -> None
-    
     tree
-    |> DataStructures.BinaryTreeToDot.treeToDot
-           isNode nodeAttributes leftChild rightChild
+    |> treeToDot isNode nodeAttributes leftChild rightChild
 
 /// Contains internal implementation for inserting and removing of items from
 /// the tree.

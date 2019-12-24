@@ -7,8 +7,8 @@
 [<RequireQualifiedAccess>]
 module DataStructures.AvlTree
 
+open DataStructures.BinaryTrees.BinaryTree
 open System.Collections.Generic
-open Text
 
 type LogFunc = string -> unit
 
@@ -289,24 +289,29 @@ let rec items tree =
         |> Seq.append [ node.Item ]
         |> Seq.append leftItems
 
+/// Returns true if the provided tree position represents a node or false if it
+/// is None.
+let isNode = function
+    | Node _ -> true
+    | None -> false
+
+/// Returns the left child of the tree position or None if the position is None
+/// or if it does not have the left child.
+let leftChild = function
+    | Node ({Left = left}) -> left
+    | _ -> None
+
+/// Returns the right child of the tree position or None if the position is None
+/// or if it does not have the right child.
+let rightChild = function
+    | Node ({Right = right}) -> right
+    | _ -> None
+
 /// Serializes the tree into string using the DOT language.
 let treeToDot (tree: Tree<'T>) =
-    let isNode = function
-        | Node _ -> true
-        | None -> false
-        
     let nodeAttributes = function
         | Node node -> sprintf "label=%A" node.Item
         | None -> ""
-    
-    let leftChild = function
-        | Node ({Left = left}) -> left
-        | _ -> None
-    
-    let rightChild = function
-        | Node ({Right = right}) -> right
-        | _ -> None
-    
+       
     tree
-    |> DataStructures.BinaryTreeToDot.treeToDot
-           isNode nodeAttributes leftChild rightChild
+    |> treeToDot isNode nodeAttributes leftChild rightChild

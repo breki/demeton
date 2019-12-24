@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
+    <Compile Include="TestLog.fs" />
     <Compile Include="TestHelp.fs" />
     <Compile Include="BetterFsCheckRunner.fs" />
     <Compile Include="PropertiesHelp.fs" />
@@ -38,7 +39,6 @@
     <Compile Include="Png\Parsing color hex triplets and quadruplets.fs" />
     <Compile Include="Png\Mixing Rgba8Bit colors.fs" />
     <Compile Include="Png\Alpha compositing.fs" />
-    <Compile Include="Data structures\BinaryTreeToDot.fs" />
     <Compile Include="Data structures\UnbalancedBinarySearchTree.fs" />
     <Compile Include="Data structures\AvlTree.fs" />
     <Compile Include="Data structures\RedBlackTree.fs" />

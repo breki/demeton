@@ -1,9 +1,9 @@
-- tree to ASCII
-    - visit each node, based on its level and path from the root, decide into which level list to add and which index
-    - move common tree methods to a separate production module
-    - remove logging
+- fix the latest AVL removal bug
+    - print out the tree before removing
+    - trace removal steps
 
 ## Tue 24.12.
+- Moved dot and ASCII binary tree visualization into the `BinaryTree` module.
 - Extracted common binary tree data types and functions for binary trees.
 - Finally implemented the ASCII representation of binary trees.
 
