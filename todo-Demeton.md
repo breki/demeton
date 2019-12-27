@@ -1,5 +1,4 @@
 - AVL trees
-    - implement removal
     - introduce it into polygon-self intersection detection code so we can identify any missing functions
 
 - red/black trees

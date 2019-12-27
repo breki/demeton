@@ -1,7 +1,8 @@
-- integrate height information (or balance) into nodes
-- implement AVL-specific functions from the common binary tree module
+- AVL trees
+    - introduce it into polygon-self intersection detection code so we can identify any missing functions
 
 ## Fri 27.12.
+- AVL nodes now hold their height.
 - Finally fixed the AVL removal bug.
 
 ## Tue 24.12.

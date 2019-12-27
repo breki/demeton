@@ -42,6 +42,21 @@ let allNodes<'Tree> isNode leftChild rightChild tree
             
     visitPrivate tree 0 []
 
+let fold<'Tree> isNode leftChild rightChild foldFunc state tree =
+    
+    let rec foldPrivate state node level =
+        match isNode node with
+        | false -> state
+        | true ->
+            let stateAfterLeft =
+                node |> leftChild |> foldPrivate state (level + 1) 
+            let stateAfterNode = foldFunc stateAfterLeft node level
+            let stateAfterRight =
+                node |> rightChild |> foldPrivate stateAfterNode (level + 1)
+            stateAfterRight
+    
+    foldPrivate state tree 0
+
 /// Outputs node ID (and any other attributes) in DOT language.
 let nodeToDot
     isNode (nodeAttributes: 'Tree -> string) 

@@ -58,7 +58,7 @@ let ``Tree with height of 2``() =
 
     test <@ stringTree = @"
      ""10 A""     
-    /       \   
+    /     \     
  ""2 B""  ""122 C"" " @>
 
 [<Fact>]
@@ -76,9 +76,9 @@ let ``Tree with height of 3``() =
 
     test <@ stringTree = @"
              ""10 A""             
-        /               \       
+        /             \         
      ""2 B""          ""122 E""     
-    /               /       \   
+    /               /     \     
  ""1 D""          ""111 F"" ""144 G"" " @>
         
 [<Fact>]
@@ -95,5 +95,5 @@ let ``Test case 1``() =
          ""5 A""          
       /                 
    ""2 B""                
-         \              
+       \                
       ""3 C""             " @>

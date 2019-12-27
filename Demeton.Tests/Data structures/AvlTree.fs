@@ -15,7 +15,7 @@ type Node<'T when 'T:comparison> = {
     Item: 'T
     Left: Tree<'T>
     Right: Tree<'T>
-    BalanceFactor: int
+    Height: int
 }
 
 /// The root of the binary search tree.
@@ -31,8 +31,7 @@ let nodeItem = function
 let rec height tree =
     match tree with
     | None -> 0
-    | Node node ->
-        max (node.Left |> height) (node.Right |> height) + 1
+    | Node node -> node.Height
 
 let balanceFactor node =
     match node with
@@ -82,19 +81,27 @@ let treeToAscii tree =
 /// Contains internal implementation for inserting and removing of items from
 /// the tree.
 [<RequireQualifiedAccess>]
-module private Node =  
+module private Node =
+    let private recalculateHeight left right =
+        max (left |> height) (right |> height) + 1        
+    
     /// Creates a leaf node.
     let createLeaf item =
-        { Item = item; Left = None; Right = None; BalanceFactor = 0 } |> Node
+        { Item = item; Left = None; Right = None; Height = 1 } |> Node
     
     /// Creates a node.
     let create item left right =
-        Node { Item = item; Left = left; Right = right; BalanceFactor = 0 }
+        Node { Item = item; Left = left; Right = right;
+               Height = recalculateHeight left right  }
     
     /// Creates a copy of the node with a different left child.
-    let updateLeft leftNode node = Node { node with Left = leftNode }
+    let updateLeft leftNode node =
+        Node { node with Left = leftNode;
+                            Height = recalculateHeight leftNode node.Right }
     /// Creates a copy of the node with a different right child.
-    let updateRight rightNode node = Node { node with Right = rightNode }
+    let updateRight rightNode node =
+        Node { node with Right = rightNode;
+                            Height = recalculateHeight node.Left rightNode }
         
     /// Determines whether the tree contains the specified item. 
     let rec contains item node =
