@@ -9,6 +9,7 @@ module DataStructures.UnbalancedBinarySearchTree
 
 open DataStructures.BinaryTrees.BinaryTree
 open System.Collections.Generic
+open TestHelp
 
 /// A node of the binary search tree.
 type Node<'T when 'T:comparison> = {
@@ -222,3 +223,11 @@ let treeToDot (tree: Tree<'T>) =
     
     tree
     |> treeToDot isNode nodeAttributes leftChild rightChild
+
+let treeToAscii tree =
+    let itemToString = function
+    | Node node -> sprintf "%A" node.Item
+    | None -> ""
+    
+    tree
+    |> treeToAscii height None isNode itemToString leftChild rightChild

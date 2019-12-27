@@ -458,4 +458,13 @@ let rec height tree =
 //    | Node tree ->
 //        let child = Node.createLeaf item Red
 //        tree |> Node.updateLeft child
-//        
+//
+
+
+let treeToAscii tree =
+    let itemToString = function
+    | Node node -> sprintf "%A" node.Item
+    | None -> ""
+    
+    tree
+    |> treeToAscii height None isNode itemToString leftChild rightChild

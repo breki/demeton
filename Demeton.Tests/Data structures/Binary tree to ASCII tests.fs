@@ -19,7 +19,7 @@ let itemToString = function
     | UnbalancedBinarySearchTree.None -> ""
 
 let toAscii =
-    toAscii
+    treeToAscii
         UnbalancedBinarySearchTree.height
         UnbalancedBinarySearchTree.None
         UnbalancedBinarySearchTree.isNode
@@ -44,7 +44,7 @@ let ``Single node tree``() =
     let stringTree = toAscii tree
        
     test <@ stringTree = @"
-""10 A""" @>
+""10 A"" " @>
     
 [<Fact>]
 let ``Tree with height of 2``() =
@@ -59,7 +59,7 @@ let ``Tree with height of 2``() =
     test <@ stringTree = @"
      ""10 A""     
     /       \   
-  ""2 B""  ""122 C""" @>
+ ""2 B""  ""122 C"" " @>
 
 [<Fact>]
 let ``Tree with height of 3``() =
@@ -77,6 +77,23 @@ let ``Tree with height of 3``() =
     test <@ stringTree = @"
              ""10 A""             
         /               \       
-      ""2 B""          ""122 E""    
-    /       \               \   
-  ""1 D""  ""111 F""         ""144 G""" @>
+     ""2 B""          ""122 E""     
+    /               /       \   
+ ""1 D""          ""111 F"" ""144 G"" " @>
+        
+[<Fact>]
+let ``Test case 1``() =
+    let tree =
+        UnbalancedBinarySearchTree.None
+        |> UnbalancedBinarySearchTree.insert { Value = 5; Tag = "A" }
+        |> UnbalancedBinarySearchTree.insert { Value = 2; Tag = "B" }
+        |> UnbalancedBinarySearchTree.insert { Value = 3; Tag = "C" }
+
+    let stringTree = toAscii tree
+
+    test <@ stringTree = @"
+         ""5 A""          
+      /                 
+   ""2 B""                
+         \              
+      ""3 C""             " @>

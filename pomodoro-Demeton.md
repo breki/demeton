@@ -1,6 +1,8 @@
-- fix the latest AVL removal bug
-    - print out the tree before removing
-    - trace removal steps
+- integrate height information (or balance) into nodes
+- implement AVL-specific functions from the common binary tree module
+
+## Fri 27.12.
+- Finally fixed the AVL removal bug.
 
 ## Tue 24.12.
 - Moved dot and ASCII binary tree visualization into the `BinaryTree` module.

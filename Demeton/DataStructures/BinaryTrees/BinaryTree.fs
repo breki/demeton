@@ -140,7 +140,7 @@ let private addNodeToTreeLevels (treeLevels: TreeLevels<'Tree>) (node, depth, pa
             match branch with
             | Left -> 0
             | Right -> 1
-        let newIndex = indexSoFar + branchValue * (1 <<< depth)
+        let newIndex = indexSoFar * 2 + branchValue
         (newIndex, depth + 1)
         
     let nodePathToIndex (path: BinaryTreePath) =
@@ -159,7 +159,7 @@ let private addNodeToTreeLevels (treeLevels: TreeLevels<'Tree>) (node, depth, pa
 
 let private padding count = String.init count (fun _ -> " ")
 
-let toAscii
+let treeToAscii
     (height: 'Tree -> int) emptyNode isNode nodeToString leftChild rightChild
     (tree: 'Tree) =
         
@@ -226,16 +226,17 @@ let toAscii
                             |> Seq.fold (fun (line, branch) node ->
                                 let connector =
                                     match (isNode node, branch) with
-                                    | false, _ -> ""
-                                    | _, Left -> "/"
-                                    | _, Right -> "\\"
+                                    | false, _ -> "    "
+                                    | _, Left -> "  / "
+                                    | _, Right -> "\\   "
                                     
-                                let connectorWidth = connector.Length
+                                let nodeWidth = 4
+                                let totalPaddingSpaceNeeded =
+                                    spaceForEachNode - nodeWidth
                                 let oddPrefixPadding = 
-                                    if connectorWidth % 2 = 0 then ""
+                                    if totalPaddingSpaceNeeded % 2 = 0 then ""
                                     else " "
-                                let paddingNeeded =
-                                    (spaceForEachNode - connectorWidth) / 2
+                                let paddingNeeded = totalPaddingSpaceNeeded / 2
                                 let padding = padding paddingNeeded
                                 (line + padding + oddPrefixPadding + connector + padding, otherBranch branch)
                                 ) ("", Left)
@@ -244,15 +245,22 @@ let toAscii
                 let nodesLineText = 
                     nodes
                     |> Seq.fold (fun line node ->
-                        let nodeToString = node |> nodeToString
+                        let nodeToString = (node |> nodeToString) + " "
                         let nodeWidth = nodeToString.Length
+                        let totalPaddingSpaceNeeded =
+                            spaceForEachNode - nodeWidth
                         let oddPrefixPadding = 
-                            if nodeWidth % 2 = 0 then ""
+                            if totalPaddingSpaceNeeded % 2 = 0 then ""
                             else " "
-                        let paddingNeeded = (spaceForEachNode - nodeWidth) / 2
+                        let paddingNeeded = totalPaddingSpaceNeeded / 2
                         let padding = padding paddingNeeded
 //                        log (sprintf "'%s' paddingNeeded=%d" nodeToString paddingNeeded)
-                        line + padding + oddPrefixPadding + nodeToString + padding) ""
+                        let finalNodeString = 
+                            padding + oddPrefixPadding + nodeToString + padding
+                        if finalNodeString.Length <> spaceForEachNode
+                            then invalidOp "bug: this should never happen"
+                        else line + finalNodeString
+                        ) ""
                     
                 treeText + Environment.NewLine
                     + connectorsLine

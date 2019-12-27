@@ -10,10 +10,12 @@ open Xunit
 open FsCheck
 open FsUnit
 open PropertiesHelp
+open TestLog
 
-let log (output: Xunit.Abstractions.ITestOutputHelper) depth message =
-    output.WriteLine message
-       
+let logger = initLog "c:\\temp\\logs\\binary-tree.log"
+let log message = logger.Information message     
+let logWithDepth _ message = logger.Information message     
+
 /// Writes out the values of a sequence of test items.
 let testItemsToString (list: TestItem seq) =
     list |> Seq.map (fun item -> item.Value)
@@ -32,7 +34,7 @@ let verifyWithTestOracle items: TreePropertyVerificationFunc<'Tree> =
 
 let private ``binary search tree properties``
     (output: Xunit.Abstractions.ITestOutputHelper)
-    items contains insert remove tryRemove treeToDot
+    items contains insert remove tryRemove treeToDot treeToAscii
     (additionalProperties: TreePropertyVerificationFunc<'Tree> list)
     initialState operations =
         
@@ -114,11 +116,10 @@ let private ``binary search tree properties``
                 | Error error -> Error error)
                 operationResult
                 
-        match result with
-        | Ok state ->
-            output.WriteLine (state.Tree |> treeToDot) |> ignore
-        | Error (state, _) ->
-            output.WriteLine (state.Tree |> treeToDot) |> ignore
+//        match result with
+//        | Ok state -> log (state.Tree |> treeToAscii)
+//        | Error (state, _) -> log (state.Tree |> treeToAscii)
+//        log "------------------------"
         
         result
     
@@ -171,6 +172,7 @@ type BinarySearchTreePropertyTest
             UnbalancedBinarySearchTree.remove
             UnbalancedBinarySearchTree.tryRemove
             UnbalancedBinarySearchTree.treeToDot
+            UnbalancedBinarySearchTree.treeToAscii
             [ (verifyWithTestOracle UnbalancedBinarySearchTree.items) ]
             initialState)
 
@@ -182,10 +184,11 @@ type BinarySearchTreePropertyTest
             output
             AvlTree.items
             AvlTree.contains
-            (AvlTree.insert (log output 0))
-            (AvlTree.remove (log output 0))
-            (AvlTree.tryRemove (log output 0))
+            AvlTree.insert
+            AvlTree.remove
+            AvlTree.tryRemove
             AvlTree.treeToDot
+            AvlTree.treeToAscii
             [ (verifyWithTestOracle AvlTree.items)
               avlTreeIsBalanced ]
             initialState)
@@ -199,10 +202,11 @@ type BinarySearchTreePropertyTest
             output
             RedBlackTree.items
             RedBlackTree.contains
-            (RedBlackTree.insert (log output))
+            (RedBlackTree.insert logWithDepth)
             RedBlackTree.remove
             RedBlackTree.tryRemove
             RedBlackTree.treeToDot
+            RedBlackTree.treeToAscii
             [ (verifyWithTestOracle RedBlackTree.items)
               rootIsBlack
               redNodesDoNotHaveRedChildren
@@ -245,8 +249,8 @@ type BinarySearchTreePropertyTest
     member this.``Unbalanced binary search tree properties``() =
         runTreePropertyTests unbalancedBinarySearchTreeProperties
     
-    [<Fact (Skip="todo")>]
-//    [<Fact>]
+//    [<Fact (Skip="todo")>]
+    [<Fact>]
     member this.``AVL tree properties``() =
         runTreePropertyTests avlTreeProperties
     
@@ -277,8 +281,8 @@ type BinarySearchTreePropertyTest
                Remove 0.134; Insert 0 |]
         |> Check.QuickThrowOnFailure
 
-    [<Fact (Skip="todo")>]
-//    [<Fact>]
+//    [<Fact (Skip="todo")>]
+    [<Fact>]
     member this.``AVL sample case 4``() =
         avlTreeProperties
             [| Insert 0; Insert 0; Insert 0;

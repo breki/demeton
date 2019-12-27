@@ -1,7 +1,5 @@
 - AVL trees
     - implement removal
-    - remove intermediate logging
-    - integrate height information into nodes?
     - introduce it into polygon-self intersection detection code so we can identify any missing functions
 
 - red/black trees
