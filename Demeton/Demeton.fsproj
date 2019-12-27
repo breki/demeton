@@ -36,6 +36,8 @@
     <Compile Include="Raster.fs" />
     <Compile Include="DataStructures\ListEx.fs" />
     <Compile Include="DataStructures\BinaryTrees\BinaryTree.fs" />
+    <Compile Include="DataStructures\BinaryTrees\UnbalancedBinarySearchTree.fs" />
+    <Compile Include="DataStructures\BinaryTrees\AvlTree.fs" />
     <Compile Include="Geometry\Common.fs" />
     <Compile Include="Geometry\Bounds.fs" />
     <Compile Include="Geometry\Funcs.fs" />

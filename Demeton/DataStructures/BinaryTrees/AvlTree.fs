@@ -5,7 +5,7 @@
 /// - https://en.wikibooks.org/wiki/F_Sharp_Programming/Advanced_Data_Structures#AVL_Trees
 /// - https://two-wrongs.com/purely-functional-avl-trees-in-common-lisp
 [<RequireQualifiedAccess>]
-module DataStructures.AvlTree
+module DataStructures.BinaryTrees.AvlTree
 
 open DataStructures.BinaryTrees.BinaryTree
 open System.Collections.Generic

@@ -1,6 +1,6 @@
 ﻿module Tests.``Data structures``.``Binary tree to ASCII tests``
 
-open DataStructures
+open DataStructures.BinaryTrees
 open DataStructures.BinaryTrees.BinaryTree
 
 open Xunit

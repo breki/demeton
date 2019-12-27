@@ -2,6 +2,7 @@
     - introduce it into polygon-self intersection detection code so we can identify any missing functions
 
 ## Fri 27.12.
+- Moved `UnbalancedBinaryTree` and `AvlTree` to the production project.
 - AVL nodes now hold their height.
 - Finally fixed the AVL removal bug.
 

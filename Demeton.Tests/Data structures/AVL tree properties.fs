@@ -1,6 +1,6 @@
 ﻿module Tests.``Data structures``.``AVL tree properties``
 
-open DataStructures
+open DataStructures.BinaryTrees
 open Tests.``Data structures``.``Binary search tree testbed``
 
 /// Determines whether the tree is balanced (in terms of AVL tree balance

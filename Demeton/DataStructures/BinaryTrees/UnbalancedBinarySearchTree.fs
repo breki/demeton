@@ -5,11 +5,10 @@
 /// - https://www.geeksforgeeks.org/binary-search-tree-data-structure/
 /// - https://en.wikipedia.org/wiki/Persistent_data_structure#Trees
 [<RequireQualifiedAccess>]
-module DataStructures.UnbalancedBinarySearchTree
+module DataStructures.BinaryTrees.UnbalancedBinarySearchTree
 
 open DataStructures.BinaryTrees.BinaryTree
 open System.Collections.Generic
-open TestHelp
 
 /// A node of the binary search tree.
 type Node<'T when 'T:comparison> = {

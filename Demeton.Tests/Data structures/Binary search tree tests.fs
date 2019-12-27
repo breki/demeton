@@ -3,6 +3,7 @@
 open DataStructures.ListEx
 
 open DataStructures
+open DataStructures.BinaryTrees
 open Tests.``Data structures``.``Binary search tree testbed``
 open Tests.``Data structures``.``AVL tree properties``
 open Tests.``Data structures``.``Red black tree properties``
