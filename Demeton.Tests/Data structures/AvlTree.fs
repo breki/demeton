@@ -15,6 +15,7 @@ type Node<'T when 'T:comparison> = {
     Item: 'T
     Left: Tree<'T>
     Right: Tree<'T>
+    BalanceFactor: int
 }
 
 /// The root of the binary search tree.
@@ -83,11 +84,12 @@ let treeToAscii tree =
 [<RequireQualifiedAccess>]
 module private Node =  
     /// Creates a leaf node.
-    let createLeaf item = { Item = item; Left = None; Right = None } |> Node
+    let createLeaf item =
+        { Item = item; Left = None; Right = None; BalanceFactor = 0 } |> Node
     
     /// Creates a node.
     let create item left right =
-        Node { Item = item; Left = left; Right = right }
+        Node { Item = item; Left = left; Right = right; BalanceFactor = 0 }
     
     /// Creates a copy of the node with a different left child.
     let updateLeft leftNode node = Node { node with Left = leftNode }

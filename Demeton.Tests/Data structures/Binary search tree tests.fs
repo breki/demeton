@@ -115,7 +115,8 @@ let private ``binary search tree properties``
                 | Ok state -> property state
                 | Error error -> Error error)
                 operationResult
-                
+
+        // uncomment to enable logging of the tree on each step                
 //        match result with
 //        | Ok state -> log (state.Tree |> treeToAscii)
 //        | Error (state, _) -> log (state.Tree |> treeToAscii)
@@ -249,7 +250,6 @@ type BinarySearchTreePropertyTest
     member this.``Unbalanced binary search tree properties``() =
         runTreePropertyTests unbalancedBinarySearchTreeProperties
     
-//    [<Fact (Skip="todo")>]
     [<Fact>]
     member this.``AVL tree properties``() =
         runTreePropertyTests avlTreeProperties
