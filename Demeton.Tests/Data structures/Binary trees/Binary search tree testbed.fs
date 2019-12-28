@@ -1,4 +1,4 @@
-﻿module Tests.``Data structures``.``Binary search tree testbed``
+﻿module Tests.``Data structures``.``Binary trees``.``Binary search tree testbed``
 
 open System
 

@@ -1,5 +1,4 @@
-- AVL trees
-    - introduce it into polygon-self intersection detection code so we can identify any missing functions
+- document any missing stuff for Unbalanced and AVL
 
 - red/black trees
     - exclude removing for RBT for now

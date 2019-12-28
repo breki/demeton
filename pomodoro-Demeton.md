@@ -1,5 +1,12 @@
 - AVL trees
     - introduce it into polygon-self intersection detection code so we can identify any missing functions
+    - how?
+        - 
+        - removeEdgeFromList
+        - processEvent (activeEdges
+
+## Sat 28.12.
+- Started working on interval trees.
 
 ## Fri 27.12.
 - Moved `UnbalancedBinaryTree` and `AvlTree` to the production project.

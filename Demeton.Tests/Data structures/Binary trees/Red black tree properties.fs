@@ -1,7 +1,7 @@
-﻿module Tests.``Data structures``.``Red black tree properties``
+﻿module Tests.``Data structures``.``Binary trees``.``Red black tree properties``
 
 open DataStructures
-open Tests.``Data structures``.``Binary search tree testbed``
+open Tests.``Data structures``.``Binary trees``.``Binary search tree testbed``
 
 let rootIsBlack (state: TreeTestCurrent<RedBlackTree.Tree<'T>>) =
     if state.Tree |> RedBlackTree.isBlack then state |> Ok

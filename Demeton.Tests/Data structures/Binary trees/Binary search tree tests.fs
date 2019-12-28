@@ -1,12 +1,12 @@
-﻿module Tests.``Data structures``.``Binary search tree tests``
+﻿module Tests.``Data structures``.``Binary trees``.``Binary search tree tests``
 
 open DataStructures.ListEx
 
 open DataStructures
 open DataStructures.BinaryTrees
-open Tests.``Data structures``.``Binary search tree testbed``
-open Tests.``Data structures``.``AVL tree properties``
-open Tests.``Data structures``.``Red black tree properties``
+open Tests.``Data structures``.``Binary trees``.``Binary search tree testbed``
+open Tests.``Data structures``.``Binary trees``.``AVL tree properties``
+open Tests.``Data structures``.``Binary trees``.``Red black tree properties``
 open Xunit
 open FsCheck
 open FsUnit

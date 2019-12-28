@@ -1,11 +1,11 @@
-﻿module Tests.``Data structures``.``Binary tree to ASCII tests``
+﻿module Tests.``Data structures``.``Binary trees``.``Binary tree to ASCII tests``
 
 open DataStructures.BinaryTrees
 open DataStructures.BinaryTrees.BinaryTree
 
 open Xunit
 open Swensen.Unquote
-open Tests.``Data structures``.``Binary search tree testbed``
+open Tests.``Data structures``.``Binary trees``.``Binary search tree testbed``
 
 #if LOGGING
 open TestLog
