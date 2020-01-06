@@ -1,3 +1,9 @@
+- AVL trees
+    - introduce it into polygon-self intersection detection code so we can identify any missing functions
+    - how?
+        - removeEdgeFromList
+        - processEvent (activeEdges
+        
 - document any missing stuff for Unbalanced and AVL
 
 - red/black trees

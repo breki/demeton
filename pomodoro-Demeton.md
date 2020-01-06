@@ -1,9 +1,8 @@
-- AVL trees
-    - introduce it into polygon-self intersection detection code so we can identify any missing functions
-    - how?
-        - 
-        - removeEdgeFromList
-        - processEvent (activeEdges
+- interval trees
+    - can we reuse AVL tree or do we have to duplicate the logic?
+    - approaches:
+        1. copy-paste AVL code for interval trees and adjust it for intervals
+        2. parametrize AVL code to allow custom nodes and updating of nodes (and their ancestors) when inserting/deleting
 
 ## Sat 28.12.
 - Started working on interval trees.

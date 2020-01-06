@@ -45,6 +45,8 @@
     <Compile Include="Data structures\Binary trees\AVL tree properties.fs" />
     <Compile Include="Data structures\Binary trees\Red black tree properties.fs" />
     <Compile Include="Data structures\Binary trees\Binary search tree tests.fs" />
+    <Compile Include="Data structures\Interval trees\IntervalTree.fs" />
+    <Compile Include="Data structures\Interval trees\Interval tree testbed.fs" />
     <Compile Include="Data structures\Interval trees\Interval tree tests.fs" />
     <Compile Include="Geometry\GeometryTestHelp.fs" />
     <Compile Include="Geometry\Common tests.fs" />

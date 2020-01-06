@@ -1,9 +1,9 @@
 ﻿module Tests.``Data structures``.``Binary trees``.``Binary search tree tests``
 
-open DataStructures.ListEx
 
 open DataStructures
 open DataStructures.BinaryTrees
+open DataStructures.ListEx
 open Tests.``Data structures``.``Binary trees``.``Binary search tree testbed``
 open Tests.``Data structures``.``Binary trees``.``AVL tree properties``
 open Tests.``Data structures``.``Binary trees``.``Red black tree properties``
