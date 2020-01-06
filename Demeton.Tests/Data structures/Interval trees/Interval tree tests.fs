@@ -132,7 +132,7 @@ let private ``interval tree properties`` operations =
 type IntervalTreePropertyTest
     (output: Xunit.Abstractions.ITestOutputHelper) =
 
-    [<Fact (Skip="todo")>]
+    [<Fact>]
     member this.``Interval tree properties``() =
         let genInterval =
             Gen.zip (Gen.choose(0, 1000)) (Gen.choose(0, 1000))

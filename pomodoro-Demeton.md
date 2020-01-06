@@ -1,8 +1,4 @@
-- interval trees
-    - can we reuse AVL tree or do we have to duplicate the logic?
-    - approaches:
-        1. copy-paste AVL code for interval trees and adjust it for intervals
-        2. parametrize AVL code to allow custom nodes and updating of nodes (and their ancestors) when inserting/deleting
+- try using the new AVL tree for interval tree
 
 ## Sat 28.12.
 - Started working on interval trees.

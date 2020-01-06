@@ -1,3 +1,5 @@
+- interval trees
+
 - AVL trees
     - introduce it into polygon-self intersection detection code so we can identify any missing functions
     - how?

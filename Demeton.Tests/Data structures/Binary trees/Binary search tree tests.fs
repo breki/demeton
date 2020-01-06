@@ -13,6 +13,13 @@ open FsUnit
 open PropertiesHelp
 open TestLog
 
+type TestAvlNode = {
+    Item: TestItem
+    Left: AvlTree.Tree<TestAvlNode>
+    Right: AvlTree.Tree<TestAvlNode>
+    Height: int
+}
+
 let logger = initLog "c:\\temp\\logs\\binary-tree.log"
 let log message = logger.Information message     
 let logWithDepth _ message = logger.Information message     
@@ -178,21 +185,40 @@ type BinarySearchTreePropertyTest
             [ (verifyWithTestOracle UnbalancedBinarySearchTree.items) ]
             initialState)
 
+    let height tree =
+        match tree with
+        | AvlTree.Node node -> node.Height
+        | _ -> 0
+    
+    let treeFuncs: AvlTree.TreeFuncs<TestAvlNode, TestItem> = {
+        NodeItem = fun node -> node.Item
+        Left = fun node -> node.Left
+        Right = fun node -> node.Right
+        Height = height
+        CreateNode = fun item left right ->
+            let recalculateHeight left right =
+                max (left |> height) (right |> height) + 1        
+            
+            { Item = item; Left = left; Right = right
+              Height = recalculateHeight left right }
+            |> AvlTree.Node
+    }
+    
     let avlTreeProperties =
         let initialState =
             { List = []; Tree = AvlTree.None; OperationsPerformed = 0 } |> Ok
         
         (``binary search tree properties``
             output
-            AvlTree.items
-            AvlTree.contains
-            AvlTree.insert
-            AvlTree.remove
-            AvlTree.tryRemove
-            AvlTree.treeToDot
+            (AvlTree.items treeFuncs)
+            (AvlTree.contains treeFuncs)
+            (AvlTree.insert treeFuncs)
+            (AvlTree.remove treeFuncs)
+            (AvlTree.tryRemove treeFuncs)
+            (AvlTree.treeToDot treeFuncs)
             AvlTree.treeToAscii
-            [ (verifyWithTestOracle AvlTree.items)
-              avlTreeIsBalanced ]
+            [ (verifyWithTestOracle (AvlTree.items treeFuncs))
+              (avlTreeIsBalanced treeFuncs) ]
             initialState)
     
     let redBlackTreeProperties =
