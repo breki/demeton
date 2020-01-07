@@ -9,6 +9,7 @@ type TestInterval = {
     Tag: string
 }
 
+let lowValue interval = interval.Low
 let highValue interval = interval.High
 
 /// The operation to perform on the tree.
@@ -50,3 +51,13 @@ let findOverlapping low high list =
         (interval.Low >= low && interval.Low <= high)
         || (interval.High >= low && interval.High <= high)
         || (interval.Low < low && interval.High > high))
+    
+let orderIntervals intervals =
+    intervals
+    |> List.sortWith (fun a b ->
+        match a.Low.CompareTo b.Low with
+        | 0 ->
+            match a.High.CompareTo b.High with
+            | 0 -> a.Tag.CompareTo b.Tag
+            | c -> c
+        | c -> c)

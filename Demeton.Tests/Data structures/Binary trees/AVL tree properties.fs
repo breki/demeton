@@ -6,7 +6,8 @@ open Tests.``Data structures``.``Binary trees``.``Binary search tree testbed``
 /// Determines whether the tree is balanced (in terms of AVL tree balance
 /// or not). 
 let rec private isBalanced
-    (treeFuncs: AvlTree.TreeFuncs<'TNode, 'T>) (tree: AvlTree.Tree<'TNode>) =
+    (treeFuncs: AvlTree.TreeFuncs<'TNode, 'TItem, 'TKey>)
+    (tree: AvlTree.Tree<'TNode>) =
     /// Calculates the actual height of the AVL tree without relying on the
     /// Height property, so we can really verify the balance.
     let rec height tree =
@@ -29,7 +30,7 @@ let rec private isBalanced
             abs (leftHeight - rightHeight) <= 1
 
 let avlTreeIsBalanced
-    (treeFuncs: AvlTree.TreeFuncs<'TNode, 'T>)
+    (treeFuncs: AvlTree.TreeFuncs<'TNode, 'TItem, 'TKey>)
     (state: TreeTestCurrent<AvlTree.Tree<'TNode>>) =
     if state.Tree |> isBalanced treeFuncs then state |> Ok
     else (state, "The tree is not balanced") |> Error

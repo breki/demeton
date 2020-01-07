@@ -19,9 +19,12 @@ let private height tree =
     | AvlTree.Node node -> node.Height
     | _ -> 0
 
-let treeFuncs (highValue: HighValueFunc<'TItem, 'TIntervalValue>) 
-    : AvlTree.TreeFuncs<Node<'TItem, 'TIntervalValue>, 'TItem> = {
+let treeFuncs
+    (lowValue: LowValueFunc<'TItem, 'TIntervalValue>) 
+    (highValue: HighValueFunc<'TItem, 'TIntervalValue>) 
+    : AvlTree.TreeFuncs<Node<'TItem, 'TIntervalValue>, 'TItem, 'TIntervalValue> = {
     NodeItem = fun node -> node.Item
+    ItemKey = lowValue
     Left = fun node -> node.Left
     Right = fun node -> node.Right
     Height = height
@@ -50,12 +53,32 @@ let treeFuncs (highValue: HighValueFunc<'TItem, 'TIntervalValue>)
 
 type Tree<'TItem, 'TIntervalValue> = AvlTree.Tree<Node<'TItem, 'TIntervalValue>>
 
-let insert highValue interval tree =
-    tree |> AvlTree.insert (treeFuncs highValue) interval 
+let insert lowValue highValue interval tree =
+    tree |> AvlTree.insert (treeFuncs lowValue highValue) interval 
 
-let intervals highValue = AvlTree.items (treeFuncs highValue)
+let intervals lowValue highValue = AvlTree.items (treeFuncs lowValue highValue)
 
-let remove highValue interval tree =
-    tree |> AvlTree.remove (treeFuncs highValue) interval
+let remove lowValue highValue interval tree =
+    tree |> AvlTree.remove (treeFuncs lowValue highValue) interval
 
-let findOverlapping highValue low high tree = []
+let intervalsOverlap low1 high1 low2 high2 =
+    (low2 >= low1 && low2 <= high1)
+    || (high2 >= low1 && high2 <= high1)
+    || (low2 < low1 && high2 > high1)
+
+let rec findOverlapping lowValue highValue low high tree: 'Titem seq =
+    seq {
+        match tree with
+        | AvlTree.None -> ignore()
+        | AvlTree.Node node ->
+            let item = node.Item
+            let itemLow = item |> lowValue
+            let itemHigh = item |> highValue
+            
+            if node.MaxHigh >= itemLow then
+                if intervalsOverlap itemLow itemHigh low high then
+                    yield item
+                
+                yield! findOverlapping lowValue highValue low high node.Left 
+                yield! findOverlapping lowValue highValue low high node.Right 
+    }

@@ -81,8 +81,9 @@ let private ``binary search tree properties``
             |> List.tryFindIndex (fun x -> x.Value = itemValue)
             |> function
             | Some itemIndex ->
+                let itemToRemove = list.[itemIndex]
                 let list' = list |> removeAt itemIndex
-                let tree' = tree |> tryRemove { Value = itemValue; Tag = "" }
+                let tree' = tree |> tryRemove itemToRemove
                 newState list' tree'
             | None -> newState list tree
         | Contains itemValue ->
@@ -182,8 +183,9 @@ type BinarySearchTreePropertyTest
         | AvlTree.Node node -> node.Height
         | _ -> 0
     
-    let treeFuncs: AvlTree.TreeFuncs<TestAvlNode, TestItem> = {
+    let treeFuncs: AvlTree.TreeFuncs<TestAvlNode, TestItem, int> = {
         NodeItem = fun node -> node.Item
+        ItemKey = fun item -> item.Value
         Left = fun node -> node.Left
         Right = fun node -> node.Right
         Height = height

@@ -41,7 +41,7 @@ let private ``interval tree properties`` operations =
             let interval = newInterval intervalLowHigh
             
             let list' = list |> insertIntoList interval
-            let tree' = tree |> IntervalTree.insert highValue interval
+            let tree' = tree |> IntervalTree.insert lowValue highValue interval
             
             newState list' tree'
         | Remove vector ->
@@ -51,21 +51,28 @@ let private ``interval tree properties`` operations =
             if itemIndex >= 0 && itemIndex < (list.Length - 1) then
                 let itemToRemove = list.[itemIndex]
                 let list' = list |> removeAt itemIndex
-                let tree' = tree |> IntervalTree.remove highValue itemToRemove
+                let tree' =
+                    tree |> IntervalTree.remove lowValue highValue itemToRemove
                 newState list' tree'
             else
                 newState list tree
         | Overlapping (low, high) ->
-            let overlappingInTestOracle = list |> findOverlapping low high
+            let overlappingInTestOracle =
+                list
+                |> findOverlapping low high
+                |> orderIntervals
             let overlappingInTree =
-                tree |> (IntervalTree.findOverlapping highValue) low high
+                tree
+                |> (IntervalTree.findOverlapping lowValue highValue) low high
+                |> Seq.toList
+                |> orderIntervals
             if overlappingInTree = overlappingInTestOracle then
                 newState list tree
             else
                 (state,
                     sprintf
-                        "Overlapping result differs from test oracle. Tree result: %A, oracle: %A"
-                        overlappingInTree overlappingInTestOracle)
+                        "Overlapping (%d-%d) result differs from test oracle. Tree result: %A, oracle: %A"
+                        low high overlappingInTree overlappingInTestOracle)
                 |> Error
                 
     let foldFunc
@@ -116,7 +123,7 @@ let private ``interval tree properties`` operations =
     | Result.Ok finalStateOk ->
         let finalTreeElements =
             finalStateOk.Tree
-            |> (IntervalTree.intervals highValue) |> Seq.toList   
+            |> (IntervalTree.intervals lowValue highValue) |> Seq.toList   
         (finalTreeElements = finalStateOk.List)
         |> classifyByTreeSize (finalStateOk.List |> List.length)
         |> Prop.label "the final tree does not have expected intervals"
@@ -124,7 +131,7 @@ let private ``interval tree properties`` operations =
     | Result.Error (errorState, message) -> 
         let errorTreeElements =
             errorState.Tree
-            |> (IntervalTree.intervals highValue) |> Seq.toList   
+            |> (IntervalTree.intervals lowValue highValue) |> Seq.toList   
         false
         |> Prop.label message
         |@ sprintf
@@ -136,7 +143,7 @@ let private ``interval tree properties`` operations =
 type IntervalTreePropertyTest
     (output: Xunit.Abstractions.ITestOutputHelper) =
 
-    [<Fact (Skip="todo")>]
+    [<Fact>]
     member this.``Interval tree properties``() =
         let genInterval =
             Gen.zip (Gen.choose(0, 1000)) (Gen.choose(0, 1000))

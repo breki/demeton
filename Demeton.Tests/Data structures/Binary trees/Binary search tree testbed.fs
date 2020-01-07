@@ -6,8 +6,6 @@ open DataStructures.BinaryTrees
 /// The item added to the binary search trees. Along with the Value (which
 /// is used for comparison), the item also has a Tag which is used to identify
 /// nodes for debugging purposes.
-[<CustomEquality>]
-[<CustomComparison>]
 [<StructuredFormatDisplay("\"{Value} {Tag}\"")>]
 type TestItem = {
     Value: int
@@ -16,20 +14,7 @@ type TestItem = {
 
     with
     
-    override x.GetHashCode() = hash(x.Value)
-    override x.Equals(y) =
-        x.Value.Equals (y :?> TestItem).Value
-    
     override x.ToString() = sprintf "%d (%s)" x.Value x.Tag
-    
-    interface IComparable with
-        member x.CompareTo y = x.Value.CompareTo (y :?> TestItem).Value
-
-    interface IComparable<TestItem> with
-        member x.CompareTo y = x.Value.CompareTo y.Value
-
-    interface IEquatable<TestItem> with
-        member x.Equals y = x.Value.Equals y.Value
 
 type TestAvlNode = {
     Item: TestItem
