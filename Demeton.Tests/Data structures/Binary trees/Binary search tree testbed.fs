@@ -1,6 +1,7 @@
 ﻿module Tests.``Data structures``.``Binary trees``.``Binary search tree testbed``
 
 open System
+open DataStructures.BinaryTrees
 
 /// The item added to the binary search trees. Along with the Value (which
 /// is used for comparison), the item also has a Tag which is used to identify
@@ -29,6 +30,13 @@ type TestItem = {
 
     interface IEquatable<TestItem> with
         member x.Equals y = x.Value.Equals y.Value
+
+type TestAvlNode = {
+    Item: TestItem
+    Left: AvlTree.Tree<TestAvlNode>
+    Right: AvlTree.Tree<TestAvlNode>
+    Height: int
+}
 
 /// The operation to perform on the tree.
 type TreeOperation =

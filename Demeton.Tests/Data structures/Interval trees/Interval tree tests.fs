@@ -5,6 +5,7 @@ open Tests.``Data structures``.``Interval trees``.``Interval tree testbed``
 open DataStructures
 open DataStructures.ListEx
 
+open DataStructures.BinaryTrees
 open Xunit
 open FsCheck
 open PropertiesHelp
@@ -40,7 +41,7 @@ let private ``interval tree properties`` operations =
             let interval = newInterval intervalLowHigh
             
             let list' = list |> insertIntoList interval
-            let tree' = tree |> IntervalTree.insert interval
+            let tree' = tree |> IntervalTree.insert highValue interval
             
             newState list' tree'
         | Remove vector ->
@@ -50,14 +51,14 @@ let private ``interval tree properties`` operations =
             if itemIndex >= 0 && itemIndex < (list.Length - 1) then
                 let itemToRemove = list.[itemIndex]
                 let list' = list |> removeAt itemIndex
-                let tree' = tree |> IntervalTree.remove itemToRemove
+                let tree' = tree |> IntervalTree.remove highValue itemToRemove
                 newState list' tree'
             else
                 newState list tree
         | Overlapping (low, high) ->
             let overlappingInTestOracle = list |> findOverlapping low high
             let overlappingInTree =
-                tree |> IntervalTree.findOverlapping low high
+                tree |> (IntervalTree.findOverlapping highValue) low high
             if overlappingInTree = overlappingInTestOracle then
                 newState list tree
             else
@@ -102,7 +103,8 @@ let private ``interval tree properties`` operations =
                (size > 10 && size <= 20) "final tree size 11-20 elements"
         |> Prop.classify (size > 20) "final tree size >= 20 elements"
     
-    let initialState = Ok { List = []; Tree = []; OperationsPerformed = 0 }
+    let initialState =
+        Ok { List = []; Tree = AvlTree.None; OperationsPerformed = 0 }
         
     let properties = []
         
@@ -113,14 +115,16 @@ let private ``interval tree properties`` operations =
     match finalState with
     | Result.Ok finalStateOk ->
         let finalTreeElements =
-            finalStateOk.Tree |> IntervalTree.intervals |> Seq.toList   
+            finalStateOk.Tree
+            |> (IntervalTree.intervals highValue) |> Seq.toList   
         (finalTreeElements = finalStateOk.List)
         |> classifyByTreeSize (finalStateOk.List |> List.length)
         |> Prop.label "the final tree does not have expected intervals"
         |@ sprintf "%A <> %A" finalTreeElements finalStateOk.List
     | Result.Error (errorState, message) -> 
         let errorTreeElements =
-            errorState.Tree |> IntervalTree.intervals |> Seq.toList   
+            errorState.Tree
+            |> (IntervalTree.intervals highValue) |> Seq.toList   
         false
         |> Prop.label message
         |@ sprintf

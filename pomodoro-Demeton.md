@@ -1,4 +1,11 @@
+- do we rely on comparison or expose a function to get a key?
+    - advantage: no need to implement comparable interface
+    - disadvantage: harder to handle a complex key
+    - disadvantage: we need an extra generic type and an extra key function
 - try using the new AVL tree for interval tree
+
+## Mon 6.1.
+- Redesigned AVL tree implementation to use a `TreeFuncs` "interface" instead of relying on a fixed `Node` type.
 
 ## Sat 28.12.
 - Started working on interval trees.

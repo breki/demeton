@@ -1,6 +1,5 @@
 ﻿module Tests.``Data structures``.``Binary trees``.``Binary search tree tests``
 
-
 open DataStructures
 open DataStructures.BinaryTrees
 open DataStructures.ListEx
@@ -12,13 +11,6 @@ open FsCheck
 open FsUnit
 open PropertiesHelp
 open TestLog
-
-type TestAvlNode = {
-    Item: TestItem
-    Left: AvlTree.Tree<TestAvlNode>
-    Right: AvlTree.Tree<TestAvlNode>
-    Height: int
-}
 
 let logger = initLog "c:\\temp\\logs\\binary-tree.log"
 let log message = logger.Information message     

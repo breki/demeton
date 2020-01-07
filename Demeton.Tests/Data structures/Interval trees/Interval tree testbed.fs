@@ -9,6 +9,8 @@ type TestInterval = {
     Tag: string
 }
 
+let highValue interval = interval.High
+
 /// The operation to perform on the tree.
 type TreeOperation =
     /// Insert a new interval into the tree.
@@ -25,7 +27,7 @@ type TreeTestCurrent = {
     /// intervals as this list (and in the same order).
     List: TestInterval list
     /// The tree under the test.
-    Tree: IntervalTree.Tree
+    Tree: IntervalTree.Tree<TestInterval, int>
     /// Count of the tree operations performed so far.
     OperationsPerformed: int
 }
