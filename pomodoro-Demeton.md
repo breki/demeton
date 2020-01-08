@@ -1,6 +1,11 @@
 - interval tree
+    - document
     - make interval matching a function (so we can support open/closed intervals)
-- document the new logic in AVL functions and the interval tree
+    - move to production assembly.
+
+## Wed 8.1.
+- Started documenting the interval tree.
+- Added missing documentation to the AVL tree.
 
 ## Tue 7.1.
 - (Almost) finished implementing the interval tree using the AVL tree. 

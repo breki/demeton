@@ -10,20 +10,39 @@ module DataStructures.BinaryTrees.AvlTree
 open DataStructures.BinaryTrees.BinaryTree
 open System.Collections.Generic
 
-/// The root of the binary search tree.
+/// The root of the binary search tree (or a subtree). 'TNode is a generic
+/// type representing a node in the tree.
 type Tree<'TNode> =
+    /// A tree node.
     | Node of 'TNode
+    /// Represents nothing (no node).
     | None
 
+/// A record type representing the interface of the AVL tree, specifying a set
+/// of methods that need to be implemented by the user of the tree.
+/// The three generic types are as follows:
+/// - 'TNode is the type representing a tree node.
+/// - 'TItem is the type of the item (value) each tree node holds.
+/// - 'TKey is the type of the sortable key of the item used to place the item
+///    in the appropriate location in the tree.
 type TreeFuncs<'TNode, 'TItem, 'TKey when 'TKey:comparison> = {
+    /// A function that returns the item of a given node.
     NodeItem: 'TNode -> 'TItem
+    /// A function that returns the key of a given item.
     ItemKey: 'TItem -> 'TKey
+    /// A function that returns the left subtree of a given node. 
     Left: 'TNode -> Tree<'TNode>
+    /// A function that returns the right subtree of a given node. 
     Right: 'TNode -> Tree<'TNode>
+    /// A function that returns the height of a given (sub)tree. 
     Height: Tree<'TNode> -> int
+    /// A function that creates an instance of a node with the specified item
+    /// and left and right subtrees. 
     CreateNode: 'TItem -> Tree<'TNode> -> Tree<'TNode> -> Tree<'TNode>
 }
 
+/// Returns the balance factor of a given subtree. The balance factor is
+/// calculated as the height difference of between left and right subtrees.
 let balanceFactor
     (treeFuncs: TreeFuncs<'TNode, 'TItem, 'TKey>) (tree: Tree<'TNode>) =
     match tree with
@@ -32,9 +51,13 @@ let balanceFactor
          - (node |> treeFuncs.Right |> treeFuncs.Height)
     | None -> 0
 
+/// Indicates whether the given balance factor is very left heavy.
 let isVeryLeftHeavy balanceFactor = balanceFactor >= 2
+/// Indicates whether the given balance factor is left heavy.
 let isLeftHeavy balanceFactor = balanceFactor > 0
+/// Indicates whether the given balance factor is very right heavy.
 let isRightHeavy balanceFactor = balanceFactor < 0
+/// Indicates whether the given balance factor is right heavy.
 let isVeryRightHeavy balanceFactor = balanceFactor <= -2
 
 /// Returns true if the provided tree position represents a node or false if it
@@ -43,7 +66,7 @@ let isNode = function
     | Node _ -> true
     | None -> false
 
-/// Serializes the tree into string using the DOT language.
+/// Serializes the tree into a string using the DOT language.
 let treeToDot
     (treeFuncs: TreeFuncs<'TNode, 'TItem, 'TKey>) (tree: Tree<'TNode>) =
     let nodeAttributes = function
@@ -73,6 +96,7 @@ let private itemToString (treeFuncs: TreeFuncs<'TNode, 'TItem, 'TKey>) =
             (node |> Node |> balanceFactor treeFuncs)
     | None -> ""
 
+/// Renders the tree using ASCII graphics.
 let treeToAscii treeFuncs tree =
     let itemToString = itemToString treeFuncs
     
@@ -113,6 +137,7 @@ module private Node =
             | Node right -> right |> contains treeFuncs item
             | None -> false
 
+    /// Returns a left-rotated version of a given subtree. 
     let rotateLeft treeFuncs (tree: Tree<'TNode>): Tree<'TNode> =
 //        log (sprintf "rotateLeft - before: %s" (node |> treeToAscii))
         
@@ -134,6 +159,7 @@ module private Node =
             | _ -> tree
         | tree -> tree
 
+    /// Returns a right-rotated version of a given subtree. 
     let rotateRight treeFuncs (tree: Tree<'TNode>): Tree<'TNode> =
 //        log (sprintf "rotateRight - before: %s" (node |> treeToAscii))
         
@@ -156,6 +182,7 @@ module private Node =
             | _ -> tree
         | tree -> tree
     
+    /// Returns a double-left-rotated version of a given subtree. 
     let doubleRotateLeft treeFuncs (tree: Tree<'TNode>): Tree<'TNode> =
 //        log (sprintf "doubleRotateLeft - before: %s" (node |> treeToAscii))
         
@@ -169,6 +196,7 @@ module private Node =
             rotated
         | node -> node
         
+    /// Returns a double-right-rotated version of a given subtree. 
     let doubleRotateRight treeFuncs (tree: Tree<'TNode>): Tree<'TNode> =
 //        log (sprintf "doubleRotateRight - before: %s" (node |> treeToAscii))
         
@@ -182,6 +210,7 @@ module private Node =
             rotated
         | node -> node        
     
+    /// Returns a balanced version of a given subtree. 
     let balance treeFuncs (tree: Tree<'TNode>): Tree<'TNode>  =
 //        log (sprintf "balance %A" (node |> nodeItem))
         
@@ -223,7 +252,7 @@ module private Node =
             
             (successorNodeItem, node')
     
-    /// Replaces (or, better, put, creates a new node of) the successor node of
+    /// Replaces (or, better put, creates a new node of) the successor node of
     /// the right child.
     let private replaceWithSuccessor treeFuncs (node: 'TNode) =
 //        log (sprintf "replaceWithSuccessor %A" node.Item)
@@ -416,6 +445,7 @@ let tryRemove treeFuncs item tree =
         | Node.Found newTree -> newTree
         | Node.NotFound -> tree
         
+/// Indicates whether the given tree contains the specified item.         
 let contains treeFuncs item tree =
     match tree with
     | None -> false

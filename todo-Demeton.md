@@ -1,5 +1,3 @@
-- interval trees
-
 - AVL trees
     - introduce it into polygon-self intersection detection code so we can identify any missing functions
     - how?
@@ -16,8 +14,6 @@
         2. implement this in the code
     
     - how to implement repair?
-
-- Implement tree balancing (AVL and red-black)
 
 - run Europe on LCC
     - Could not open SRTM HTG file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip': ZIP file 'G:\SRTM\N44E048.SRTMGL1.hgt.zip' does not have a file entry 'N44E048.hgt'.

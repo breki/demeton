@@ -1,19 +1,33 @@
-﻿[<RequireQualifiedAccess>]
+﻿/// Implementation of a persistent interval tree (using the persistent AVL tree)
+/// as the underlying data structure).
+[<RequireQualifiedAccess>]
 module DataStructures.IntervalTree
 
 open DataStructures.BinaryTrees
 
+/// The interval-holding node type used in the underlying AVL tree.
+/// 'TItem generic type is the type of the interval item each tree node holds.
+/// 'TIntervalValue is the type of used by each interval's low and high values.
+/// It needs to be sortable (comparable). 
 type Node<'TItem, 'TIntervalValue> = {
+    /// The interval item the node holds.
     Item: 'TItem
+    /// The left subtree of the node.
     Left: AvlTree.Tree<Node<'TItem, 'TIntervalValue>>
+    /// The right subtree of the node.
     Right: AvlTree.Tree<Node<'TItem, 'TIntervalValue>>
+    /// The height of the subtree of which this node is the root.
     Height: int
+    /// The maximum high value of the subtree of which this node is the root.
     MaxHigh: 'TIntervalValue
 }
 
+/// A function that returns the low value of a given interval item.
 type LowValueFunc<'TItem, 'TIntervalValue> = 'TItem -> 'TIntervalValue
+/// A function that returns the high value of a given interval item.
 type HighValueFunc<'TItem, 'TIntervalValue> = 'TItem -> 'TIntervalValue
 
+/// Returns the height of the given subtree.
 let private height tree =
     match tree with
     | AvlTree.Node node -> node.Height
