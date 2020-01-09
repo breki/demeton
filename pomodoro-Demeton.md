@@ -1,7 +1,12 @@
 - interval tree
-    - document
-    - make interval matching a function (so we can support open/closed intervals)
-    - move to production assembly.
+    - introduce it into polygon-self intersection detection code so we can identify any missing functions
+    - how?
+        - removeEdgeFromList
+        - processEvent (activeEdges
+
+## Thu 9.1.
+- Moved the interval tree to the production project.
+- Finished documenting the interval tree. 
 
 ## Wed 8.1.
 - Started documenting the interval tree.

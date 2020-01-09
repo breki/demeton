@@ -33,6 +33,9 @@ let private height tree =
     | AvlTree.Node node -> node.Height
     | _ -> 0
 
+/// Implementation of AVL tree interface specific for interval trees.
+/// The implementation relies on two functions for returning the low and high
+/// values for a given interval item.
 let treeFuncs
     (lowValue: LowValueFunc<'TItem, 'TIntervalValue>) 
     (highValue: HighValueFunc<'TItem, 'TIntervalValue>) 
@@ -65,21 +68,32 @@ let treeFuncs
         |> AvlTree.Node
 }
 
+/// The root of the interval tree (or a subtree).
+/// 'TItem generic type is the type of the interval item each tree node holds.
+/// 'TIntervalValue is the type of used by each interval's low and high values.
+/// It needs to be sortable (comparable). 
 type Tree<'TItem, 'TIntervalValue> = AvlTree.Tree<Node<'TItem, 'TIntervalValue>>
 
+/// Inserts a new interval into the interval tree.
 let insert lowValue highValue interval tree =
     tree |> AvlTree.insert (treeFuncs lowValue highValue) interval 
 
+/// Returns a sequence of all the intervals in the interval tree. 
 let intervals lowValue highValue = AvlTree.items (treeFuncs lowValue highValue)
 
+/// Removes an interval item from the tree and returns a new version of the
+/// tree. If the interval item was not found, throws an exception.
 let remove lowValue highValue interval tree =
     tree |> AvlTree.remove (treeFuncs lowValue highValue) interval
 
+/// Indicates whether the two intervals overlap or not.
 let intervalsOverlap low1 high1 low2 high2 =
     (low2 >= low1 && low2 <= high1)
     || (high2 >= low1 && high2 <= high1)
     || (low2 < low1 && high2 > high1)
 
+/// Returns a sequence of interval items from the interval tree that overlap
+/// the interval specified by its low and high values.
 let rec findOverlapping lowValue highValue low high tree: 'Titem seq =
     seq {
         match tree with

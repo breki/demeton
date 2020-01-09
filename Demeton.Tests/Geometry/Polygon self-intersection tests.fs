@@ -121,7 +121,8 @@ type SelfIntersectingPolygonTests (output: Xunit.Abstractions.ITestOutputHelper)
             ]
         
         ``polygon properties``    
-        |> PropertiesHelp.checkPropertyWithTestSize gen output 1000 100  
+        |> PropertiesHelp.checkPropertyWithTestSize gen output 1000 100
+//        |> PropertiesHelp.replayPropertyCheck gen output (675502539,296692176)
         
     [<Fact>]
     member  this.``Test polygon self-intersecting properties (small floats)``() =
