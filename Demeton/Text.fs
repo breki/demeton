@@ -27,7 +27,7 @@ let append (text: string) (sb: StringBuilder) =
 let appendChar (chr: char) (sb: StringBuilder) =
     sb.Append(chr)
 
-let appendLine text (sb: StringBuilder) =
+let appendLine (text: string) (sb: StringBuilder) =
     sb.AppendLine(text)
 
 let appendLines lines (sb: StringBuilder) =

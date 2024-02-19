@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
@@ -126,24 +124,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.12.0" />
-    <PackageReference Include="FParsec" Version="1.0.3" />
-    <PackageReference Include="fscheck" Version="2.14.0" />
-    <PackageReference Include="fscheck.xunit" Version="2.14.0" />
-    <PackageReference Include="FSharp.Formatting.CommandTool" Version="3.1.0" />
-    <PackageReference Include="FsUnit.xUnit" Version="3.8.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
-    <PackageReference Include="Serilog" Version="2.9.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
+    <PackageReference Include="FParsec" Version="1.1.1" />
+    <PackageReference Include="fscheck" Version="2.16.6" />
+    <PackageReference Include="fscheck.xunit" Version="2.16.6" />
+    <PackageReference Include="FsUnit.xUnit" Version="6.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="Serilog" Version="3.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
     <PackageReference Include="SharpZipLib.NETStandard" Version="1.0.7" />
-    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
-    <PackageReference Include="Unquote" Version="5.0.0" />
-    <PackageReference Include="xunit.runner.console" Version="2.4.1">
+    <PackageReference Include="System.Drawing.Common" Version="8.0.2" />
+    <PackageReference Include="Unquote" Version="7.0.0" />
+    <PackageReference Include="xunit.runner.console" Version="2.7.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -154,7 +151,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.7.0" />
+    <PackageReference Update="FSharp.Core" Version="8.0.200" />
   </ItemGroup>
 
   <ItemGroup />
