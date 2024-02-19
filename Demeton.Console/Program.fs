@@ -55,8 +55,8 @@ let supportedCommands: Command[] = [|
         Description = 
             "Converts SRTM tiles from the original format (zipped SRTM HGT "
             + "files) to PNG files and stores them in the local cache, to be "
-            + @"available later for processing by the 'shade' command."
-            +@ "This command is useful if you want to pre-cache a certain area "
+            + "available later for processing by the 'shade' command."
+            + "This command is useful if you want to pre-cache a certain area "
             + "of the world and store it on another computer that has no "
             + "access to the full SRTM tiles archive. Note that the 'shade' "
             + "command also converts any SRTM tiles not found in the cache, so "
@@ -67,7 +67,7 @@ let supportedCommands: Command[] = [|
         Name = "shade";
         ShortDescription = "generates a shaded raster"
         Description =
-            "Generated a shaded raster image (consisting of one or more image " 
+            "Generates a shaded raster image (consisting of one or more image " 
             + "tiles) for a given geographic area, using the specified map "
             + "projection, map scale and printing resolution."
         Parameters = ShadeCommand.supportedParameters
@@ -82,7 +82,7 @@ let helpCommand = {
     Parameters = [| |]
     Runner = HelpCommand.run 
         "demeton" supportedCommands 
-        System.Console.Out.Write System.Console.Error.Write }
+        Console.Out.Write Console.Error.Write }
 
 
 [<EntryPoint>]
