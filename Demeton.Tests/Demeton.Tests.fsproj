@@ -1,159 +1,161 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
-    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <OtherFlags Condition="'$(NCrunch)' == '1'">--deterministic-</OtherFlags>
+        <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <WarningsAsErrors/>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <WarningsAsErrors/>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
-    <Compile Include="TestLog.fs" />
-    <Compile Include="TestHelp.fs" />
-    <Compile Include="BetterFsCheckRunner.fs" />
-    <Compile Include="PropertiesHelp.fs" />
-    <Compile Include="ColorGen.fs" />
-    <Compile Include="ResultSeq tests.fs" />
-    <Compile Include="FileSystem tests\Zip files tests.fs" />
-    <Compile Include="Reading binary streams.fs" />
-    <Compile Include="Command line parsing\Parsing option value.fs" />
-    <Compile Include="Command line parsing\Parsing a sequence of parameters.fs" />
-    <Compile Include="Command line parsing\Parsing commands.fs" />
-    <Compile Include="Command line parsing\Rendering general help.fs" />
-    <Compile Include="Command line parsing\Rendering help for parameters.fs" />
-    <Compile Include="Command line parsing\Rendering help for commands.fs" />
-    <Compile Include="Png\PNG filtering.fs" />
-    <Compile Include="Png\IDAT compression.fs" />
-    <Compile Include="Png\Reading and writing PNG files.fs" />
-    <Compile Include="Png\Parsing color hex triplets and quadruplets.fs" />
-    <Compile Include="Png\Mixing Rgba8Bit colors.fs" />
-    <Compile Include="Png\Alpha compositing.fs" />
-    <Compile Include="Data structures\Binary trees\RedBlackTree.fs" />
-    <Compile Include="Data structures\Binary trees\Binary search tree testbed.fs" />
-    <Compile Include="Data structures\Binary trees\Binary tree to ASCII tests.fs" />
-    <Compile Include="Data structures\Binary trees\AVL tree properties.fs" />
-    <Compile Include="Data structures\Binary trees\Red black tree properties.fs" />
-    <Compile Include="Data structures\Binary trees\Binary search tree tests.fs" />
-    <Compile Include="Data structures\Interval trees\Interval tree testbed.fs" />
-    <Compile Include="Data structures\Interval trees\Interval tree tests.fs" />
-    <Compile Include="Geometry\GeometryTestHelp.fs" />
-    <Compile Include="Geometry\Common tests.fs" />
-    <Compile Include="Geometry\Bounds tests.fs" />
-    <Compile Include="Geometry\Mean of angles.fs" />
-    <Compile Include="Geometry\Distance on Earth.fs" />
-    <Compile Include="Geometry\Line intersection tests.fs" />
-    <Compile Include="Geometry\Polygon self-intersection tests.fs" />
-    <Compile Include="Dem\Working with HeightsArrays.fs" />
-    <Compile Include="Dem\Merging height arrays.fs" />
-    <Compile Include="Dem\Merging height arrays properties.fs" />
-    <Compile Include="Srtm\SrtmHelper.fs" />
-    <Compile Include="Srtm\SRTM tile tests.fs" />
-    <Compile Include="Srtm\Bounds to SRTM tiles.fs" />
-    <Compile Include="Srtm\Reading SRTM HGT files.fs" />
-    <Compile Include="Srtm\encodeHeightsArrayIntoPngFile tests.fs" />
-    <Compile Include="Srtm\Converting HGT to PNG.fs" />
-    <Compile Include="Srtm\convertZippedHgtTileToPng tests.fs" />
-    <Compile Include="Srtm\Saving SRTM tiles to cache.fs" />
-    <Compile Include="Srtm\decodeSrtmTileFromPngFile tests.fs" />
-    <Compile Include="Srtm\Fetching SRTM tiles\Checking local cache status.fs" />
-    <Compile Include="Srtm\Fetching SRTM tiles\Checking SRTM dir tile status.fs" />
-    <Compile Include="Srtm\Fetching SRTM tiles\Checking complete tile status.fs" />
-    <Compile Include="Srtm\Fetching SRTM tiles\Creating higher level tiles.fs" />
-    <Compile Include="Srtm\Fetching SRTM tiles\Processing the fetching stack.fs" />
-    <Compile Include="Srtm\Fetching SRTM tiles\Finalizing fetch SRTM tile processing.fs" />
-    <Compile Include="Srtm\Fetching SRTM tiles\Integration tests.fs" />
-    <Compile Include="Srtm\fetchSrtmHeights tests.fs" />
-    <Compile Include="Srtm\Calculating the SRTM DEM level needed.fs" />
-    <Compile Include="Srtm\Reading a batch of PNG tiles.fs" />
-    <Compile Include="SimAnn\Simulated annealing.fs" />
-    <Compile Include="Projections\ProjectionsTestHelpers.fs" />
-    <Compile Include="Projections\PROJ parsing.fs" />
-    <Compile Include="Projections\LCC tests.fs" />
-    <Compile Include="Projections\Mercator tests.fs" />
-    <Compile Include="Shaders\ShadingSampleGenerator.fs" />
-    <Compile Include="Shaders\Hillshading\Calculating aspect and slope.fs" />
-    <Compile Include="Shaders\Hillshading\Igor%27s shading method.fs" />
-    <Compile Include="Shaders\Elevation coloring.fs" />
-    <Compile Include="Shaders\Parsing elevation color scales.fs" />
-    <Compile Include="Shaders\Shading pipeline.fs" />
-    <Compile Include="Shaders\Parsing shading scripts generic.fs" />
-    <Compile Include="Shaders\Building pipeline from parsed script.fs" />
-    <Compile Include="Shaders\Building elevation coloring step.fs" />
-    <Compile Include="Shaders\Building igor hillshading step.fs" />
-    <Compile Include="Shaders\Building slope shader step.fs" />
-    <Compile Include="Shaders\Building aspect shader step.fs" />
-    <Compile Include="Shaders\Parsing shading scripts.fs" />
-    <Compile Include="Vectorization tests\Isoline DSL.fs" />
-    <Compile Include="Vectorization tests\Marching squares tests.fs" />
-    <Compile Include="Vectorization tests\SampleSegmentation.fs" />
-    <Compile Include="Vectorization tests\Marching squares property tests.fs" />
-    <Compile Include="Vectorization tests\Steps to moves transformation.fs" />
-    <Compile Include="Svg\SVG path tests.fs" />
-    <Compile Include="Svg\SVG XML writing tests.fs" />
-    <Compile Include="Commands tests\ShadeCommand\Command line parsing.fs" />
-    <Compile Include="Commands tests\ShadeCommand\Running the command.fs" />
-    <Compile Include="Commands tests\ShadeCommand\Splitting into intervals.fs" />
-    <Compile Include="Commands tests\ShadeCommand\Generating shaded tile.fs" />
-    <Compile Include="Commands tests\ShadeCommand\Shading the raster.fs" />
-    <Compile Include="Commands tests\ShadeCommand\Saving the tile.fs" />
-    <Compile Include="Commands tests\Command line parameters parsing.fs" />
-    <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs" />
-    <Compile Include="Acceptance tests\Generating hillshading rasters.fs" />
-    <Compile Include="FParsec exploratory tests.fs" />
-    <Compile Include="Benchmarks\PngFilterBenchmarks.fs" />
-    <Compile Include="Benchmarks\CrcBenchmarks.fs" />
-    <Compile Include="Benchmarks\Array1Dvs2D.fs" />
-    <Compile Include="Benchmarks\ArrayAccess.fs" />
-    <Compile Include="DummyProgram.fs" />
-    <EmbeddedResource Include="..\samples\N37E051.SRTMGL1.hgt.zip" Link="samples\N37E051.SRTMGL1.hgt.zip" />
-    <EmbeddedResource Include="..\samples\test-grayscale-16.png" Link="samples\test-grayscale-16.png" />
-    <EmbeddedResource Include="..\samples\N46E015.png" Link="samples\N46E015.png" />
-    <EmbeddedResource Include="..\samples\N00E031.hgt" Link="samples\N00E031.hgt" />
-    <EmbeddedResource Include="..\samples\N00E031.SRTMGL1.hgt.zip" Link="samples\N00E031.SRTMGL1.hgt.zip" />
-    <EmbeddedResource Include="..\samples\N46E015.hgt" Link="samples\N46E015.hgt" />
-    <EmbeddedResource Include="..\samples\N46E015.SRTMGL1.hgt.zip" Link="samples\N46E015.SRTMGL1.hgt.zip" />
-  </ItemGroup>
+    <ItemGroup>
+        <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true"/>
+        <Compile Include="TestLog.fs"/>
+        <Compile Include="TestHelp.fs"/>
+        <Compile Include="BetterFsCheckRunner.fs"/>
+        <Compile Include="PropertiesHelp.fs"/>
+        <Compile Include="ColorGen.fs"/>
+        <Compile Include="ResultSeq tests.fs"/>
+        <Compile Include="FileSystem tests\Zip files tests.fs"/>
+        <Compile Include="Reading binary streams.fs"/>
+        <Compile Include="Command line parsing\Parsing option value.fs"/>
+        <Compile Include="Command line parsing\Parsing a sequence of parameters.fs"/>
+        <Compile Include="Command line parsing\Parsing commands.fs"/>
+        <Compile Include="Command line parsing\Rendering general help.fs"/>
+        <Compile Include="Command line parsing\Rendering help for parameters.fs"/>
+        <Compile Include="Command line parsing\Rendering help for commands.fs"/>
+        <Compile Include="Png\PNG filtering.fs"/>
+        <Compile Include="Png\IDAT compression.fs"/>
+        <Compile Include="Png\Reading and writing PNG files.fs"/>
+        <Compile Include="Png\Parsing color hex triplets and quadruplets.fs"/>
+        <Compile Include="Png\Mixing Rgba8Bit colors.fs"/>
+        <Compile Include="Png\Alpha compositing.fs"/>
+        <Compile Include="Data structures\Binary trees\RedBlackTree.fs"/>
+        <Compile Include="Data structures\Binary trees\Binary search tree testbed.fs"/>
+        <Compile Include="Data structures\Binary trees\Binary tree to ASCII tests.fs"/>
+        <Compile Include="Data structures\Binary trees\AVL tree properties.fs"/>
+        <Compile Include="Data structures\Binary trees\Red black tree properties.fs"/>
+        <Compile Include="Data structures\Binary trees\Binary search tree tests.fs"/>
+        <Compile Include="Data structures\Interval trees\Interval tree testbed.fs"/>
+        <Compile Include="Data structures\Interval trees\Interval tree tests.fs"/>
+        <Compile Include="Geometry\GeometryTestHelp.fs"/>
+        <Compile Include="Geometry\Common tests.fs"/>
+        <Compile Include="Geometry\Bounds tests.fs"/>
+        <Compile Include="Geometry\Mean of angles.fs"/>
+        <Compile Include="Geometry\Distance on Earth.fs"/>
+        <Compile Include="Geometry\Line intersection tests.fs"/>
+        <Compile Include="Geometry\Polygon self-intersection tests.fs"/>
+        <Compile Include="Dem\Working with HeightsArrays.fs"/>
+        <Compile Include="Dem\Merging height arrays.fs"/>
+        <Compile Include="Dem\Merging height arrays properties.fs"/>
+        <Compile Include="Srtm\SrtmHelper.fs"/>
+        <Compile Include="Srtm\SRTM tile tests.fs"/>
+        <Compile Include="Srtm\Bounds to SRTM tiles.fs"/>
+        <Compile Include="Srtm\Reading SRTM HGT files.fs"/>
+        <Compile Include="Srtm\encodeHeightsArrayIntoPngFile tests.fs"/>
+        <Compile Include="Srtm\Converting HGT to PNG.fs"/>
+        <Compile Include="Srtm\convertZippedHgtTileToPng tests.fs"/>
+        <Compile Include="Srtm\Saving SRTM tiles to cache.fs"/>
+        <Compile Include="Srtm\decodeSrtmTileFromPngFile tests.fs"/>
+        <Compile Include="Srtm\Fetching SRTM tiles\Checking local cache status.fs"/>
+        <Compile Include="Srtm\Fetching SRTM tiles\Checking SRTM dir tile status.fs"/>
+        <Compile Include="Srtm\Fetching SRTM tiles\Checking complete tile status.fs"/>
+        <Compile Include="Srtm\Fetching SRTM tiles\Creating higher level tiles.fs"/>
+        <Compile Include="Srtm\Fetching SRTM tiles\Processing the fetching stack.fs"/>
+        <Compile Include="Srtm\Fetching SRTM tiles\Finalizing fetch SRTM tile processing.fs"/>
+        <Compile Include="Srtm\Fetching SRTM tiles\Integration tests.fs"/>
+        <Compile Include="Srtm\fetchSrtmHeights tests.fs"/>
+        <Compile Include="Srtm\Calculating the SRTM DEM level needed.fs"/>
+        <Compile Include="Srtm\Reading a batch of PNG tiles.fs"/>
+        <Compile Include="SimAnn\Simulated annealing.fs"/>
+        <Compile Include="Projections\ProjectionsTestHelpers.fs"/>
+        <Compile Include="Projections\PROJ parsing.fs"/>
+        <Compile Include="Projections\LCC tests.fs"/>
+        <Compile Include="Projections\Mercator tests.fs"/>
+        <Compile Include="Shaders\ShadingSampleGenerator.fs"/>
+        <Compile Include="Shaders\Hillshading\Calculating aspect and slope.fs"/>
+        <Compile Include="Shaders\Hillshading\Igor%27s shading method.fs"/>
+        <Compile Include="Shaders\Elevation coloring.fs"/>
+        <Compile Include="Shaders\Parsing elevation color scales.fs"/>
+        <Compile Include="Shaders\Shading pipeline.fs"/>
+        <Compile Include="Shaders\Parsing shading scripts generic.fs"/>
+        <Compile Include="Shaders\Building pipeline from parsed script.fs"/>
+        <Compile Include="Shaders\Building elevation coloring step.fs"/>
+        <Compile Include="Shaders\Building igor hillshading step.fs"/>
+        <Compile Include="Shaders\Building slope shader step.fs"/>
+        <Compile Include="Shaders\Building aspect shader step.fs"/>
+        <Compile Include="Shaders\Parsing shading scripts.fs"/>
+        <Compile Include="Vectorization tests\Isoline DSL.fs"/>
+        <Compile Include="Vectorization tests\Marching squares tests.fs"/>
+        <Compile Include="Vectorization tests\SampleSegmentation.fs"/>
+        <Compile Include="Vectorization tests\Marching squares property tests.fs"/>
+        <Compile Include="Vectorization tests\Steps to moves transformation.fs"/>
+        <Compile Include="Svg\SVG path tests.fs"/>
+        <Compile Include="Svg\SVG XML writing tests.fs"/>
+        <Compile Include="Commands tests\ShadeCommand\Command line parsing.fs"/>
+        <Compile Include="Commands tests\ShadeCommand\Running the command.fs"/>
+        <Compile Include="Commands tests\ShadeCommand\Splitting into intervals.fs"/>
+        <Compile Include="Commands tests\ShadeCommand\Generating shaded tile.fs"/>
+        <Compile Include="Commands tests\ShadeCommand\Shading the raster.fs"/>
+        <Compile Include="Commands tests\ShadeCommand\Saving the tile.fs"/>
+        <Compile Include="Commands tests\Command line parameters parsing.fs"/>
+        <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs"/>
+        <Compile Include="Acceptance tests\Generating hillshading rasters.fs"/>
+        <Compile Include="FParsec exploratory tests.fs"/>
+        <Compile Include="Benchmarks\PngFilterBenchmarks.fs"/>
+        <Compile Include="Benchmarks\CrcBenchmarks.fs"/>
+        <Compile Include="Benchmarks\Array1Dvs2D.fs"/>
+        <Compile Include="Benchmarks\ArrayAccess.fs"/>
+        <Compile Include="DummyProgram.fs"/>
+        <EmbeddedResource Include="..\samples\N37E051.SRTMGL1.hgt.zip" Link="samples\N37E051.SRTMGL1.hgt.zip"/>
+        <EmbeddedResource Include="..\samples\test-grayscale-16.png" Link="samples\test-grayscale-16.png"/>
+        <EmbeddedResource Include="..\samples\N46E015.png" Link="samples\N46E015.png"/>
+        <EmbeddedResource Include="..\samples\N00E031.hgt" Link="samples\N00E031.hgt"/>
+        <EmbeddedResource Include="..\samples\N00E031.SRTMGL1.hgt.zip" Link="samples\N00E031.SRTMGL1.hgt.zip"/>
+        <EmbeddedResource Include="..\samples\N46E015.hgt" Link="samples\N46E015.hgt"/>
+        <EmbeddedResource Include="..\samples\N46E015.SRTMGL1.hgt.zip" Link="samples\N46E015.SRTMGL1.hgt.zip"/>
+        <EmbeddedResource Include="..\samples\AW3D\ALPSMLC30_N046E006_DSM.tif" Link="samples\AW3D\ALPSMLC30_N046E006_DSM.tif"/>
+        <Compile Include="Aw3d\AW3D experiments.fs"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
-    <PackageReference Include="FParsec" Version="1.1.1" />
-    <PackageReference Include="fscheck" Version="2.16.6" />
-    <PackageReference Include="fscheck.xunit" Version="2.16.6" />
-    <PackageReference Include="FsUnit.xUnit" Version="6.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageReference Include="Serilog" Version="3.1.1" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
-    <PackageReference Include="SharpZipLib.NETStandard" Version="1.0.7" />
-    <PackageReference Include="System.Drawing.Common" Version="8.0.2" />
-    <PackageReference Include="Unquote" Version="7.0.0" />
-    <PackageReference Include="xunit.runner.console" Version="2.7.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="BenchmarkDotNet" Version="0.13.12"/>
+        <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.649"/>
+        <PackageReference Include="FParsec" Version="1.1.1"/>
+        <PackageReference Include="fscheck" Version="2.16.6"/>
+        <PackageReference Include="fscheck.xunit" Version="2.16.6"/>
+        <PackageReference Include="FsUnit.xUnit" Version="6.0.0"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0"/>
+        <PackageReference Include="Serilog" Version="3.1.1"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="5.0.0"/>
+        <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0"/>
+        <PackageReference Include="System.Drawing.Common" Version="8.0.2"/>
+        <PackageReference Include="Unquote" Version="7.0.0"/>
+        <PackageReference Include="xunit.runner.console" Version="2.7.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Demeton\Demeton.fsproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Demeton\Demeton.fsproj"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="8.0.200" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Update="FSharp.Core" Version="8.0.200"/>
+    </ItemGroup>
 
-  <ItemGroup />
+    <ItemGroup/>
 
 </Project>
