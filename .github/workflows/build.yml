@@ -5,7 +5,7 @@ on: [ push ]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     
     steps:
       - uses: actions/checkout@v1
@@ -14,4 +14,4 @@ jobs:
         with:
           dotnet-version: 8.0.100
       - name: Build and run tests
-        run: bash --noprofile --norc -eo pipefail build.sh
+        run: powershell -ExecutionPolicy Bypass -File build.ps1
