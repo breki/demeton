@@ -55,7 +55,7 @@ let ``Mercator projection formulas are correct`` (lonLat: ProjectLonLat) =
         Factory.createMapProjection Mercator mapScale
         |> resultValue
     
-    let (lonDegrees, latDegrees) = lonLat
+    let lonDegrees, latDegrees = lonLat
     let lon = degToRad lonDegrees
     let lat = degToRad latDegrees
     let pointOption = projection.Proj lon lat

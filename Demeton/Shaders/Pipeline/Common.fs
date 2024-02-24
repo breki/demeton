@@ -10,9 +10,12 @@ type CompositingFuncId = string
 
 type ShadingFuncFactory = ShadingFuncId -> RasterShader
 
-type CompositingFuncFactory = 
+type CompositingFuncFactory =
     CompositingFuncId -> AlphaCompositing.CompositingFunc
 
+/// <summary>
+/// Defines a single step in the shading pipeline.
+/// </summary>
 type ShadingStep =
     | ElevationColoring of ElevationColoring.Parameters
     | IgorHillshading of IgorHillshader.ShaderParameters
@@ -24,8 +27,8 @@ type ShadingStep =
 [<Literal>]
 let CompositingFuncIdOver = "over"
 
-let createShadingFuncById shadingFuncId 
-    = invalidOp "we currently do not support custom shading functions"
+let createShadingFuncById shadingFuncId =
+    invalidOp "we currently do not support custom shading functions"
 
 let createCompositingFuncById compositingFuncId =
     match compositingFuncId with
@@ -44,39 +47,40 @@ let rec executeShadingStep
     : RawImageData =
 
     match step with
-    | Compositing (step1, step2, compositingFuncId) ->
-        let destImage = 
-            executeShadingStep 
+    | Compositing(step1, step2, compositingFuncId) ->
+        let destImage =
+            executeShadingStep
                 shadingFuncFactory
-                compositingFuncFactory 
-                heightsArray 
+                compositingFuncFactory
+                heightsArray
                 srtmLevel
                 tileRect
                 inverse
                 step1
-        let sourceImage = 
-            executeShadingStep 
+
+        let sourceImage =
+            executeShadingStep
                 shadingFuncFactory
-                compositingFuncFactory 
-                heightsArray 
+                compositingFuncFactory
+                heightsArray
                 srtmLevel
                 tileRect
                 inverse
                 step2
 
-        Log.info "Running compositing step '%s'..." compositingFuncId
+        Log.info $"Running compositing step '%s{compositingFuncId}'..."
         let compositingFunc = compositingFuncFactory compositingFuncId
         compositingFunc tileRect.Width tileRect.Height sourceImage destImage
-    | _ -> 
-        let rasterShaderToUse = 
+    | _ ->
+        let rasterShaderToUse =
             match step with
             | AspectShading parameters ->
                 Log.info "Running aspect shading step..."
                 Hillshading.shadeRaster (AspectShader.shadePixel parameters)
-            | ElevationColoring parameters -> 
+            | ElevationColoring parameters ->
                 Log.info "Running elevation coloring step..."
                 ElevationColoring.shadeRaster parameters.ColorScale
-            | IgorHillshading parameters -> 
+            | IgorHillshading parameters ->
                 Log.info "Running igor hillshading step..."
                 Hillshading.shadeRaster (IgorHillshader.shadePixel parameters)
             | SlopeShading parameters ->
@@ -86,9 +90,10 @@ let rec executeShadingStep
             | _ -> invalidOp "Unsupported shading step"
 
         let imageData =
-            Rgba8Bit.createImageData 
-                tileRect.Width tileRect.Height Rgba8Bit.ImageDataZero
+            Rgba8Bit.createImageData
+                tileRect.Width
+                tileRect.Height
+                Rgba8Bit.ImageDataZero
 
-        rasterShaderToUse
-            heightsArray srtmLevel tileRect imageData inverse
+        rasterShaderToUse heightsArray srtmLevel tileRect imageData inverse
         imageData

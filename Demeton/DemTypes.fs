@@ -1,15 +1,19 @@
-﻿module Demeton.DemTypes 
+﻿module Demeton.DemTypes
 
 open System
 
 type DemHeight = int16
 
 [<Literal>]
-let DemHeightNone = System.Int16.MinValue
+let DemHeightNone = Int16.MinValue
 
 let interpolateHeight h1 h2 h3 h4 (dx: float) (dy: float) =
-    if h1 = DemHeightNone || h2 = DemHeightNone
-        || h3 = DemHeightNone || h4 = DemHeightNone then
+    if
+        h1 = DemHeightNone
+        || h2 = DemHeightNone
+        || h3 = DemHeightNone
+        || h4 = DemHeightNone
+    then
         None
     else
         let hh1 = float (h2 - h1) * dx + float h1
@@ -19,27 +23,48 @@ let interpolateHeight h1 h2 h3 h4 (dx: float) (dy: float) =
 
 let inline DemHeight x = int16 x
 
-type GlobalCellCoords = (int * int)
-type GlobalCellCoordsFractional = (float * float)
+type GlobalCellCoords = int * int
+type GlobalCellCoordsFractional = float * float
 
-type HeightCell = { Coords: GlobalCellCoords; Height : DemHeight }
+type HeightCell =
+    { Coords: GlobalCellCoords
+      Height: DemHeight }
 
 type HeightsArrayInitializer =
-    EmptyHeightsArray
-    | HeightsArrayDirectImport of (DemHeight[])
+    | EmptyHeightsArray
+    | HeightsArrayDirectImport of DemHeight[]
     | HeightsArrayInitializer1D of (int -> DemHeight)
     | HeightsArrayInitializer2D of (GlobalCellCoords -> DemHeight)
     | HeightsArrayCustomInitializer of (DemHeight[] -> unit)
 
+
+/// <summary>
+/// Represents a two-dimensional array of heights in a digital elevation model
+/// (DEM).
+/// </summary>
+/// <param name="minX">The minimum x-coordinate of the array.</param>
+/// <param name="minY">The minimum y-coordinate of the array.</param>
+/// <param name="width">The width of the array.</param>
+/// <param name="height">The height of the array.</param>
+/// <param name="initializer">
+/// The initializer used to populate the array.</param>
+/// <remarks>
+/// The HeightsArray type provides methods for accessing and manipulating
+/// the heights in the array.
+/// It also provides methods for interpolating heights at fractional
+/// cell coordinates.
+/// </remarks>
 type HeightsArray
     (
         minX: int,
         minY: int,
-        width: int, 
+        width: int,
         height: int,
-        initializer: HeightsArrayInitializer) =
+        initializer: HeightsArrayInitializer
+    ) =
+
     let cells =
-        let arraySize = width*height
+        let arraySize = width * height
 
         match initializer with
         | EmptyHeightsArray ->
@@ -51,12 +76,13 @@ type HeightsArray
             arrayToImport
         | HeightsArrayInitializer2D initializer2D ->
             let initializerFuncToUse =
-                fun index -> 
+                fun index ->
                     let x = index % width
                     let y = index / width
                     initializer2D (minX + x, minY + y)
+
             Array.init<DemHeight> arraySize initializerFuncToUse
-        | HeightsArrayInitializer1D initializer1D -> 
+        | HeightsArrayInitializer1D initializer1D ->
             Array.init<DemHeight> arraySize initializer1D
         | HeightsArrayCustomInitializer customInitializer ->
             let cellsToInitialize = Array.zeroCreate<DemHeight> arraySize
@@ -71,24 +97,24 @@ type HeightsArray
     member this.MaxX = minX + width - 1
     member this.MaxY = minY + height - 1
     member this.Cells = cells
-    
-    member this.heightAt ((x, y): GlobalCellCoords) = 
 
-    #if DEBUG
+    member this.heightAt((x, y): GlobalCellCoords) =
+
+#if DEBUG
         match (x, y) with
         | _ when x < this.MinX || x > this.MaxX ->
             raise <| ArgumentOutOfRangeException("x")
         | _ when y < this.MinY || y > this.MaxY ->
             raise <| ArgumentOutOfRangeException("y")
-        | _ -> ignore()
-    #endif
+        | _ -> ignore ()
+#endif
 
         let index = (y - this.MinY) * width + x - this.MinX
 
         let heightAtCell = this.Cells.[index]
         heightAtCell
 
-    member this.interpolateHeightAt ((x, y): float * float) =
+    member this.interpolateHeightAt((x, y): float * float) =
         let fractionOf value = value - floor value
 
         let x1 = int (floor x)
@@ -102,18 +128,18 @@ type HeightsArray
         let h4 = this.heightAt (x2, y2)
         interpolateHeight h1 h2 h3 h4 (fractionOf x) (fractionOf y)
 
-    member this.setHeightAt ((x, y): GlobalCellCoords) (height:  DemHeight) =
+    member this.setHeightAt ((x, y): GlobalCellCoords) (height: DemHeight) =
         let index = (y - this.MinY) * width + x - this.MinX
         this.Cells.[index] <- height
-        
-        
+
+
 /// <summary>
 /// A result of an operation that returns <see cref="HeightsArray" />.
 /// </summary>
 type HeightsArrayResult = Result<HeightsArray, string>
-        
+
 /// <summary>
-/// A result of an operation that can return an optional 
+/// A result of an operation that can return an optional
 /// <see cref="HeightsArray" />.
 /// </summary>
 type HeightsArrayMaybeResult = Result<HeightsArray option, string>

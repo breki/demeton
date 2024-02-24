@@ -4,9 +4,10 @@ open Raster
 open Demeton.DemTypes
 open Demeton.Projections.Common
 open Demeton.Srtm.Types
-    
-type RasterShader = 
-    HeightsArray -> SrtmLevel -> Raster.Rect -> RawImageData -> InvertFunc
-        -> unit
 
-        
+/// <summary>
+/// A function that takes a heights array, a SRTM level, a rectangle,
+/// a raw image data and an invert function and
+/// </summary>
+type RasterShader =
+    HeightsArray -> SrtmLevel -> Rect -> RawImageData -> InvertFunc -> unit

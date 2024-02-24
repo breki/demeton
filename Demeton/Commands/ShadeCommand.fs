@@ -327,6 +327,18 @@ let splitIntoIntervals minValue maxValue intervalSize =
         let intervalMaxValue = min (intervalMinValue + intervalSize) maxValue
         (intervalIndex, intervalMinValue, intervalMaxValue))
 
+/// <summary>
+/// A function generates a shaded raster tile.
+/// </summary>
+/// <param name="srtmLevel">The SRTM level for the tile.</param>
+/// <param name="tileRect">The rectangle representing the tile.</param>
+/// <param name="rootShadingStep">The root shading step for the tile.</param>
+/// <param name="mapProjection">The map projection for the tile.</param>
+/// <returns>
+/// A result type that contains the raw image data of the shaded raster tile
+/// if the generation is successful, or an error message if the generation
+/// fails
+/// .</returns>
 type ShadedRasterTileGenerator =
     SrtmLevel
         -> Rect
@@ -334,6 +346,20 @@ type ShadedRasterTileGenerator =
         -> MapProjection
         -> Result<RawImageData option, string>
 
+/// <summary>
+/// A higher-order function
+/// that returns a function to generate a shaded raster tile.
+/// </summary>
+/// <param name="fetchHeightsArray">
+/// A function that fetches the heights array for a given set of SRTM tiles.
+/// </param>
+/// <param name="createShaderFunction">
+/// A function that creates a shading function for a given shading step.
+/// </param>
+/// <returns>
+/// A function that takes an SRTM level, a tile rectangle, a shading step,
+/// and a map projection, and generates a shaded raster tile.
+/// </returns>
 let generateShadedRasterTile
     (fetchHeightsArray: SrtmHeightsArrayFetcher)
     (createShaderFunction: ShadingFuncFactory)
