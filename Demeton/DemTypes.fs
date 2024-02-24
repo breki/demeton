@@ -106,7 +106,7 @@ type HeightsArray
             raise <| ArgumentOutOfRangeException("x")
         | _ when y < this.MinY || y > this.MaxY ->
             raise <| ArgumentOutOfRangeException("y")
-        | _ -> ignore ()
+        | _ -> ()
 #endif
 
         let index = (y - this.MinY) * width + x - this.MinX

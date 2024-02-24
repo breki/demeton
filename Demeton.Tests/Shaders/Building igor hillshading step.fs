@@ -9,60 +9,75 @@ open Xunit
 open Swensen.Unquote
 
 let isError errorDescription step =
-    step = Error 
-            (sprintf 
-                "Error in step '%s': %s" 
-                StepNameIgorHillshading
-                errorDescription)
+    step = Error
+        $"Error in step '%s{StepNameIgorHillshading}': %s{errorDescription}"
 
 [<Fact>]
-let ``Can parse step without parameters``() =
-    let parsedStep = { Name = StepNameIgorHillshading; Parameters = [] } 
+let ``Can parse step without parameters`` () =
+    let parsedStep =
+        { Name = StepNameIgorHillshading
+          Parameters = [] }
 
     let step = igorHillshadingStepBuilder parsedStep
+
     test
-        <@ step =
-            Ok (IgorHillshading
-                 ({ SunAzimuth = degToRad -45.; ShadingColor = 0u })) 
+        <@
+            step = Ok(
+                IgorHillshading(
+                    { SunAzimuth = degToRad -45.
+                      ShadingColor = 0u }
+                )
+            )
         @>
 
 [<Fact>]
-let ``Can parse step with valid parameters``() =
-    let parsedStep = 
-        { Name = StepNameIgorHillshading; 
-        Parameters =
-            [ { Name = "sunaz"; Value = "-90" };
-                { Name = "shadcol"; Value = "#333333" } ] } 
+let ``Can parse step with valid parameters`` () =
+    let parsedStep =
+        { Name = StepNameIgorHillshading
+          Parameters =
+            [ { Name = "sunaz"; Value = "-90" }
+              { Name = "shadcol"; Value = "#333333" } ] }
 
     let step = igorHillshadingStepBuilder parsedStep
+
     test
-        <@ step =
-            Ok (IgorHillshading
-                 ({ SunAzimuth = degToRad -90.; ShadingColor = 0x333333ffu })) 
+        <@
+            step = Ok(
+                IgorHillshading(
+                    { SunAzimuth = degToRad -90.
+                      ShadingColor = 0x333333ffu }
+                )
+            )
         @>
 
 [<Fact>]
-let ``Reports an error when shading color is invalid``() =
-    let parsedStep = 
-        { Name = StepNameIgorHillshading; 
-        Parameters =
-            [ { Name = "sunaz"; Value = "-90" };
-                { Name = "shadcol"; Value = "wsdd" } ] } 
+let ``Reports an error when shading color is invalid`` () =
+    let parsedStep =
+        { Name = StepNameIgorHillshading
+          Parameters =
+            [ { Name = "sunaz"; Value = "-90" }
+              { Name = "shadcol"; Value = "wsdd" } ] }
 
     let step = igorHillshadingStepBuilder parsedStep
-    test <@ step 
-            |> isError "'shadcol' parameter value error: invalid color value." 
-            @>
+
+    test
+        <@
+            step
+            |> isError "'shadcol' parameter value error: invalid color value."
+        @>
 
 [<Fact>]
-let ``Reports an error when sun azimuth is invalid``() =
-    let parsedStep = 
-        { Name = StepNameIgorHillshading; 
-        Parameters =
-            [ { Name = "sunaz"; Value = "xcd" };
-                { Name = "shadcol"; Value = "#333333" } ] } 
+let ``Reports an error when sun azimuth is invalid`` () =
+    let parsedStep =
+        { Name = StepNameIgorHillshading
+          Parameters =
+            [ { Name = "sunaz"; Value = "xcd" }
+              { Name = "shadcol"; Value = "#333333" } ] }
 
     let step = igorHillshadingStepBuilder parsedStep
-    test <@ step 
-            |> isError "'sunaz' parameter value error: invalid degrees value." 
-            @>
+
+    test
+        <@
+            step
+            |> isError "'sunaz' parameter value error: invalid degrees value."
+        @>

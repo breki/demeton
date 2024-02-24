@@ -123,6 +123,7 @@
         <EmbeddedResource Include="..\samples\N46E015.SRTMGL1.hgt.zip" Link="samples\N46E015.SRTMGL1.hgt.zip"/>
         <EmbeddedResource Include="..\samples\AW3D\ALPSMLC30_N046E006_DSM.tif" Link="samples\AW3D\ALPSMLC30_N046E006_DSM.tif"/>
         <Compile Include="Aw3d\AW3D experiments.fs"/>
+        <Compile Include="todo.fs"/>
     </ItemGroup>
 
     <ItemGroup>

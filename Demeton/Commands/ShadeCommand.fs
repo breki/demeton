@@ -451,7 +451,7 @@ let saveShadedRasterTile
 
             stream |> writePngToStream ihdr imageData |> closeStream
 
-            Log.info "Saved a shade tile to %s" tilePngFileName
+            Log.info $"Saved a shade tile to %s{tilePngFileName}"
 
             tilePngFileName)
         |> Result.mapError fileSysErrorMessage
@@ -553,8 +553,7 @@ let runWithProjection
         match actualTilesGenerated with
         | 0 ->
             Log.info
-                "Nothing was generated since there were no SRTM tiles to work with. Are you sure '%s' directory contains SRTM tiles?"
-                options.SrtmDir
+                $"Nothing was generated since there were no SRTM tiles to work with. Are you sure '%s{options.SrtmDir}' directory contains SRTM tiles?"
         | _ -> ())
 
 let run

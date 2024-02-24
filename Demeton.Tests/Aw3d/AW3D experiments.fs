@@ -2,8 +2,12 @@
 
 
 open System.IO
+open Demeton.Commands
 open Demeton.DemTypes
+open Demeton.Projections.PROJParsing
+open Demeton.Shaders
 open FsUnit
+open Tests.Shaders
 open Xunit
 open TestHelp
 open BitMiracle.LibTiff.Classic
@@ -62,9 +66,77 @@ let readAw3dHeightsFromStream (stream: Stream) : DemHeight[] =
 
 
 [<Fact>]
-let ``Icebreaker`` () =
+let ``Load AW3D into a DemHeight`` () =
     use tiffReadStream = sampleFileStream @"AW3D.ALPSMLC30_N046E006_DSM.tif"
-
     let demHeight = readAw3dHeightsFromStream tiffReadStream
 
     test <@ demHeight <> null @>
+
+let area, heights, srtmLevel, mapProjection, mapScale, tileRect =
+    ShadingSampleGenerator.generateSampleWithParameters
+        6.1
+        46.1
+        6.9
+        46.9
+        250000.
+        72.
+
+let coveragePoints = [ (area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat) ]
+
+let options: ShadeCommand.Options =
+    { CoveragePoints = coveragePoints
+      FilePrefix = "shading"
+      LocalCacheDir = "cache"
+      OutputDir = "output"
+      SrtmDir = "srtm"
+      TileSize = 10000
+      RootShadingStep =
+        Pipeline.Common.IgorHillshading IgorHillshader.defaultParameters
+      MapScale = mapScale
+      MapProjection =
+        { Projection = PROJParameters.Mercator
+          IgnoredParameters = [] } }
+
+[<Fact>]
+let ``Generate hillshading from AW3D sample file`` () =
+    use tiffReadStream = sampleFileStream @"AW3D.ALPSMLC30_N046E006_DSM.tif"
+    let demHeight = readAw3dHeightsFromStream tiffReadStream
+
+    let tileSize = 3600
+
+    let tileId = Demeton.Srtm.Funcs.parseTileName "N46E006"
+    let cellMinX, cellMinY = Demeton.Srtm.Funcs.tileMinCell tileSize tileId
+
+    let fetchHeightsArray tileIds =
+        // todo 0: calculate cell min x and y
+        let cellMinX = cellMinX
+        let cellMinY = cellMinY
+
+        HeightsArray(
+            cellMinX,
+            cellMinY,
+            tileSize,
+            tileSize,
+            HeightsArrayDirectImport demHeight
+        )
+        |> Some
+        |> Result.Ok
+
+    let pixelShader = IgorHillshader.shadePixel IgorHillshader.defaultParameters
+
+    let createShaderFunction _ =
+        Demeton.Shaders.Hillshading.shadeRaster pixelShader
+
+    let generateTile =
+        ShadeCommand.generateShadedRasterTile
+            fetchHeightsArray
+            createShaderFunction
+
+    let saveTile =
+        ShadeCommand.saveShadedRasterTile
+            FileSys.ensureDirectoryExists
+            FileSys.openFileToWrite
+            Png.File.savePngToStream
+
+    let result = ShadeCommand.run options generateTile saveTile
+    test <@ result |> isOk @>

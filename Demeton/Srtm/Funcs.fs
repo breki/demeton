@@ -24,6 +24,14 @@ let inline cellXToTileX (tileSize: int) (cellX: float) =
 let inline cellYToTileY (tileSize: int) (cellY: float) =
     cellY / (tileSize |> float)
 
+/// <summary>
+/// Calculates the minimum cell coordinates for a given SRTM tile.
+/// </summary>
+/// <param name="tileSize">The size of the tile in cells.</param>
+/// <param name="tileId">The ID of the SRTM tile.</param>
+/// <returns>
+/// A tuple representing the minimum cell coordinates (X, Y) of the tile.
+/// </returns>
 let tileMinCell (tileSize: int) (tileId: SrtmTileId) : SrtmTileCellCoordsInt =
     let cellX = tileXToCellX tileSize (tileId.TileX |> float)
     let cellY = tileYToCellY tileSize (tileId.TileY |> float)
@@ -94,6 +102,23 @@ let toTileName (tileId: SrtmTileId) : SrtmTileName =
     | _ ->
         $"l%01d{tileId.Level.Value}%c{lonSign tileId.TileX}%02d{abs tileId.TileX}%c{latSign tileId.TileY}%02d{abs tileId.TileY}"
 
+/// <summary>
+/// Parses a SRTM tile name in HGT format and returns a corresponding
+/// SrtmTileCoords.
+/// </summary>
+/// <param name="tileId">
+/// The name of the SRTM tile in HGT format to parse.
+/// </param>
+/// <returns>
+/// A SrtmTileCoords that represents the parsed SRTM tile.
+/// </returns>
+/// <remarks>
+/// The HGT format is a string of 7 characters: the first character is
+/// either 'N' or 'S' indicating the latitude direction,
+/// followed by 2 digits for the latitude value, then a character 'E' or 'W'
+/// indicating the longitude direction, and finally 3 digits for the
+/// longitude value. For example, "N46E006".
+/// </remarks>
 let parseHgtTileName (tileId: string) =
     let latitudeCharSign = tileId.[0]
 
@@ -127,6 +152,13 @@ let parseHgtTileName (tileId: string) =
 
     { Lon = longitude; Lat = latitude }
 
+/// <summary>
+/// Parses a SRTM tile name and returns a corresponding SrtmTileId.
+/// </summary>
+/// <param name="tileName">The name of the SRTM tile to parse.</param>
+/// <returns>
+/// A SrtmTileId that represents the parsed SRTM tile.
+/// </returns>
 let parseTileName (tileName: SrtmTileName) : SrtmTileId =
     match tileName.[0] with
     | 'l' ->
