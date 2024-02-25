@@ -1,12 +1,14 @@
 ﻿module Tests.Aw3d.``AW3D experiments``
 
 
+open System
 open System.IO
 open Demeton.Commands
 open Demeton.DemTypes
 open Demeton.Projections.PROJParsing
 open Demeton.Shaders
 open FsUnit
+open Png
 open Tests.Shaders
 open Xunit
 open TestHelp
@@ -55,7 +57,7 @@ let readAw3dHeightsFromStream (stream: Stream) : DemHeight[] =
 
         for col in 0 .. width - 1 do
             // read little-endian int16 value from pixelData
-            let height = System.BitConverter.ToInt16(buffer, pixelStart)
+            let height = BitConverter.ToInt16(buffer, pixelStart)
 
             heightsArray.[heightsWrittenCount] <- height
             heightsWrittenCount <- heightsWrittenCount + 1
@@ -90,12 +92,39 @@ let options: ShadeCommand.Options =
       OutputDir = "output"
       SrtmDir = "srtm"
       TileSize = 10000
-      RootShadingStep =
-        Pipeline.Common.IgorHillshading IgorHillshader.defaultParameters
+      RootShadingStep = Pipeline.Common.CustomShading "XCTracer "
       MapScale = mapScale
       MapProjection =
         { Projection = PROJParameters.Mercator
           IgnoredParameters = [] } }
+
+let customShadePixel
+    (parameters: IgorHillshader.ShaderParameters)
+    : Hillshading.PixelHillshader =
+    fun _ slope aspect ->
+        match Double.IsNaN(aspect) with
+        | true -> Rgba8Bit.TransparentColor
+        | false ->
+            let aspectDiff =
+                Demeton.Geometry.Common.differenceBetweenAngles
+                    aspect
+                    parameters.SunAzimuth
+                    (Math.PI * 2.)
+
+            let slopeDarkness = slope / (Math.PI / 2.)
+            let aspectDarkness = aspectDiff / Math.PI
+            let darkness = slopeDarkness * aspectDarkness
+
+            let darknessByteLimit = 220uy
+
+            let darknessByte =
+                darknessByteLimit
+                - Hillshading.colorComponentRatioToByteLimited
+                    darknessByteLimit
+                    darkness
+
+            Rgba8Bit.rgbColor darknessByte darknessByte darknessByte
+
 
 [<Fact>]
 let ``Generate hillshading from AW3D sample file`` () =
@@ -108,7 +137,6 @@ let ``Generate hillshading from AW3D sample file`` () =
     let cellMinX, cellMinY = Demeton.Srtm.Funcs.tileMinCell tileSize tileId
 
     let fetchHeightsArray tileIds =
-        // todo 0: calculate cell min x and y
         let cellMinX = cellMinX
         let cellMinY = cellMinY
 
@@ -122,7 +150,9 @@ let ``Generate hillshading from AW3D sample file`` () =
         |> Some
         |> Result.Ok
 
-    let pixelShader = IgorHillshader.shadePixel IgorHillshader.defaultParameters
+    // todo 0: figure out how is the shader controlled - from the options
+    // or from the createShaderFunction?
+    let pixelShader = customShadePixel IgorHillshader.defaultParameters
 
     let createShaderFunction _ =
         Demeton.Shaders.Hillshading.shadeRaster pixelShader

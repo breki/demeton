@@ -20,6 +20,12 @@ type PixelHillshader = float -> float -> float -> Rgba8Bit.RgbaColor
 let inline colorComponentRatioToByte (value: float) : byte =
     byte (max (min (int (value * 255.)) 255) 0)
 
+let inline colorComponentRatioToByteLimited
+    (byteLimit: byte)
+    (value: float)
+    : byte =
+    byte (max (min (int (value * (float byteLimit))) (int byteLimit)) 0)
+
 let gridSize (coords: LonLat option[]) =
     let lon1, lat1 = Option.get coords.[0]
     let lon2, lat2 = Option.get coords.[1]

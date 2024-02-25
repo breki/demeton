@@ -32,10 +32,31 @@ let createShadingFuncById shadingFuncId =
 
 let createCompositingFuncById compositingFuncId =
     match compositingFuncId with
-    | CompositingFuncIdOver -> Png.AlphaCompositing.imageOver
+    | CompositingFuncIdOver -> AlphaCompositing.imageOver
     | _ -> invalidOp "Unknown compositing function."
 
 
+/// <summary>
+/// Executes a shading step in the pipeline.
+/// </summary>
+/// <param name="shadingFuncFactory">
+/// A function that creates a shading function given a shading function ID.
+/// The function is used for CustomShading steps.
+/// </param>
+/// <param name="compositingFuncFactory">
+/// A function that creates a compositing function given a compositing function
+/// ID. The function is used for Compositing steps.
+/// </param>
+/// <param name="heightsArray">An array of height values.</param>
+/// <param name="srtmLevel">
+/// The SRTM level to use for shading.
+/// </param>
+/// <param name="tileRect">The rectangle representing the tile.</param>
+/// <param name="inverse">An inverse map projection function to use.</param>
+/// <param name="step">The shading step to execute.</param>
+/// <returns>
+/// A RawImageData object representing the result of the shading step.
+/// </returns>
 let rec executeShadingStep
     shadingFuncFactory
     compositingFuncFactory
