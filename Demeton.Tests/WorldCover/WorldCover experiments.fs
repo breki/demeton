@@ -55,8 +55,13 @@ let readWorldCoverRaster
 
     let pixelsPerSrtmTile = 36000 / 3
 
+    let unreducedHeightsArrayWidth = pixelsPerSrtmTile
+    let unreducedHeightsArrayHeight = pixelsPerSrtmTile
+
     let unreducedHeightsArray: DemHeight[] =
-        Array.zeroCreate (pixelsPerSrtmTile * pixelsPerSrtmTile)
+        Array.zeroCreate (
+            unreducedHeightsArrayWidth * unreducedHeightsArrayHeight
+        )
 
     let srtmHeightArray = Array.zeroCreate (3600 * 3600)
 
@@ -78,7 +83,7 @@ let readWorldCoverRaster
     let tiffTileBufferSize = tiff.TileSize()
     let tiffTileBuffer = Array.zeroCreate<byte> tiffTileBufferSize
 
-    let reductionFactor = pixelsPerSrtmTile / 3600
+    let reductionFactor = float pixelsPerSrtmTile / (float 3600)
 
     for tiffTileY in [ startingTiffTileY..tiffTileLength..endingTiffTileY ] do
         for tiffTileX in [ startingTiffTileX..tiffTileWidth..endingTiffTileX ] do
@@ -108,27 +113,54 @@ let readWorldCoverRaster
             if bytesInTile = -1 then
                 failwith "Could not read tile."
 
-            // todo 0: copy the contents of the buffer into the heightsArray
+            // Copy the contents of the tile buffer into the unreduced heights
+            // array. This way we fill the heights array by the contents of each
+            // TIFF tile, one by one, until we have the whole heights array
+            // filed.
+            // Note that we use int16 heights array here because of simplicity,
+            // but in future we should provide direct support for byte arrays
+            // (since WorldCover uses byte arrays).
 
-            // todo 10: not exactly optimal
+            // todo 10: not exactly optimal way to copy from one array to another
             for i in 0 .. tiffTileBufferSize - 1 do
                 let value = tiffTileBuffer.[i]
-                let x = tiffTileX + i % tiffTileWidth
-                let y = tiffTileY + i / tiffTileWidth
-                let index = y * 3600 + x
-                unreducedHeightsArray.[index] <- int16 value
+
+                // local coordinates of the pixel within the TIFF tile
+                let tiffTileLocalX = i % tiffTileWidth
+                let tiffTileLocalY = i / tiffTileWidth
+
+                // coordinates of the pixel within the heights array
+                let heightsArrayX =
+                    (tiffTileX - startingTiffTileX) + tiffTileLocalX
+
+                let heightsArrayY =
+                    (tiffTileY - startingTiffTileY) + tiffTileLocalY
+
+                // copy the pixel to the heights array only if it fits within
+                // the array (some TIFF tiles may be partially outside the
+                // requested area)
+                if
+                    heightsArrayX < unreducedHeightsArrayWidth
+                    && heightsArrayY < unreducedHeightsArrayHeight
+                then
+                    // index of the pixel within the heights array
+                    let index =
+                        heightsArrayY * unreducedHeightsArrayWidth
+                        + heightsArrayX
+
+                    unreducedHeightsArray.[index] <- int16 value
 
             // now reduce the heightsArray to the SRTM size
 
             // todo 20: not really a good downsampling since it just takes the
-            //   first value in each reductionFactor x reductionFactor block
+            //   a single pixel value from a larger block of pixels
             for y in 0..3599 do
                 for x in 0..3599 do
                     let srtmIndex = y * 3600 + x
 
                     let unreducedIndex =
-                        (y * reductionFactor) * pixelsPerSrtmTile
-                        + (x * reductionFactor)
+                        y * pixelsPerSrtmTile / 3600 * pixelsPerSrtmTile
+                        + x * pixelsPerSrtmTile / 3600
 
                     srtmHeightArray.[srtmIndex] <-
                         unreducedHeightsArray.[unreducedIndex]
@@ -160,7 +192,11 @@ let options: ShadeCommand.Options =
         { Projection = PROJParameters.Mercator
           IgnoredParameters = [] } }
 
-let waterBodiesShader: RasterShader =
+/// <summary>
+/// Returns a raster shader that accepts a WorldCover-originated heights array
+/// and renders water bodies in blue and everything else in white.
+/// </summary>
+let worldCoverWaterBodiesShader: RasterShader =
     fun heightsArray srtmLevel tileRect imageData inverse ->
         let cellsPerDegree = cellsPerDegree 3600 srtmLevel
 
@@ -176,7 +212,10 @@ let waterBodiesShader: RasterShader =
                 let latDeg = radToDeg latRad
 
                 let globalSrtmX =
-                    int (Math.Round(lonDeg |> longitudeToCellX cellsPerDegree))
+                    lonDeg
+                    |> longitudeToCellX cellsPerDegree
+                    |> Math.Round
+                    |> int
 
                 let globalSrtmY =
                     latDeg
@@ -192,6 +231,7 @@ let waterBodiesShader: RasterShader =
 
                 let pixelValue =
                     match rasterValue with
+                    // 80 represents water
                     | Some 80s -> Rgba8Bit.rgbColor 0uy 0uy 255uy
                     | _ -> Rgba8Bit.rgbColor 255uy 255uy 255uy
 
@@ -234,7 +274,7 @@ let ``Load WorldCover file into a DemHeight`` () =
         |> Some
         |> Result.Ok
 
-    let createShaderFunction _ = waterBodiesShader
+    let createShaderFunction _ = worldCoverWaterBodiesShader
 
     let generateTile =
         ShadeCommand.generateShadedRasterTile
