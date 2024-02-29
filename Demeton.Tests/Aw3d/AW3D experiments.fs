@@ -75,11 +75,11 @@ let ``Load AW3D into a DemHeight`` () =
 
 let area, heights, srtmLevel, mapProjection, mapScale, tileRect =
     ShadingSampleGenerator.generateSampleWithParameters
-        7.1
-        46.1
-        7.9
-        46.9
-        250000.
+        7.416765
+        46.613756
+        7.928785
+        46.772998
+        25000.
         72.
 
 let coveragePoints = [ (area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat) ]
@@ -91,7 +91,7 @@ let options: ShadeCommand.Options =
       OutputDir = "output"
       SrtmDir = "srtm"
       TileSize = 10000
-      RootShadingStep = Pipeline.Common.CustomShading "XCTracer "
+      RootShadingStep = Pipeline.Common.CustomShading "XCTracer"
       MapScale = mapScale
       MapProjection =
         { Projection = PROJParameters.Mercator

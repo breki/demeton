@@ -98,7 +98,7 @@ type HeightsArray
     member this.MaxY = minY + height - 1
     member this.Cells = cells
 
-    member this.heightAt((x, y): GlobalCellCoords) =
+    member this.heightAt((x, y): GlobalCellCoords) : DemHeight =
 
 #if DEBUG
         match (x, y) with
@@ -114,7 +114,7 @@ type HeightsArray
         let heightAtCell = this.Cells.[index]
         heightAtCell
 
-    member this.interpolateHeightAt((x, y): float * float) =
+    member this.interpolateHeightAt((x, y): float * float) : float option =
         let fractionOf value = value - floor value
 
         let x1 = int (floor x)
