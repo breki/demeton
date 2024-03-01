@@ -74,19 +74,27 @@ let ``Load AW3D into a DemHeight`` () =
     test <@ demHeight <> null @>
 
 let area, heights, srtmLevel, mapProjection, mapScale, tileRect =
+    // ShadingSampleGenerator.generateSampleWithParameters
+    //     7.1
+    //     46.1
+    //     7.9
+    //     46.9
+    //     250000.
+    //     72.
+    // ShadingSampleGenerator.generateSampleWithParameters
+    //     7.416765
+    //     46.613756
+    //     7.928785
+    //     46.772998
+    //     25000.
+    //     72.
     ShadingSampleGenerator.generateSampleWithParameters
-        7.1
-        46.1
-        7.9
-        46.9
-        250000.
+        7.416765
+        46.613756
+        7.628785
+        46.652998
+        25000.
         72.
-// 7.416765
-// 46.613756
-// 7.928785
-// 46.772998
-// 25000.
-// 72.
 
 let coveragePoints = [ (area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat) ]
 
@@ -120,15 +128,23 @@ let xcTracerHillshader
             let aspectDarkness = aspectDiff / Math.PI
             let darkness = slopeDarkness * aspectDarkness
 
-            let darknessByteLimit = 220uy
+            // let darknessByteLimit = 220uy
+            //
+            // let darknessByte =
+            //     darknessByteLimit
+            //     - Hillshading.colorComponentRatioToByteLimited
+            //         darknessByteLimit
+            //         darkness
 
-            let darknessByte =
-                darknessByteLimit
-                - Hillshading.colorComponentRatioToByteLimited
-                    darknessByteLimit
-                    darkness
+            // let darknessByte = Hillshading.colorComponentRatioToByte darkness
 
-            Rgba8Bit.rgbColor darknessByte darknessByte darknessByte
+            if aspectDarkness > 1. || aspectDarkness < 0. then
+                Rgba8Bit.rgbColor 255uy 0uy 0uy
+            else
+                let darknessByte =
+                    255uy - Hillshading.colorComponentRatioToByte darkness
+
+                Rgba8Bit.rgbColor darknessByte darknessByte darknessByte
 
 
 [<Fact>]

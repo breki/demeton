@@ -193,12 +193,12 @@ let StepNameXcTracerWaterBodies = "XCTracer-water-bodies"
 let hillshadingStep = Pipeline.Common.CustomShading StepNameXcTracerHillshading
 let waterBodiesStep = Pipeline.Common.CustomShading StepNameXcTracerWaterBodies
 
-let hillAndWaterStep =
-    Pipeline.Common.Compositing(
-        hillshadingStep,
-        waterBodiesStep,
-        Demeton.Shaders.Pipeline.Common.CompositingFuncIdOver
-    )
+let hillAndWaterStep = hillshadingStep
+// Pipeline.Common.Compositing(
+//     hillshadingStep,
+//     waterBodiesStep,
+//     Demeton.Shaders.Pipeline.Common.CompositingFuncIdOver
+// )
 
 
 let options: ShadeCommand.Options =
