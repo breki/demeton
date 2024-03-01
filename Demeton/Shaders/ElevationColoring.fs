@@ -12,7 +12,7 @@ open System.Threading.Tasks
 open Text
 open Demeton.Srtm.Funcs
 
-type ColorScaleMark = (DemHeight * Rgba8Bit.RgbaColor)
+type ColorScaleMark = DemHeight * Rgba8Bit.RgbaColor
 
 type ColorScale =
     { Marks: ColorScaleMark[]
@@ -90,13 +90,13 @@ let colorOfHeight (heightMaybe: float option) (scale: ColorScale) =
         let mutable markIndex = 0
 
         while Option.isNone color && markIndex < scale.Marks.Length do
-            let (markHeight, markColor) = scale.Marks.[markIndex]
+            let markHeight, markColor = scale.Marks.[markIndex]
 
             if height <= float markHeight then
                 if markIndex = 0 then
                     color <- Some markColor
                 else
-                    let (prevMarkHeight, prevMarkColor) =
+                    let prevMarkHeight, prevMarkColor =
                         scale.Marks.[markIndex - 1]
 
                     color <-

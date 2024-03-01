@@ -117,10 +117,10 @@ type HeightsArray
     member this.interpolateHeightAt((x, y): float * float) : float option =
         let fractionOf value = value - floor value
 
-        let x1 = int x
-        let x2 = x1 + 1
-        let y1 = int y
-        let y2 = y1 + 1
+        let x1 = int (floor x)
+        let x2 = int (ceil x)
+        let y1 = int (floor y)
+        let y2 = int (ceil y)
 
         let h1 = this.heightAt (x1, y1)
         let h2 = this.heightAt (x2, y1)
