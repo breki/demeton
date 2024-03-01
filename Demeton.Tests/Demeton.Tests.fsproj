@@ -122,10 +122,6 @@
         <EmbeddedResource Include="..\samples\N46E015.hgt" Link="samples\N46E015.hgt"/>
         <EmbeddedResource Include="..\samples\N46E015.SRTMGL1.hgt.zip" Link="samples\N46E015.SRTMGL1.hgt.zip"/>
         <EmbeddedResource Include="..\samples\AW3D\ALPSMLC30_N046E006_DSM.tif" Link="samples\AW3D\ALPSMLC30_N046E006_DSM.tif"/>
-        <Content Include="..\samples\WorldCover\ESA_WorldCover_10m_2021_v200_N45E006_Map.tif">
-            <Link>Samples\ESA_WorldCover_10m_2021_v200_N45E006_Map.tif</Link>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
         <Content Include="..\samples\AW3D\ALPSMLC30_N046E007_DSM.tif">
             <Link>Samples\ALPSMLC30_N046E007_DSM.tif</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

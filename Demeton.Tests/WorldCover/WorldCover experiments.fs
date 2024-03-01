@@ -35,6 +35,9 @@ let readWorldCoverRaster
     : DemHeight[] =
     use tiff = Tiff.Open(fileName, "r")
 
+    if tiff = null then
+        failwithf $"Could not open the file %s{fileName}"
+
     let rasterWidth = unbox (tiff.GetField(TiffTag.IMAGEWIDTH).[0].Value)
 
     if rasterWidth <> 36000 then
@@ -268,54 +271,62 @@ let worldCoverWaterBodiesShader: RasterShader =
 
 // todo 5: how do I combine shading of AW3D and WorldCover water bodies?
 
+// skip this test if running on GitHub Actions
 [<Fact>]
 let ``Load WorldCover file into a DemHeight`` () =
-    let demHeight =
-        readWorldCoverRaster
-            @"Samples\ESA_WorldCover_10m_2021_v200_N45E006_Map.tif"
-            { Lon = { Value = 6 }
-              Lat = { Value = -45 } }
-            { Lon = { Value = 7 }
-              Lat = { Value = -46 } }
+    if Environment.GetEnvironmentVariable("CI") = "true" then
+        // this test cannot run on CI because we don't have the WorldCover
+        // raster available (it's too big to be added to git repo)
+        ()
+    else
+        let demHeight =
+            readWorldCoverRaster
+                @"C:\temp\WorldCover\ESA_WorldCover_10m_2021_v200_N45E006_Map.tif"
+                { Lon = { Value = 6 }
+                  Lat = { Value = -45 } }
+                { Lon = { Value = 7 }
+                  Lat = { Value = -46 } }
 
-    let tileSize = 3600
+        let tileSize = 3600
 
-    let tileId = parseTileName "N46E007"
-    let cellMinX, cellMinY = tileMinCell tileSize tileId
+        let tileId = parseTileName "N46E007"
+        let cellMinX, cellMinY = tileMinCell tileSize tileId
 
-    let fetchHeightsArray tileIds =
-        let cellMinX = cellMinX
-        let cellMinY = cellMinY
+        let fetchHeightsArray tileIds =
+            let cellMinX = cellMinX
+            let cellMinY = cellMinY
 
-        HeightsArray(
-            cellMinX,
-            cellMinY,
-            tileSize,
-            tileSize,
-            HeightsArrayDirectImport demHeight
-        )
-        |> Some
-        |> Result.Ok
+            HeightsArray(
+                cellMinX,
+                cellMinY,
+                tileSize,
+                tileSize,
+                HeightsArrayDirectImport demHeight
+            )
+            |> Some
+            |> Result.Ok
 
-    let createShaderFunction shaderFunctionName =
-        match shaderFunctionName with
-        | StepNameXcTracerHillshading ->
-            Tests.Aw3d.``AW3D experiments``.xcTracerHillshader
-                IgorHillshader.defaultParameters
-            |> Demeton.Shaders.Hillshading.shadeRaster
-        | StepNameXcTracerWaterBodies -> worldCoverWaterBodiesShader
-        | _ -> failwithf $"Unknown shader function name: %s{shaderFunctionName}"
+        let createShaderFunction shaderFunctionName =
+            match shaderFunctionName with
+            | StepNameXcTracerHillshading ->
+                Tests.Aw3d.``AW3D experiments``.xcTracerHillshader
+                    IgorHillshader.defaultParameters
+                |> Demeton.Shaders.Hillshading.shadeRaster
+            | StepNameXcTracerWaterBodies -> worldCoverWaterBodiesShader
+            | _ ->
+                failwithf
+                    $"Unknown shader function name: %s{shaderFunctionName}"
 
-    let generateTile =
-        ShadeCommand.generateShadedRasterTile
-            fetchHeightsArray
-            createShaderFunction
+        let generateTile =
+            ShadeCommand.generateShadedRasterTile
+                fetchHeightsArray
+                createShaderFunction
 
-    let saveTile =
-        ShadeCommand.saveShadedRasterTile
-            FileSys.ensureDirectoryExists
-            FileSys.openFileToWrite
-            File.savePngToStream
+        let saveTile =
+            ShadeCommand.saveShadedRasterTile
+                FileSys.ensureDirectoryExists
+                FileSys.openFileToWrite
+                File.savePngToStream
 
-    let result = ShadeCommand.run options generateTile saveTile
-    test <@ result |> isOk @>
+        let result = ShadeCommand.run options generateTile saveTile
+        test <@ result |> isOk @>
