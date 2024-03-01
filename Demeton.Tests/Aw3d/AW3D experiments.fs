@@ -75,12 +75,18 @@ let ``Load AW3D into a DemHeight`` () =
 
 let area, heights, srtmLevel, mapProjection, mapScale, tileRect =
     ShadingSampleGenerator.generateSampleWithParameters
-        7.416765
-        46.613756
-        7.928785
-        46.772998
-        25000.
+        7.1
+        46.1
+        7.9
+        46.9
+        250000.
         72.
+// 7.416765
+// 46.613756
+// 7.928785
+// 46.772998
+// 25000.
+// 72.
 
 let coveragePoints = [ (area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat) ]
 
@@ -97,7 +103,7 @@ let options: ShadeCommand.Options =
         { Projection = PROJParameters.Mercator
           IgnoredParameters = [] } }
 
-let customShadePixel
+let xcTracerHillshader
     (parameters: IgorHillshader.ShaderParameters)
     : Hillshading.PixelHillshader =
     fun _ slope aspect ->
@@ -150,7 +156,7 @@ let ``Generate hillshading from AW3D sample file`` () =
         |> Some
         |> Result.Ok
 
-    let pixelShader = customShadePixel IgorHillshader.defaultParameters
+    let pixelShader = xcTracerHillshader IgorHillshader.defaultParameters
 
     let createShaderFunction _ =
         Demeton.Shaders.Hillshading.shadeRaster pixelShader

@@ -10,11 +10,11 @@ type ColorRgbRatio = float * float * float
 
 let inline byteToRatio (byteValue: byte) = (float byteValue) / 255.
 
-let ratioToByte (ratio: float): byte = 
-    let asInt = int (Math.Round (ratio * 255.))
+let ratioToByte (ratio: float) : byte =
+    let asInt = int (Math.Round(ratio * 255.))
     byte (min (max asInt 0) 255)
 
-let toPremultiplied color: ColorRgbRatio =
+let toPremultiplied color : ColorRgbRatio =
     let inline premultiply value a = float (int value * a) / 65025.
 
     let a = int (Rgba8Bit.a color)
@@ -23,32 +23,33 @@ let toPremultiplied color: ColorRgbRatio =
     let bPremultiplied = premultiply (Rgba8Bit.b color) a
     (rPremultiplied, gPremultiplied, bPremultiplied)
 
-let toRgbaColor ((r, g, b): ColorRgbRatio) (a: float): Rgba8Bit.RgbaColor =       
+let toRgbaColor ((r, g, b): ColorRgbRatio) (a: float) : Rgba8Bit.RgbaColor =
     let inline fromPremultiplied value a = ratioToByte (value / a)
-    
+
     Rgba8Bit.rgbaColor
         (fromPremultiplied r a)
         (fromPremultiplied g a)
         (fromPremultiplied b a)
         (ratioToByte a)
 
-let pixelOver source dest = 
-    let inline addColors 
-        ((r1, g1, b1): ColorRgbRatio) ((r2, g2, b2): ColorRgbRatio)
+let pixelOver source dest =
+    let inline addColors
+        ((r1, g1, b1): ColorRgbRatio)
+        ((r2, g2, b2): ColorRgbRatio)
         : ColorRgbRatio =
         ((r1 + r2), (g1 + g2), (b1 + b2))
 
-    let inline multiplyColor factor ((r, g, b): ColorRgbRatio): ColorRgbRatio =
+    let inline multiplyColor factor ((r, g, b): ColorRgbRatio) : ColorRgbRatio =
         (r * factor, g * factor, b * factor)
 
     let sourceAb = Rgba8Bit.a source
     let destAb = Rgba8Bit.a dest
 
     match (sourceAb, destAb) with
-    | (0uy, _) -> dest
-    | (255uy, _) -> source
-    | (_, 0uy) -> source
-    | (_, 255uy) -> 
+    | 0uy, _ -> dest
+    | 255uy, _ -> source
+    | _, 0uy -> source
+    | _, 255uy ->
         let sourceAr = byteToRatio sourceAb
         let srcRgbR = toPremultiplied source
         let destRgbR = toPremultiplied dest
@@ -56,8 +57,8 @@ let pixelOver source dest =
         let outR = addColors srcRgbR (multiplyColor (1. - sourceAr) destRgbR)
         let outA = 1.
 
-        toRgbaColor outR outA        
-    | _ -> 
+        toRgbaColor outR outA
+    | _ ->
         let sourceAr = byteToRatio sourceAb
         let destAr = byteToRatio destAb
 
@@ -69,22 +70,26 @@ let pixelOver source dest =
 
         toRgbaColor outR outA
 
-type CompositingFunc = 
+type CompositingFunc =
     int -> int -> RawImageData -> RawImageData -> RawImageData
 
-let imageOver: CompositingFunc = 
+let imageOver: CompositingFunc =
     fun
         (imageWidth: int)
         (imageHeight: int)
         (source: RawImageData)
         (dest: RawImageData) ->
-    Parallel.For (0, imageHeight, fun y ->
-        for x in 0 .. imageWidth - 1 do
-            let sourcePixel = Rgba8Bit.pixelAt source imageWidth x y
-            let destPixel = Rgba8Bit.pixelAt dest imageWidth x y
+        Parallel.For(
+            0,
+            imageHeight,
+            fun y ->
+                for x in 0 .. imageWidth - 1 do
+                    let sourcePixel = Rgba8Bit.pixelAt source imageWidth x y
+                    let destPixel = Rgba8Bit.pixelAt dest imageWidth x y
 
-            let outPixel = pixelOver sourcePixel destPixel
-            Rgba8Bit.setPixelAt dest imageWidth x y outPixel
-        ) |> ignore
+                    let outPixel = pixelOver sourcePixel destPixel
+                    Rgba8Bit.setPixelAt dest imageWidth x y outPixel
+        )
+        |> ignore
 
-    dest
+        dest

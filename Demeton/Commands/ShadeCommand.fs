@@ -346,6 +346,10 @@ type ShadedRasterTileGenerator =
         -> MapProjection
         -> Result<RawImageData option, string>
 
+// todo 0: problem generateShadedRasterTile works by using the same heights
+//   array for all shading steps - we need to redesign this to support each
+//   shading step having its own heights array
+
 /// <summary>
 /// A higher-order function
 /// that returns a function to generate a shaded raster tile.

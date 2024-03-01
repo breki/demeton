@@ -19,13 +19,15 @@ open BitMiracle.LibTiff.Classic
 open Swensen.Unquote
 open TestHelp
 
-// todo 5: this function should accept the SrtmTileId that needs to be read
-//   and then find the required TIFF tiles to fill the HeightsArray.
-//   We can then test the result by implementing a custom shader that renders
-//   just the water bodies. We will deal with mixing this together with AW3D
-//   later.
-
-
+/// <summary>
+/// Reads a WorldCover raster file and returns the heights array for a specified
+/// tile.
+/// </summary>
+/// <remarks>
+/// The function accepts the SRTM-like tile coordinates of the lower left corner
+/// of the WorldCover raster file and the SRTM-like tile coordinates of the tile
+/// whose heights array is to be read.
+/// </remarks>
 let readWorldCoverRaster
     (fileName: string)
     (raster_file_tile_coords: SrtmTileCoords)
@@ -121,7 +123,7 @@ let readWorldCoverRaster
             // but in future we should provide direct support for byte arrays
             // (since WorldCover uses byte arrays).
 
-            // todo 10: not exactly optimal way to copy from one array to another
+            // todo 50: not exactly optimal way to copy from one array to another
             for i in 0 .. tiffTileBufferSize - 1 do
                 let value = tiffTileBuffer.[i]
 
@@ -154,6 +156,9 @@ let readWorldCoverRaster
 
             // todo 20: not really a good downsampling since it just takes the
             //   a single pixel value from a larger block of pixels
+
+            // todo 15: maybe we don't need to downsample it, just is it as it
+            //   is directly when shading?
             for y in 0..3599 do
                 for x in 0..3599 do
                     let srtmIndex = y * 3600 + x
@@ -179,6 +184,23 @@ let area, heights, srtmLevel, mapProjection, mapScale, tileRect =
 
 let coveragePoints = [ (area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat) ]
 
+[<Literal>]
+let StepNameXcTracerHillshading = "XCTracer-hillshading"
+
+[<Literal>]
+let StepNameXcTracerWaterBodies = "XCTracer-water-bodies"
+
+let hillshadingStep = Pipeline.Common.CustomShading StepNameXcTracerHillshading
+let waterBodiesStep = Pipeline.Common.CustomShading StepNameXcTracerWaterBodies
+
+let hillAndWaterStep =
+    Pipeline.Common.Compositing(
+        hillshadingStep,
+        waterBodiesStep,
+        Demeton.Shaders.Pipeline.Common.CompositingFuncIdOver
+    )
+
+
 let options: ShadeCommand.Options =
     { CoveragePoints = coveragePoints
       FilePrefix = "shading"
@@ -186,7 +208,7 @@ let options: ShadeCommand.Options =
       OutputDir = "output"
       SrtmDir = "srtm"
       TileSize = 10000
-      RootShadingStep = Pipeline.Common.CustomShading "XCTracer"
+      RootShadingStep = hillAndWaterStep
       MapScale = mapScale
       MapProjection =
         { Projection = PROJParameters.Mercator
@@ -194,7 +216,7 @@ let options: ShadeCommand.Options =
 
 /// <summary>
 /// Returns a raster shader that accepts a WorldCover-originated heights array
-/// and renders water bodies in blue and everything else in white.
+/// and renders water bodies in blue and everything else in transparent.
 /// </summary>
 let worldCoverWaterBodiesShader: RasterShader =
     fun heightsArray srtmLevel tileRect imageData inverse ->
@@ -233,7 +255,7 @@ let worldCoverWaterBodiesShader: RasterShader =
                     match rasterValue with
                     // 80 represents water
                     | Some 80s -> Rgba8Bit.rgbColor 0uy 0uy 255uy
-                    | _ -> Rgba8Bit.rgbColor 255uy 255uy 255uy
+                    | _ -> Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
 
                 Rgba8Bit.setPixelAt
                     imageData
@@ -244,6 +266,7 @@ let worldCoverWaterBodiesShader: RasterShader =
 
         Parallel.For(tileRect.MinY, tileRect.MaxY, processRasterLine) |> ignore
 
+// todo 5: how do I combine shading of AW3D and WorldCover water bodies?
 
 [<Fact>]
 let ``Load WorldCover file into a DemHeight`` () =
@@ -274,7 +297,14 @@ let ``Load WorldCover file into a DemHeight`` () =
         |> Some
         |> Result.Ok
 
-    let createShaderFunction _ = worldCoverWaterBodiesShader
+    let createShaderFunction shaderFunctionName =
+        match shaderFunctionName with
+        | StepNameXcTracerHillshading ->
+            Tests.Aw3d.``AW3D experiments``.xcTracerHillshader
+                IgorHillshader.defaultParameters
+            |> Demeton.Shaders.Hillshading.shadeRaster
+        | StepNameXcTracerWaterBodies -> worldCoverWaterBodiesShader
+        | _ -> failwithf $"Unknown shader function name: %s{shaderFunctionName}"
 
     let generateTile =
         ShadeCommand.generateShadedRasterTile
