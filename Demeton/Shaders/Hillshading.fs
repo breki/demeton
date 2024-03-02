@@ -85,8 +85,8 @@ let calculateSlopeAndAspect p q : SlopeAndAspect =
 /// Returns a raster shader that uses a specific pixel hillshader.
 /// </summary>
 let shadeRaster
-    (pixelHillshader: PixelHillshader)
     heightsArraysIndex
+    (pixelHillshader: PixelHillshader)
     : RasterShader =
     fun heightsArrays srtmLevel tileRect imageData inverse ->
         let tileWidth = tileRect.Width
