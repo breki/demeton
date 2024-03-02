@@ -84,7 +84,10 @@ let calculateSlopeAndAspect p q : SlopeAndAspect =
 /// <summary>
 /// Returns a raster shader that uses a specific pixel hillshader.
 /// </summary>
-let shadeRaster (pixelHillshader: PixelHillshader) : RasterShader =
+let shadeRaster
+    (pixelHillshader: PixelHillshader)
+    heightsArraysIndex
+    : RasterShader =
     fun heightsArrays srtmLevel tileRect imageData inverse ->
         let tileWidth = tileRect.Width
         let cellsPerDegree = cellsPerDegree 3600 srtmLevel
@@ -97,8 +100,9 @@ let shadeRaster (pixelHillshader: PixelHillshader) : RasterShader =
 
             let globalSrtmX = lonDeg |> longitudeToCellX cellsPerDegree
             let globalSrtmY = latDeg |> latitudeToCellY cellsPerDegree
-            // todo 2: using only the first heights array, for now
-            heightsArrays.[0].interpolateHeightAt (globalSrtmX, globalSrtmY)
+
+            heightsArrays[heightsArraysIndex]
+                .interpolateHeightAt (globalSrtmX, globalSrtmY)
 
         let neighborHeights neighborCoords : float option[] option =
             let allCoordsAreAvailable =

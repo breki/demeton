@@ -11,14 +11,16 @@ type ShaderParameters =
     {
       // https://en.wikipedia.org/wiki/Azimuth
       SunAzimuth: float
-      ShadingColor: Rgba8Bit.RgbaColor }
+      ShadingColor: Rgba8Bit.RgbaColor
+      HeightsArrayIndex: int }
 
 [<Literal>]
 let DefaultSunAzimuth = -45.
 
 let defaultParameters =
     { SunAzimuth = degToRad DefaultSunAzimuth
-      ShadingColor = 0u }
+      ShadingColor = 0u
+      HeightsArrayIndex = 0 }
 
 let shadePixel parameters : Hillshading.PixelHillshader =
     fun _ slope aspect ->

@@ -25,7 +25,8 @@ let ``Can parse step without parameters`` () =
             step = Ok(
                 IgorHillshading(
                     { SunAzimuth = degToRad -45.
-                      ShadingColor = 0u }
+                      ShadingColor = 0u
+                      HeightsArrayIndex = 0 }
                 )
             )
         @>
@@ -45,7 +46,8 @@ let ``Can parse step with valid parameters`` () =
             step = Ok(
                 IgorHillshading(
                     { SunAzimuth = degToRad -90.
-                      ShadingColor = 0x333333ffu }
+                      ShadingColor = 0x333333ffu
+                      HeightsArrayIndex = 0 }
                 )
             )
         @>

@@ -98,7 +98,10 @@ let rec executeShadingStep
             match step with
             | AspectShading parameters ->
                 Log.info "Running aspect shading step..."
-                Hillshading.shadeRaster (AspectShader.shadePixel parameters)
+
+                Hillshading.shadeRaster
+                    (AspectShader.shadePixel parameters)
+                    parameters.HeightsArrayIndex
             | ElevationColoring parameters ->
                 Log.info "Running elevation coloring step..."
 
@@ -107,10 +110,16 @@ let rec executeShadingStep
                     parameters.HeightsArraysIndex
             | IgorHillshading parameters ->
                 Log.info "Running igor hillshading step..."
-                Hillshading.shadeRaster (IgorHillshader.shadePixel parameters)
+
+                Hillshading.shadeRaster
+                    (IgorHillshader.shadePixel parameters)
+                    parameters.HeightsArrayIndex
             | SlopeShading parameters ->
                 Log.info "Running slope shading step..."
-                Hillshading.shadeRaster (SlopeShader.shadePixel parameters)
+
+                Hillshading.shadeRaster
+                    (SlopeShader.shadePixel parameters)
+                    parameters.HeightsArrayIndex
             | CustomShading shadingFuncId -> shadingFuncFactory shadingFuncId
             | _ -> invalidOp "Unsupported shading step"
 
