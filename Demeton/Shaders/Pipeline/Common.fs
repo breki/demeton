@@ -101,7 +101,10 @@ let rec executeShadingStep
                 Hillshading.shadeRaster (AspectShader.shadePixel parameters)
             | ElevationColoring parameters ->
                 Log.info "Running elevation coloring step..."
-                ElevationColoring.shadeRaster parameters.ColorScale
+
+                ElevationColoring.shadeRaster
+                    parameters.ColorScale
+                    parameters.HeightsArraysIndex
             | IgorHillshading parameters ->
                 Log.info "Running igor hillshading step..."
                 Hillshading.shadeRaster (IgorHillshader.shadePixel parameters)

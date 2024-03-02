@@ -242,7 +242,8 @@ let fillOptions parsedParameters =
     let shadingPipeline =
         Compositing(
             ElevationColoring
-                { ColorScale = ElevationColoring.colorScaleMaperitive },
+                { ColorScale = ElevationColoring.colorScaleMaperitive
+                  HeightsArraysIndex = 0 },
             IgorHillshading igorShaderParameters,
             CompositingFuncIdOver
         )

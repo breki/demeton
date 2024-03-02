@@ -7,7 +7,8 @@ open Demeton.Srtm.Types
 
 /// <summary>
 /// A function that takes a list of heights arrays, a SRTM level,
-/// a rectangle, a raw image data and an invert function and
+/// a rectangle, a raw image data and a map projection inverse function and
+/// applies a shader to the image.
 /// </summary>
 type RasterShader =
     HeightsArray[] -> SrtmLevel -> Rect -> RawImageData -> InvertFunc -> unit

@@ -29,8 +29,7 @@ let options: ShadeCommand.Options =
       SrtmDir = "srtm"
       TileSize = 250
       RootShadingStep =
-        Pipeline.Common.ElevationColoring
-            { ColorScale = ElevationColoring.colorScaleMaperitive }
+        Pipeline.Common.ElevationColoring ElevationColoring.defaultParameters
       MapScale = mapScale
       MapProjection =
         { Projection = Mercator

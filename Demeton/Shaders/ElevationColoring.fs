@@ -18,7 +18,9 @@ type ColorScale =
     { Marks: ColorScaleMark[]
       NoneColor: Rgba8Bit.RgbaColor }
 
-type Parameters = { ColorScale: ColorScale }
+type Parameters =
+    { ColorScale: ColorScale
+      HeightsArraysIndex: int }
 
 let colorScaleToString scale =
     scale.Marks
@@ -134,9 +136,11 @@ let colorScaleMaperitive =
 
       NoneColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy }
 
-let defaultParameters = { ColorScale = colorScaleMaperitive }
+let defaultParameters =
+    { ColorScale = colorScaleMaperitive
+      HeightsArraysIndex = 0 }
 
-let shadeRaster (colorScale: ColorScale) : RasterShader =
+let shadeRaster (colorScale: ColorScale) heightsArraysIndex : RasterShader =
     fun heightsArrays srtmLevel tileRect imageData inverse ->
 
         let cellsPerDegree = cellsPerDegree 3600 srtmLevel
@@ -154,8 +158,9 @@ let shadeRaster (colorScale: ColorScale) : RasterShader =
 
                 let globalSrtmX = lonDeg |> longitudeToCellX cellsPerDegree
                 let globalSrtmY = latDeg |> latitudeToCellY cellsPerDegree
-                // todo 2: using only the first heights array, for now
-                heightsArrays.[0].interpolateHeightAt (globalSrtmX, globalSrtmY)
+
+                heightsArrays.[heightsArraysIndex]
+                    .interpolateHeightAt (globalSrtmX, globalSrtmY)
 
         let processRasterLine y =
             for x in tileRect.MinX .. (tileRect.MaxX - 1) do

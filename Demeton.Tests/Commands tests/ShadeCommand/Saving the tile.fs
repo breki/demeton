@@ -11,35 +11,43 @@ open System.IO
 open Xunit
 open Swensen.Unquote
 
-let coveragePoints = [(4.262676, 42.90816); (16.962471, 48.502048)]
+let coveragePoints = [ (4.262676, 42.90816); (16.962471, 48.502048) ]
 
-let options: ShadeCommand.Options = {
-        CoveragePoints = coveragePoints
-        FilePrefix = "shading"
-        LocalCacheDir = "cache"
-        OutputDir = "output"
-        SrtmDir = "srtm"
-        TileSize = 1000
-        RootShadingStep = Pipeline.Common.ElevationColoring
-            { ColorScale = ElevationColoring.colorScaleMaperitive }
-        MapScale = { Dpi = 300.; MapScale = 5000000. }
-        MapProjection = { Projection = Mercator; IgnoredParameters = [] }
-    }
+let options: ShadeCommand.Options =
+    { CoveragePoints = coveragePoints
+      FilePrefix = "shading"
+      LocalCacheDir = "cache"
+      OutputDir = "output"
+      SrtmDir = "srtm"
+      TileSize = 1000
+      RootShadingStep =
+        Pipeline.Common.ElevationColoring ElevationColoring.defaultParameters
+      MapScale = { Dpi = 300.; MapScale = 5000000. }
+      MapProjection =
+        { Projection = Mercator
+          IgnoredParameters = [] } }
 
 let tileIndexX = 3
 let tileIndexY = 5
 let maxTileIndex = 9
-let tileRect: Raster.Rect 
-    = { MinX = 1023; MinY = 2343; Width = 10; Height = 20 }
+
+let tileRect: Raster.Rect =
+    { MinX = 1023
+      MinY = 2343
+      Width = 10
+      Height = 20 }
+
 let imageData = Rgba8Bit.createImageData 10 20 Rgba8Bit.ImageDataZero
 
 let mutable createdDirectoryName = None
-let createDirectory dirName = 
+
+let createDirectory dirName =
     createdDirectoryName <- Some dirName
     Ok dirName
 
 let mutable ihdrUsed = None
 let mutable imageDataUsed = None
+
 let writePngToStream: Png.File.PngStreamWriter =
     fun ihdr imageDataReceived stream ->
         ihdrUsed <- Some ihdr
@@ -47,35 +55,40 @@ let writePngToStream: Png.File.PngStreamWriter =
         stream
 
 let mutable pngFileNameUsed = None
+
 let openPngFile fileName =
     pngFileNameUsed <- Some fileName
     new MemoryStream() :> Stream |> Ok
 
 let saveTile maxTileIndex =
-    ShadeCommand.saveShadedRasterTile 
-        createDirectory 
+    ShadeCommand.saveShadedRasterTile
+        createDirectory
         openPngFile
-        writePngToStream 
-        options 
+        writePngToStream
+        options
         maxTileIndex
         (tileIndexX, tileIndexY)
-        tileRect 
+        tileRect
         imageData
 
 [<Fact>]
-let ``The output directory needs to be created``() =
+let ``The output directory needs to be created`` () =
     saveTile maxTileIndex |> ignore
 
     test <@ createdDirectoryName = Some "output" @>
 
 [<Fact>]
-let ``The name of tile PNG file has to be in the required format and is returned by the function``() =
+let ``The name of tile PNG file has to be in the required format and is returned by the function``
+    ()
+    =
     let returnedFileName = saveTile maxTileIndex
 
-    let expectedFileName = 
-        options.OutputDir 
-        |> Pth.combine 
-            (sprintf "%s-%d-%d.png" options.FilePrefix tileIndexX tileIndexY)
+    let expectedFileName =
+        options.OutputDir
+        |> Pth.combine (
+            sprintf "%s-%d-%d.png" options.FilePrefix tileIndexX tileIndexY
+        )
+
     test <@ pngFileNameUsed = Some expectedFileName @>
     test <@ returnedFileName = Ok expectedFileName @>
 
@@ -87,31 +100,38 @@ let ``The name of tile PNG file has to be in the required format and is returned
 [<InlineData(100, "003-005")>]
 [<InlineData(99, "03-05")>]
 let ``Zero-pads the tile index numbers in the PNG file name when required``
-    (maxTileIndexToUse, expectedTileIndexesString) =
+    (
+        maxTileIndexToUse,
+        expectedTileIndexesString
+    ) =
 
     saveTile maxTileIndexToUse |> ignore
 
-    let expectedFileName = 
-        options.OutputDir 
+    let expectedFileName =
+        options.OutputDir
         |> Pth.combine (
-            sprintf "%s-%s.png" options.FilePrefix expectedTileIndexesString)
+            sprintf "%s-%s.png" options.FilePrefix expectedTileIndexesString
+        )
+
     test <@ pngFileNameUsed = Some expectedFileName @>
-    
+
 [<Fact>]
-let ``PNG IHDR chunk is correctly filled and the correct image data is provided when saving PNG``() =
+let ``PNG IHDR chunk is correctly filled and the correct image data is provided when saving PNG``
+    ()
+    =
     saveTile maxTileIndex |> ignore
 
     test <@ ihdrUsed |> Option.isSome @>
     let ihdr = Option.get ihdrUsed
-    test <@ ihdr = { 
-        Width = tileRect.Width
-        Height = tileRect.Height
-        BitDepth = PngBitDepth.BitDepth8
-        ColorType = PngColorType.RgbAlpha
-        InterlaceMethod = PngInterlaceMethod.NoInterlace
-        }
+
+    test
+        <@
+            ihdr = { Width = tileRect.Width
+                     Height = tileRect.Height
+                     BitDepth = PngBitDepth.BitDepth8
+                     ColorType = PngColorType.RgbAlpha
+                     InterlaceMethod = PngInterlaceMethod.NoInterlace }
         @>
 
-    test <@ 
-            Option.isSome imageDataUsed 
-            && Option.get imageDataUsed = imageData @>
+    test
+        <@ Option.isSome imageDataUsed && Option.get imageDataUsed = imageData @>

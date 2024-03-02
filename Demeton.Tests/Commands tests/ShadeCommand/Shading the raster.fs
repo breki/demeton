@@ -30,8 +30,7 @@ let options: ShadeCommand.Options =
       SrtmDir = "srtm"
       TileSize = 1000
       RootShadingStep =
-        Pipeline.Common.ElevationColoring
-            { ColorScale = ElevationColoring.colorScaleMaperitive }
+        Pipeline.Common.ElevationColoring ElevationColoring.defaultParameters
       MapScale = mapScale
       MapProjection =
         { Projection = Mercator
@@ -47,6 +46,7 @@ let ``Elevation colorer colors all of the image`` () =
 
     ElevationColoring.shadeRaster
         ElevationColoring.colorScaleMaperitive
+        0
         [| heightsArray |]
         srtmLevel
         tileRect
