@@ -352,13 +352,6 @@ type ShadedRasterTileGenerator =
         -> MapProjection
         -> Result<RawImageData option, string>
 
-// todo 4: problem generateShadedRasterTile works by using the same heights
-//   array for all shading steps - we need to redesign this to support each
-//   shading step having its own heights array
-
-// todo 0: extend generateShadedRasterTile to support filling of an array of
-//   heights arrays by providing an array of SrtmHeightsArrayFetcher instances.
-//   The problem is what to do if one of heights arrays is not available?
 
 /// <summary>
 /// Returns a ShadedRasterTileGenerator that uses the given functions
@@ -403,27 +396,42 @@ let generateShadedRasterTile
               MaxLat = radToDeg (max lat1Rad lat2Rad) }
 
         let srtmTilesNeeded = boundsToTiles 3600 srtmLevel lonLatBounds
-        // todo 0: using only the first fetcher, for now
-        let heightsArrayResult = heightsArrayFetchers[0]srtmTilesNeeded
 
-        // todo 0: using only the first heights array, for now
-        match heightsArrayResult with
-        | Error errorMessage -> Error errorMessage
-        | Ok heightArrayOption ->
-            match heightArrayOption with
-            | Some heightsArray ->
+        let fetchingResults =
+            heightsArrayFetchers
+            |> Array.map (fun fetcher -> fetcher srtmTilesNeeded)
+
+        let firstErrorMaybe = fetchingResults |> Array.tryFind Result.isError
+
+        match firstErrorMaybe with
+        | Some(Error errorMessage) -> Error errorMessage
+        | _ ->
+            let fetchedHeightsArraysMaybe =
+                fetchingResults
+                |> Array.map (fun result ->
+                    match result with
+                    | Ok heightsArrayOption -> heightsArrayOption
+                    | Error _ -> None)
+
+            let allHeightsArraysAreAvailable =
+                fetchedHeightsArraysMaybe |> Array.exists Option.isNone |> not
+
+            if allHeightsArraysAreAvailable then
+                let heightsArrays = fetchedHeightsArraysMaybe |> Array.choose id
+
                 let imageData =
                     executeShadingStep
                         createShaderFunction
                         createCompositingFuncById
-                        [| heightsArray |]
+                        heightsArrays
                         srtmLevel
                         tileRect
                         mapProjection.Invert
                         rootShadingStep
 
                 Ok(Some imageData)
-            | None -> Ok None
+            else
+                Ok None
 
 type ShadedRasterTileSaver =
     Options

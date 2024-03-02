@@ -68,30 +68,32 @@ let readWorldCoverRaster
             unreducedHeightsArrayWidth * unreducedHeightsArrayHeight
         )
 
-    let srtmHeightArray = Array.zeroCreate (3600 * 3600)
-
-    let startingTiffTileX =
+    // calculate the box (in TIFF coordinates) of the requested SRTM tile
+    let startingTiffX =
         (requested_tile_coords.Lon.Value - raster_file_tile_coords.Lon.Value)
         * pixelsPerSrtmTile
 
-    let startingTiffTileY =
+    let startingTiffY =
         -(requested_tile_coords.Lat.Value - raster_file_tile_coords.Lat.Value)
         * pixelsPerSrtmTile
 
-    let endingTiffTileX = startingTiffTileX + pixelsPerSrtmTile
-    let endingTiffTileY = startingTiffTileY + pixelsPerSrtmTile
+    let endingTiffX = startingTiffX + pixelsPerSrtmTile
+    let endingTiffY = startingTiffY + pixelsPerSrtmTile
 
+    // the size of an individual TIFF tile (not geographic tile, but a tile
+    // in terms of tiling a TIFF raster into small quadratic pieces)
     let tiffTileWidth = unbox (tiff.GetField(TiffTag.TILEWIDTH).[0].Value)
-    let tiffTileLength = unbox (tiff.GetField(TiffTag.TILELENGTH).[0].Value)
+    let tiffTileHeight = unbox (tiff.GetField(TiffTag.TILELENGTH).[0].Value)
 
-    // the size (in bytes) of a single TIFF tile
+    // the memory size (in bytes) of a single TIFF tile
     let tiffTileBufferSize = tiff.TileSize()
     let tiffTileBuffer = Array.zeroCreate<byte> tiffTileBufferSize
 
-    let reductionFactor = float pixelsPerSrtmTile / (float 3600)
+    let srtmHeightArray = Array.zeroCreate (3600 * 3600)
 
-    for tiffTileY in [ startingTiffTileY..tiffTileLength..endingTiffTileY ] do
-        for tiffTileX in [ startingTiffTileX..tiffTileWidth..endingTiffTileX ] do
+    // for each TIFF tile that intersects the requested SRTM tile
+    for tiffTileY in [ startingTiffY..tiffTileHeight..endingTiffY ] do
+        for tiffTileX in [ startingTiffX..tiffTileWidth..endingTiffX ] do
             /// 0-based byte offset in buffer at which to begin storing read
             /// and decoded bytes
             let offset = 0
@@ -105,6 +107,17 @@ let readWorldCoverRaster
             // The tile to read and decode is selected by the (x, y, z, plane)
             // coordinates (i.e. ReadTile returns the data for the tile
             // containing the specified coordinates.
+
+            // todo 0: problem: the tile loaded does not start at tiffTileX, tiffTileY
+            //   - we need to figure out its actual starting coordinates and adjust
+            //   that in our calculations when copying to the unreducedHeightsArray
+
+            let tileXIndex = tiffTileX / tiffTileWidth
+            let tileYIndex = tiffTileY / tiffTileHeight
+
+            let actualTileX = tileXIndex * tiffTileWidth
+            let actualTileY = tileYIndex * tiffTileHeight
+
             let bytesInTile =
                 tiff.ReadTile(
                     tiffTileBuffer,
@@ -136,16 +149,18 @@ let readWorldCoverRaster
 
                 // coordinates of the pixel within the heights array
                 let heightsArrayX =
-                    (tiffTileX - startingTiffTileX) + tiffTileLocalX
+                    (actualTileX - startingTiffX) + tiffTileLocalX
 
                 let heightsArrayY =
-                    (tiffTileY - startingTiffTileY) + tiffTileLocalY
+                    (actualTileY - startingTiffY) + tiffTileLocalY
 
                 // copy the pixel to the heights array only if it fits within
                 // the array (some TIFF tiles may be partially outside the
                 // requested area)
                 if
-                    heightsArrayX < unreducedHeightsArrayWidth
+                    heightsArrayX >= 0
+                    && heightsArrayY >= 0
+                    && heightsArrayX < unreducedHeightsArrayWidth
                     && heightsArrayY < unreducedHeightsArrayHeight
                 then
                     // index of the pixel within the heights array
@@ -164,13 +179,13 @@ let readWorldCoverRaster
             //   is directly when shading?
             for y in 0..3599 do
                 for x in 0..3599 do
-                    let srtmIndex = y * 3600 + x
+                    let srtmArrayIndex = y * 3600 + x
 
                     let unreducedIndex =
                         y * pixelsPerSrtmTile / 3600 * pixelsPerSrtmTile
                         + x * pixelsPerSrtmTile / 3600
 
-                    srtmHeightArray.[srtmIndex] <-
+                    srtmHeightArray.[srtmArrayIndex] <-
                         unreducedHeightsArray.[unreducedIndex]
 
     srtmHeightArray
@@ -196,17 +211,17 @@ let StepNameXcTracerWaterBodies = "XCTracer-water-bodies"
 let hillshadingStep = Pipeline.Common.CustomShading StepNameXcTracerHillshading
 let waterBodiesStep = Pipeline.Common.CustomShading StepNameXcTracerWaterBodies
 
-let hillAndWaterStep = hillshadingStep
-// Pipeline.Common.Compositing(
-//     hillshadingStep,
-//     waterBodiesStep,
-//     Demeton.Shaders.Pipeline.Common.CompositingFuncIdOver
-// )
+let hillAndWaterStep =
+    Pipeline.Common.Compositing(
+        hillshadingStep,
+        waterBodiesStep,
+        Demeton.Shaders.Pipeline.Common.CompositingFuncIdOver
+    )
 
 
 let options: ShadeCommand.Options =
     { CoveragePoints = coveragePoints
-      FilePrefix = "shading"
+      FilePrefix = "XCTracer-hillshading"
       LocalCacheDir = "cache"
       OutputDir = "output"
       SrtmDir = "srtm"
@@ -221,7 +236,7 @@ let options: ShadeCommand.Options =
 /// Returns a raster shader that accepts a WorldCover-originated heights array
 /// and renders water bodies in blue and everything else in transparent.
 /// </summary>
-let worldCoverWaterBodiesShader: RasterShader =
+let worldCoverWaterBodiesShader heightsArrayIndex : RasterShader =
     fun heightsArrays srtmLevel tileRect imageData inverse ->
         let cellsPerDegree = cellsPerDegree 3600 srtmLevel
 
@@ -248,16 +263,23 @@ let worldCoverWaterBodiesShader: RasterShader =
                     |> Math.Round
                     |> int
 
-                heightsArrays[0].heightAt (globalSrtmX, globalSrtmY) |> Some
+                heightsArrays[heightsArrayIndex]
+                    .heightAt (globalSrtmX, globalSrtmY)
+                |> Some
 
         let processRasterLine y =
             for x in tileRect.MinX .. (tileRect.MaxX - 1) do
                 let rasterValue = valueForTilePixel x y
 
+                let waterColor =
+                    match (Rgba8Bit.tryParseColorHexValue "#49C8FF") with
+                    | Ok color -> color
+                    | Error _ -> failwith "Could not parse color"
+
                 let pixelValue =
                     match rasterValue with
                     // 80 represents water
-                    | Some 80s -> Rgba8Bit.rgbColor 0uy 0uy 255uy
+                    | Some 80s -> waterColor
                     | _ -> Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
 
                 Rgba8Bit.setPixelAt
@@ -268,8 +290,6 @@ let worldCoverWaterBodiesShader: RasterShader =
                     pixelValue
 
         Parallel.For(tileRect.MinY, tileRect.MaxY, processRasterLine) |> ignore
-
-// todo 5: how do I combine shading of AW3D and WorldCover water bodies?
 
 // skip this test if running on GitHub Actions
 [<Fact>]
@@ -306,20 +326,25 @@ let ``Load WorldCover file into a DemHeight`` () =
             |> Some
             |> Result.Ok
 
+
+        let heightsArraysFetchers =
+            [| Tests.Aw3d.``AW3D experiments``.fetchAw3dHeightsArray
+               fetchWorldCoverHeightsArray |]
+
         let createShaderFunction shaderFunctionName =
             match shaderFunctionName with
-            | StepNameXcTracerWaterBodies -> worldCoverWaterBodiesShader
             | StepNameXcTracerHillshading ->
                 Tests.Aw3d.``AW3D experiments``.xcTracerHillshader
                     IgorHillshader.defaultParameters
                 |> Demeton.Shaders.Hillshading.shadeRaster 0
+            | StepNameXcTracerWaterBodies -> worldCoverWaterBodiesShader 1
             | _ ->
                 failwithf
                     $"Unknown shader function name: %s{shaderFunctionName}"
 
         let generateTile =
             ShadeCommand.generateShadedRasterTile
-                [| fetchWorldCoverHeightsArray |]
+                heightsArraysFetchers
                 createShaderFunction
 
         let saveTile =

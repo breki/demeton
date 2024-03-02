@@ -146,32 +146,33 @@ let xcTracerHillshader
 
                 Rgba8Bit.rgbColor darknessByte darknessByte darknessByte
 
+[<Literal>]
+let tileSize = 3600
 
-[<Fact>]
-let ``Generate hillshading from AW3D sample file`` () =
+let fetchAw3dHeightsArray _ =
     let fileName = @"Samples\ALPSMLC30_N046E007_DSM.tif"
 
     let demHeight = readAw3dHeights fileName
 
-    let tileSize = 3600
-
     let tileId = Demeton.Srtm.Funcs.parseTileName "N46E007"
     let cellMinX, cellMinY = Demeton.Srtm.Funcs.tileMinCell tileSize tileId
 
-    let fetchHeightsArray tileIds =
-        let cellMinX = cellMinX
-        let cellMinY = cellMinY
+    let cellMinX = cellMinX
+    let cellMinY = cellMinY
 
-        HeightsArray(
-            cellMinX,
-            cellMinY,
-            tileSize,
-            tileSize,
-            HeightsArrayDirectImport demHeight
-        )
-        |> Some
-        |> Result.Ok
+    HeightsArray(
+        cellMinX,
+        cellMinY,
+        tileSize,
+        tileSize,
+        HeightsArrayDirectImport demHeight
+    )
+    |> Some
+    |> Result.Ok
 
+
+[<Fact>]
+let ``Generate hillshading from AW3D sample file`` () =
     let pixelShader = xcTracerHillshader IgorHillshader.defaultParameters
 
     let createShaderFunction _ =
@@ -179,7 +180,7 @@ let ``Generate hillshading from AW3D sample file`` () =
 
     let generateTile =
         ShadeCommand.generateShadedRasterTile
-            [| fetchHeightsArray |]
+            [| fetchAw3dHeightsArray |]
             createShaderFunction
 
     let saveTile =
