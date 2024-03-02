@@ -310,10 +310,9 @@ let ``Load WorldCover file into a DemHeight`` () =
             match shaderFunctionName with
             | StepNameXcTracerWaterBodies -> worldCoverWaterBodiesShader
             | StepNameXcTracerHillshading ->
-                Demeton.Shaders.Hillshading.shadeRaster
-                    (Tests.Aw3d.``AW3D experiments``.xcTracerHillshader
-                        IgorHillshader.defaultParameters)
-                    0
+                Tests.Aw3d.``AW3D experiments``.xcTracerHillshader
+                    IgorHillshader.defaultParameters
+                |> Demeton.Shaders.Hillshading.shadeRaster 0
             | _ ->
                 failwithf
                     $"Unknown shader function name: %s{shaderFunctionName}"

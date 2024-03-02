@@ -140,7 +140,7 @@ let defaultParameters =
     { ColorScale = colorScaleMaperitive
       HeightsArraysIndex = 0 }
 
-let shadeRaster (colorScale: ColorScale) heightsArraysIndex : RasterShader =
+let shadeRaster heightsArraysIndex (colorScale: ColorScale) : RasterShader =
     fun heightsArrays srtmLevel tileRect imageData inverse ->
 
         let cellsPerDegree = cellsPerDegree 3600 srtmLevel

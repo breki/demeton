@@ -45,8 +45,8 @@ let ``Elevation colorer colors all of the image`` () =
         Rgba8Bit.createImageData imageWidth imageHeight Rgba8Bit.ImageDataZero
 
     ElevationColoring.shadeRaster
-        ElevationColoring.colorScaleMaperitive
         0
+        ElevationColoring.colorScaleMaperitive
         [| heightsArray |]
         srtmLevel
         tileRect

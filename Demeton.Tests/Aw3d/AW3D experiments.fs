@@ -175,7 +175,7 @@ let ``Generate hillshading from AW3D sample file`` () =
     let pixelShader = xcTracerHillshader IgorHillshader.defaultParameters
 
     let createShaderFunction _ =
-        Demeton.Shaders.Hillshading.shadeRaster pixelShader 0
+        Demeton.Shaders.Hillshading.shadeRaster 0 pixelShader
 
     let generateTile =
         ShadeCommand.generateShadedRasterTile
