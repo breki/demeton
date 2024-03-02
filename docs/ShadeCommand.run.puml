@@ -1,0 +1,33 @@
+﻿@startuml
+title ShadeCommand.run()
+
+start
+:ShadeCommand.run(
+    generateTile,
+    saveTile
+);
+
+group calculating stuff
+:Projections.Factory.createMapProjection();
+:ShadeCommand.runWithProjection();
+:project coverage points;
+:calculate raster MBR;
+:calculate SRTM level needed;
+:calculate raster tiles array;
+end group
+
+group generating image tiles
+repeat :next tile;
+    :**generateTile**(
+        srtmlevel, 
+        tileBounds, 
+        shadingStep, 
+        mapProjection);
+    note right: generates RawImageData
+    :**saveTile**();
+repeat while (more tiles?) is (yes)
+-> no;
+end group;
+
+stop
+@enduml

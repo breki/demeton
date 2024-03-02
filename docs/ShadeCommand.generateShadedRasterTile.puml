@@ -1,0 +1,16 @@
+﻿@startuml
+title ShadeCommand.generateShadedRasterTile()
+
+start
+:ShadeCommand.generateShadedRasterTile(
+    **fetchHeightsArray**: SrtmHeightsArrayFetcher,
+    **createShaderFunction**: ShadingFuncFactory
+);
+
+:calculate lon/lat bounds of area;
+:calculate SRTM tile needed\nto cover the area;
+:fetchHeightsArray();
+:executeShadingStep();
+note right: returns RawImageData
+stop
+@enduml

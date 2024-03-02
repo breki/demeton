@@ -112,7 +112,7 @@ let parseProjSpecParameter value : OptionValueParsingResult =
     | Error(SpecParsingError error) ->
         InvalidValue(Environment.NewLine + error.Message)
     | Error(UnsupportedProjection projectionId) ->
-        sprintf "unsupported map projection '%s'" projectionId |> InvalidValue
+        $"unsupported map projection '%s{projectionId}'" |> InvalidValue
     | Error(InvalidProjectionParameters message) ->
         InvalidValue(Environment.NewLine + message)
 
@@ -139,7 +139,7 @@ let parseShadingScriptOption: OptionValueParser =
             buildString ()
             |> newLine
             |> appendLine value
-            |> appendLine (sprintf "%s^" (String(' ', parsingError.Location)))
+            |> appendLine $"%s{String(' ', parsingError.Location)}^"
             |> append parsingError.Message
             |> append "."
             |> toString
@@ -328,8 +328,14 @@ let splitIntoIntervals minValue maxValue intervalSize =
         (intervalIndex, intervalMinValue, intervalMaxValue))
 
 /// <summary>
-/// A function generates a shaded raster tile.
+/// A function the generates a shaded raster tile.
 /// </summary>
+/// <remarks>
+/// Given the SRTM level, the tile rectangle, the root shading step, and the
+/// map projection, the function should obtain the necessary geographical
+/// information, run the shading pipeline, and return the raw image data of
+/// the shaded raster tile.
+/// </remarks>
 /// <param name="srtmLevel">The SRTM level for the tile.</param>
 /// <param name="tileRect">The rectangle representing the tile.</param>
 /// <param name="rootShadingStep">The root shading step for the tile.</param>
@@ -351,8 +357,8 @@ type ShadedRasterTileGenerator =
 //   shading step having its own heights array
 
 /// <summary>
-/// A higher-order function
-/// that returns a function to generate a shaded raster tile.
+/// Returns a ShadedRasterTileGenerator that uses the given functions
+/// to fetch the heights array and create the shading function.
 /// </summary>
 /// <param name="fetchHeightsArray">
 /// A function that fetches the heights array for a given set of SRTM tiles.
@@ -360,9 +366,12 @@ type ShadedRasterTileGenerator =
 /// <param name="createShaderFunction">
 /// A function that creates a shading function for a given shading step.
 /// </param>
+/// <param name="srtmLevel">The SRTM level for the tile.</param>
+/// <param name="tileRect">The rectangle representing the tile.</param>
+/// <param name="rootShadingStep">The root shading step.</param>
+/// <param name="mapProjection">The map projection to use.</param>
 /// <returns>
-/// A function that takes an SRTM level, a tile rectangle, a shading step,
-/// and a map projection, and generates a shaded raster tile.
+/// A ShadedRasterTileGenerator function.
 /// </returns>
 let generateShadedRasterTile
     (fetchHeightsArray: SrtmHeightsArrayFetcher)
@@ -492,19 +501,17 @@ let runWithProjection
         |> lonLatDeltaToSrtmLevel 3600
 
     // then split it up into tiles
-    let tileSize = options.TileSize
-
     let tilesToGenerate =
         [ for yIndex, tileMinY, tileMaxY in
               splitIntoIntervals
                   rasterMbrRounded.MinY
                   rasterMbrRounded.MaxY
-                  tileSize do
+                  options.TileSize do
               for xIndex, tileMinX, tileMaxX in
                   splitIntoIntervals
                       rasterMbrRounded.MinX
                       rasterMbrRounded.MaxX
-                      tileSize do
+                      options.TileSize do
                   let tileBounds =
                       Rect.asMinMax tileMinX tileMinY tileMaxX tileMaxY
 
@@ -530,7 +537,7 @@ let runWithProjection
         (fun state (xIndex, yIndex, tileBounds) ->
             state
             |> Result.bind (fun tilesGeneratedSoFar ->
-                Log.info "Generating a shade tile %d/%d..." xIndex yIndex
+                Log.info $"Generating a shade tile %d{xIndex}/%d{yIndex}..."
 
                 generateTile
                     srtmLevel
@@ -560,6 +567,43 @@ let runWithProjection
                 $"Nothing was generated since there were no SRTM tiles to work with. Are you sure '%s{options.SrtmDir}' directory contains SRTM tiles?"
         | _ -> ())
 
+/// <summary>
+/// The main function for generating shaded raster tiles.
+/// </summary>
+/// <remarks>
+/// <para>
+/// This function is the main entry point for the shading process. It takes in
+/// the options for the shading process, a function to generate individual
+/// shaded raster tiles, and a function to save these tiles as image files.
+/// </para>
+/// <para>
+/// The function first creates a map projection using the projection and scale
+/// specified in the options. It then calls the `runWithProjection` function,
+/// passing in the created map projection along with the other parameters.
+/// The `runWithProjection` function is responsible for generating and saving
+/// the shaded raster tiles. It projects the coverage points, calculates the
+/// minimum bounding rectangle of these points, determines the SRTM level
+/// needed, and splits the area into tiles. For each tile, it generates the
+/// shaded raster tile and saves it as an image file.
+/// </para>
+/// <para>
+/// If all tiles are successfully generated and saved, the function returns a
+/// result type containing unit. If any part of the process fails, it returns a
+/// result type containing an error message.
+/// </para>
+/// </remarks>
+/// <param name="options">
+/// The options for the shading process, including parameters
+/// like coverage points, root shading step, map scale, and map projection.
+/// </param>
+/// <param name="generateTile">
+/// A function that generates an individual shaded raster tile.</param>
+/// <param name="saveTile">
+/// A function that saves a shaded raster tile as an image file.
+/// </param>
+/// <returns>
+/// A result typ with ean error message if any part of the process fails
+/// .</returns>
 let run
     (options: Options)
     (generateTile: ShadedRasterTileGenerator)

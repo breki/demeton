@@ -208,6 +208,20 @@ let tileLonLatBounds tileSize (tile: SrtmTileId) : LonLatBounds =
       MaxLon = maxLon
       MaxLat = maxLat }
 
+/// <summary>
+/// Generates a list of SRTM tiles that cover a given geographical bounds.
+/// </summary>
+/// <param name="tileSize">The size of the tile (in cells).</param>
+/// <param name="level">The SRTM level of the tiles.</param>
+/// <param name="bounds">The geographical bounds to cover.</param>
+/// <returns>
+/// A list of SRTM tiles that cover the given geographical bounds.
+/// </returns>
+/// <remarks>
+/// This function calculates the minimum and maximum tile coordinates that
+/// cover the given geographical bounds. It then generates a list of all
+/// tiles within these coordinates.
+/// </remarks>
 let boundsToTiles
     tileSize
     (level: SrtmLevel)
