@@ -137,7 +137,7 @@ let colorScaleMaperitive =
 let defaultParameters = { ColorScale = colorScaleMaperitive }
 
 let shadeRaster (colorScale: ColorScale) : RasterShader =
-    fun heightsArray srtmLevel tileRect imageData inverse ->
+    fun heightsArrays srtmLevel tileRect imageData inverse ->
 
         let cellsPerDegree = cellsPerDegree 3600 srtmLevel
 
@@ -154,7 +154,8 @@ let shadeRaster (colorScale: ColorScale) : RasterShader =
 
                 let globalSrtmX = lonDeg |> longitudeToCellX cellsPerDegree
                 let globalSrtmY = latDeg |> latitudeToCellY cellsPerDegree
-                heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
+                // todo 2: using only the first heights array, for now
+                heightsArrays.[0].interpolateHeightAt (globalSrtmX, globalSrtmY)
 
         let processRasterLine y =
             for x in tileRect.MinX .. (tileRect.MaxX - 1) do

@@ -398,6 +398,7 @@ let generateShadedRasterTile
         let srtmTilesNeeded = boundsToTiles 3600 srtmLevel lonLatBounds
         let heightsArrayResult = fetchHeightsArray srtmTilesNeeded
 
+        // todo 2: using only the first heights array, for now
         match heightsArrayResult with
         | Error errorMessage -> Error errorMessage
         | Ok heightArrayOption ->
@@ -407,7 +408,7 @@ let generateShadedRasterTile
                     executeShadingStep
                         createShaderFunction
                         createCompositingFuncById
-                        heightsArray
+                        [| heightsArray |]
                         srtmLevel
                         tileRect
                         mapProjection.Invert

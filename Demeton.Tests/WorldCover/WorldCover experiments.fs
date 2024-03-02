@@ -222,7 +222,7 @@ let options: ShadeCommand.Options =
 /// and renders water bodies in blue and everything else in transparent.
 /// </summary>
 let worldCoverWaterBodiesShader: RasterShader =
-    fun heightsArray srtmLevel tileRect imageData inverse ->
+    fun heightsArrays srtmLevel tileRect imageData inverse ->
         let cellsPerDegree = cellsPerDegree 3600 srtmLevel
 
         let tileWidth = tileRect.Width
@@ -248,7 +248,7 @@ let worldCoverWaterBodiesShader: RasterShader =
                     |> Math.Round
                     |> int
 
-                heightsArray.heightAt (globalSrtmX, globalSrtmY) |> Some
+                heightsArrays[0].heightAt (globalSrtmX, globalSrtmY) |> Some
 
         let processRasterLine y =
             for x in tileRect.MinX .. (tileRect.MaxX - 1) do

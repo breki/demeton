@@ -1,5 +1,6 @@
 ﻿module Demeton.Shaders.Pipeline.Common
 
+open Demeton.DemTypes
 open Raster
 open Demeton.Shaders
 open Demeton.Shaders.Types
@@ -47,7 +48,7 @@ let createCompositingFuncById compositingFuncId =
 /// A function that creates a compositing function given a compositing function
 /// ID. The function is used for Compositing steps.
 /// </param>
-/// <param name="heightsArray">An array of height values.</param>
+/// <param name="heightsArrays">A list of arrays of height values.</param>
 /// <param name="srtmLevel">
 /// The SRTM level to use for shading.
 /// </param>
@@ -60,7 +61,7 @@ let createCompositingFuncById compositingFuncId =
 let rec executeShadingStep
     shadingFuncFactory
     compositingFuncFactory
-    heightsArray
+    (heightsArrays: HeightsArray[])
     srtmLevel
     tileRect
     inverse
@@ -73,7 +74,7 @@ let rec executeShadingStep
             executeShadingStep
                 shadingFuncFactory
                 compositingFuncFactory
-                heightsArray
+                heightsArrays
                 srtmLevel
                 tileRect
                 inverse
@@ -83,7 +84,7 @@ let rec executeShadingStep
             executeShadingStep
                 shadingFuncFactory
                 compositingFuncFactory
-                heightsArray
+                heightsArrays
                 srtmLevel
                 tileRect
                 inverse
@@ -116,5 +117,5 @@ let rec executeShadingStep
                 tileRect.Height
                 Rgba8Bit.ImageDataZero
 
-        rasterShaderToUse heightsArray srtmLevel tileRect imageData inverse
+        rasterShaderToUse heightsArrays srtmLevel tileRect imageData inverse
         imageData

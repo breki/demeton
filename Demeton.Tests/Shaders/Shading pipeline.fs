@@ -13,9 +13,8 @@ let mutable shadedImageGenerated = None
 [<Literal>]
 let ShadingFuncIdStupid = "stupid"
 
-let stupidRasterShader: RasterShader = 
-    fun _ _ _ imageData _ -> 
-    shadedImageGenerated <- Some imageData
+let stupidRasterShader: RasterShader =
+    fun _ _ _ imageData _ -> shadedImageGenerated <- Some imageData
 
 let createShadingFuncById shadingFuncId =
     match shadingFuncId with
@@ -31,9 +30,11 @@ let stupidCompositing (width: int) (height: int) _ _ =
     let imageInitializer _ = Rgba8Bit.rgbaColor 1uy 1uy 1uy 1uy
 
     let compositedImage =
-        Rgba8Bit.createImageData 
-            width height 
+        Rgba8Bit.createImageData
+            width
+            height
             (Rgba8Bit.ImageDataInitializer1D imageInitializer)
+
     compositedImageGenerated <- Some compositedImage
     compositedImage
 
@@ -42,82 +43,97 @@ let createCompositingFuncById compositingFuncId =
     | CompositingFuncIdStupid -> stupidCompositing
     | _ -> invalidOp "Unknown compositing function."
 
-let (area, heights, srtmLevel, mapProjection, mapScale, tileRect) = 
-    ShadingSampleGenerator.generateSample()
+let area, heightsArray, srtmLevel, mapProjection, mapScale, tileRect =
+    ShadingSampleGenerator.generateSample ()
 
 [<Fact>]
-let ``Supports running a simple, single-step pipeline``() =           
+let ``Supports running a simple, single-step pipeline`` () =
     let step = CustomShading ShadingFuncIdStupid
 
-    let resultingImageData = 
-        executeShadingStep 
+    let resultingImageData =
+        executeShadingStep
             createShadingFuncById
-            createCompositingFuncById 
-            heights srtmLevel tileRect mapProjection.Invert step
+            createCompositingFuncById
+            [| heightsArray |]
+            srtmLevel
+            tileRect
+            mapProjection.Invert
+            step
+
     test <@ Some resultingImageData = shadedImageGenerated @>
 
 [<Fact>]
-let ``Supports compositing of images``() =
+let ``Supports compositing of images`` () =
     let shader1Step = CustomShading ShadingFuncIdStupid
     let shader2Step = CustomShading ShadingFuncIdStupid
-    let compositingStep = 
-        Compositing (shader1Step, shader2Step, CompositingFuncIdStupid)
 
-    let resultingImageData = 
-        executeShadingStep 
+    let compositingStep =
+        Compositing(shader1Step, shader2Step, CompositingFuncIdStupid)
+
+    let resultingImageData =
+        executeShadingStep
             createShadingFuncById
-            createCompositingFuncById 
-            heights 
+            createCompositingFuncById
+            [| heightsArray |]
             srtmLevel
             tileRect
-            mapProjection.Invert 
+            mapProjection.Invert
             compositingStep
+
     test <@ Some resultingImageData = compositedImageGenerated @>
 
 [<Fact>]
-let ``Supports elevation coloring``() =
+let ``Supports elevation coloring`` () =
     let step = ElevationColoring ElevationColoring.defaultParameters
-    executeShadingStep 
+
+    executeShadingStep
         createShadingFuncById
-        createCompositingFuncById 
-        heights 
+        createCompositingFuncById
+        [| heightsArray |]
         srtmLevel
         tileRect
-        mapProjection.Invert 
-        step |> ignore
+        mapProjection.Invert
+        step
+    |> ignore
 
 [<Fact>]
-let ``Supports aspect shading``() =
+let ``Supports aspect shading`` () =
     let step = AspectShading AspectShader.defaultParameters
-    executeShadingStep 
+
+    executeShadingStep
         createShadingFuncById
-        createCompositingFuncById 
-        heights 
+        createCompositingFuncById
+        [| heightsArray |]
         srtmLevel
         tileRect
-        mapProjection.Invert 
-        step |> ignore
+        mapProjection.Invert
+        step
+    |> ignore
 
 [<Fact>]
-let ``Supports slope shading``() =
+let ``Supports slope shading`` () =
     let step = SlopeShading SlopeShader.defaultParameters
-    executeShadingStep 
+
+    executeShadingStep
         createShadingFuncById
-        createCompositingFuncById 
-        heights 
+        createCompositingFuncById
+        [| heightsArray |]
         srtmLevel
         tileRect
-        mapProjection.Invert 
-        step |> ignore
+        mapProjection.Invert
+        step
+    |> ignore
 
 [<Fact>]
-let ``Supports igor shading``() =
+let ``Supports igor shading`` () =
     let step = IgorHillshading IgorHillshader.defaultParameters
-    executeShadingStep 
+
+    executeShadingStep
         createShadingFuncById
-        createCompositingFuncById 
-        heights 
+        createCompositingFuncById
+        [| heightsArray |]
         srtmLevel
         tileRect
-        mapProjection.Invert 
-        step |> ignore
+        mapProjection.Invert
+        step
+    |> ignore
