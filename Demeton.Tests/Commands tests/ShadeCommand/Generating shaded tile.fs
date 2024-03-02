@@ -43,7 +43,7 @@ let ``Tile generator correctly calculates which SRTM tiles it needs`` () =
         heights |> Some |> Ok
 
     ShadeCommand.generateShadedRasterTile
-        correctSrtmTilesWereRequested
+        [| correctSrtmTilesWereRequested |]
         (fun _ -> mockRasterShader)
         srtmLevel
         tileRect
@@ -61,7 +61,7 @@ let ``When heights array fetcher returns None, tile generator does nothing and r
 
     let shadeTileResult =
         ShadeCommand.generateShadedRasterTile
-            returnNoneForHeightsArray
+            [| returnNoneForHeightsArray |]
             (fun _ -> mockRasterShader)
             srtmLevel
             tileRect
@@ -80,7 +80,7 @@ let ``When heights array fetcher returns an error, tile generator returns an err
 
     let shadeTileResult =
         ShadeCommand.generateShadedRasterTile
-            returnErrorInsteadOfHeightsArray
+            [| returnErrorInsteadOfHeightsArray |]
             (fun _ -> mockRasterShader)
             srtmLevel
             tileRect
@@ -115,7 +115,7 @@ let ``Tile generator prepares the tile image data and returns it`` () =
 
     let result =
         ShadeCommand.generateShadedRasterTile
-            fetchSomeHeights
+            [| fetchSomeHeights |]
             (fun _ -> shadeRasterReceivesTileRectAndImageData)
             srtmLevel
             tileRect

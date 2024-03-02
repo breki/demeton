@@ -292,7 +292,7 @@ let ``Load WorldCover file into a DemHeight`` () =
         let tileId = parseTileName "N46E007"
         let cellMinX, cellMinY = tileMinCell tileSize tileId
 
-        let fetchHeightsArray tileIds =
+        let fetchWorldCoverHeightsArray tileIds =
             let cellMinX = cellMinX
             let cellMinY = cellMinY
 
@@ -319,7 +319,7 @@ let ``Load WorldCover file into a DemHeight`` () =
 
         let generateTile =
             ShadeCommand.generateShadedRasterTile
-                fetchHeightsArray
+                [| fetchWorldCoverHeightsArray |]
                 createShaderFunction
 
         let saveTile =

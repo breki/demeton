@@ -352,16 +352,23 @@ type ShadedRasterTileGenerator =
         -> MapProjection
         -> Result<RawImageData option, string>
 
-// todo 0: problem generateShadedRasterTile works by using the same heights
+// todo 4: problem generateShadedRasterTile works by using the same heights
 //   array for all shading steps - we need to redesign this to support each
 //   shading step having its own heights array
+
+// todo 0: extend generateShadedRasterTile to support filling of an array of
+//   heights arrays by providing an array of SrtmHeightsArrayFetcher instances.
+//   The problem is what to do if one of heights arrays is not available?
 
 /// <summary>
 /// Returns a ShadedRasterTileGenerator that uses the given functions
 /// to fetch the heights array and create the shading function.
 /// </summary>
-/// <param name="fetchHeightsArray">
-/// A function that fetches the heights array for a given set of SRTM tiles.
+/// <param name="heightsArrayFetchers">
+/// An array of functions that fetch the heights arrays for a given
+/// set of SRTM tiles. The heights array fetched by each of these functions
+/// will be added to the array of heights array at the index corresponding
+/// to the index of the function in the array.
 /// </param>
 /// <param name="createShaderFunction">
 /// A function that creates a shading function for a given shading step.
@@ -374,7 +381,7 @@ type ShadedRasterTileGenerator =
 /// A ShadedRasterTileGenerator function.
 /// </returns>
 let generateShadedRasterTile
-    (fetchHeightsArray: SrtmHeightsArrayFetcher)
+    (heightsArrayFetchers: SrtmHeightsArrayFetcher[])
     (createShaderFunction: ShadingFuncFactory)
     : ShadedRasterTileGenerator =
     fun srtmLevel (tileRect: Rect) rootShadingStep mapProjection ->
@@ -396,9 +403,10 @@ let generateShadedRasterTile
               MaxLat = radToDeg (max lat1Rad lat2Rad) }
 
         let srtmTilesNeeded = boundsToTiles 3600 srtmLevel lonLatBounds
-        let heightsArrayResult = fetchHeightsArray srtmTilesNeeded
+        // todo 0: using only the first fetcher, for now
+        let heightsArrayResult = heightsArrayFetchers[0]srtmTilesNeeded
 
-        // todo 2: using only the first heights array, for now
+        // todo 0: using only the first heights array, for now
         match heightsArrayResult with
         | Error errorMessage -> Error errorMessage
         | Ok heightArrayOption ->

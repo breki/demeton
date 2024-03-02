@@ -179,7 +179,7 @@ let ``Generate hillshading from AW3D sample file`` () =
 
     let generateTile =
         ShadeCommand.generateShadedRasterTile
-            fetchHeightsArray
+            [| fetchHeightsArray |]
             createShaderFunction
 
     let saveTile =
