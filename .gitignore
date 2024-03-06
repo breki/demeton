@@ -49,3 +49,5 @@ build
 tools/fsharplint
 
 ESA_WorldCover*
+
+**/copilot

@@ -18,6 +18,7 @@ open Xunit
 open BitMiracle.LibTiff.Classic
 open Swensen.Unquote
 open TestHelp
+open Tests.WorldCover.RasterSimplification
 
 /// <summary>
 /// Reads a WorldCover raster file and returns the heights array for a specified
@@ -108,9 +109,9 @@ let readWorldCoverRaster
             // coordinates (i.e. ReadTile returns the data for the tile
             // containing the specified coordinates.
 
-            // todo 0: problem: the tile loaded does not start at tiffTileX, tiffTileY
-            //   - we need to figure out its actual starting coordinates and adjust
-            //   that in our calculations when copying to the unreducedHeightsArray
+            // The tile does not start at tiffTileX, tiffTileY, so we need to
+            // calculate its actual starting coordinates and adjust
+            // that in our calculations when copying to the unreducedHeightsArray
 
             let tileXIndex = tiffTileX / tiffTileWidth
             let tileYIndex = tiffTileY / tiffTileHeight
@@ -267,19 +268,18 @@ let worldCoverWaterBodiesShader heightsArrayIndex : RasterShader =
                     .heightAt (globalSrtmX, globalSrtmY)
                 |> Some
 
+        let waterColor =
+            match (Rgba8Bit.tryParseColorHexValue "#49C8FF") with
+            | Ok color -> color
+            | Error _ -> failwith "Could not parse color"
+
         let processRasterLine y =
             for x in tileRect.MinX .. (tileRect.MaxX - 1) do
                 let rasterValue = valueForTilePixel x y
 
-                let waterColor =
-                    match (Rgba8Bit.tryParseColorHexValue "#49C8FF") with
-                    | Ok color -> color
-                    | Error _ -> failwith "Could not parse color"
-
                 let pixelValue =
                     match rasterValue with
-                    // 80 represents water
-                    | Some 80s -> waterColor
+                    | Some 1s -> waterColor
                     | _ -> Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
 
                 Rgba8Bit.setPixelAt
@@ -316,15 +316,30 @@ let ``Load WorldCover file into a DemHeight`` () =
             let cellMinX = cellMinX
             let cellMinY = cellMinY
 
-            HeightsArray(
-                cellMinX,
-                cellMinY,
-                tileSize,
-                tileSize,
-                HeightsArrayDirectImport demHeight
-            )
-            |> Some
-            |> Result.Ok
+            let mutable waterBodies =
+                HeightsArray(
+                    cellMinX,
+                    cellMinY,
+                    tileSize,
+                    tileSize,
+                    HeightsArrayDirectImport demHeight
+                )
+                |> convertWorldCoverRasterToWaterMonochrome
+
+            let mutable continueSimplification = true
+
+            while continueSimplification do
+                let simplifiedHeightsArray, changedPixels =
+                    simplifyRaster waterBodies
+
+                waterBodies <- simplifiedHeightsArray
+
+                if changedPixels < 50 then
+                    continueSimplification <- false
+                else
+                    ()
+
+            waterBodies |> Some |> Result.Ok
 
 
         let heightsArraysFetchers =
