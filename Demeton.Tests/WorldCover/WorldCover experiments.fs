@@ -316,7 +316,7 @@ let ``Load WorldCover file into a DemHeight`` () =
             let cellMinX = cellMinX
             let cellMinY = cellMinY
 
-            let minPixelsChanged = 50
+            let minPixelsChanged = 1500
 
             let waterBodies =
                 HeightsArray(
