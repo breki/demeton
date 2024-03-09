@@ -316,7 +316,9 @@ let ``Load WorldCover file into a DemHeight`` () =
             let cellMinX = cellMinX
             let cellMinY = cellMinY
 
-            let mutable waterBodies =
+            let minPixelsChanged = 50
+
+            let waterBodies =
                 HeightsArray(
                     cellMinX,
                     cellMinY,
@@ -325,19 +327,7 @@ let ``Load WorldCover file into a DemHeight`` () =
                     HeightsArrayDirectImport demHeight
                 )
                 |> convertWorldCoverRasterToWaterMonochrome
-
-            let mutable continueSimplification = true
-
-            while continueSimplification do
-                let simplifiedHeightsArray, changedPixels =
-                    simplifyRaster waterBodies
-
-                waterBodies <- simplifiedHeightsArray
-
-                if changedPixels < 50 then
-                    continueSimplification <- false
-                else
-                    ()
+                |> simplifyRaster minPixelsChanged
 
             waterBodies |> Some |> Result.Ok
 

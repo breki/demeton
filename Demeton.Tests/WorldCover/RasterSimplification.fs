@@ -53,25 +53,33 @@ let sumCells9 x y (heightsArray: HeightsArray) =
 
     sum, heightsArray.Cells[startingIndex + rasterWidth + 1]
 
-// todo 2: introduce the loop into the function itself
-let simplifyRaster (heightsArray: HeightsArray) : HeightsArray * int =
-    let simplifiedHeightsArray =
+let simplifyRaster
+    minPixelsChanged
+    (heightsArray: HeightsArray)
+    : HeightsArray =
+    let heightsArrayCopy (ha: HeightsArray) =
         HeightsArray(
-            heightsArray.MinX,
-            heightsArray.MinY,
-            heightsArray.Width,
-            heightsArray.Height,
-            HeightsArrayDirectImport(Array.copy heightsArray.Cells)
+            ha.MinX,
+            ha.MinY,
+            ha.Width,
+            ha.Height,
+            HeightsArrayDirectImport(Array.copy ha.Cells)
         )
 
-    let processRasterLine y =
+    let processRasterLine
+        (originalHeightsArray: HeightsArray)
+        (simplifiedHeightsArray: HeightsArray)
+        y
+        =
         let changedPixels =
-            // todo 2: more optimized code that does not call heightAt(), it just
-            // directly accesses the array
-            seq { for x in heightsArray.MinX + 1 .. heightsArray.MaxX - 1 -> x }
+            seq {
+                for x in
+                    originalHeightsArray.MinX + 1 .. originalHeightsArray.MaxX
+                                                     - 1 -> x
+            }
             |> Seq.fold
                 (fun acc x ->
-                    let sum, pixelValue = heightsArray |> sumCells9 x y
+                    let sum, pixelValue = originalHeightsArray |> sumCells9 x y
 
                     if pixelValue = 1s then
                         if sum <= 4s then
@@ -88,36 +96,46 @@ let simplifyRaster (heightsArray: HeightsArray) : HeightsArray * int =
 
         changedPixels
 
-    let totalChangedPixels =
-        seq { for y in heightsArray.MinY + 1 .. heightsArray.MaxY - 1 -> y }
-        |> Seq.toArray
-        |> Array.Parallel.map processRasterLine
-        |> Array.sum
+    let rec simplifyUntilAlmostNoChange originalHeightsArray =
+        let simplifiedHeightsArray = heightsArrayCopy originalHeightsArray
 
+        let totalChangedPixels =
+            seq {
+                for y in
+                    originalHeightsArray.MinY + 1 .. originalHeightsArray.MaxY
+                                                     - 1 -> y
+            }
+            |> Seq.toArray
+            |> Array.Parallel.map (
+                processRasterLine originalHeightsArray simplifiedHeightsArray
+            )
+            |> Array.sum
 
-    simplifiedHeightsArray, totalChangedPixels
+        if totalChangedPixels >= minPixelsChanged then
+            simplifyUntilAlmostNoChange simplifiedHeightsArray
+        else
+            simplifiedHeightsArray
 
-// todo 3: write more tests
+    simplifyUntilAlmostNoChange heightsArray
+
 [<Fact>]
-let icebreaker () =
+let singleWaterPixelIsRemoved () =
     let heightsArray =
         HeightsArray(0, 0, 3, 3, HeightsArrayInitializer1D(fun _ -> 0s))
 
     heightsArray.setHeightAt (1, 1) 1s
 
-    let simplified, changedPixels = heightsArray |> simplifyRaster
+    let simplified = heightsArray |> simplifyRaster 2
 
     test <@ simplified.heightAt (1, 1) = 0s @>
-    test <@ changedPixels = 1 @>
 
 [<Fact>]
-let icebreaker2 () =
+let singleNonWaterPixelTurnsToWater () =
     let heightsArray =
         HeightsArray(0, 0, 3, 3, HeightsArrayInitializer1D(fun _ -> 1s))
 
     heightsArray.setHeightAt (1, 1) 0s
 
-    let simplified, changedPixels = heightsArray |> simplifyRaster
+    let simplified = heightsArray |> simplifyRaster 2
 
     test <@ simplified.heightAt (1, 1) = 1s @>
-    test <@ changedPixels = 1 @>
