@@ -291,7 +291,6 @@ let worldCoverWaterBodiesShader heightsArrayIndex : RasterShader =
 
         Parallel.For(tileRect.MinY, tileRect.MaxY, processRasterLine) |> ignore
 
-// skip this test if running on GitHub Actions
 [<Fact>]
 let ``Load WorldCover file into a DemHeight`` () =
     if Environment.GetEnvironmentVariable("CI") = "true" then
@@ -318,7 +317,7 @@ let ``Load WorldCover file into a DemHeight`` () =
 
             let minPixelsChanged = 1500
 
-            let waterBodies =
+            let waterBodiesHeightsArray =
                 HeightsArray(
                     cellMinX,
                     cellMinY,
@@ -327,9 +326,9 @@ let ``Load WorldCover file into a DemHeight`` () =
                     HeightsArrayDirectImport demHeight
                 )
                 |> convertWorldCoverRasterToWaterMonochrome
-                |> simplifyRaster minPixelsChanged
+            // |> simplifyRaster minPixelsChanged
 
-            waterBodies |> Some |> Result.Ok
+            waterBodiesHeightsArray |> Some |> Result.Ok
 
 
         let heightsArraysFetchers =
@@ -360,3 +359,45 @@ let ``Load WorldCover file into a DemHeight`` () =
 
         let result = ShadeCommand.run options generateTile saveTile
         test <@ result |> isOk @>
+
+
+[<Fact>]
+let ``Color water bodies from WorldCover file`` () =
+    if Environment.GetEnvironmentVariable("CI") = "true" then
+        // this test cannot run on CI because we don't have the WorldCover
+        // raster available (it's too big to be added to git repo)
+        ()
+    else
+        let demHeight =
+            readWorldCoverRaster
+                @"C:\temp\WorldCover\ESA_WorldCover_10m_2021_v200_N45E006_Map.tif"
+                { Lon = { Value = 6 }
+                  Lat = { Value = -45 } }
+                { Lon = { Value = 7 }
+                  Lat = { Value = -46 } }
+
+        let tileSize = 3600
+
+        let tileId = parseTileName "N46E007"
+        let cellMinX, cellMinY = tileMinCell tileSize tileId
+
+        let cellMinX = cellMinX
+        let cellMinY = cellMinY
+
+        let minPixelsChanged = 1500
+
+        let waterBodiesHeightsArray =
+            HeightsArray(
+                cellMinX,
+                cellMinY,
+                tileSize,
+                tileSize,
+                HeightsArrayDirectImport demHeight
+            )
+            |> convertWorldCoverRasterToWaterMonochrome
+        // |> simplifyRaster minPixelsChanged
+
+        let waterBodies =
+            waterBodiesHeightsArray |> WaterBodiesColoring.colorWaterBodies
+
+        test <@ waterBodies = Seq.empty @>

@@ -1,6 +1,7 @@
 ﻿module Demeton.DemTypes
 
 open System
+open Raster
 
 type DemHeight = int16
 
@@ -111,8 +112,20 @@ type HeightsArray
 
         let index = (y - this.MinY) * width + x - this.MinX
 
-        let heightAtCell = this.Cells.[index]
-        heightAtCell
+        this.Cells.[index]
+
+    member this.heightAtLocal((x, y): Point) : DemHeight =
+#if DEBUG
+        match (x, y) with
+        | _ when x < 0 || x > width -> raise <| ArgumentOutOfRangeException("x")
+        | _ when y < 0 || y > height ->
+            raise <| ArgumentOutOfRangeException("y")
+        | _ -> ()
+#endif
+
+        let index = y * width + x
+        this.Cells.[index]
+
 
     member this.interpolateHeightAt((x, y): float * float) : float option =
         let fractionOf value = value - floor value
@@ -132,6 +145,9 @@ type HeightsArray
         let index = (y - this.MinY) * width + x - this.MinX
         this.Cells.[index] <- height
 
+    member this.setHeightAtLocal ((x, y): Point) (height: DemHeight) =
+        let index = y * width + x
+        this.Cells.[index] <- height
 
 /// <summary>
 /// A result of an operation that returns <see cref="HeightsArray" />.
