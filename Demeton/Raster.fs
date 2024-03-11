@@ -39,10 +39,13 @@ type Rect =
     member this.Extend((x, y): Point) =
         let minX = min this.MinX x
         let minY = min this.MinY y
-        let maxX = max this.MaxX x
-        let maxY = max this.MaxY y
+        let width = max (x - minX + 1) this.Width
+        let height = max (y - minY + 1) this.Height
 
-        Rect.asMinMax minX minY maxX maxY
+        { MinX = minX
+          MinY = minY
+          Width = width
+          Height = height }
 
     /// <summary>
     /// Represents an empty rectangle.

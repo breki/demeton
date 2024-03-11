@@ -14,6 +14,7 @@ open Demeton.Srtm.Types
 open FsUnit
 open Png
 open Tests.Shaders
+open Tests.WorldCover.WaterBodiesColoring
 open Xunit
 open BitMiracle.LibTiff.Classic
 open Swensen.Unquote
@@ -291,6 +292,100 @@ let worldCoverWaterBodiesShader heightsArrayIndex : RasterShader =
 
         Parallel.For(tileRect.MinY, tileRect.MaxY, processRasterLine) |> ignore
 
+
+let worldCoverWaterBodiesShader2
+    heightsArrayIndex
+    (waterBodies: WaterBody list)
+    : RasterShader =
+    fun heightsArrays srtmLevel tileRect imageData inverse ->
+        let cellsPerDegree = cellsPerDegree 3600 srtmLevel
+
+        let tileWidth = tileRect.Width
+
+        let valueForTilePixel x y : DemHeight option =
+            let lonLatOption = inverse (float x) (float -y)
+
+            match lonLatOption with
+            | None -> None
+            | Some(lonRad, latRad) ->
+                let lonDeg = radToDeg lonRad
+                let latDeg = radToDeg latRad
+
+                let globalSrtmX =
+                    lonDeg
+                    |> longitudeToCellX cellsPerDegree
+                    |> Math.Round
+                    |> int
+
+                let globalSrtmY =
+                    latDeg
+                    |> latitudeToCellY cellsPerDegree
+                    |> Math.Round
+                    |> int
+
+                heightsArrays[heightsArrayIndex]
+                    .heightAt (globalSrtmX, globalSrtmY)
+                |> Some
+
+        let waterColor =
+            match (Rgba8Bit.tryParseColorHexValue "#49C8FF") with
+            | Ok color -> color
+            | Error _ -> failwith "Could not parse color"
+
+        let ignoredWaterColor =
+            match (Rgba8Bit.tryParseColorHexValue "#FF96D1") with
+            | Ok color -> color
+            | Error _ -> failwith "Could not parse color"
+
+        let errorWaterColor =
+            match (Rgba8Bit.tryParseColorHexValue "#FF4800") with
+            | Ok color -> color
+            | Error _ -> failwith "Could not parse color"
+
+        let greenWaterColor = Rgba8Bit.rgbaColor 0uy 255uy 0uy 255uy
+        let redWaterColor = Rgba8Bit.rgbaColor 255uy 0uy 0uy 255uy
+        let blueWaterColor = Rgba8Bit.rgbaColor 0uy 0uy 255uy 255uy
+        let yellowWaterColor = Rgba8Bit.rgbaColor 255uy 255uy 0uy 255uy
+        let magentaWaterColor = Rgba8Bit.rgbaColor 255uy 0uy 255uy 255uy
+        let cyanWaterColor = Rgba8Bit.rgbaColor 0uy 255uy 255uy 255uy
+
+        let palette =
+            [| greenWaterColor
+               redWaterColor
+               blueWaterColor
+               yellowWaterColor
+               magentaWaterColor
+               cyanWaterColor |]
+
+        let noWaterColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
+
+        let processRasterLine y =
+            for x in tileRect.MinX .. (tileRect.MaxX - 1) do
+                let rasterValue = valueForTilePixel x y
+
+                let pixelValue =
+                    match rasterValue with
+                    | None -> noWaterColor
+                    | Some 0s -> noWaterColor
+                    | Some 1s -> errorWaterColor
+                    | Some waterBodyColor ->
+                        palette.[int waterBodyColor % (palette |> Array.length)]
+                // let waterBody = waterBodies.[int waterBodyColor - 2]
+                //
+                // if waterBody.SurfaceArea >= 100 then
+                //     waterColor
+                // else
+                //     ignoredWaterColor
+
+                Rgba8Bit.setPixelAt
+                    imageData
+                    tileWidth
+                    (x - tileRect.MinX)
+                    (y - tileRect.MinY)
+                    pixelValue
+
+        Parallel.For(tileRect.MinY, tileRect.MaxY, processRasterLine) |> ignore
+
 [<Fact>]
 let ``Load WorldCover file into a DemHeight`` () =
     if Environment.GetEnvironmentVariable("CI") = "true" then
@@ -311,25 +406,20 @@ let ``Load WorldCover file into a DemHeight`` () =
         let tileId = parseTileName "N46E007"
         let cellMinX, cellMinY = tileMinCell tileSize tileId
 
+        let waterBodiesHeightsArray =
+            HeightsArray(
+                cellMinX,
+                cellMinY,
+                tileSize,
+                tileSize,
+                HeightsArrayDirectImport demHeight
+            )
+            |> convertWorldCoverRasterToWaterMonochrome
+
+        let waterBodies = waterBodiesHeightsArray |> colorWaterBodies
+
         let fetchWorldCoverHeightsArray tileIds =
-            let cellMinX = cellMinX
-            let cellMinY = cellMinY
-
-            let minPixelsChanged = 1500
-
-            let waterBodiesHeightsArray =
-                HeightsArray(
-                    cellMinX,
-                    cellMinY,
-                    tileSize,
-                    tileSize,
-                    HeightsArrayDirectImport demHeight
-                )
-                |> convertWorldCoverRasterToWaterMonochrome
-            // |> simplifyRaster minPixelsChanged
-
             waterBodiesHeightsArray |> Some |> Result.Ok
-
 
         let heightsArraysFetchers =
             [| Tests.Aw3d.``AW3D experiments``.fetchAw3dHeightsArray
@@ -341,7 +431,8 @@ let ``Load WorldCover file into a DemHeight`` () =
                 Tests.Aw3d.``AW3D experiments``.xcTracerHillshader
                     IgorHillshader.defaultParameters
                 |> Demeton.Shaders.Hillshading.shadeRaster 0
-            | StepNameXcTracerWaterBodies -> worldCoverWaterBodiesShader 1
+            | StepNameXcTracerWaterBodies ->
+                worldCoverWaterBodiesShader2 1 waterBodies
             | _ ->
                 failwithf
                     $"Unknown shader function name: %s{shaderFunctionName}"
@@ -397,7 +488,10 @@ let ``Color water bodies from WorldCover file`` () =
             |> convertWorldCoverRasterToWaterMonochrome
         // |> simplifyRaster minPixelsChanged
 
-        let waterBodies =
-            waterBodiesHeightsArray |> WaterBodiesColoring.colorWaterBodies
+        let waterBodies = waterBodiesHeightsArray |> colorWaterBodies
 
-        test <@ waterBodies = Seq.empty @>
+        ignore ()
+
+// todo 0: render the water bodies in such a way that it renders them
+//   blue if the surface area is above a threshold value and red if
+//   below

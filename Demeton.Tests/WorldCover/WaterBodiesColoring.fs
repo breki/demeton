@@ -26,11 +26,7 @@ let tryColorNextWaterBody
             else None
         | None -> None
 
-    let rec floodNeighbourPixel
-        (surfaceArea: int)
-        coverage
-        (point: Point)
-        : int * Rect =
+    let addNeighbourPoint pointsToColor point =
         match point with
         | x, y when
             x < 0
@@ -38,28 +34,14 @@ let tryColorNextWaterBody
             || x >= waterHeightsArray.Width
             || y >= waterHeightsArray.Height
             ->
-            surfaceArea, coverage
+            pointsToColor
         | x, y ->
             let pixelColor = waterHeightsArray.heightAtLocal (x, y)
 
             if pixelColor = 1s then
-                waterHeightsArray.setHeightAtLocal (x, y) color
-
-                let surfaceArea, coverage =
-                    floodNeighbourPixel surfaceArea coverage (x - 1, y)
-
-                let surfaceArea, coverage =
-                    floodNeighbourPixel surfaceArea coverage (x + 1, y)
-
-                let surfaceArea, coverage =
-                    floodNeighbourPixel surfaceArea coverage (x, y - 1)
-
-                let surfaceArea, coverage =
-                    floodNeighbourPixel surfaceArea coverage (x, y + 1)
-
-                surfaceArea + 1, coverage.Extend(x, y)
+                (x, y) :: pointsToColor
             else
-                surfaceArea, coverage
+                pointsToColor
 
     let mutable currentPoint = Some startingPoint
 
@@ -72,30 +54,43 @@ let tryColorNextWaterBody
 
         match pixelColor, currentPoint.Value with
         | 1s, point ->
-            // todo 0: found water, start coloring it
-            waterHeightsArray.setHeightAtLocal point color
+            // found water, start coloring it
+            let mutable pointsToColor = List.singleton point
+            let mutable surfaceArea = 0
 
-            let pointX, pointY = point
+            let mutable coverage = Rect.Empty
 
-            let surfaceArea = 1
+            while pointsToColor |> List.length > 0 do
+                match pointsToColor with
+                | [] -> ()
+                | _ ->
+                    let point = List.head pointsToColor
+                    pointsToColor <- List.tail pointsToColor
 
-            let coverage =
-                { MinX = pointX
-                  MinY = pointY
-                  Width = 1
-                  Height = 1 }
+                    let pointColor = waterHeightsArray.heightAtLocal point
 
-            let surfaceArea, coverage =
-                floodNeighbourPixel surfaceArea coverage (pointX - 1, pointY)
+                    match pointColor with
+                    | 1s ->
+                        waterHeightsArray.setHeightAtLocal point color
 
-            let surfaceArea, coverage =
-                floodNeighbourPixel surfaceArea coverage (pointX + 1, pointY)
+                        surfaceArea <- surfaceArea + 1
+                        coverage <- coverage.Extend(point)
 
-            let surfaceArea, coverage =
-                floodNeighbourPixel surfaceArea coverage (pointX, pointY - 1)
+                        let pointX, pointY = point
 
-            let surfaceArea, coverage =
-                floodNeighbourPixel surfaceArea coverage (pointX, pointY + 1)
+                        pointsToColor <-
+                            addNeighbourPoint pointsToColor (pointX - 1, pointY)
+
+                        pointsToColor <-
+                            addNeighbourPoint pointsToColor (pointX + 1, pointY)
+
+                        pointsToColor <-
+                            addNeighbourPoint pointsToColor (pointX, pointY - 1)
+
+                        pointsToColor <-
+                            addNeighbourPoint pointsToColor (pointX, pointY + 1)
+
+                    | _ -> ()
 
             waterBody <-
                 Some(
@@ -113,7 +108,7 @@ let tryColorNextWaterBody
 
     waterBody
 
-let colorWaterBodies (waterHeightsArray: HeightsArray) : WaterBody seq =
+let colorWaterBodies (waterHeightsArray: HeightsArray) : WaterBody list =
     let rec colorWaterBodiesRec nextColor startingPoint waterBodies =
         match
             tryColorNextWaterBody nextColor startingPoint waterHeightsArray
@@ -122,9 +117,8 @@ let colorWaterBodies (waterHeightsArray: HeightsArray) : WaterBody seq =
             colorWaterBodiesRec
                 (nextColor + 1s)
                 nextPoint
-                (Seq.append waterBodies (Seq.singleton waterBody))
-        | Some(waterBody, None) ->
-            Seq.append waterBodies (Seq.singleton waterBody)
+                (waterBody :: waterBodies)
+        | Some(waterBody, None) -> (waterBody :: waterBodies)
         | None -> waterBodies
 
-    colorWaterBodiesRec 2s (0, 0) Seq.empty
+    colorWaterBodiesRec 2s (0, 0) List.empty |> List.rev
