@@ -21,6 +21,13 @@ open Swensen.Unquote
 open TestHelp
 open Tests.WorldCover.RasterSimplification
 
+[<Literal>]
+let WorldCoverTileSize = 12000
+
+[<Literal>]
+let WorldCoverBitmapSize = WorldCoverTileSize * 3
+
+
 /// <summary>
 /// Reads a WorldCover raster file and returns the heights array for a specified
 /// tile.
@@ -42,13 +49,15 @@ let readWorldCoverRaster
 
     let rasterWidth = unbox (tiff.GetField(TiffTag.IMAGEWIDTH).[0].Value)
 
-    if rasterWidth <> 36000 then
-        failwithf $"Expected width 36000, but got %d{rasterWidth}"
+    if rasterWidth <> WorldCoverBitmapSize then
+        failwithf
+            $"Expected width %d{WorldCoverBitmapSize}, but got %d{rasterWidth}"
 
     let rasterHeight = unbox (tiff.GetField(TiffTag.IMAGELENGTH).[0].Value)
 
-    if rasterHeight <> 36000 then
-        failwithf $"Expected height 36000, but got %d{rasterHeight}"
+    if rasterHeight <> WorldCoverBitmapSize then
+        failwithf
+            $"Expected height %d{WorldCoverBitmapSize}, but got %d{rasterHeight}"
 
     let planarConfig: PlanarConfig =
         tiff.GetField(TiffTag.PLANARCONFIG).[0].Value :?> PlanarConfig
@@ -60,12 +69,10 @@ let readWorldCoverRaster
     if not (tiff.IsTiled()) then
         failwithf "Expected a tiled TIFF file"
 
-    let pixelsPerSrtmTile = 36000 / 3
+    let unreducedHeightsArrayWidth = WorldCoverTileSize
+    let unreducedHeightsArrayHeight = WorldCoverTileSize
 
-    let unreducedHeightsArrayWidth = pixelsPerSrtmTile
-    let unreducedHeightsArrayHeight = pixelsPerSrtmTile
-
-    let unreducedHeightsArray: DemHeight[] =
+    let worldCoverData: DemHeight[] =
         Array.zeroCreate (
             unreducedHeightsArrayWidth * unreducedHeightsArrayHeight
         )
@@ -73,14 +80,14 @@ let readWorldCoverRaster
     // calculate the box (in TIFF coordinates) of the requested SRTM tile
     let startingTiffX =
         (requested_tile_coords.Lon.Value - raster_file_tile_coords.Lon.Value)
-        * pixelsPerSrtmTile
+        * WorldCoverTileSize
 
     let startingTiffY =
         -(requested_tile_coords.Lat.Value - raster_file_tile_coords.Lat.Value)
-        * pixelsPerSrtmTile
+        * WorldCoverTileSize
 
-    let endingTiffX = startingTiffX + pixelsPerSrtmTile
-    let endingTiffY = startingTiffY + pixelsPerSrtmTile
+    let endingTiffX = startingTiffX + WorldCoverTileSize
+    let endingTiffY = startingTiffY + WorldCoverTileSize
 
     // the size of an individual TIFF tile (not geographic tile, but a tile
     // in terms of tiling a TIFF raster into small quadratic pieces)
@@ -90,8 +97,6 @@ let readWorldCoverRaster
     // the memory size (in bytes) of a single TIFF tile
     let tiffTileBufferSize = tiff.TileSize()
     let tiffTileBuffer = Array.zeroCreate<byte> tiffTileBufferSize
-
-    let srtmHeightArray = Array.zeroCreate (3600 * 3600)
 
     // for each TIFF tile that intersects the requested SRTM tile
     for tiffTileY in [ startingTiffY..tiffTileHeight..endingTiffY ] do
@@ -170,27 +175,9 @@ let readWorldCoverRaster
                         heightsArrayY * unreducedHeightsArrayWidth
                         + heightsArrayX
 
-                    unreducedHeightsArray.[index] <- int16 value
+                    worldCoverData.[index] <- int16 value
 
-            // now reduce the heightsArray to the SRTM size
-
-            // todo 20: not really a good downsampling since it just takes the
-            //   a single pixel value from a larger block of pixels
-
-            // todo 15: maybe we don't need to downsample it, just is it as it
-            //   is directly when shading?
-            for y in 0..3599 do
-                for x in 0..3599 do
-                    let srtmArrayIndex = y * 3600 + x
-
-                    let unreducedIndex =
-                        y * pixelsPerSrtmTile / 3600 * pixelsPerSrtmTile
-                        + x * pixelsPerSrtmTile / 3600
-
-                    srtmHeightArray.[srtmArrayIndex] <-
-                        unreducedHeightsArray.[unreducedIndex]
-
-    srtmHeightArray
+    worldCoverData
 
 
 let area, heights, srtmLevel, mapProjection, mapScale, tileRect =
@@ -238,67 +225,12 @@ let options: ShadeCommand.Options =
 /// Returns a raster shader that accepts a WorldCover-originated heights array
 /// and renders water bodies in blue and everything else in transparent.
 /// </summary>
-let worldCoverWaterBodiesShader heightsArrayIndex : RasterShader =
-    fun heightsArrays srtmLevel tileRect imageData inverse ->
-        let cellsPerDegree = cellsPerDegree 3600 srtmLevel
-
-        let tileWidth = tileRect.Width
-
-        let valueForTilePixel x y : DemHeight option =
-            let lonLatOption = inverse (float x) (float -y)
-
-            match lonLatOption with
-            | None -> None
-            | Some(lonRad, latRad) ->
-                let lonDeg = radToDeg lonRad
-                let latDeg = radToDeg latRad
-
-                let globalSrtmX =
-                    lonDeg
-                    |> longitudeToCellX cellsPerDegree
-                    |> Math.Round
-                    |> int
-
-                let globalSrtmY =
-                    latDeg
-                    |> latitudeToCellY cellsPerDegree
-                    |> Math.Round
-                    |> int
-
-                heightsArrays[heightsArrayIndex]
-                    .heightAt (globalSrtmX, globalSrtmY)
-                |> Some
-
-        let waterColor =
-            match (Rgba8Bit.tryParseColorHexValue "#49C8FF") with
-            | Ok color -> color
-            | Error _ -> failwith "Could not parse color"
-
-        let processRasterLine y =
-            for x in tileRect.MinX .. (tileRect.MaxX - 1) do
-                let rasterValue = valueForTilePixel x y
-
-                let pixelValue =
-                    match rasterValue with
-                    | Some 1s -> waterColor
-                    | _ -> Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
-
-                Rgba8Bit.setPixelAt
-                    imageData
-                    tileWidth
-                    (x - tileRect.MinX)
-                    (y - tileRect.MinY)
-                    pixelValue
-
-        Parallel.For(tileRect.MinY, tileRect.MaxY, processRasterLine) |> ignore
-
-
-let worldCoverWaterBodiesShader2
+let worldCoverWaterBodiesShader
     heightsArrayIndex
     (waterBodies: WaterBody list)
     : RasterShader =
     fun heightsArrays srtmLevel tileRect imageData inverse ->
-        let cellsPerDegree = cellsPerDegree 3600 srtmLevel
+        let cellsPerDegree = cellsPerDegree WorldCoverTileSize srtmLevel
 
         let tileWidth = tileRect.Width
 
@@ -393,7 +325,7 @@ let ``Load WorldCover file into a DemHeight`` () =
         // raster available (it's too big to be added to git repo)
         ()
     else
-        let demHeight =
+        let worldCoverData =
             readWorldCoverRaster
                 @"C:\temp\WorldCover\ESA_WorldCover_10m_2021_v200_N45E006_Map.tif"
                 { Lon = { Value = 6 }
@@ -401,18 +333,16 @@ let ``Load WorldCover file into a DemHeight`` () =
                 { Lon = { Value = 7 }
                   Lat = { Value = -46 } }
 
-        let tileSize = 3600
-
         let tileId = parseTileName "N46E007"
-        let cellMinX, cellMinY = tileMinCell tileSize tileId
+        let cellMinX, cellMinY = tileMinCell WorldCoverTileSize tileId
 
         let waterBodiesHeightsArray =
             HeightsArray(
                 cellMinX,
                 cellMinY,
-                tileSize,
-                tileSize,
-                HeightsArrayDirectImport demHeight
+                WorldCoverTileSize,
+                WorldCoverTileSize,
+                HeightsArrayDirectImport worldCoverData
             )
             |> convertWorldCoverRasterToWaterMonochrome
 
@@ -432,7 +362,7 @@ let ``Load WorldCover file into a DemHeight`` () =
                     IgorHillshader.defaultParameters
                 |> Demeton.Shaders.Hillshading.shadeRaster 0
             | StepNameXcTracerWaterBodies ->
-                worldCoverWaterBodiesShader2 1 waterBodies
+                worldCoverWaterBodiesShader 1 waterBodies
             | _ ->
                 failwithf
                     $"Unknown shader function name: %s{shaderFunctionName}"
@@ -450,48 +380,3 @@ let ``Load WorldCover file into a DemHeight`` () =
 
         let result = ShadeCommand.run options generateTile saveTile
         test <@ result |> isOk @>
-
-
-[<Fact>]
-let ``Color water bodies from WorldCover file`` () =
-    if Environment.GetEnvironmentVariable("CI") = "true" then
-        // this test cannot run on CI because we don't have the WorldCover
-        // raster available (it's too big to be added to git repo)
-        ()
-    else
-        let demHeight =
-            readWorldCoverRaster
-                @"C:\temp\WorldCover\ESA_WorldCover_10m_2021_v200_N45E006_Map.tif"
-                { Lon = { Value = 6 }
-                  Lat = { Value = -45 } }
-                { Lon = { Value = 7 }
-                  Lat = { Value = -46 } }
-
-        let tileSize = 3600
-
-        let tileId = parseTileName "N46E007"
-        let cellMinX, cellMinY = tileMinCell tileSize tileId
-
-        let cellMinX = cellMinX
-        let cellMinY = cellMinY
-
-        let minPixelsChanged = 1500
-
-        let waterBodiesHeightsArray =
-            HeightsArray(
-                cellMinX,
-                cellMinY,
-                tileSize,
-                tileSize,
-                HeightsArrayDirectImport demHeight
-            )
-            |> convertWorldCoverRasterToWaterMonochrome
-        // |> simplifyRaster minPixelsChanged
-
-        let waterBodies = waterBodiesHeightsArray |> colorWaterBodies
-
-        ignore ()
-
-// todo 0: render the water bodies in such a way that it renders them
-//   blue if the surface area is above a threshold value and red if
-//   below
