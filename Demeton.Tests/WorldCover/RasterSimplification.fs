@@ -82,12 +82,12 @@ let simplifyRaster
                     let sum, pixelValue = originalHeightsArray |> sumCells9 x y
 
                     if pixelValue = 1s then
-                        if sum <= 5s then
+                        if sum <= 3s then
                             simplifiedHeightsArray.setHeightAt (x, y) 0s
                             acc + 1
                         else
                             acc
-                    elif sum >= 6s then
+                    elif sum >= 7s then
                         simplifiedHeightsArray.setHeightAt (x, y) 1s
                         acc + 1
                     else

@@ -210,7 +210,7 @@ let hillAndWaterStep =
 
 let options: ShadeCommand.Options =
     { CoveragePoints = coveragePoints
-      FilePrefix = "XCTracer-hillshading"
+      FilePrefix = "XCTracer-hillshading-water"
       LocalCacheDir = "cache"
       OutputDir = "output"
       SrtmDir = "srtm"
@@ -301,13 +301,20 @@ let worldCoverWaterBodiesShader
                     | Some 0s -> noWaterColor
                     | Some 1s -> errorWaterColor
                     | Some waterBodyColor ->
-                        palette.[int waterBodyColor % (palette |> Array.length)]
-                // let waterBody = waterBodies.[int waterBodyColor - 2]
-                //
-                // if waterBody.SurfaceArea >= 100 then
-                //     waterColor
-                // else
-                //     ignoredWaterColor
+                        let waterBody = waterBodies.[int waterBodyColor - 2]
+
+                        let totalArea =
+                            waterBody.Coverage.Width * waterBody.Coverage.Height
+
+                        match
+                            waterBody.SurfaceArea,
+                            totalArea / waterBody.SurfaceArea
+                        with
+                        | surfaceArea, _ when surfaceArea < 1250 ->
+                            ignoredWaterColor
+                        | _, coverageRatio when coverageRatio >= 10 ->
+                            ignoredWaterColor
+                        | _ -> waterColor
 
                 Rgba8Bit.setPixelAt
                     imageData
@@ -319,7 +326,7 @@ let worldCoverWaterBodiesShader
         Parallel.For(tileRect.MinY, tileRect.MaxY, processRasterLine) |> ignore
 
 [<Fact>]
-let ``Load WorldCover file into a DemHeight`` () =
+let ``Render hillshading with WorldCover water bodies`` () =
     if Environment.GetEnvironmentVariable("CI") = "true" then
         // this test cannot run on CI because we don't have the WorldCover
         // raster available (it's too big to be added to git repo)
@@ -345,6 +352,7 @@ let ``Load WorldCover file into a DemHeight`` () =
                 HeightsArrayDirectImport worldCoverData
             )
             |> convertWorldCoverRasterToWaterMonochrome
+        // |> simplifyRaster 100
 
         let waterBodies = waterBodiesHeightsArray |> colorWaterBodies
 

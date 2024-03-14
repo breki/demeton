@@ -140,6 +140,7 @@
         <PackageReference Include="fscheck" Version="2.16.6"/>
         <PackageReference Include="fscheck.xunit" Version="2.16.6"/>
         <PackageReference Include="FsUnit.xUnit" Version="6.0.0"/>
+        <PackageReference Include="JetBrains.Profiler.Api" Version="1.4.2"/>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0"/>
         <PackageReference Include="Serilog" Version="3.1.1"/>
         <PackageReference Include="Serilog.Sinks.File" Version="5.0.0"/>

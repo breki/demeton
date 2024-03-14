@@ -1,6 +1,8 @@
 ﻿module Tests.WorldCover.WaterBodiesColoring
 
+open System
 open Demeton.DemTypes
+open JetBrains.Profiler.Api
 open Raster
 
 type WaterBodyColor = int16
@@ -44,8 +46,9 @@ let tryColorNextWaterBody
             let mutable surfaceArea = 0
 
             let mutable coverage = Rect.Empty
+            let mutable stillMorePoints = true
 
-            while pointsToColor |> List.length > 0 do
+            while pointsToColor |> List.isEmpty |> not do
                 match pointsToColor with
                 | [] -> ()
                 | _ ->
@@ -63,7 +66,7 @@ let tryColorNextWaterBody
                         cells[pointIndex] <- color
 
                         surfaceArea <- surfaceArea + 1
-                        // coverage <- coverage.Extend(point)
+                        coverage <- coverage.Extend(point)
 
                         // neighbour left
                         if pointX > 0 then
@@ -116,16 +119,26 @@ let tryColorNextWaterBody
     waterBody
 
 let colorWaterBodies (waterHeightsArray: HeightsArray) : WaterBody list =
+    MeasureProfiler.StartCollectingData()
+
     let rec colorWaterBodiesRec color startingPoint waterBodies =
         match tryColorNextWaterBody color startingPoint waterHeightsArray with
-        | Some(waterBody, Some nextPoint) -> [ waterBody ]
-        // if color = Int16.MaxValue then
-        //     failwith "Too many water bodies"
-        //
-        // let nextColor = color + 1s
-        //
-        // colorWaterBodiesRec nextColor nextPoint (waterBody :: waterBodies)
+        | Some(waterBody, Some nextPoint) ->
+            if color = Int16.MaxValue then
+                failwith (
+                    "Too many water bodies for int16 index... "
+                    + "we need to start using int32"
+                )
+
+            let nextColor = color + 1s
+
+            colorWaterBodiesRec nextColor nextPoint (waterBody :: waterBodies)
         | Some(waterBody, None) -> (waterBody :: waterBodies)
         | None -> waterBodies
 
-    colorWaterBodiesRec 2s (0, 0) List.empty |> List.rev
+    let result = colorWaterBodiesRec 2s (0, 0) List.empty |> List.rev
+
+    MeasureProfiler.StopCollectingData()
+    MeasureProfiler.SaveData()
+
+    result
