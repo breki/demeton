@@ -57,8 +57,30 @@ let inline longitudeToCellX cellsPerDegree (lon: float) = lon * cellsPerDegree
 
 let inline latitudeToCellY cellsPerDegree (lat: float) = -lat * cellsPerDegree
 
+/// <summary>
+/// Converts cell X coordinates to longitude (in degrees).
+/// </summary>
+/// <param name="cellsPerDegree">
+/// The number of cells per degree, calculated based on the tile size and the
+/// SRTM level.
+/// </param>
+/// <param name="cellX">The X coordinate of a cell in the SRTM tile.</param>
+/// <returns>
+/// The longitude (in degrees) corresponding to the cell X coordinate.
+/// </returns>
 let inline cellXToLongitude cellsPerDegree cellX = cellX / cellsPerDegree
 
+/// <summary>
+/// Converts cell Y coordinates to latitude (in degrees).
+/// </summary>
+/// <param name="cellsPerDegree">
+/// The number of cells per degree, calculated based on the tile size and the
+/// SRTM level.
+/// </param>
+/// <param name="cellY">The Y coordinate of a cell in the SRTM tile.</param>
+/// <returns>
+/// The latitude (in degrees) corresponding to the cell Y coordinate.
+/// </returns>
 let inline cellYToLatitude cellsPerDegree cellY = -cellY / cellsPerDegree
 
 let inline srtmTileId level tileX tileY =

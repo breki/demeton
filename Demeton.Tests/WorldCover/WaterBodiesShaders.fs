@@ -140,29 +140,55 @@ let worldCoverWaterBodiesOutlineShader
         =
         let tileWidth = tileRect.Width
 
+        let outlinePixelColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy
+
+        // for each pixel of the water body outline raster
         for localX in 0 .. waterBodyOutline.Raster.Width - 1 do
             for localY in 0 .. waterBodyOutline.Raster.Height - 1 do
                 let waterBodyPixelValue =
                     waterBodyOutline.Raster.heightAtLocal (localX, localY)
 
+                // if the pixel indicates an outline
                 if waterBodyPixelValue = 1s then
-                    let imagePoint =
-                        forward
-                            ((localX + waterBodyOutline.Raster.MinX) |> float)
-                            ((localY + waterBodyOutline.Raster.MinY) |> float)
+                    // project the raster pixel into the coordinate space of the
+                    // tile image
+                    let lon =
+                        (waterBodyOutline.Raster.MinX + localX)
+                        |> float
+                        |> cellXToLongitude (float WorldCoverTileSize)
+                        |> degToRad
 
-                    imagePoint
-                    |> Option.iter (fun imagePoint ->
-                        let tileX, tileY = imagePoint
+                    let lat =
+                        (waterBodyOutline.Raster.MinY + localY)
+                        |> float
+                        |> cellYToLatitude (float WorldCoverTileSize)
+                        |> degToRad
 
-                        let pixelValue = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy
+                    let projectedPoint = forward lon lat
 
-                        Rgba8Bit.setPixelAt
-                            imageData
-                            tileWidth
-                            (int tileX - tileRect.MinX)
-                            (int tileY - tileRect.MinY)
-                            pixelValue)
+                    // if the projected point is valid...
+                    projectedPoint
+                    |> Option.iter (fun (tileX, tileY) ->
+                        let imageX =
+                            (tileX |> Math.Round |> int) - tileRect.MinX
+
+                        let imageY =
+                            (-tileY |> Math.Round |> int) - tileRect.MinY
+
+                        // ... and within the tile image,
+                        // render a black pixel at the projected point
+                        if
+                            imageX >= 0
+                            && imageX < tileRect.Width
+                            && imageY >= 0
+                            && imageY < tileRect.Height
+                        then
+                            Rgba8Bit.setPixelAt
+                                imageData
+                                tileWidth
+                                imageX
+                                imageY
+                                outlinePixelColor)
                 else
                     ()
 

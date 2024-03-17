@@ -59,6 +59,18 @@ type MapScale =
         { MapScale = 1.
           Dpi = 1. / (EarthRadiusInMeters * InchesPerMeter) }
 
+/// <summary>
+/// Type alias for a function that represents a map projection.
+/// </summary>
+/// <param name="lon">
+/// The longitude of the point in the geographical space (in radians).
+/// </param>
+/// <param name="lat">
+/// The latitude of the point in the geographical space (in radians).
+/// </param>
+/// <returns>An option type that contains the x and y coordinates of the
+/// point in the projected space if the projection is successful,
+/// or None if the projection is not possible.</returns>
 type ProjectFunc = float -> float -> Point option
 
 /// <summary>
@@ -66,9 +78,11 @@ type ProjectFunc = float -> float -> Point option
 /// </summary>
 /// <param name="x">The x-coordinate of the point in the projected space.</param>
 /// <param name="y">The y-coordinate of the point in the projected space.</param>
-/// <returns>An option type that contains the longitude and latitude of the
+/// <returns>
+/// An option type that contains the longitude and latitude (in radians) of the
 /// point in the geographical space if the inversion is successful,
-/// or None if the inversion is not possible.</returns>
+/// or None if the inversion is not possible.
+/// </returns>
 type InvertFunc = float -> float -> LonLat option
 
 type MapProjection =
