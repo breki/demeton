@@ -127,8 +127,11 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <Compile Include="Aw3d\AW3D experiments.fs"/>
+        <Compile Include="WorldCover\WorldCoverRaster.fs"/>
         <Compile Include="WorldCover\RasterSimplification.fs"/>
         <Compile Include="WorldCover\WaterBodiesColoring.fs"/>
+        <Compile Include="WorldCover\WaterBodiesOutlining.fs"/>
+        <Compile Include="WorldCover\WaterBodiesShaders.fs"/>
         <Compile Include="WorldCover\WorldCover experiments.fs"/>
         <Compile Include="todo.fs"/>
     </ItemGroup>

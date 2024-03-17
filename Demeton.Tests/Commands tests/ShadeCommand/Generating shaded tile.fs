@@ -22,7 +22,7 @@ let area, heights, srtmLevel, mapProjection, mapScale, tileRect =
 
 let coveragePoints = [ (area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat) ]
 
-let mockRasterShader _ _ _ _ _ = ()
+let mockRasterShader _ _ _ _ _ _ = ()
 
 let rootShadingStep = Pipeline.Common.CustomShading "some shader"
 
@@ -100,6 +100,7 @@ let ``Tile generator prepares the tile image data and returns it`` () =
         _
         tileRectReceived
         (imageData: RawImageData)
+        _
         _
         =
         imageDataReceived <- Some imageData

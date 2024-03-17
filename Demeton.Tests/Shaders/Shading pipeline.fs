@@ -14,7 +14,7 @@ let mutable shadedImageGenerated = None
 let ShadingFuncIdStupid = "stupid"
 
 let stupidRasterShader: RasterShader =
-    fun _ _ _ imageData _ -> shadedImageGenerated <- Some imageData
+    fun _ _ _ imageData _ _ -> shadedImageGenerated <- Some imageData
 
 let createShadingFuncById shadingFuncId =
     match shadingFuncId with
@@ -57,6 +57,7 @@ let ``Supports running a simple, single-step pipeline`` () =
             [| heightsArray |]
             srtmLevel
             tileRect
+            mapProjection.Proj
             mapProjection.Invert
             step
 
@@ -77,6 +78,7 @@ let ``Supports compositing of images`` () =
             [| heightsArray |]
             srtmLevel
             tileRect
+            mapProjection.Proj
             mapProjection.Invert
             compositingStep
 
@@ -92,6 +94,7 @@ let ``Supports elevation coloring`` () =
         [| heightsArray |]
         srtmLevel
         tileRect
+        mapProjection.Proj
         mapProjection.Invert
         step
     |> ignore
@@ -106,6 +109,7 @@ let ``Supports aspect shading`` () =
         [| heightsArray |]
         srtmLevel
         tileRect
+        mapProjection.Proj
         mapProjection.Invert
         step
     |> ignore
@@ -120,6 +124,7 @@ let ``Supports slope shading`` () =
         [| heightsArray |]
         srtmLevel
         tileRect
+        mapProjection.Proj
         mapProjection.Invert
         step
     |> ignore
@@ -134,6 +139,7 @@ let ``Supports igor shading`` () =
         [| heightsArray |]
         srtmLevel
         tileRect
+        mapProjection.Proj
         mapProjection.Invert
         step
     |> ignore

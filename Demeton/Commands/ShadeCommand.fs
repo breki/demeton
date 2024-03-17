@@ -426,6 +426,7 @@ let generateShadedRasterTile
                         heightsArrays
                         srtmLevel
                         tileRect
+                        mapProjection.Proj
                         mapProjection.Invert
                         rootShadingStep
 

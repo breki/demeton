@@ -88,7 +88,7 @@ let shadeRaster
     heightsArraysIndex
     (pixelHillshader: PixelHillshader)
     : RasterShader =
-    fun heightsArrays srtmLevel tileRect imageData inverse ->
+    fun heightsArrays srtmLevel tileRect imageData forward inverse ->
         let tileWidth = tileRect.Width
         let cellsPerDegree = cellsPerDegree 3600 srtmLevel
 

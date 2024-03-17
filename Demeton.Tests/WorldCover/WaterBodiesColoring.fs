@@ -16,30 +16,33 @@ type WaterBody =
 
 let tryColorNextWaterBody
     (color: WaterBodyColor)
-    (startingPoint: Point)
+    (startingPointLocal: Point)
     (waterHeightsArray: HeightsArray)
     : (WaterBody * Point option) option =
 
-    let findNextPoint point : Point option =
-        match point with
-        | Some(x, y) ->
-            if x < waterHeightsArray.Width - 1 then Some(x + 1, y)
-            elif y < waterHeightsArray.Height - 1 then Some(0, y + 1)
-            else None
+    let findNextPoint pointLocal : Point option =
+        match pointLocal with
+        | Some(localX, localY) ->
+            if localX < waterHeightsArray.Width - 1 then
+                Some(localX + 1, localY)
+            elif localY < waterHeightsArray.Height - 1 then
+                Some(0, localY + 1)
+            else
+                None
         | None -> None
 
-    let mutable currentPoint = Some startingPoint
+    let mutable currentPointLocal = Some startingPointLocal
 
     let mutable waterBody = None
 
     let mutable cells = waterHeightsArray.Cells
 
-    while currentPoint.IsSome do
-        let pixelColor = waterHeightsArray.heightAtLocal currentPoint.Value
+    while currentPointLocal.IsSome do
+        let pixelColor = waterHeightsArray.heightAtLocal currentPointLocal.Value
 
-        let nextPoint = findNextPoint currentPoint
+        let nextPointLocal = findNextPoint currentPointLocal
 
-        match pixelColor, currentPoint.Value with
+        match pixelColor, currentPointLocal.Value with
         | 1s, point ->
             // found water, start coloring it
             let mutable pointsToColor = List.singleton point
@@ -52,12 +55,12 @@ let tryColorNextWaterBody
                 match pointsToColor with
                 | [] -> ()
                 | _ ->
-                    let point = List.head pointsToColor
-                    let pointX, pointY = point
+                    let pointLocal = List.head pointsToColor
+                    let pointLocalX, pointLocalY = pointLocal
 
                     pointsToColor <- List.tail pointsToColor
 
-                    let pointIndex = pointY * 12000 + pointX
+                    let pointIndex = pointLocalY * 12000 + pointLocalX
 
                     let pointColor = cells[pointIndex]
 
@@ -66,39 +69,48 @@ let tryColorNextWaterBody
                         cells[pointIndex] <- color
 
                         surfaceArea <- surfaceArea + 1
-                        coverage <- coverage.Extend(point)
+
+                        let pointGlobal =
+                            (waterHeightsArray.MinX + pointLocalX,
+                             waterHeightsArray.MinY + pointLocalY)
+
+                        coverage <- coverage.Extend(pointGlobal)
 
                         // neighbour left
-                        if pointX > 0 then
+                        if pointLocalX > 0 then
                             let neighborColor = cells[pointIndex - 1]
 
                             if neighborColor = 1s then
                                 pointsToColor <-
-                                    (pointX - 1, pointY) :: pointsToColor
+                                    (pointLocalX - 1, pointLocalY)
+                                    :: pointsToColor
 
                         // neighbour right
-                        if pointX < (12000 - 1) then
+                        if pointLocalX < (12000 - 1) then
                             let neighborColor = cells[pointIndex + 1]
 
                             if neighborColor = 1s then
                                 pointsToColor <-
-                                    (pointX + 1, pointY) :: pointsToColor
+                                    (pointLocalX + 1, pointLocalY)
+                                    :: pointsToColor
 
                         // neighbour up
-                        if pointY > 0 then
+                        if pointLocalY > 0 then
                             let neighborColor = cells[pointIndex - 12000]
 
                             if neighborColor = 1s then
                                 pointsToColor <-
-                                    (pointX, pointY - 1) :: pointsToColor
+                                    (pointLocalX, pointLocalY - 1)
+                                    :: pointsToColor
 
                         // neighbour down
-                        if pointY < (12000 - 1) then
+                        if pointLocalY < (12000 - 1) then
                             let neighborColor = cells[pointIndex + 12000]
 
                             if neighborColor = 1s then
                                 pointsToColor <-
-                                    (pointX, pointY + 1) :: pointsToColor
+                                    (pointLocalX, pointLocalY + 1)
+                                    :: pointsToColor
 
                     | _ -> ()
 
@@ -107,14 +119,14 @@ let tryColorNextWaterBody
                     { Color = color
                       SurfaceArea = surfaceArea
                       Coverage = coverage },
-                    nextPoint
+                    nextPointLocal
                 )
 
-            currentPoint <- None
+            currentPointLocal <- None
         | _ ->
             // it's either no water here, or another already colored water body,
             // move to the next pixel
-            currentPoint <- nextPoint
+            currentPointLocal <- nextPointLocal
 
     waterBody
 
@@ -123,7 +135,7 @@ let colorWaterBodies (waterHeightsArray: HeightsArray) : WaterBody list =
 
     let rec colorWaterBodiesRec color startingPoint waterBodies =
         match tryColorNextWaterBody color startingPoint waterHeightsArray with
-        | Some(waterBody, Some nextPoint) ->
+        | Some(waterBody, Some nextPointLocal) ->
             if color = Int16.MaxValue then
                 failwith (
                     "Too many water bodies for int16 index... "
@@ -132,7 +144,10 @@ let colorWaterBodies (waterHeightsArray: HeightsArray) : WaterBody list =
 
             let nextColor = color + 1s
 
-            colorWaterBodiesRec nextColor nextPoint (waterBody :: waterBodies)
+            colorWaterBodiesRec
+                nextColor
+                nextPointLocal
+                (waterBody :: waterBodies)
         | Some(waterBody, None) -> (waterBody :: waterBodies)
         | None -> waterBodies
 

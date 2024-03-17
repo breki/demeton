@@ -53,6 +53,7 @@ let createCompositingFuncById compositingFuncId =
 /// The SRTM level to use for shading.
 /// </param>
 /// <param name="tileRect">The rectangle representing the tile.</param>
+/// <param name="forward">A forward map projection function to use.</param>
 /// <param name="inverse">An inverse map projection function to use.</param>
 /// <param name="step">The shading step to execute.</param>
 /// <returns>
@@ -64,6 +65,7 @@ let rec executeShadingStep
     (heightsArrays: HeightsArray[])
     srtmLevel
     tileRect
+    forward
     inverse
     (step: ShadingStep)
     : RawImageData =
@@ -77,6 +79,7 @@ let rec executeShadingStep
                 heightsArrays
                 srtmLevel
                 tileRect
+                forward
                 inverse
                 step1
 
@@ -87,6 +90,7 @@ let rec executeShadingStep
                 heightsArrays
                 srtmLevel
                 tileRect
+                forward
                 inverse
                 step2
 
@@ -129,5 +133,12 @@ let rec executeShadingStep
                 tileRect.Height
                 Rgba8Bit.ImageDataZero
 
-        rasterShaderToUse heightsArrays srtmLevel tileRect imageData inverse
+        rasterShaderToUse
+            heightsArrays
+            srtmLevel
+            tileRect
+            imageData
+            forward
+            inverse
+
         imageData

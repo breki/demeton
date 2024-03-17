@@ -51,6 +51,7 @@ let ``Elevation colorer colors all of the image`` () =
         srtmLevel
         tileRect
         imageData
+        mapProjection.Proj
         mapProjection.Invert
 
     let mutable anyNonColoredPixel = false
