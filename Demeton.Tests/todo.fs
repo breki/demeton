@@ -2,8 +2,7 @@
 
 module Demeton.Tests.todo
 
-// todo 10: implement some kind of outlining/grassfire algorithm for water
-//   bodies
+// proper visual tests for water bodies coloring and outlining
 
 // todo 50: update shading docs now that we have added an array of fetchers
 

@@ -133,6 +133,7 @@
         <Compile Include="WorldCover\WaterBodiesOutlining.fs"/>
         <Compile Include="WorldCover\WaterBodiesShaders.fs"/>
         <Compile Include="WorldCover\WorldCover experiments.fs"/>
+        <Compile Include="WorldCover\Water bodies coloring tests.fs"/>
         <Compile Include="todo.fs"/>
     </ItemGroup>
 

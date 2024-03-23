@@ -37,6 +37,9 @@ let tryColorNextWaterBody
 
     let mutable cells = waterHeightsArray.Cells
 
+    let heightsArrayWidth = waterHeightsArray.Width
+    let heightsArrayHeight = waterHeightsArray.Height
+
     while currentPointLocal.IsSome do
         let pixelColor = waterHeightsArray.heightAtLocal currentPointLocal.Value
 
@@ -60,7 +63,8 @@ let tryColorNextWaterBody
 
                     pointsToColor <- List.tail pointsToColor
 
-                    let pointIndex = pointLocalY * 12000 + pointLocalX
+                    let pointIndex =
+                        pointLocalY * heightsArrayWidth + pointLocalX
 
                     let pointColor = cells[pointIndex]
 
@@ -86,7 +90,7 @@ let tryColorNextWaterBody
                                     :: pointsToColor
 
                         // neighbour right
-                        if pointLocalX < (12000 - 1) then
+                        if pointLocalX < (heightsArrayWidth - 1) then
                             let neighborColor = cells[pointIndex + 1]
 
                             if neighborColor = 1s then
@@ -96,7 +100,8 @@ let tryColorNextWaterBody
 
                         // neighbour up
                         if pointLocalY > 0 then
-                            let neighborColor = cells[pointIndex - 12000]
+                            let neighborColor =
+                                cells[pointIndex - heightsArrayWidth]
 
                             if neighborColor = 1s then
                                 pointsToColor <-
@@ -104,8 +109,9 @@ let tryColorNextWaterBody
                                     :: pointsToColor
 
                         // neighbour down
-                        if pointLocalY < (12000 - 1) then
-                            let neighborColor = cells[pointIndex + 12000]
+                        if pointLocalY < (heightsArrayHeight - 1) then
+                            let neighborColor =
+                                cells[pointIndex + heightsArrayWidth]
 
                             if neighborColor = 1s then
                                 pointsToColor <-

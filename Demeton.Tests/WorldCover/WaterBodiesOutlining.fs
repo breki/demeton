@@ -16,12 +16,17 @@ let outlineWaterBodies
     : WaterBodyOutline seq =
 
     let initializeWaterBodyRaster (waterBody: WaterBody) : HeightsArray =
-        // copy the box defined by waterBody.Coverage into a new
-        // bracketed heights array
+        // Copy the box defined by waterBody.Coverage into a new
+        // bracketed heights array. Note that we add one additional pixel around
+        // the original waterBody.Coverage to make it easier to work with.
 
         let initializePixel (globalX: int, globalY: int) : DemHeight =
             if
-                coloredWaterBodiesRaster.heightAt (globalX, globalY) = waterBody.Color
+                globalX >= coloredWaterBodiesRaster.MinX
+                && globalX < coloredWaterBodiesRaster.MaxX
+                && globalY >= coloredWaterBodiesRaster.MinY
+                && globalY < coloredWaterBodiesRaster.MaxY
+                && coloredWaterBodiesRaster.heightAt (globalX, globalY) = waterBody.Color
             then
                 // a marker that the water body pixel was not yet visited
                 Int16.MinValue
@@ -29,17 +34,16 @@ let outlineWaterBodies
                 0s
 
         HeightsArray(
-            waterBody.Coverage.MinX,
-            waterBody.Coverage.MinY,
-            waterBody.Coverage.Width,
-            waterBody.Coverage.Height,
+            waterBody.Coverage.MinX - 1,
+            waterBody.Coverage.MinY - 1,
+            waterBody.Coverage.Width + 2,
+            waterBody.Coverage.Height + 2,
             HeightsArrayInitializer2D initializePixel
         )
 
     let anyNeighborPixelsOfDistance
         (distance: int16)
         (localX: int, localY: int)
-        (waterBody: WaterBody)
         (waterBodyRaster: HeightsArray)
         : bool =
         let neighbors =
@@ -49,47 +53,69 @@ let outlineWaterBodies
               (localX, localY + 1) ]
 
         neighbors
-        |> Seq.exists (fun (localX, localY) ->
-            localX >= 0
-            && localX < waterBody.Coverage.Width
-            && localY >= 0
-            && localY < waterBody.Coverage.Height
-            && waterBodyRaster.heightAtLocal (localX, localY) = distance)
+        |> Seq.exists (fun (x, y) ->
+            x >= 0
+            && x < waterBodyRaster.Width
+            && y >= 0
+            && y < waterBodyRaster.Height
+            && waterBodyRaster.heightAtLocal (x, y) = distance)
 
     let outlineWaterBody
         (waterBody: WaterBody)
         distance
         (waterBodyRaster: HeightsArray)
-        =
+        : HeightsArray * int =
+        let mutable discoveredPixels = 0
+
         for localY in 0 .. waterBody.Coverage.Height - 1 do
             for localX in 0 .. waterBody.Coverage.Width - 1 do
-                let pixel = waterBodyRaster.heightAtLocal (localX, localY)
+                // "+ 1" is to account for the additional border pixels
+                let pixel =
+                    waterBodyRaster.heightAtLocal (localX + 1, localY + 1)
 
                 if pixel = Int16.MinValue then
                     if
                         anyNeighborPixelsOfDistance
                             distance
                             (localX, localY)
-                            waterBody
                             waterBodyRaster
                     then
                         waterBodyRaster.setHeightAtLocal
                             (localX, localY)
                             // todo 5: add Int16.MaxValue guard
                             (distance + 1s)
+
+                        discoveredPixels <- discoveredPixels + 1
                     else
                         ()
                 else
                     ()
 
-        waterBodyRaster
+        waterBodyRaster, discoveredPixels
 
 
     waterBodies
     |> Seq.map (fun waterBody ->
-        let initialDistance = 0s
+        let mutable distance = 0s
+        let mutable discoveredPixelsInTotal = 0
 
-        { Raster =
-            initializeWaterBodyRaster waterBody
-            |> outlineWaterBody waterBody initialDistance
+        let waterBodyRaster = initializeWaterBodyRaster waterBody
+
+        while discoveredPixelsInTotal < waterBody.SurfaceArea do
+            let waterBodyRaster, discoveredPixels =
+                waterBodyRaster |> outlineWaterBody waterBody distance
+
+            if discoveredPixels > 0 then
+                discoveredPixelsInTotal <-
+                    discoveredPixelsInTotal + discoveredPixels
+
+                distance <- distance + 1s
+            else
+                raise (
+                    InvalidOperationException(
+                        "BUG: there should be at least one new pixel discovered."
+                    )
+                )
+
+        { Raster = waterBodyRaster
           DistanceFromOutlineStats = [] })
