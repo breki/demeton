@@ -3,13 +3,12 @@
 
 open System
 open Demeton.DemTypes
+open Text
 open Xunit
 open Swensen.Unquote
 open Tests.WorldCover.WaterBodiesColoring
 open Tests.WorldCover.WaterBodiesOutlining
 
-
-// todo 4: use our functional string things instead of StringBuilder directly
 
 /// <summary>
 /// Parse a scene represented as a multiline string into a HeightsArray.
@@ -40,9 +39,7 @@ let parseScene (scene: string) (minX: int) (minY: int) : HeightsArray =
 /// Render a HeightsArray into a multiline string.
 /// </summary>
 let renderScene (heightsArray: HeightsArray) : string =
-    let sb = System.Text.StringBuilder()
-
-    sb.AppendLine() |> ignore
+    let sb = buildString () |> newLine
 
     for y in 0 .. heightsArray.Height - 1 do
         for x in 0 .. heightsArray.Width - 1 do
@@ -51,11 +48,11 @@ let renderScene (heightsArray: HeightsArray) : string =
                 | Int16.MinValue -> " "
                 | value -> ((value |> char) + '0' |> string)
 
-            sb.Append(cellChar) |> ignore
+            sb |> append cellChar |> ignore
 
-        sb.AppendLine() |> ignore
+        sb |> newLine |> ignore
 
-    sb.ToString()
+    sb |> toString
 
 /// <summary>
 /// Compare two height arrays as scenes and return any differences.
