@@ -37,10 +37,21 @@ type Rect =
     member this.MaxY = this.MinY + this.Height
 
     member this.Extend((x, y): Point) =
-        let minX = min this.MinX x
-        let minY = min this.MinY y
-        let width = max (x - minX + 1) this.Width
-        let height = max (y - minY + 1) this.Height
+        let minX, width =
+            if this.Width > 0 then
+                if x < this.MinX then x, this.MaxX - x
+                elif x >= this.MaxX then this.MinX, x - this.MinX + 1
+                else this.MinX, this.Width
+            else
+                x, 1
+
+        let minY, height =
+            if this.Height > 0 then
+                if y < this.MinY then y, this.MaxY - y
+                elif y >= this.MaxY then this.MinY, y - this.MinY + 1
+                else this.MinY, this.Height
+            else
+                y, 1
 
         { MinX = minX
           MinY = minY

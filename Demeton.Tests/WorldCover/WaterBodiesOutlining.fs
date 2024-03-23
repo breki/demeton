@@ -1,7 +1,9 @@
 ﻿module Tests.WorldCover.WaterBodiesOutlining
 
 open System
+open System.Diagnostics
 open Demeton.DemTypes
+open Raster
 open Tests.WorldCover.WaterBodiesColoring
 
 type WaterBodyOutline =
@@ -20,17 +22,29 @@ let outlineWaterBodies
         // bracketed heights array. Note that we add one additional pixel around
         // the original waterBody.Coverage to make it easier to work with.
 
+        // todo 0: debug this
+        if waterBody.Color = 131s then
+            let rect: Rect =
+                { MinX = waterBody.Coverage.MinX - 1
+                  MinY = waterBody.Coverage.MinY - 1
+                  Width = waterBody.Coverage.Width + 2
+                  Height = waterBody.Coverage.Height + 2 }
+
+            let ext = coloredWaterBodiesRaster |> Demeton.Dem.extract rect
+            Debugger.Break()
+
         let initializePixel (globalX: int, globalY: int) : DemHeight =
             if
                 globalX >= coloredWaterBodiesRaster.MinX
-                && globalX < coloredWaterBodiesRaster.MaxX
+                && globalX <= coloredWaterBodiesRaster.MaxX
                 && globalY >= coloredWaterBodiesRaster.MinY
-                && globalY < coloredWaterBodiesRaster.MaxY
+                && globalY <= coloredWaterBodiesRaster.MaxY
                 && coloredWaterBodiesRaster.heightAt (globalX, globalY) = waterBody.Color
             then
                 // a marker that the water body pixel was not yet visited
                 Int16.MinValue
             else
+                // this is not a water body pixel
                 0s
 
         HeightsArray(
@@ -77,11 +91,11 @@ let outlineWaterBodies
                     if
                         anyNeighborPixelsOfDistance
                             distance
-                            (localX, localY)
+                            (localX + 1, localY + 1)
                             waterBodyRaster
                     then
                         waterBodyRaster.setHeightAtLocal
-                            (localX, localY)
+                            (localX + 1, localY + 1)
                             // todo 5: add Int16.MaxValue guard
                             (distance + 1s)
 
@@ -101,6 +115,11 @@ let outlineWaterBodies
 
         let waterBodyRaster = initializeWaterBodyRaster waterBody
 
+        // todo 0: debug this
+        if waterBody.Color = 131s then
+            let scene = HeightArraysScenes.renderScene waterBodyRaster
+            ignore ()
+
         while discoveredPixelsInTotal < waterBody.SurfaceArea do
             let waterBodyRaster, discoveredPixels =
                 waterBodyRaster |> outlineWaterBody waterBody distance
@@ -111,6 +130,7 @@ let outlineWaterBodies
 
                 distance <- distance + 1s
             else
+                // todo 0: debug this
                 raise (
                     InvalidOperationException(
                         "BUG: there should be at least one new pixel discovered."

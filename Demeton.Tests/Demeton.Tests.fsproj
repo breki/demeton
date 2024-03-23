@@ -52,6 +52,7 @@
         <Compile Include="Geometry\Distance on Earth.fs"/>
         <Compile Include="Geometry\Line intersection tests.fs"/>
         <Compile Include="Geometry\Polygon self-intersection tests.fs"/>
+        <Compile Include="Rasters\Rect tests.fs"/>
         <Compile Include="Dem\Working with HeightsArrays.fs"/>
         <Compile Include="Dem\Merging height arrays.fs"/>
         <Compile Include="Dem\Merging height arrays properties.fs"/>
@@ -127,13 +128,14 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <Compile Include="Aw3d\AW3D experiments.fs"/>
+        <Compile Include="WorldCover\HeightArraysScenes.fs"/>
         <Compile Include="WorldCover\WorldCoverRaster.fs"/>
         <Compile Include="WorldCover\RasterSimplification.fs"/>
         <Compile Include="WorldCover\WaterBodiesColoring.fs"/>
         <Compile Include="WorldCover\WaterBodiesOutlining.fs"/>
         <Compile Include="WorldCover\WaterBodiesShaders.fs"/>
-        <Compile Include="WorldCover\WorldCover experiments.fs"/>
         <Compile Include="WorldCover\Water bodies coloring tests.fs"/>
+        <Compile Include="WorldCover\WorldCover experiments.fs"/>
         <Compile Include="todo.fs"/>
     </ItemGroup>
 
