@@ -27,7 +27,7 @@ let area, heights, srtmLevel, mapProjection, mapScale, tileRect =
         46.1
         7.9
         46.9
-        250000.
+        214000.
         72.
 
 let coveragePoints = [ (area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat) ]
@@ -69,7 +69,8 @@ let options: ShadeCommand.Options =
       OutputDir = "output"
       SrtmDir = "srtm"
       TileSize = 10000
-      RootShadingStep = outlineOverHillAndWaterStep
+      // RootShadingStep = outlineOverHillAndWaterStep
+      RootShadingStep = hillshadingStep
       MapScale = mapScale
       MapProjection =
         { Projection = PROJParameters.Mercator
@@ -128,9 +129,10 @@ let ``Render hillshading with WorldCover water bodies`` () =
             | StepNameXcTracerWaterBodies ->
                 worldCoverWaterBodiesShader 1 waterBodies
             | StepNameXcTracerWaterBodiesOutline ->
-                worldCoverWaterBodiesOutlineShader
-                    waterBodies
-                    waterBodiesOutlines
+                let waterBodiesAndOutlines =
+                    List.zip waterBodies waterBodiesOutlines
+
+                worldCoverWaterBodiesOutlineShader waterBodiesAndOutlines
             | _ ->
                 failwithf
                     $"Unknown shader function name: %s{shaderFunctionName}"

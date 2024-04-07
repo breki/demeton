@@ -43,6 +43,18 @@ let valueForTilePixel
 
         heightsArray.heightAt (globalSrtmX, globalSrtmY) |> Some
 
+/// <summary>
+/// A filter function that, based on the water body's surface area and coverage
+/// ratio, determines whether the water body should be shown or not.
+/// </summary>
+let shouldShowWaterBody waterBody =
+    let totalArea = waterBody.Coverage.Width * waterBody.Coverage.Height
+
+    match waterBody.SurfaceArea, totalArea / waterBody.SurfaceArea with
+    | surfaceArea, _ when surfaceArea < 1250 -> false
+    | _, coverageRatio when coverageRatio >= 10 -> false
+    | _ -> true
+
 
 /// <summary>
 /// Returns a raster shader that accepts a WorldCover-originated heights array
@@ -72,21 +84,6 @@ let worldCoverWaterBodiesShader
             | Ok color -> color
             | Error _ -> failwith "Could not parse color"
 
-        let greenWaterColor = Rgba8Bit.rgbaColor 0uy 255uy 0uy 255uy
-        let redWaterColor = Rgba8Bit.rgbaColor 255uy 0uy 0uy 255uy
-        let blueWaterColor = Rgba8Bit.rgbaColor 0uy 0uy 255uy 255uy
-        let yellowWaterColor = Rgba8Bit.rgbaColor 255uy 255uy 0uy 255uy
-        let magentaWaterColor = Rgba8Bit.rgbaColor 255uy 0uy 255uy 255uy
-        let cyanWaterColor = Rgba8Bit.rgbaColor 0uy 255uy 255uy 255uy
-
-        let palette =
-            [| greenWaterColor
-               redWaterColor
-               blueWaterColor
-               yellowWaterColor
-               magentaWaterColor
-               cyanWaterColor |]
-
         let noWaterColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
 
         let processRasterLine y =
@@ -103,18 +100,10 @@ let worldCoverWaterBodiesShader
                     | Some waterBodyColor ->
                         let waterBody = waterBodies.[int waterBodyColor - 2]
 
-                        let totalArea =
-                            waterBody.Coverage.Width * waterBody.Coverage.Height
-
-                        match
-                            waterBody.SurfaceArea,
-                            totalArea / waterBody.SurfaceArea
-                        with
-                        | surfaceArea, _ when surfaceArea < 1250 ->
+                        if shouldShowWaterBody waterBody then
+                            waterColor
+                        else
                             ignoredWaterColor
-                        | _, coverageRatio when coverageRatio >= 10 ->
-                            ignoredWaterColor
-                        | _ -> waterColor
 
                 Rgba8Bit.setPixelAt
                     imageData
@@ -126,8 +115,7 @@ let worldCoverWaterBodiesShader
         Parallel.For(tileRect.MinY, tileRect.MaxY, processRasterLine) |> ignore
 
 let worldCoverWaterBodiesOutlineShader
-    (waterBodies: WaterBody list)
-    (waterBodiesOutlines: WaterBodyOutline seq)
+    (waterBodiesAndOutlines: (WaterBody * WaterBodyOutline) list)
     : RasterShader =
 
     let colorWaterBodyOutline
@@ -136,64 +124,67 @@ let worldCoverWaterBodiesOutlineShader
         tileRect
         (forward: ProjectFunc)
         (inverse: InvertFunc)
-        (waterBodyOutline: WaterBodyOutline)
+        ((waterBody, waterBodyOutline): WaterBody * WaterBodyOutline)
         =
-        let tileWidth = tileRect.Width
+        if shouldShowWaterBody waterBody then
+            let tileWidth = tileRect.Width
 
-        let outlinePixelColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy
+            let outlinePixelColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy
 
-        // for each pixel of the water body outline raster
-        for localX in 0 .. waterBodyOutline.Raster.Width - 1 do
-            for localY in 0 .. waterBodyOutline.Raster.Height - 1 do
-                let waterBodyPixelValue =
-                    waterBodyOutline.Raster.heightAtLocal (localX, localY)
+            // for each pixel of the water body outline raster
+            for localX in 0 .. waterBodyOutline.Raster.Width - 1 do
+                for localY in 0 .. waterBodyOutline.Raster.Height - 1 do
+                    let outlineDistance =
+                        waterBodyOutline.Raster.heightAtLocal (localX, localY)
 
-                // if the pixel indicates an outline
-                if waterBodyPixelValue = 1s then
-                    // project the raster pixel into the coordinate space of the
-                    // tile image
-                    let lon =
-                        (waterBodyOutline.Raster.MinX + localX)
-                        |> float
-                        |> cellXToLongitude (float WorldCoverTileSize)
-                        |> degToRad
+                    // if the pixel indicates an outline
+                    if outlineDistance >= 1s && outlineDistance <= 3s then
+                        // project the raster pixel into the coordinate space of the
+                        // tile image
+                        let lon =
+                            (waterBodyOutline.Raster.MinX + localX)
+                            |> float
+                            |> cellXToLongitude (float WorldCoverTileSize)
+                            |> degToRad
 
-                    let lat =
-                        (waterBodyOutline.Raster.MinY + localY)
-                        |> float
-                        |> cellYToLatitude (float WorldCoverTileSize)
-                        |> degToRad
+                        let lat =
+                            (waterBodyOutline.Raster.MinY + localY)
+                            |> float
+                            |> cellYToLatitude (float WorldCoverTileSize)
+                            |> degToRad
 
-                    let projectedPoint = forward lon lat
+                        let projectedPoint = forward lon lat
 
-                    // if the projected point is valid...
-                    projectedPoint
-                    |> Option.iter (fun (tileX, tileY) ->
-                        let imageX =
-                            (tileX |> Math.Round |> int) - tileRect.MinX
+                        // if the projected point is valid...
+                        projectedPoint
+                        |> Option.iter (fun (tileX, tileY) ->
+                            let imageX =
+                                (tileX |> Math.Round |> int) - tileRect.MinX
 
-                        let imageY =
-                            (-tileY |> Math.Round |> int) - tileRect.MinY
+                            let imageY =
+                                (-tileY |> Math.Round |> int) - tileRect.MinY
 
-                        // ... and within the tile image,
-                        // render a black pixel at the projected point
-                        if
-                            imageX >= 0
-                            && imageX < tileRect.Width
-                            && imageY >= 0
-                            && imageY < tileRect.Height
-                        then
-                            Rgba8Bit.setPixelAt
-                                imageData
-                                tileWidth
-                                imageX
-                                imageY
-                                outlinePixelColor)
-                else
-                    ()
+                            // ... and within the tile image,
+                            // render a black pixel at the projected point
+                            if
+                                imageX >= 0
+                                && imageX < tileRect.Width
+                                && imageY >= 0
+                                && imageY < tileRect.Height
+                            then
+                                Rgba8Bit.setPixelAt
+                                    imageData
+                                    tileWidth
+                                    imageX
+                                    imageY
+                                    outlinePixelColor)
+                    else
+                        ()
+        else
+            ()
 
     fun heightsArrays srtmLevel (tileRect: Rect) imageData forward inverse ->
-        waterBodiesOutlines
+        waterBodiesAndOutlines
         |> Seq.iter (
             colorWaterBodyOutline srtmLevel imageData tileRect forward inverse
         )
