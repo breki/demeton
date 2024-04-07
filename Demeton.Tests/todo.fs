@@ -2,7 +2,8 @@
 
 module Demeton.Tests.todo
 
-// proper visual tests for water bodies coloring and outlining
+
+// todo 10: implement downloading of AW3D data
 
 // todo 50: update shading docs now that we have added an array of fetchers
 
