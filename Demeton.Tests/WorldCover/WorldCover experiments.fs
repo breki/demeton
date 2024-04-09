@@ -77,7 +77,7 @@ let options: ShadeCommand.Options =
           IgnoredParameters = [] } }
 
 
-[<Fact>]
+[<Fact(Skip = "takes a long time, run it explicitly")>]
 let ``Render hillshading with WorldCover water bodies`` () =
     if Environment.GetEnvironmentVariable("CI") = "true" then
         // this test cannot run on CI because we don't have the WorldCover
