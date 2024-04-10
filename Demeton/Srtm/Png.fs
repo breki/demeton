@@ -79,7 +79,7 @@ let encodeSrtmHeightsArrayToPng
 
 let writeHeightsArrayIntoPngFile
     (ensureDirectoryExists: DirectoryExistsEnsurer)
-    (openFileToWrite: FileSys.FileReader): HeightsArrayPngWriter =
+    (openFileToWrite: FileReader): HeightsArrayPngWriter =
     fun pngFileName heightsArray ->
 
     ensureDirectoryExists (pngFileName |> Pth.directory) |> ignore
@@ -102,10 +102,10 @@ type SrtmTileCacheWriter =
 /// instead (and returns None in this case).
 /// </summary>
 let writeSrtmTileToLocalCache
-    (localCacheDir: FileSys.DirectoryName)
-    (ensureDirectoryExists: FileSys.DirectoryExistsEnsurer)
+    (localCacheDir: DirectoryName)
+    (ensureDirectoryExists: DirectoryExistsEnsurer)
     (writeHeightsArrayToFile: HeightsArrayPngWriter)
-    (openFileToWrite: FileSys.FileWriter)
+    (openFileToWrite: FileWriter)
     : SrtmTileCacheWriter =
     fun (tile: SrtmTileId) (heightsArrayMaybe: HeightsArray option) -> 
     match (heightsArrayMaybe, tile.Level.Value) with
@@ -132,7 +132,7 @@ let writeSrtmTileToLocalCache
             None)
 
 let decodeSrtmTileFromPngFile
-    (readFile: FileSys.FileReader): SrtmPngTileReader =
+    (readFile: FileReader): SrtmPngTileReader =
     fun tileId pngFileName ->
     Log.info "Loading PNG SRTM tile '%s'..." pngFileName
 
@@ -191,7 +191,7 @@ type ZippedHgtFileStreamOpener =
 /// be read.
 /// </summary>
 let openZippedHgtFileStream
-    (readZipFileEntry: FileSys.ZipFileEntryReader): ZippedHgtFileStreamOpener
+    (readZipFileEntry: ZipFileEntryReader): ZippedHgtFileStreamOpener
     = fun tileId zippedHgtFileName ->
     let tileName = toTileName tileId
     let zippedEntryName = tileName + ".hgt"
