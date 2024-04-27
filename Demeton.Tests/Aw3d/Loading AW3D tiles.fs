@@ -48,68 +48,6 @@ let ``For a given AW3D tile, construct its download URL``
         <@ aw3dTileDownloadUrl { TileX = tileX; TileY = tileY } = expectedUrl @>
 
 
-// todo 0: move the AW3D code to the main project
-
-// todo 6: for a given list of AW3D tiles and the cache dir, download all
-//   missing ones
-
-[<Literal>]
-let Aw3dDirName = "AW3D"
-
-
-/// <summary>
-/// Returns the path to the cached ZIP file for the given AW3D tile.
-/// </summary>
-let aw3dTileCachedZipFileName cacheDir (tileId: Aw3dTileId) =
-    Path.Combine(cacheDir, Aw3dDirName, $"{tileId.Aw3dTileName}.zip")
-
-/// <summary>
-/// Returns the path to the cached TIFF file for the given AW3D tile.
-/// </summary>
-let aw3dTileCachedTifFileName cacheDir (tileId: Aw3dTileId) =
-    Path.Combine(cacheDir, Aw3dDirName, $"{tileId.Aw3dTileName}.tif")
-
-/// <summary>
-/// Returns the name of the TIFF file entry in the AW3D tile ZIP file.
-/// </summary>
-let aw3dTileZipFileEntryName (tileId: Aw3dTileId) =
-    $"{tileId.Aw3dTileName}/ALPSMLC30_{tileId.Aw3dTileName}_DSM.tif"
-
-/// <summary>
-/// Ensures the specified AW3D tile TIFF file is available in the cache
-/// directory, downloading it if necessary.
-/// </summary>
-let ensureAw3dTile
-    cacheDir
-    fileExists
-    downloadFile
-    openZipFileEntry
-    copyStreamToFile
-    deleteFile
-    tileId
-    =
-    let cachedTifFileName = aw3dTileCachedTifFileName cacheDir tileId
-
-    if fileExists cachedTifFileName then
-        Ok cachedTifFileName
-    else
-        // download the tile
-        let url = aw3dTileDownloadUrl tileId
-
-        let tileCachedZipFileName = tileId |> aw3dTileCachedZipFileName cacheDir
-
-        let tiffFileNameInZip = aw3dTileZipFileEntryName tileId
-
-        openZipFileEntry tileCachedZipFileName tiffFileNameInZip
-        |> Result.bind (fun zippedStream ->
-            let tiffFilePath = tileId |> aw3dTileCachedTifFileName cacheDir
-
-            let tiffFilePath = zippedStream |> copyStreamToFile tiffFilePath
-
-            deleteFile tileCachedZipFileName
-
-            Ok tiffFilePath)
-
 [<Fact>]
 let ``Do not download tile if TIFF already in cache`` () =
     let cacheDir = "cache"
@@ -275,3 +213,6 @@ let ``Delete downloaded ZIP file after extraction`` () =
             ignore "check that the ZIP file was deleted"
             !zipFileDeleted
         @>
+
+// todo 6: for a given list of AW3D tiles and the cache dir, download all
+//   missing ones
