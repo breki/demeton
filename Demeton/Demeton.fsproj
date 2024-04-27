@@ -108,6 +108,8 @@
             <Link>download-sample-data.sh</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <Compile Include="Aw3d\Types.fs"/>
+        <Compile Include="Aw3d\Funcs.fs"/>
     </ItemGroup>
     <ItemGroup/>
     <ItemGroup>

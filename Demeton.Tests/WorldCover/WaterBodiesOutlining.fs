@@ -9,7 +9,7 @@ type WaterBodyOutline =
     { Raster: HeightsArray
       DistanceFromOutlineStats: int list }
 
-// todo 10: document
+// todo 100: document
 
 let outlineWaterBodies
     (coloredWaterBodiesRaster: HeightsArray)
