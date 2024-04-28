@@ -95,11 +95,14 @@ let ``Download tile ZIP file if TIFF not in cache`` () =
 
     let fileExists _ = false
 
+    let mutable zipFileDownloaded = false
+
     let downloadFile url localFileName =
         if
-            url = "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2303/N046E006/N046E006.zip"
+            url = "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2303/N045E005/N046E006.zip"
         then
             if localFileName = expectedCachedZipFileName then
+                zipFileDownloaded <- true
                 localFileName
             else
                 fail "Unexpected local ZIP file name"
@@ -123,6 +126,7 @@ let ``Download tile ZIP file if TIFF not in cache`` () =
             sampleTileId
 
     test <@ result |> isOk @>
+    test <@ zipFileDownloaded @>
 
 [<Fact>]
 let ``Extract tile TIFF to the cache`` () =
@@ -213,6 +217,3 @@ let ``Delete downloaded ZIP file after extraction`` () =
             ignore "check that the ZIP file was deleted"
             !zipFileDeleted
         @>
-
-// todo 6: for a given list of AW3D tiles and the cache dir, download all
-//   missing ones

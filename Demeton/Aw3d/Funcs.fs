@@ -101,24 +101,27 @@ let ensureAw3dTile
     deleteFile
     tileId
     =
+    let downloadTileZipFile tileId =
+        let url = aw3dTileDownloadUrl tileId
+        let cachedTileZipFileName = tileId |> aw3dTileCachedZipFileName cacheDir
+        downloadFile url cachedTileZipFileName
+
     let cachedTifFileName = aw3dTileCachedTifFileName cacheDir tileId
 
     if fileExists cachedTifFileName then
         Ok cachedTifFileName
     else
         // download the tile
-        let url = aw3dTileDownloadUrl tileId
-
-        let tileCachedZipFileName = tileId |> aw3dTileCachedZipFileName cacheDir
+        let cachedTileZipFileName = tileId |> downloadTileZipFile
 
         let tiffFileNameInZip = aw3dTileZipFileEntryName tileId
 
-        openZipFileEntry tileCachedZipFileName tiffFileNameInZip
+        openZipFileEntry cachedTileZipFileName tiffFileNameInZip
         |> Result.bind (fun zippedStream ->
             let tiffFilePath = tileId |> aw3dTileCachedTifFileName cacheDir
 
             let tiffFilePath = zippedStream |> copyStreamToFile tiffFilePath
 
-            deleteFile tileCachedZipFileName
+            deleteFile cachedTileZipFileName
 
             Ok tiffFilePath)

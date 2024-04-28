@@ -131,6 +131,7 @@
         </Content>
         <Compile Include="Aw3d\Loading AW3D tiles.fs"/>
         <Compile Include="Aw3d\AW3D experiments.fs"/>
+        <Compile Include="WorldCover\Loading WorldCover tiles.fs"/>
         <Compile Include="WorldCover\HeightArraysScenes.fs"/>
         <Compile Include="WorldCover\WorldCoverRaster.fs"/>
         <Compile Include="WorldCover\RasterSimplification.fs"/>
