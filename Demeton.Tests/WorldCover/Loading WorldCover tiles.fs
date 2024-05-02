@@ -234,12 +234,10 @@ let ``Can fetch the list of all available WorldCover tiles`` () =
     test <@ allAvailableTiles |> Seq.length = 2631 @>
 
 
-// todo 8: we need to calculate the WorldCover tile for a given lat/lon, but
-//   we have to take into account available tiles only. We should also take
-//   into account the fact that WorldCover tiles are bigger than SRTM ones.
+// todo 0: make sure the actual WorldCover tiles scheme corresponds to the below tests
 
 [<Fact>]
-let ``Correctly calculates the WorldCover tiles needed for a given boundary``
+let ``Correctly calculates the WorldCover tiles needed for a given boundary, positive values``
     ()
     =
     let bounds =
@@ -257,6 +255,40 @@ let ``Correctly calculates the WorldCover tiles needed for a given boundary``
                   { TileX = 48; TileY = -9 } ]
         @>
 
+[<Fact>]
+let ``Correctly calculates the WorldCover tiles needed for a given boundary, negative values``
+    ()
+    =
+    let bounds =
+        { MinLon = -5
+          MinLat = -5
+          MaxLon = -1
+          MaxLat = -1 }
 
+    test
+        <@
+            boundsToWorldCoverTiles bounds |> Set.ofSeq = set
+                [ { TileX = -6; TileY = 6 }
+                  { TileX = -6; TileY = 3 }
+                  { TileX = -3; TileY = 6 }
+                  { TileX = -3; TileY = 3 } ]
+        @>
 
-// todo 9: we need to calculate the list of tiles needed for given bounds
+[<Fact>]
+let ``Correctly calculates the WorldCover tiles needed for a given boundary, around null island``
+    ()
+    =
+    let bounds =
+        { MinLon = -2
+          MinLat = -2
+          MaxLon = 2
+          MaxLat = 2 }
+
+    test
+        <@
+            boundsToWorldCoverTiles bounds |> Set.ofSeq = set
+                [ { TileX = -3; TileY = 0 }
+                  { TileX = -3; TileY = 3 }
+                  { TileX = 0; TileY = 0 }
+                  { TileX = 0; TileY = 3 } ]
+        @>
