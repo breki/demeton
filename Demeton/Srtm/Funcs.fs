@@ -18,9 +18,15 @@ let inline tileXToCellX (tileSize: int) (tileX: float) =
 let inline tileYToCellY (tileSize: int) (tileY: float) =
     tileY * (tileSize |> float)
 
+/// <summary>
+/// Converts SRTM cell X coordinate to a fractional tile X coordinate.
+/// </summary>
 let inline cellXToTileX (tileSize: int) (cellX: float) =
     cellX / (tileSize |> float)
 
+/// <summary>
+/// Converts SRTM cell Y coordinate to a fractional tile Y coordinate.
+/// </summary>
 let inline cellYToTileY (tileSize: int) (cellY: float) =
     cellY / (tileSize |> float)
 
@@ -53,8 +59,14 @@ let findTileFromGlobalCoordinates
 let inline cellsPerDegree tileSize (level: SrtmLevel) =
     (float tileSize) / levelFactorFloat level
 
+/// <summary>
+/// Converts longitude value (in degrees) to SRTM cell X coordinate.
+/// </summary>
 let inline longitudeToCellX cellsPerDegree (lon: float) = lon * cellsPerDegree
 
+/// <summary>
+/// Converts latitude value (in degrees) to SRTM cell Y coordinate.
+/// </summary>
 let inline latitudeToCellY cellsPerDegree (lat: float) = -lat * cellsPerDegree
 
 /// <summary>

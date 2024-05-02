@@ -180,6 +180,9 @@ let downloadFile (url: string) (destinationPath: string) =
                 let! content =
                     response.Content.ReadAsByteArrayAsync() |> Async.AwaitTask
 
+                ensureDirectoryExists (Path.GetDirectoryName(destinationPath))
+                |> ignore
+
                 use fileStream =
                     new FileStream(destinationPath, FileMode.Create)
 
