@@ -66,6 +66,8 @@
         <Compile Include="Srtm\Fetch.fs"/>
         <Compile Include="Aw3d\Types.fs"/>
         <Compile Include="Aw3d\Funcs.fs"/>
+        <Compile Include="WorldCover\Types.fs"/>
+        <Compile Include="WorldCover\Funcs.fs"/>
         <Compile Include="Projections\Common.fs"/>
         <Compile Include="Projections\Mercator.fs"/>
         <Compile Include="Projections\LambertConformalConic.fs"/>
