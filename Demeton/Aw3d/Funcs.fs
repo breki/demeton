@@ -51,21 +51,18 @@ let boundsToAw3dTiles (bounds: LonLatBounds) : Aw3dTileId seq =
 /// <summary>
 /// Returns the download URL for the given AW3D tile.
 /// </summary>
-let aw3dTileDownloadUrl (tile_d: Aw3dTileId) : string =
-    let groupTileX = tile_d.TileX / 5 * 5
-    let groupTileY = tile_d.TileY / 5 * 5
+let aw3dTileDownloadUrl (tileId: Aw3dTileId) : string =
+    let groupTileX = tileId.TileX / 5 * 5
+    let groupTileY = tileId.TileY / 5 * 5
 
     let groupTileId =
         { TileX = groupTileX
           TileY = groupTileY }
 
-    let latSign = if groupTileY >= 0 then "N" else "S"
-    let lonSign = if groupTileX >= 0 then "E" else "W"
-
     sprintf
         "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2303/%s/%s.zip"
         groupTileId.Aw3dTileName
-        tile_d.Aw3dTileName
+        tileId.Aw3dTileName
 
 
 

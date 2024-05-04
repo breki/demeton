@@ -2,7 +2,6 @@
 
 module Demeton.Tests.todo
 
-// todo 10: implement downloading of WorldCover data
 
 // todo 100: update shading docs now that we have added an array of fetchers
 
