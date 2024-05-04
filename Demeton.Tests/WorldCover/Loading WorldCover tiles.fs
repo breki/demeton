@@ -1,5 +1,6 @@
 ﻿module Tests.WorldCover.Loading_WorldCover_tiles
 
+open System.IO
 open Demeton.Geometry.Common
 open Demeton.WorldCover.Types
 open Demeton.WorldCover.Funcs
@@ -127,3 +128,106 @@ let ``Correctly calculates the WorldCover tiles needed for a given boundary, aro
                   { TileX = 0; TileY = 0 }
                   { TileX = 0; TileY = 3 } ]
         @>
+
+
+// todo 10: implement downloading of WorldCover data
+
+/// <summary>
+/// Returns the download URL for the given WorldCover tile.
+/// </summary>
+let worldCoverTileDownloadUrl (tileId: WorldCoverTileId) : string =
+    sprintf
+        "%s/%s/%i/map/ESA_WorldCover_10m_%i_%s_%s_Map.tif"
+        WorldCoverS3Domain
+        WorldCoverVersion
+        WorldCoverYear
+        WorldCoverYear
+        WorldCoverVersion
+        tileId.TileName
+
+/// <summary>
+/// Returns the path to the cached TIFF file for the given AW3D tile.
+/// </summary>
+let worldCoverTileCachedTifFileName cacheDir (tileId: WorldCoverTileId) =
+    Path.Combine(cacheDir, WorldCoverDirName, $"{tileId.TileName}.tif")
+
+
+
+/// <summary>
+/// Ensures the specified AW3D tile TIFF file is available in the cache
+/// directory, downloading it if necessary.
+/// </summary>
+let ensureWorldCoverTile cacheDir fileExists downloadFile tileId =
+    let cachedTifFileName = worldCoverTileCachedTifFileName cacheDir tileId
+
+    if fileExists cachedTifFileName then
+        Ok cachedTifFileName
+    else
+        // download the tile
+        let tileUrl = tileId |> worldCoverTileDownloadUrl
+        downloadFile tileUrl cachedTifFileName |> Ok
+
+
+
+[<Fact>]
+let ``Do not download tile if TIFF already in cache`` () =
+    let cacheDir = "cache"
+    let sampleTileId = { TileX = 46; TileY = 6 }
+
+    let sampleCachedTifFileName =
+        worldCoverTileCachedTifFileName cacheDir sampleTileId
+
+    let fileExists =
+        function
+        | fileName when fileName = sampleCachedTifFileName -> true
+        | _ -> fail "Unexpected file name"
+
+    let downloadFile _ _ =
+        fail "Downloading file should not have been called"
+
+    let result =
+        sampleTileId |> ensureWorldCoverTile "cache" fileExists downloadFile
+
+    test <@ result |> isOkValue sampleCachedTifFileName @>
+
+
+[<Fact>]
+let ``Download tile file if not in cache`` () =
+    let cacheDir = "cache"
+    let sampleTileId = { TileX = 46; TileY = 6 }
+
+    let expectedCachedTiffFileName =
+        worldCoverTileCachedTifFileName cacheDir sampleTileId
+
+    let fileExists _ = false
+
+    let mutable fileDownloaded = false
+
+    let downloadFile url localFileName =
+        if
+            url = "https://esa-worldcover.s3.eu-central-1.amazonaws.com/"
+                  + "v200/2021/map/ESA_WorldCover_10m_2021_v200_N046E006_Map.tif"
+        then
+            if localFileName = expectedCachedTiffFileName then
+                fileDownloaded <- true
+                localFileName
+            else
+                fail "Unexpected local tile file name"
+        else
+            fail "Unexpected URL"
+
+    let result =
+        sampleTileId |> ensureWorldCoverTile "cache" fileExists downloadFile
+
+    test <@ result |> isOk @>
+    test <@ fileDownloaded @>
+
+
+// todo 10: remove this once we have the general download function implemented
+let ``Download a sample WorldCover tile`` () =
+    let tile = "S48E168"
+
+    let url =
+        $"{WorldCoverS3Domain}/{WorldCoverVersion}/{WorldCoverYear}/map/ESA_WorldCover_10m_{WorldCoverYear}_{WorldCoverVersion}_{tile}_Map.tif"
+
+    downloadFile url $"c:/temp/{WorldCoverDirName}/{tile}.tif" |> ignore
