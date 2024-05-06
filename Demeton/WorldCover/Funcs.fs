@@ -105,8 +105,6 @@ let listAllAvailableTiles
 /// Given a bounding box, returns a sequence of WorldCover tiles that cover it.
 /// </summary>
 let boundsToWorldCoverTiles (bounds: LonLatBounds) : WorldCoverTileId seq =
-    let cellsPerDegree = 3600
-    let tileSize = 3600
     let degreesPerTile = 3
 
     let minTileX =
@@ -125,3 +123,38 @@ let boundsToWorldCoverTiles (bounds: LonLatBounds) : WorldCoverTileId seq =
             for tileX in [ minTileX..degreesPerTile..maxTileX ] do
                 yield { TileX = tileX; TileY = tileY }
     }
+
+/// <summary>
+/// Returns the download URL for the given WorldCover tile.
+/// </summary>
+let worldCoverTileDownloadUrl (tileId: WorldCoverTileId) : string =
+    sprintf
+        "%s/%s/%i/map/ESA_WorldCover_10m_%i_%s_%s_Map.tif"
+        WorldCoverS3Domain
+        WorldCoverVersion
+        WorldCoverYear
+        WorldCoverYear
+        WorldCoverVersion
+        tileId.TileName
+
+/// <summary>
+/// Returns the path to the cached TIFF file for the given AW3D tile.
+/// </summary>
+let worldCoverTileCachedTifFileName cacheDir (tileId: WorldCoverTileId) =
+    Path.Combine(cacheDir, WorldCoverDirName, $"{tileId.TileName}.tif")
+
+
+
+/// <summary>
+/// Ensures the specified AW3D tile TIFF file is available in the cache
+/// directory, downloading it if necessary.
+/// </summary>
+let ensureWorldCoverTile cacheDir fileExists downloadFile tileId =
+    let cachedTifFileName = worldCoverTileCachedTifFileName cacheDir tileId
+
+    if fileExists cachedTifFileName then
+        Ok cachedTifFileName
+    else
+        // download the tile
+        let tileUrl = tileId |> worldCoverTileDownloadUrl
+        downloadFile tileUrl cachedTifFileName |> Ok
