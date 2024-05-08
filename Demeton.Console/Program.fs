@@ -47,6 +47,17 @@ let runShadeCommand parsedParameters =
         CommandFailed
 
 
+let runTileShadeCommand parsedParameters =
+    let options = TileShadeCommand.fillOptions parsedParameters
+
+    let results = TileShadeCommand.run options
+
+    match results with
+    | Ok _ -> CommandExecuted
+    | Error message ->
+        Console.Error.WriteLine message
+        CommandFailed
+
 let supportedCommands: Command[] =
     [| { Name = "import"
          ShortDescription = "imports SRTM tiles into the local cache"
@@ -68,7 +79,13 @@ let supportedCommands: Command[] =
            + "tiles) for a given geographic area, using the specified map "
            + "projection, map scale and printing resolution."
          Parameters = ShadeCommand.supportedParameters
-         Runner = runShadeCommand } |]
+         Runner = runShadeCommand }
+       { Name = "tile-shade"
+         ShortDescription = "generates a shaded raster tile"
+         Description =
+           "Generates a shaded raster image tile using a special workflow."
+         Parameters = TileShadeCommand.supportedParameters
+         Runner = runTileShadeCommand } |]
 
 let helpCommand =
     { Name = "help"

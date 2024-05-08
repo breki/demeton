@@ -72,7 +72,7 @@ let hexColor: Parser<RgbaColor, unit> =
     pstring "#" >>. manyMinMaxSatisfyL 6 6 isHex "hex color value"
     .>>. opt (hex .>>. hex)
     |>> fun (digits, additionalDigits) ->
-        let (alphaDigits, rgbDigits) =
+        let alphaDigits, rgbDigits =
             match additionalDigits with
             | Some(digit7, digit8) ->
                 (digits.Substring(0, 2),
@@ -94,6 +94,18 @@ let tryParseColorHexValue
     match run hexColor hexValue with
     | Success(result, _, _) -> Result.Ok result
     | Failure(_, parserError, _) -> TextParsers.formatParsingFailure parserError
+
+
+/// <summary>
+/// Parses a color hex triplet or quadruplet (with '#' prefix) into
+/// <see cref="Rgba8Bit.RgbaColor" /> color. If the hex value is invalid,
+/// throws an <see cref="ArgumentException" />.
+/// </summary>
+/// <param name="hexValue"></param>
+let parseColorHexValue hexValue : RgbaColor =
+    match tryParseColorHexValue hexValue with
+    | Result.Ok color -> color
+    | Result.Error error -> raise (ArgumentException(error.Message))
 
 let inline mixColors colorA colorB mixRatio =
     let mixByteValues (v1: byte) (v2: byte) : byte =
