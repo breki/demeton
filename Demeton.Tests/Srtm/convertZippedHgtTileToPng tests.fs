@@ -19,8 +19,6 @@ let someHeightsArray =
     )
 
 
-// todo 0: uncomment once we figure out what we're doing
-
 [<Fact>]
 let ``Opens the correct HGT file entry in the zip file`` () =
     let tileName = "N00E031"

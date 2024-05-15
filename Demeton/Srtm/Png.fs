@@ -209,7 +209,6 @@ type HgtFileStreamReader =
 let readZippedHgtFile
     (readZipFile: ZipFileReader<HeightsArray>)
     : HgtFileStreamReader =
-    // todo 0: why do we need to expose hgtStreamReader externally?
     fun tileId zippedHgtFileName hgtStreamReader ->
         let tileName = toTileName tileId
         let zippedEntryName = tileName + ".hgt"
