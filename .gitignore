@@ -51,3 +51,5 @@ tools/fsharplint
 ESA_WorldCover*
 
 **/copilot
+
+/cache

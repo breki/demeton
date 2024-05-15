@@ -109,18 +109,18 @@ let ``Download tile ZIP file if TIFF not in cache`` () =
         else
             fail "Unexpected URL"
 
-    let openZipFileEntry _ _ = Ok(new MemoryStream())
+    let readZipFileEntry _ _ _ = Ok "some-file.tiff"
 
-    let copyStreamToFile fileName _ = fileName
+    let copyStreamToFile fileName _ = Ok fileName
 
-    let deleteFile _ = ()
+    let deleteFile fileName = Ok fileName
 
     let result =
         ensureAw3dTile
             "cache"
             fileExists
             downloadFile
-            openZipFileEntry
+            readZipFileEntry
             copyStreamToFile
             deleteFile
             sampleTileId
@@ -137,16 +137,16 @@ let ``Extract tile TIFF to the cache`` () =
         Path.Combine("cache", Aw3dDirName, "N046E006.tif")
 
     let expectedCachedZipFileName =
-        Path.Combine(cacheDir, Aw3dDirName, $"N046E006.zip")
+        Path.Combine(cacheDir, Aw3dDirName, "N046E006.zip")
 
     let fileExists _ = false
 
     let downloadFile url localFileName = localFileName
 
-    let openZipFileEntry zipFileName entryName =
+    let readZipFileEntry zipFileName entryName _ =
         if zipFileName = expectedCachedZipFileName then
             if entryName = "N046E006/ALPSMLC30_N046E006_DSM.tif" then
-                Ok(new MemoryStream())
+                Ok expectedCachedTifFileName
             else
                 fail "Unexpected ZIP file entry name"
         else
@@ -154,18 +154,18 @@ let ``Extract tile TIFF to the cache`` () =
 
     let copyStreamToFile fileName _ =
         if fileName = expectedCachedTifFileName then
-            fileName
+            Ok fileName
         else
             fail "Unexpected TIFF file name"
 
-    let deleteFile _ = ()
+    let deleteFile fileName = Ok fileName
 
     let result =
         ensureAw3dTile
             "cache"
             fileExists
             downloadFile
-            openZipFileEntry
+            readZipFileEntry
             copyStreamToFile
             deleteFile
             sampleTileId
@@ -187,25 +187,27 @@ let ``Delete downloaded ZIP file after extraction`` () =
 
     let downloadFile _ localFileName = localFileName
 
-    let openZipFileEntry _ _ = Ok(new MemoryStream())
+    let readZipFileEntry _ _ _ = Ok expectedCachedTifFileName
 
-    let copyStreamToFile fileName _ = fileName
+    let copyStreamToFile fileName _ = Ok fileName
 
     let zipFileDeleted = ref false
 
     let deleteFile fileName =
         if fileName = expectedCachedZipFileName then
             zipFileDeleted := true
-            ()
+            Ok fileName
         else
             fail "Unexpected ZIP file name"
+
+    let x = zipFileDeleted
 
     let result =
         ensureAw3dTile
             "cache"
             fileExists
             downloadFile
-            openZipFileEntry
+            readZipFileEntry
             copyStreamToFile
             deleteFile
             sampleTileId

@@ -2,7 +2,8 @@
 
 module Demeton.Tests.todo
 
-// todo 10: start preparing the command for generating the tile
+// todo 0: investigate what the longitude and latitude values actually mean -
+//    north/south, east/west
 
 // todo 100: update shading docs now that we have added an array of fetchers
 

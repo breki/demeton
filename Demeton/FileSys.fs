@@ -29,7 +29,11 @@ let mapFileSysException (ex: Exception) =
 /// A function providing the ability open a reading stream to a file entry
 /// inside a ZIP package.
 /// </summary>
-type ZipFileEntryReader = string -> string -> Result<Stream, FileSysError>
+type ZipFileReader<'TResult> =
+    string
+        -> string
+        -> (Stream -> Result<'TResult, FileSysError>)
+        -> Result<'TResult, FileSysError>
 
 /// <summary>
 /// A function providing the ability to check whether a file exists or not.
@@ -120,12 +124,13 @@ let openFileToWrite: FileWriter =
             | None -> raise ex
 
 /// <summary>
-/// Open a reading stream to a file entry inside a ZIP package.
+/// Open a reading stream to a file entry inside a ZIP package and call the
+/// provided stream reading function.
 /// </summary>
-let openZipFileEntry: ZipFileEntryReader =
-    fun zipFileName entryName ->
+let readZipFile: ZipFileReader<'TResult> =
+    fun zipFileName entryName streamReader ->
         try
-            let zipArchive = ZipFile.OpenRead(zipFileName)
+            use zipArchive = ZipFile.OpenRead(zipFileName)
             let entry = zipArchive.GetEntry(entryName)
 
             match entry with
@@ -137,7 +142,9 @@ let openZipFileEntry: ZipFileEntryReader =
                 |> FileNotFoundException
                 |> raise
 
-            | _ -> entry.Open() |> Ok
+            | _ ->
+                use entryStream = entry.Open()
+                streamReader entryStream
         with ex ->
             match mapFileSysException ex with
             | Some error -> Error error
@@ -158,9 +165,14 @@ let withFileRead fileName callback =
 /// Copies the content of the input stream to a file.
 /// </summary>
 let copyStreamToFile (fileName: string) (inputStream: Stream) =
-    use outputStream = new FileStream(fileName, FileMode.Create)
-    inputStream.CopyTo(outputStream)
-    fileName
+    try
+        use outputStream = new FileStream(fileName, FileMode.Create)
+        inputStream.CopyTo(outputStream)
+        Ok fileName
+    with ex ->
+        match mapFileSysException ex with
+        | Some error -> Error error
+        | None -> raise ex
 
 
 let closeStream (stream: Stream) = stream.Close()

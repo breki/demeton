@@ -10,8 +10,7 @@ let WorldCoverVersion = "v200" // year 2021
 [<Literal>]
 let WorldCoverS3Domain = "https://esa-worldcover.s3.eu-central-1.amazonaws.com"
 
-let geoJsonUrl =
-    $"{WorldCoverS3Domain}/{WorldCoverVersion}/{WorldCoverYear}/esa_worldcover_2020_grid.geojson"
+let geoJsonUrl = $"{WorldCoverS3Domain}/esa_worldcover_grid.geojson"
 
 [<Literal>]
 let WorldCoverDirName = "WorldCover"

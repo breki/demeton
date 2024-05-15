@@ -4,6 +4,7 @@ open System.IO
 open Demeton.Aw3d.Types
 open Demeton.Geometry.Common
 open Demeton.Srtm.Funcs
+open FileSys
 
 /// <summary>
 /// Given a bounding box, returns a sequence of AW3D tiles that cover it.
@@ -65,8 +66,6 @@ let aw3dTileDownloadUrl (tileId: Aw3dTileId) : string =
         tileId.Aw3dTileName
 
 
-
-
 /// <summary>
 /// Returns the path to the cached ZIP file for the given AW3D tile.
 /// </summary>
@@ -93,14 +92,18 @@ let ensureAw3dTile
     cacheDir
     fileExists
     downloadFile
-    openZipFileEntry
+    (readZipFile: ZipFileReader<string>)
     copyStreamToFile
-    deleteFile
+    (deleteFile: string -> Result<string, FileSysError>)
     tileId
     =
     let downloadTileZipFile tileId =
         let url = aw3dTileDownloadUrl tileId
         let cachedTileZipFileName = tileId |> aw3dTileCachedZipFileName cacheDir
+
+        Log.debug
+            $"Downloading AW3D tile %s{tileId.Aw3dTileName} from %s{url}..."
+
         downloadFile url cachedTileZipFileName
 
     let cachedTifFileName = aw3dTileCachedTifFileName cacheDir tileId
@@ -113,12 +116,18 @@ let ensureAw3dTile
 
         let tiffFileNameInZip = aw3dTileZipFileEntryName tileId
 
-        openZipFileEntry cachedTileZipFileName tiffFileNameInZip
-        |> Result.bind (fun zippedStream ->
+        let extractTiffFileFromZip tiffFileStream =
             let tiffFilePath = tileId |> aw3dTileCachedTifFileName cacheDir
+            tiffFileStream |> copyStreamToFile tiffFilePath
 
-            let tiffFilePath = zippedStream |> copyStreamToFile tiffFilePath
-
-            deleteFile cachedTileZipFileName
-
-            Ok tiffFilePath)
+        match
+            readZipFile
+                cachedTileZipFileName
+                tiffFileNameInZip
+                extractTiffFileFromZip
+        with
+        | Ok tiffFilePath ->
+            match deleteFile cachedTileZipFileName with
+            | Ok _ -> Ok tiffFilePath
+            | Error error -> Error error.Exception.Message
+        | Error error -> Error error.Exception.Message

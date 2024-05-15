@@ -7,49 +7,52 @@ open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 open Demeton.Srtm.Fetch
 
-let readPngTile: SrtmPngTileReader = 
+let readPngTile: SrtmPngTileReader =
     decodeSrtmTileFromPngFile FileSys.openFileToRead
 
 let determineTileStatus srtmDir localCacheDir =
     determineTileStatus srtmDir localCacheDir FileSys.fileExists
 
-let writePngTile = 
+let writePngTile =
     writeHeightsArrayIntoPngFile
         FileSys.ensureDirectoryExists
         FileSys.openFileToWrite
 
-let openHgtStream = openZippedHgtFileStream FileSys.openZipFileEntry
+let readZippedHgtFile = readZippedHgtFile FileSys.readZipFile
 
-let convertPngTile = 
-    convertZippedHgtTileToPng 
-        openHgtStream createSrtmTileFromStream writePngTile
+let convertPngTile =
+    convertZippedHgtTileToPng
+        readZippedHgtFile
+        createSrtmTileFromStream
+        writePngTile
 
-let fetchSrtmTile srtmDir localCacheDir
-    : SrtmTileReader = fun tile ->
+let fetchSrtmTile srtmDir localCacheDir : SrtmTileReader =
+    fun tile ->
 
-    let constructHigherLevelTile =
-        constructHigherLevelTileHeightsArray 3600
+        let constructHigherLevelTile = constructHigherLevelTileHeightsArray 3600
 
-    let heightsArrayToPng =
-        writeHeightsArrayIntoPngFile
-            FileSys.ensureDirectoryExists
-            FileSys.openFileToWrite
+        let heightsArrayToPng =
+            writeHeightsArrayIntoPngFile
+                FileSys.ensureDirectoryExists
+                FileSys.openFileToWrite
 
-    let writeTileToCache = 
-        writeSrtmTileToLocalCache 
+        let writeTileToCache =
+            writeSrtmTileToLocalCache
+                localCacheDir
+                FileSys.ensureDirectoryExists
+                heightsArrayToPng
+                FileSys.openFileToWrite
+
+        initializeProcessingState tile
+        |> processCommandStack
             localCacheDir
-            FileSys.ensureDirectoryExists
-            heightsArrayToPng
-            FileSys.openFileToWrite
+            srtmDir
+            (determineTileStatus srtmDir localCacheDir)
+            readPngTile
+            convertPngTile
+            constructHigherLevelTile
+            writeTileToCache
+        |> finalizeFetchSrtmTileProcessing
 
-    initializeProcessingState tile
-    |> processCommandStack 
-        localCacheDir srtmDir 
-        (determineTileStatus srtmDir localCacheDir)
-        readPngTile
-        convertPngTile 
-        constructHigherLevelTile writeTileToCache
-    |> finalizeFetchSrtmTileProcessing
-
-let fetchSrtmHeights srtmDir localCacheDir = 
+let fetchSrtmHeights srtmDir localCacheDir =
     fetchSrtmHeights (fetchSrtmTile srtmDir localCacheDir)

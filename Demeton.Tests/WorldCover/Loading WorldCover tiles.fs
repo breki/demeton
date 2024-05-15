@@ -68,7 +68,7 @@ let ``Can fetch the list of all available WorldCover tiles`` () =
 
     let allAvailableTiles = listAllAvailableTiles openFileToRead geoJsonFile
 
-    test <@ allAvailableTiles |> Seq.length = 2631 @>
+    test <@ allAvailableTiles |> Seq.length = 2651 @>
 
 
 [<Fact>]
