@@ -366,7 +366,7 @@ let readSrtmHeightsFromStream tileSize (stream: Stream) : DemHeight[] =
 
 /// <summary>
 /// Reads the <see cref="HeightsArray"/> of a SRTM tile from
-/// a zipped HGT file stream.
+/// a HGT file stream.
 /// </summary>
 let createSrtmTileFromStream tileSize tileId stream =
     let srtmHeights = readSrtmHeightsFromStream tileSize stream

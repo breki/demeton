@@ -193,10 +193,9 @@ let decodeSrtmTileFromPngFile (readFile: FileReader) : SrtmPngTileReader =
         | Error fileSysError -> fileSysError |> fileSysErrorMessage |> Error
 
 /// <summary>
-/// A function that extracts a heights array from a HGT file in the HGT zip file
-/// archive.
+/// A function that extracts a heights array from a HGT stream.
 /// </summary>
-type ZippedHgtFileStreamReader =
+type HgtFileStreamReader =
     SrtmTileId
         -> string
         -> (Stream -> Result<HeightsArray, FileSysError>)
@@ -204,11 +203,12 @@ type ZippedHgtFileStreamReader =
 
 
 /// <summary>
-/// Reads a HGT file from the zip file archive.
+/// Reads a HGT file from the zip file archive and returns its HeightsArray
+/// representation.
 /// </summary>
 let readZippedHgtFile
     (readZipFile: ZipFileReader<HeightsArray>)
-    : ZippedHgtFileStreamReader =
+    : HgtFileStreamReader =
     // todo 0: why do we need to expose hgtStreamReader externally?
     fun tileId zippedHgtFileName hgtStreamReader ->
         let tileName = toTileName tileId
@@ -224,7 +224,7 @@ let readZippedHgtFile
 /// does not handle any errors/exceptions by itself, so it always returns Ok.
 /// </remarks>
 let convertZippedHgtTileToPng
-    (readZippedHgtFile: ZippedHgtFileStreamReader)
+    (readHgtFileFromStream: HgtFileStreamReader)
     (writeHeightsArrayIntoPng: HeightsArrayPngWriter)
     : SrtmHgtToPngTileConverter =
     fun tileId zippedHgtFileName pngFileName ->
@@ -243,7 +243,9 @@ let convertZippedHgtTileToPng
 
             createSrtmTileFromStream 3600 tileId memoryStream |> Ok
 
-        match readZippedHgtFile tileId zippedHgtFileName readHgtFileStream with
+        match
+            readHgtFileFromStream tileId zippedHgtFileName readHgtFileStream
+        with
         | Ok heightsArray ->
             Log.debug "Encoding tile %s into PNG..." tileName
 
