@@ -2,8 +2,7 @@
 
 module Demeton.Tests.todo
 
-// todo 0: investigate what the longitude and latitude values actually mean -
-//    north/south, east/west
+// todo 5: implement downloading of WorldCover tiles
 
 // todo 100: update shading docs now that we have added an array of fetchers
 

@@ -9,6 +9,7 @@ open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Projections.PROJParsing
 open Demeton.Aw3d.Funcs
+open Demeton.WorldCover.Funcs
 open FileSys
 
 // todo 10: add cache dir parameter
@@ -160,7 +161,7 @@ let fillOptions parsedParameters =
 
     filledOptions
 
-let generateHillshading (bounds: LonLatBounds) : Result<unit, string> =
+let ensureAw3dTiles cacheDir (bounds: LonLatBounds) : Result<unit, string> =
     let aw3dTilesNeeded = bounds |> boundsToAw3dTiles |> Seq.toList
 
     let aw3dTileResults =
@@ -168,7 +169,7 @@ let generateHillshading (bounds: LonLatBounds) : Result<unit, string> =
         |> List.map (fun tileId ->
             tileId,
             ensureAw3dTile
-                "cache"
+                cacheDir
                 fileExists
                 downloadFile
                 readZipFile
@@ -187,6 +188,12 @@ let generateHillshading (bounds: LonLatBounds) : Result<unit, string> =
     | [] -> Result.Ok()
     | _ -> Result.Error(String.concat "\n" aw3dErrors)
 
+let ensureWorldCoverTiles
+    cacheDir
+    (bounds: LonLatBounds)
+    : Result<unit, string> =
+    ensureGeoJsonFile cacheDir fileExists downloadFile |> ignore
+    Result.Ok()
 
 let run (options: Options) : Result<unit, string> =
     let centerLon, centerLat = options.TileCenter
@@ -257,7 +264,11 @@ let run (options: Options) : Result<unit, string> =
 
             Log.info $"Geo area needed: %A{geoAreaNeeded}"
 
-            generateHillshading geoAreaNeeded
+            let cacheDir = "cache"
+
+            match ensureAw3dTiles cacheDir geoAreaNeeded with
+            | Ok _ -> ensureWorldCoverTiles cacheDir geoAreaNeeded
+            | Error message -> Result.Error message
         else
             Result.Error
                 "Some of the tile bounding points could not be projected."
