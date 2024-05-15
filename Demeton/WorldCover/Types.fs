@@ -15,6 +15,12 @@ let geoJsonUrl = $"{WorldCoverS3Domain}/esa_worldcover_grid.geojson"
 [<Literal>]
 let WorldCoverDirName = "WorldCover"
 
+[<Literal>]
+let WorldCoverTileSize = 12000
+
+[<Literal>]
+let WorldCoverBitmapSize = WorldCoverTileSize * 3
+
 
 type WorldCoverTileName = string
 

@@ -8,9 +8,9 @@ open Demeton.Geometry.Common
 open Demeton.Projections.Common
 open Demeton.Shaders.Types
 open Demeton.Srtm.Funcs
+open Demeton.WorldCover.Types
 open Png
 open Raster
-open WorldCoverRaster
 
 open Tests.WorldCover.WaterBodiesColoring
 open Tests.WorldCover.WaterBodiesOutlining

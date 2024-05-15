@@ -225,6 +225,11 @@ let ensureWorldCoverTiles
     | [] -> Result.Ok()
     | _ -> Result.Error(String.concat "\n" tilesErrors)
 
+let generateHillshadingTile cacheDir bounds =
+    Log.info "Generating hillshading tile..."
+
+    Result.Ok()
+
 let run (options: Options) : Result<unit, string> =
     let centerLon, centerLat = options.TileCenter
     // we invert the latitude since in our internal system, + is north
@@ -302,7 +307,10 @@ let run (options: Options) : Result<unit, string> =
             let cacheDir = "cache"
 
             match ensureAw3dTiles cacheDir geoAreaNeeded with
-            | Ok _ -> ensureWorldCoverTiles cacheDir geoAreaNeeded
+            | Ok _ ->
+                match ensureWorldCoverTiles cacheDir geoAreaNeeded with
+                | Ok _ -> generateHillshadingTile cacheDir geoAreaNeeded
+                | Error message -> Result.Error message
             | Error message -> Result.Error message
         else
             Result.Error

@@ -11,6 +11,8 @@ open Demeton.Geometry.Common
 open Demeton.Projections.PROJParsing
 open Demeton.Shaders
 open Demeton.Srtm.Funcs
+open Demeton.WorldCover.Types
+open Demeton.WorldCover.Funcs
 open Png
 open Tests.Shaders
 open Tests.WorldCover.RasterSimplification
@@ -18,7 +20,6 @@ open Tests.WorldCover.WaterBodiesShaders
 open Tests.WorldCover.WaterBodiesColoring
 open Tests.WorldCover.WaterBodiesOutlining
 open TestHelp
-open WorldCoverRaster
 
 
 let area, heights, srtmLevel, mapProjection, mapScale, tileRect =
@@ -92,7 +93,7 @@ let ``Render hillshading with WorldCover water bodies`` () =
                 { Lon = { Value = 7 }
                   Lat = { Value = -46 } }
 
-        let tileId = parseTileName "N46E007"
+        let tileId = Demeton.Srtm.Funcs.parseTileName "N46E007"
         let cellMinX, cellMinY = tileMinCell WorldCoverTileSize tileId
 
         let waterBodiesHeightsArray =
