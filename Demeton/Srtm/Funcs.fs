@@ -365,28 +365,21 @@ let readSrtmHeightsFromStream tileSize (stream: Stream) : DemHeight[] =
     heightsArray
 
 /// <summary>
-/// A function that reads the <see cref="HeightsArray"/> of a SRTM tile from
-/// a zipped HGT file stream.
-/// </summary>
-type ZippedSrtmTileReader = int -> SrtmTileId -> Stream -> HeightsArray
-
-/// <summary>
 /// Reads the <see cref="HeightsArray"/> of a SRTM tile from
 /// a zipped HGT file stream.
 /// </summary>
-let createSrtmTileFromStream: ZippedSrtmTileReader =
-    fun tileSize tileId stream ->
-        let srtmHeights = readSrtmHeightsFromStream tileSize stream
+let createSrtmTileFromStream tileSize tileId stream =
+    let srtmHeights = readSrtmHeightsFromStream tileSize stream
 
-        let cellMinX, cellMinY = tileMinCell tileSize tileId
+    let cellMinX, cellMinY = tileMinCell tileSize tileId
 
-        HeightsArray(
-            cellMinX,
-            cellMinY,
-            tileSize,
-            tileSize,
-            HeightsArrayDirectImport srtmHeights
-        )
+    HeightsArray(
+        cellMinX,
+        cellMinY,
+        tileSize,
+        tileSize,
+        HeightsArrayDirectImport srtmHeights
+    )
 
 
 let toZippedSrtmTileFileName (srtmDir: string) (tileCoords: SrtmTileCoords) =

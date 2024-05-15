@@ -23,7 +23,6 @@ let readZippedHgtFile = readZippedHgtFile FileSys.readZipFile
 let convertPngTile =
     convertZippedHgtTileToPng
         readZippedHgtFile
-        createSrtmTileFromStream
         writePngTile
 
 let fetchSrtmTile srtmDir localCacheDir : SrtmTileReader =

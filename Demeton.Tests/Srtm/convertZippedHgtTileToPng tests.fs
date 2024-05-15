@@ -42,7 +42,7 @@ let expectHeightsArrayToBeEncodedIntoPngFile
     test <@ pngFileName = expectedPngFileName @>
     heightsArray
 
-// todo 0: uncomment this once we know what we're doing
+// todo 0: uncomment once we figure out what we're doing
 
 // [<Fact>]
 // let ``Opens HGT file entry in the zip file`` () =
@@ -73,7 +73,7 @@ let expectHeightsArrayToBeEncodedIntoPngFile
 //         |> Ok
 //
 //     readZippedHgtFile
-//         FileSys.readZipFileEntry
+//         FileSys.readZipFile
 //         tileId
 //         zipFileName
 //         (expectToReadZipFileEntry zipFileName entryName entryStream)

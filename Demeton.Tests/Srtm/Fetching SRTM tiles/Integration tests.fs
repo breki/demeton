@@ -28,10 +28,7 @@ let private writeHeightsArrayToPng =
 let private readHgtStream = readZippedHgtFile FileSys.readZipFile
 
 let private convertToPng =
-    convertZippedHgtTileToPng
-        readHgtStream
-        createSrtmTileFromStream
-        writeHeightsArrayToPng
+    convertZippedHgtTileToPng readHgtStream writeHeightsArrayToPng
 
 let private constructHigherLevelTile = constructHigherLevelTileHeightsArray 3600
 
