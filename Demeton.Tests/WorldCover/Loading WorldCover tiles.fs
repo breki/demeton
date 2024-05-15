@@ -167,7 +167,7 @@ let ``Download tile file if not in cache`` () =
     let downloadFile url localFileName =
         if
             url = "https://esa-worldcover.s3.eu-central-1.amazonaws.com/"
-                  + "v200/2021/map/ESA_WorldCover_10m_2021_v200_N046E006_Map.tif"
+                  + "v200/2021/map/ESA_WorldCover_10m_2021_v200_N46E006_Map.tif"
         then
             if localFileName = expectedCachedTiffFileName then
                 fileDownloaded <- true

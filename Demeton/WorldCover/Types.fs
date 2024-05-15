@@ -46,4 +46,4 @@ type WorldCoverTileId =
             | x when x >= 0 -> 'E'
             | _ -> 'W'
 
-        $"%c{latSign}%03d{abs this.TileX}%c{lonSign}%03d{abs this.TileY}"
+        $"%c{latSign}%02d{abs this.TileX}%c{lonSign}%03d{abs this.TileY}"

@@ -162,6 +162,8 @@ let fillOptions parsedParameters =
     filledOptions
 
 let ensureAw3dTiles cacheDir (bounds: LonLatBounds) : Result<unit, string> =
+    Log.info "Ensuring all needed AW3D tiles are there..."
+
     let aw3dTilesNeeded = bounds |> boundsToAw3dTiles |> Seq.toList
 
     let aw3dTileResults =
@@ -192,8 +194,36 @@ let ensureWorldCoverTiles
     cacheDir
     (bounds: LonLatBounds)
     : Result<unit, string> =
-    ensureGeoJsonFile cacheDir fileExists downloadFile |> ignore
-    Result.Ok()
+    Log.info "Ensuring all needed WorldCover tiles are there..."
+
+    let geoJsonFile = ensureGeoJsonFile cacheDir fileExists downloadFile
+
+    let allAvailableTiles = listAllAvailableTiles openFileToRead geoJsonFile
+
+    let tilesNeeded = bounds |> boundsToWorldCoverTiles |> Seq.toList
+
+    let availableTilesNeeded =
+        tilesNeeded
+        |> List.filter (fun tileId ->
+            allAvailableTiles
+            |> Seq.exists (fun availableTileId -> availableTileId = tileId))
+
+    let tilesResults =
+        availableTilesNeeded
+        |> List.map (fun tileId ->
+            tileId,
+            ensureWorldCoverTile cacheDir fileExists downloadFile tileId)
+
+    let tilesErrors =
+        tilesResults
+        |> List.choose (fun (_, result) ->
+            match result with
+            | Ok _ -> None
+            | Error message -> Some message)
+
+    match tilesErrors with
+    | [] -> Result.Ok()
+    | _ -> Result.Error(String.concat "\n" tilesErrors)
 
 let run (options: Options) : Result<unit, string> =
     let centerLon, centerLat = options.TileCenter
@@ -262,7 +292,12 @@ let run (options: Options) : Result<unit, string> =
                 Demeton.Geometry.Bounds.mbrOf tileBoundingGeoPoints
                 |> lonLatBoundsFromBounds
 
-            Log.info $"Geo area needed: %A{geoAreaNeeded}"
+            Log.info
+                "Geo area needed: minLon: %f, minLat: %f, maxLon: %f, maxLat: %f"
+                geoAreaNeeded.MinLon
+                -geoAreaNeeded.MinLat
+                geoAreaNeeded.MaxLon
+                -geoAreaNeeded.MaxLat
 
             let cacheDir = "cache"
 

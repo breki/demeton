@@ -157,4 +157,8 @@ let ensureWorldCoverTile cacheDir fileExists downloadFile tileId =
     else
         // download the tile
         let tileUrl = tileId |> worldCoverTileDownloadUrl
+
+        Log.debug
+            $"Downloading WorldCover tile {tileId.TileName} from {tileUrl}..."
+
         downloadFile tileUrl cachedTifFileName |> Ok
