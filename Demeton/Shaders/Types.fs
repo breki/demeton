@@ -3,7 +3,6 @@
 open Raster
 open Demeton.Dem.Types
 open Demeton.Projections.Common
-open Demeton.Srtm.Types
 
 /// <summary>
 /// A function that takes a list of heights arrays, a SRTM level,
@@ -12,7 +11,7 @@ open Demeton.Srtm.Types
 /// </summary>
 type RasterShader =
     HeightsArray[]
-        -> SrtmLevel
+        -> DemLevel
         -> Rect
         -> RawImageData
         -> ProjectFunc

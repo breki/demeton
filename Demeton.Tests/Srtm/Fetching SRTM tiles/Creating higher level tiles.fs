@@ -1,7 +1,6 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Creating higher level tiles``
 
 open Demeton.Srtm.Funcs
-open Demeton.Srtm.Types
 open Demeton.Geometry.Common
 open Demeton.Srtm.Downsampling
 open Demeton.Dem.Types
@@ -60,7 +59,7 @@ let ``Correctly calculates the list of needed children for level 1 for SomeFutur
     ()
     =
     let tileSize = 3600
-    let level = SrtmLevel.fromInt 1
+    let level = DemLevel.fromInt 1
 
     let tile = tileFromBounds tileSize level 14 46 16 48
 
@@ -92,7 +91,7 @@ let ``Correctly calculates the list of needed children for level 1 for Average m
     ()
     =
     let tileSize = 3600
-    let level = SrtmLevel.fromInt 1
+    let level = DemLevel.fromInt 1
 
     let tile = tileFromBounds tileSize level 14 46 16 48
 

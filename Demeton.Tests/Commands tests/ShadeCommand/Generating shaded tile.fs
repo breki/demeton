@@ -29,7 +29,7 @@ let rootShadingStep = Pipeline.Common.CustomShading "some shader"
 [<Fact>]
 let ``Tile generator correctly calculates which SRTM tiles it needs`` () =
 
-    let correctSrtmTilesWereRequested (tiles: SrtmTileId seq) =
+    let correctSrtmTilesWereRequested (tiles: DemTileId seq) =
         let tilesArray = tiles |> Seq.toArray
 
         test

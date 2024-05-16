@@ -1,7 +1,7 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Checking local cache status``
 
-open Demeton.Dem.Types
 open Demeton.Srtm.Fetch
+open Demeton.Dem.Types
 
 open Xunit
 open Swensen.Unquote
@@ -21,7 +21,7 @@ let ``If PNG file of level > 0 is not in the cache, and '.none' is also not, it 
     test
         <@
             determineLocalCacheTileStatus
-                (SrtmLevel.fromInt 4)
+                (DemLevel.fromInt 4)
                 pngNotInCache
                 noneFileNotInCache = LocalCacheTileStatus.NotCached
         @>
@@ -33,7 +33,7 @@ let ``If PNG file of level > 0 is not in the cache, and '.none' exists, it is ma
     test
         <@
             determineLocalCacheTileStatus
-                (SrtmLevel.fromInt 4)
+                (DemLevel.fromInt 4)
                 pngNotInCache
                 noneFileInCache = LocalCacheTileStatus.HigherLevelDoesNotExist
         @>
@@ -43,7 +43,7 @@ let ``If PNG file of level > 0 is in the cache, it is marked as cached`` () =
     test
         <@
             determineLocalCacheTileStatus
-                (SrtmLevel.fromInt 4)
+                (DemLevel.fromInt 4)
                 pngInCache
                 doNotCallMe = LocalCacheTileStatus.Cached
         @>
@@ -55,7 +55,7 @@ let ``If PNG file of level 0 is not in the cache, it is marked as not existing``
     test
         <@
             determineLocalCacheTileStatus
-                (SrtmLevel.fromInt 0)
+                (DemLevel.fromInt 0)
                 pngNotInCache
                 doNotCallMe = LocalCacheTileStatus.NotCached
         @>
@@ -65,7 +65,7 @@ let ``If PNG file of level 0 is in the cache, it is marked as cached`` () =
     test
         <@
             determineLocalCacheTileStatus
-                (SrtmLevel.fromInt 0)
+                (DemLevel.fromInt 0)
                 pngInCache
                 doNotCallMe = LocalCacheTileStatus.Cached
         @>

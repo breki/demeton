@@ -2,7 +2,6 @@
 open CommandLine.Common
 open Demeton.Commands
 open Demeton.Console
-open Demeton.Dem.Types
 open Demeton.Srtm.Funcs
 open System
 
@@ -10,7 +9,10 @@ let runImportCommand parsedParameters =
     let options = ImportSrtmTilesCommand.fillOptions parsedParameters
 
     let tilesCords =
-        boundsToTiles 3600 (SrtmLevel.fromInt 0) (Option.get options.Bounds)
+        boundsToTiles
+            3600
+            (Demeton.Dem.Types.DemLevel.fromInt 0)
+            (Option.get options.Bounds)
         |> Seq.toArray
 
     ImportSrtmTilesCommand.run

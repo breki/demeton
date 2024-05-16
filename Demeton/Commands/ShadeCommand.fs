@@ -346,7 +346,7 @@ let splitIntoIntervals minValue maxValue intervalSize =
 /// fails
 /// .</returns>
 type ShadedRasterTileGenerator =
-    SrtmLevel
+    DemLevel
         -> Rect
         -> ShadingStep
         -> MapProjection

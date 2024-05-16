@@ -2,7 +2,6 @@
 
 open CommandLine.Common
 open Demeton.Commands
-open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Fetch
 open Demeton.Dem.Types
@@ -176,9 +175,9 @@ let ``Imports all tiles within the specified boundaries`` () =
     let mutable tilesRead = []
     let mutable heightsArraysProduced: HeightsArray list = []
 
-    let determineTileStatus (tile: SrtmTileId) = SrtmTileStatus.NotCached
+    let determineTileStatus (tile: DemTileId) = SrtmTileStatus.NotCached
 
-    let readTile (tile: SrtmTileId) : HeightsArrayMaybeResult =
+    let readTile (tile: DemTileId) : HeightsArrayMaybeResult =
         lock threadsLock (fun () -> tilesRead <- tiles :: tilesRead)
 
         let heightsArray =

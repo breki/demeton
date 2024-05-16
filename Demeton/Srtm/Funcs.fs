@@ -9,7 +9,7 @@ open FileSys
 open System
 open System.IO
 
-let inline private levelFactorFloat (level: SrtmLevel) =
+let inline private levelFactorFloat (level: DemLevel) =
     1 <<< level.Value |> float
 
 let inline tileXToCellX (tileSize: int) (tileX: float) =
@@ -38,7 +38,7 @@ let inline cellYToTileY (tileSize: int) (cellY: float) =
 /// <returns>
 /// A tuple representing the minimum cell coordinates (X, Y) of the tile.
 /// </returns>
-let tileMinCell (tileSize: int) (tileId: SrtmTileId) : SrtmTileCellCoordsInt =
+let tileMinCell (tileSize: int) (tileId: DemTileId) : SrtmTileCellCoordsInt =
     let cellX = tileXToCellX tileSize (tileId.TileX |> float)
     let cellY = tileYToCellY tileSize (tileId.TileY |> float)
 
@@ -46,9 +46,9 @@ let tileMinCell (tileSize: int) (tileId: SrtmTileId) : SrtmTileCellCoordsInt =
 
 let findTileFromGlobalCoordinates
     tileSize
-    (level: SrtmLevel)
+    (level: DemLevel)
     (x, y)
-    : SrtmTileId =
+    : DemTileId =
     let tileX = cellXToTileX tileSize x |> floor |> int
     let tileY = cellYToTileY tileSize y |> floor |> int
 
@@ -56,7 +56,7 @@ let findTileFromGlobalCoordinates
       TileX = tileX
       TileY = tileY }
 
-let inline cellsPerDegree tileSize (level: SrtmLevel) =
+let inline cellsPerDegree tileSize (level: DemLevel) =
     (float tileSize) / levelFactorFloat level
 
 /// <summary>
@@ -96,11 +96,11 @@ let inline cellXToLongitude cellsPerDegree cellX = cellX / cellsPerDegree
 let inline cellYToLatitude cellsPerDegree cellY = -cellY / cellsPerDegree
 
 let inline srtmTileId level tileX tileY =
-    { Level = SrtmLevel.fromInt level
+    { Level = DemLevel.fromInt level
       TileX = tileX
       TileY = tileY }
 
-let toSrtmTileCoords (tileId: SrtmTileId) : SrtmTileCoords =
+let toSrtmTileCoords (tileId: DemTileId) : SrtmTileCoords =
     match tileId.Level.Value with
     | 0 ->
         let lon = tileId.TileX |> SrtmLongitude.fromInt
@@ -126,7 +126,7 @@ let toHgtTileName (tileCoords: SrtmTileCoords) =
 
     $"%c{latSign}%02d{abs tileCoords.Lat.Value}%c{lonSign}%03d{abs tileCoords.Lon.Value}"
 
-let toTileName (tileId: SrtmTileId) : SrtmTileName =
+let toTileName (tileId: DemTileId) : SrtmTileName =
     let lonSign tileX = if tileX >= 0 then 'e' else 'w'
 
     let latSign tileY = if tileY >= 0 then 's' else 'n'
@@ -193,10 +193,10 @@ let parseHgtTileName (tileId: string) =
 /// <returns>
 /// A SrtmTileId that represents the parsed SRTM tile.
 /// </returns>
-let parseTileName (tileName: SrtmTileName) : SrtmTileId =
+let parseTileName (tileName: SrtmTileName) : DemTileId =
     match tileName.[0] with
     | 'l' ->
-        let level = tileName.[1..1] |> Int32.Parse |> SrtmLevel.fromInt
+        let level = tileName.[1..1] |> Int32.Parse |> DemLevel.fromInt
 
         let longitudeSign =
             match tileName.[2..2] with
@@ -219,11 +219,11 @@ let parseTileName (tileName: SrtmTileName) : SrtmTileId =
     | _ ->
         let tileCoords = parseHgtTileName tileName
 
-        { Level = SrtmLevel.fromInt 0
+        { Level = DemLevel.fromInt 0
           TileX = tileCoords.Lon.Value
           TileY = -(tileCoords.Lat.Value + 1) }
 
-let tileLonLatBounds tileSize (tile: SrtmTileId) : LonLatBounds =
+let tileLonLatBounds tileSize (tile: DemTileId) : LonLatBounds =
     let level = tile.Level
     let minCellX, minCellY = tile |> tileMinCell tileSize
 
@@ -258,9 +258,9 @@ let tileLonLatBounds tileSize (tile: SrtmTileId) : LonLatBounds =
 /// </remarks>
 let boundsToTiles
     tileSize
-    (level: SrtmLevel)
+    (level: DemLevel)
     (bounds: LonLatBounds)
-    : SrtmTileId list =
+    : DemTileId list =
 
     let cellsPerDegree = cellsPerDegree tileSize level
 
@@ -387,7 +387,7 @@ let toZippedSrtmTileFileName (srtmDir: string) (tileCoords: SrtmTileCoords) =
 
 let toLocalCacheTileFileName
     (localCacheDir: DirectoryName)
-    (tileId: SrtmTileId)
+    (tileId: DemTileId)
     : FileName =
     let tilePngFileName = $"%s{toTileName tileId}.png"
 
@@ -402,15 +402,15 @@ let toLocalCacheTileFileName
 type HeightsArrayPngWriter =
     FileName -> HeightsArray -> Result<HeightsArray, FileSysError>
 
-type SrtmPngTileReader = SrtmTileId -> FileName -> HeightsArrayResult
+type SrtmPngTileReader = DemTileId -> FileName -> HeightsArrayResult
 
 type SrtmHgtToPngTileConverter =
-    SrtmTileId -> string -> string -> HeightsArrayResult
+    DemTileId -> string -> string -> HeightsArrayResult
 
 /// <summary>
 /// A function that fetches a heights array from a sequence of SRTM tiles.
 /// </summary>
-type SrtmHeightsArrayFetcher = SrtmTileId seq -> HeightsArrayMaybeResult
+type SrtmHeightsArrayFetcher = DemTileId seq -> HeightsArrayMaybeResult
 
 /// <summary>
 /// Provides a function to fetch a heights array from a sequence of SRTM tiles,

@@ -15,7 +15,6 @@ module Demeton.Srtm.Downsampling
 // - code: https://www.paulinternet.nl/?page=bicubic
 
 open Demeton.Dem.Types
-open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 
 /// <summary>
@@ -37,7 +36,7 @@ type DownsamplingMethod =
 /// </summary>
 let childrenTilesNeededForDownsampling
     (downsamplingMethod: DownsamplingMethod)
-    (tile: SrtmTileId)
+    (tile: DemTileId)
     =
 
     let (childTileX0, childTileY0, childCols, childRows) =
@@ -52,7 +51,7 @@ let childrenTilesNeededForDownsampling
             let childTileY0 = tile.TileY * 2 - 1
             (childTileX0, childTileY0, 4, 4)
 
-    let childLevel = tile.Level.Value - 1 |> SrtmLevel.fromInt
+    let childLevel = tile.Level.Value - 1 |> DemLevel.fromInt
 
     [| for dy in 1..childCols do
            for dx in 1..childRows do
@@ -169,7 +168,7 @@ let lowerLevelHeightsArrayNeededForDownsampling
 /// children lower-level tiles.
 /// </summary>
 type HigherLevelTileConstructor =
-    DownsamplingMethod -> SrtmTileId -> SrtmTile list -> HeightsArray option
+    DownsamplingMethod -> DemTileId -> DemTile list -> HeightsArray option
 
 /// <summary>
 /// Constructs a heights array for a higher-level tile from the list of
@@ -178,7 +177,7 @@ type HigherLevelTileConstructor =
 let constructHigherLevelTileHeightsArray
     (tileSize: int)
     : HigherLevelTileConstructor =
-    fun downsamplingMethod tile (childrenTiles: SrtmTile list) ->
+    fun downsamplingMethod tile (childrenTiles: DemTile list) ->
 
         match childrenTiles with
         | [] -> None

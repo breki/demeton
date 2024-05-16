@@ -2,7 +2,6 @@
 
 open Demeton.Dem.Types
 open Raster
-open Types
 open Png
 open Png.Types
 open Png.File
@@ -98,7 +97,7 @@ let writeHeightsArrayIntoPngFile
 /// Writes a tile into a local cache as a PNG file.
 /// </summary>
 type SrtmTileCacheWriter =
-    SrtmTileId -> HeightsArray option -> Result<SrtmTile option, FileSysError>
+    DemTileId -> HeightsArray option -> Result<DemTile option, FileSysError>
 
 /// <summary>
 /// Writes a tile into a local cache as a PNG file. If the supplied
@@ -111,7 +110,7 @@ let writeSrtmTileToLocalCache
     (writeHeightsArrayToFile: HeightsArrayPngWriter)
     (openFileToWrite: FileWriter)
     : SrtmTileCacheWriter =
-    fun (tile: SrtmTileId) (heightsArrayMaybe: HeightsArray option) ->
+    fun (tile: DemTileId) (heightsArrayMaybe: HeightsArray option) ->
         match (heightsArrayMaybe, tile.Level.Value) with
         | Some heightsArray, _ ->
             Log.info "Writing SRTM tile %s..." (toTileName tile)
@@ -196,7 +195,7 @@ let decodeSrtmTileFromPngFile (readFile: FileReader) : SrtmPngTileReader =
 /// A function that extracts a heights array from a HGT stream.
 /// </summary>
 type HgtFileStreamReader =
-    SrtmTileId
+    DemTileId
         -> string
         -> (Stream -> Result<HeightsArray, FileSysError>)
         -> Result<HeightsArray, FileSysError>
@@ -264,7 +263,7 @@ let convertZippedHgtTileToPng
 let readPngTilesBatch
     localCacheDir
     (readPngTile: SrtmPngTileReader)
-    (tiles: SrtmTileId list)
+    (tiles: DemTileId list)
     : Result<HeightsArray list, string> =
 
     let readPngTile readingState tile =

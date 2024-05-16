@@ -102,7 +102,7 @@ type SrtmToPngEncoder = HeightsArray -> Stream -> unit
 /// unzip it and read it as <see cref="HeightsArray" /> instance.
 /// </param>
 let run
-    (tiles: SrtmTileId[])
+    (tiles: DemTileId[])
     determineTileStatus
     (readTile: SrtmTileReader)
     : unit =

@@ -76,7 +76,7 @@ let ``Calculates fractional global coordinates for given longitude and latitude`
     expectedGlobalY
     =
 
-    let srtmLevel = SrtmLevel.fromInt level
+    let srtmLevel = DemLevel.fromInt level
     let cellsPerDegree = cellsPerDegree tileSize srtmLevel
 
     let globalX = longitude |> longitudeToCellX cellsPerDegree
@@ -123,7 +123,7 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
         | Level0 -> true |> Prop.classify true "level 0"
         | HigherLevel ->
             let childLevel = level.Value
-            let parentLevel = childLevel + 1 |> SrtmLevel.fromInt
+            let parentLevel = childLevel + 1 |> DemLevel.fromInt
             let parentCellsPerDegree = cellsPerDegree tileSize parentLevel
             let parentCellX = longitudeToCellX parentCellsPerDegree (float lon)
             let parentCellY = latitudeToCellY parentCellsPerDegree (float lat)
@@ -146,7 +146,7 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
         | Level0 -> true |> Prop.classify true "level 0"
         | HigherLevel ->
             let childLevel = level.Value
-            let parentLevel = childLevel + 1 |> SrtmLevel.fromInt
+            let parentLevel = childLevel + 1 |> DemLevel.fromInt
             let parentCellsPerDegree = cellsPerDegree tileSize parentLevel
 
             let parentTileX =
@@ -233,7 +233,7 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
 [<Fact>]
 let ``Tile coordinates testing`` () =
     let genTileSize = Gen.choose (1, 100)
-    let genLevel = Gen.choose (0, 5) |> Gen.map SrtmLevel.fromInt
+    let genLevel = Gen.choose (0, 5) |> Gen.map DemLevel.fromInt
     let genLon = floatInRange -179 180
     let genLat = floatInRange -90 90
     let genPos = Gen.zip genLon genLat

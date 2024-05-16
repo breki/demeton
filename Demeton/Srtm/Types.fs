@@ -30,18 +30,12 @@ type SrtmTileCoords =
 
     member this.IdString = $"SrtmTile (%d{this.Lon.Value}/%d{this.Lat.Value})"
 
-/// <summary>
-/// In-memory representation of a SRTM tile, identified by its ID and holding
-/// its heights array.
-/// </summary>
-type SrtmTile = SrtmTileId * HeightsArray
-
 type SrtmTileCellCoordsInt = int * int
 type SrtmTileCellCoordsFloat = float * float
 
 /// <summary>
 /// A function that reads a SRTM tile.
 /// </summary>
-type SrtmTileReader = SrtmTileId -> HeightsArrayMaybeResult
+type SrtmTileReader = DemTileId -> HeightsArrayMaybeResult
 
 type SrtmTileName = string

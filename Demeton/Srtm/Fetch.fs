@@ -1,7 +1,6 @@
 ﻿module Demeton.Srtm.Fetch
 
 open Demeton.Dem.Types
-open Types
 open Funcs
 open Png
 open Downsampling
@@ -25,7 +24,7 @@ type LocalCacheTileStatus =
 /// cache.
 /// </param>
 let determineLocalCacheTileStatus
-    (level: SrtmLevel)
+    (level: DemLevel)
     tilePngExistsInLocalCache
     (tileNoneFileExistsInLocalCache: Lazy<bool>)
     =
@@ -77,7 +76,7 @@ type SrtmTileStatus =
 /// Status of the tile in the SRTM directory. This value is lazily evaluated.
 /// </param>
 let decideSrtmTileStatus
-    (level: SrtmLevel)
+    (level: DemLevel)
     localCacheTileStatus
     (srtmTileStatus: Lazy<SrtmDirTileStatus>)
     =
@@ -94,18 +93,18 @@ let decideSrtmTileStatus
     | _ -> invalidOp "bug: this should never happen"
 
 type CreateFromLowerTiles =
-    { Parent: SrtmTileId
-      Children: SrtmTileId[] }
+    { Parent: DemTileId
+      Children: DemTileId[] }
 
 type TileProcessingCommand =
-    | DetermineStatus of SrtmTileId
-    | ConvertTileFromHgt of SrtmTileId
+    | DetermineStatus of DemTileId
+    | ConvertTileFromHgt of DemTileId
     | CreateFromLowerTiles of CreateFromLowerTiles
     | Failure of string
 
 type TileProcessingCommandStack = TileProcessingCommand list
 
-type TileInStack = SrtmTile option
+type TileInStack = DemTile option
 type TilesStack = TileInStack list
 
 type TileFetchingState = TileProcessingCommandStack * TilesStack
@@ -129,7 +128,7 @@ let determineTileStatus
     srtmDir
     localCacheDir
     (fileExists: FileExistsChecker)
-    (tile: SrtmTileId)
+    (tile: DemTileId)
     =
 
     let tilePngExistsInLocalCache tile =

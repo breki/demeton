@@ -10,7 +10,6 @@ open Demeton.Projections.MinLonLatDelta
 open Demeton.Srtm.Funcs
 open Xunit
 open Swensen.Unquote
-open Demeton.Srtm.Types
 open TestHelp
 
 /// <summary>
@@ -107,7 +106,7 @@ let generateSample () =
 let ``Sample data is valid and sane`` () =
     let _, heights, srtmLevel, _, _, rasterRect = generateSample ()
 
-    test <@ srtmLevel = SrtmLevel.fromInt 2 @>
+    test <@ srtmLevel = DemLevel.fromInt 2 @>
     test <@ heights.Width = 129 @>
     test <@ heights.Height = 76 @>
     test <@ rasterRect.Width = 60 @>
