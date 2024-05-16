@@ -1,7 +1,7 @@
 ﻿module Demeton.Shaders.Types
 
 open Raster
-open Demeton.DemTypes
+open Demeton.Dem.Types
 open Demeton.Projections.Common
 open Demeton.Srtm.Types
 

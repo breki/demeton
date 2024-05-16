@@ -4,7 +4,7 @@
 open System
 open Text
 
-open Demeton.DemTypes
+open Demeton.Dem.Types
 
 
 /// <summary>

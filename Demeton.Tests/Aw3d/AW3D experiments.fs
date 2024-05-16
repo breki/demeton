@@ -4,7 +4,7 @@
 open System
 open Demeton.Aw3d.Types
 open Demeton.Commands
-open Demeton.DemTypes
+open Demeton.Dem.Types
 open Demeton.Projections.PROJParsing
 open Demeton.Shaders
 open FsUnit

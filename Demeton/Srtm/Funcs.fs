@@ -2,7 +2,7 @@
 
 open Demeton.Geometry.Common
 open Demeton.IOTypes
-open Demeton.DemTypes
+open Demeton.Dem.Types
 open Demeton.Srtm.Types
 
 open FileSys
@@ -444,6 +444,6 @@ let fetchSrtmHeights (readSrtmTile: SrtmTileReader) : SrtmHeightsArrayFetcher =
         | Some error -> Error error
         | _ ->
             let mergedRect =
-                heightsArraysToMerge |> Demeton.Dem.mbrOfHeightsArrays
+                heightsArraysToMerge |> Demeton.Dem.Funcs.mbrOfHeightsArrays
 
-            Ok(Demeton.Dem.merge mergedRect heightsArraysToMerge)
+            Ok(Demeton.Dem.Funcs.merge mergedRect heightsArraysToMerge)

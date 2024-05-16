@@ -2,7 +2,7 @@
 module Demeton.Shaders.ElevationColoring
 
 open Raster
-open Demeton.DemTypes
+open Demeton.Dem.Types
 open Demeton.Geometry.Common
 open Demeton.Srtm
 open Demeton.Shaders.Types

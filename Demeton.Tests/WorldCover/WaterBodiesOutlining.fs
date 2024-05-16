@@ -1,7 +1,7 @@
 ﻿module Tests.WorldCover.WaterBodiesOutlining
 
 open System
-open Demeton.DemTypes
+open Demeton.Dem.Types
 open Raster
 open Tests.WorldCover.WaterBodiesColoring
 

@@ -2,7 +2,7 @@
 
 open System
 open System.IO
-open Demeton.DemTypes
+open Demeton.Dem.Types
 open Demeton.Geometry.Common
 open Demeton.WorldCover.Types
 open FileSys

@@ -3,7 +3,7 @@
 open Demeton.Shaders
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.BuildingElevationColoring
-open Demeton.DemTypes
+open Demeton.Dem.Types
 open Demeton.Commands
 open CommandLine.Common
 

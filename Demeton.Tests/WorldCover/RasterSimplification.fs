@@ -1,6 +1,6 @@
 ﻿module Tests.WorldCover.RasterSimplification
 
-open Demeton.DemTypes
+open Demeton.Dem.Types
 open FsUnit
 open Xunit
 open Swensen.Unquote

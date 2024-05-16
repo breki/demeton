@@ -1,6 +1,6 @@
 ﻿module Demeton.Srtm.Types
 
-open Demeton.DemTypes
+open Demeton.Dem.Types
 
 [<Literal>]
 let MaxSrtmLevel = 6

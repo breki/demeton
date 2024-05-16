@@ -5,28 +5,28 @@ open Demeton.Commands
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Fetch
-open Demeton.DemTypes
+open Demeton.Dem.Types
 
 open Xunit
 open Swensen.Unquote
 open TestHelp
 
-let parseArgs args = 
-    let result = 
-        parseParameters args ImportSrtmTilesCommand.supportedParameters
+let parseArgs args =
+    let result = parseParameters args ImportSrtmTilesCommand.supportedParameters
+
     match result with
-    | Ok parsedParameters -> 
+    | Ok parsedParameters ->
         parsedParameters |> ImportSrtmTilesCommand.fillOptions |> Ok
     | Error error -> Error error
 
-let isOkWithOptions result: ImportSrtmTilesCommand.Options =
+let isOkWithOptions result : ImportSrtmTilesCommand.Options =
     match result with
     | Ok options -> options
     | _ -> invalidOp "Expected the parsed options."
 
 
 [<Fact>]
-let ``Reports error when bounds parameter is missing``() =
+let ``Reports error when bounds parameter is missing`` () =
     let result = parseArgs []
     test <@ result |> isErrorData "<bounds> argument's value is missing." @>
 
@@ -37,21 +37,29 @@ let ``Reports error when bounds parameter is missing``() =
 [<InlineData("10,20,30,40,50")>]
 let ``Reports error when bounds value is not made of 4 parts`` parameterValue =
     let result = parseArgs [ parameterValue ]
-    test <@ 
-            result 
-            |> isErrorData ("<bounds> argument's value is invalid,"
-                        + " it should consist of 4 numbers.")
-    @>
+
+    test
+        <@
+            result
+            |> isErrorData (
+                "<bounds> argument's value is invalid,"
+                + " it should consist of 4 numbers."
+            )
+        @>
 
 
 [<Fact>]
-let ``Reports error when at least one of bounds parts is not a number``() =
+let ``Reports error when at least one of bounds parts is not a number`` () =
     let result = parseArgs [ "10,20,a,30" ]
-    test <@ 
-            result 
-            |> isErrorData ("<bounds> argument's value is invalid, "
-                        + "it should consist of 4 comma-separated numbers.") 
-    @>
+
+    test
+        <@
+            result
+            |> isErrorData (
+                "<bounds> argument's value is invalid, "
+                + "it should consist of 4 comma-separated numbers."
+            )
+        @>
 
 
 [<Theory>]
@@ -59,10 +67,14 @@ let ``Reports error when at least one of bounds parts is not a number``() =
 [<InlineData("-50,20,2500,30")>]
 let ``Reports error when longitude value is out of bounds`` parameterValue =
     let result = parseArgs [ parameterValue ]
-    test <@ 
-            result 
-            |> isErrorData ("<bounds> argument's value is invalid, "
-                        + "longitude value is out of range.") 
+
+    test
+        <@
+            result
+            |> isErrorData (
+                "<bounds> argument's value is invalid, "
+                + "longitude value is out of range."
+            )
         @>
 
 
@@ -71,95 +83,93 @@ let ``Reports error when longitude value is out of bounds`` parameterValue =
 [<InlineData("-50,20,25,100")>]
 let ``Reports error when latitude value is out of bounds`` parameterValue =
     let result = parseArgs [ parameterValue ]
-    test <@ 
-            result 
-            |> isErrorData ("<bounds> argument's value is invalid, "
-                        + "latitude value is out of range.") 
+
+    test
+        <@
+            result
+            |> isErrorData (
+                "<bounds> argument's value is invalid, "
+                + "latitude value is out of range."
+            )
         @>
 
 
 [<Fact>]
-let ``Reports error when min and max longitude values are switched``() =
+let ``Reports error when min and max longitude values are switched`` () =
     let result = parseArgs [ "80,10,70,30" ]
-    test <@ 
-            result 
-            |> isErrorData ("<bounds> argument's value is invalid, "
-                + "max longitude value is smaller than min longitude value.") 
+
+    test
+        <@
+            result
+            |> isErrorData (
+                "<bounds> argument's value is invalid, "
+                + "max longitude value is smaller than min longitude value."
+            )
         @>
 
 
 [<Fact>]
-let ``Reports error when min and max latitude values are switched``() =
+let ``Reports error when min and max latitude values are switched`` () =
     let result = parseArgs [ "10,20,25,-10" ]
-    test <@ 
-            result 
-            |> isErrorData ("<bounds> argument's value is invalid, "
-                + "max latitude value is smaller than min latitude value.") 
+
+    test
+        <@
+            result
+            |> isErrorData (
+                "<bounds> argument's value is invalid, "
+                + "max latitude value is smaller than min latitude value."
+            )
         @>
 
 
 [<Fact>]
-let ``Parses valid bounds values``() =
+let ``Parses valid bounds values`` () =
     let result = parseArgs [ "-10.1,20,25,70.4" ]
-    test <@ 
-            (result |> isOkWithOptions).Bounds = 
-                Some { MinLon = -10.1;
-                    MinLat = 20.;
-                    MaxLon = 25.;
-                    MaxLat = 70.4 }
+
+    test
+        <@
+            (result |> isOkWithOptions).Bounds = Some
+                { MinLon = -10.1
+                  MinLat = 20.
+                  MaxLon = 25.
+                  MaxLat = 70.4 }
         @>
 
 
 [<Fact>]
-let ``The default SRTM dir is 'srtm'``() =
+let ``The default SRTM dir is 'srtm'`` () =
     let result = parseArgs [ "-10.1,20,25,70.4" ]
-    test <@ 
-            (result |> isOkWithOptions).SrtmDir = "srtm"
-        @>
+    test <@ (result |> isOkWithOptions).SrtmDir = "srtm" @>
 
 
 [<Fact>]
-let ``Parses the SRTM dir parameter``() =
+let ``Parses the SRTM dir parameter`` () =
     let srtmDirValue = "somewhere/else"
 
-    let result = 
-        parseArgs [ 
-        "-10.1,20,25,70.4"
-        "--srtm-dir"; srtmDirValue
-        ]
-    test <@ 
-            (result |> isOkWithOptions).SrtmDir = srtmDirValue
-        @>
+    let result = parseArgs [ "-10.1,20,25,70.4"; "--srtm-dir"; srtmDirValue ]
+    test <@ (result |> isOkWithOptions).SrtmDir = srtmDirValue @>
 
 
 [<Fact>]
-let ``The default local cache dir is 'cache'``() =
+let ``The default local cache dir is 'cache'`` () =
     let result = parseArgs [ "-10.1,20,25,70.4" ]
-    test <@ 
-            (result |> isOkWithOptions).LocalCacheDir = "cache"
-        @>
+    test <@ (result |> isOkWithOptions).LocalCacheDir = "cache" @>
 
 
 [<Fact>]
-let ``Parses the local cache dir parameter``() =
+let ``Parses the local cache dir parameter`` () =
     let localCacheDirValue = "somewhere/else"
 
-    let result = 
-        parseArgs [ 
-        "-10.1,20,25,70.4"
-        "--local-cache-dir"; localCacheDirValue
-        ]
-    test <@ 
-            (result |> isOkWithOptions).LocalCacheDir = localCacheDirValue
-        @>
+    let result =
+        parseArgs
+            [ "-10.1,20,25,70.4"; "--local-cache-dir"; localCacheDirValue ]
+
+    test <@ (result |> isOkWithOptions).LocalCacheDir = localCacheDirValue @>
 
 
 [<Fact>]
-let ``Imports all tiles within the specified boundaries``() =
-    let tiles = [| 
-        srtmTileId 0 15 45
-        srtmTileId 0 16 46
-    |]
+let ``Imports all tiles within the specified boundaries`` () =
+    let tiles = [| srtmTileId 0 15 45; srtmTileId 0 16 46 |]
 
     // we use a lock because the import function employs parallelization
     let threadsLock = "some lock"
@@ -168,16 +178,22 @@ let ``Imports all tiles within the specified boundaries``() =
 
     let determineTileStatus (tile: SrtmTileId) = SrtmTileStatus.NotCached
 
-    let readTile (tile: SrtmTileId): HeightsArrayMaybeResult =
+    let readTile (tile: SrtmTileId) : HeightsArrayMaybeResult =
         lock threadsLock (fun () -> tilesRead <- tiles :: tilesRead)
-        let heightsArray = 
-            HeightsArray (
-                0, 0, 10, 10, HeightsArrayInitializer1D (
-                    fun _ -> DemHeightNone))
-        lock threadsLock (
-            fun () -> 
-                heightsArraysProduced <- heightsArray :: heightsArraysProduced)
-        Ok (Some heightsArray)
+
+        let heightsArray =
+            HeightsArray(
+                0,
+                0,
+                10,
+                10,
+                HeightsArrayInitializer1D(fun _ -> DemHeightNone)
+            )
+
+        lock threadsLock (fun () ->
+            heightsArraysProduced <- heightsArray :: heightsArraysProduced)
+
+        Ok(Some heightsArray)
 
     ImportSrtmTilesCommand.run tiles determineTileStatus readTile
 

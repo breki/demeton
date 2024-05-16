@@ -1,48 +1,53 @@
 ﻿module Tests.Dem.``Merging height arrays``
 
-open Demeton
-open Demeton.DemTypes
+open Demeton.Dem.Types
 
 open FsUnit
 open Raster
 open Xunit
 open Swensen.Unquote
 
-let someCells = HeightsArrayInitializer1D (fun _ -> DemHeightNone)
+let someCells = HeightsArrayInitializer1D(fun _ -> DemHeightNone)
 
 let heightCellsInitializer (cellsToFill: HeightCell list) =
-    fun cellCoords -> 
-        cellsToFill |> List.tryFind (
-            fun cellToFill -> cellToFill.Coords = cellCoords)
+    fun cellCoords ->
+        cellsToFill
+        |> List.tryFind (fun cellToFill -> cellToFill.Coords = cellCoords)
         |> function
-        | Some cell -> cell.Height
-        | _ -> DemHeightNone
+            | Some cell -> cell.Height
+            | _ -> DemHeightNone
 
 [<Fact>]
-let ``Merging empty DEM data array results in None``() =
-    Dem.merge Rect.Empty [] |> should equal None
+let ``Merging empty DEM data array results in None`` () =
+    Demeton.Dem.Funcs.merge Rect.Empty [] |> should equal None
 
 [<Fact>]
-let ``Merging several DEM data arrays results in a merged array``() =
-    let cells1 = [
-        { Coords = (11, 22); Height = 12s }
-    ]
-    let cells2 = [
-        { Coords = (25, 20); Height = 20s }
-    ]
+let ``Merging several DEM data arrays results in a merged array`` () =
+    let cells1 = [ { Coords = (11, 22); Height = 12s } ]
+    let cells2 = [ { Coords = (25, 20); Height = 20s } ]
 
-    let array1 = 
+    let array1 =
         HeightsArray(
-            10, 20, 15, 25, HeightsArrayInitializer2D (
-                fun x -> heightCellsInitializer cells1 x))
-    let array2 = 
+            10,
+            20,
+            15,
+            25,
+            HeightsArrayInitializer2D(fun x -> heightCellsInitializer cells1 x)
+        )
+
+    let array2 =
         HeightsArray(
-            25, 20, 15, 25, HeightsArrayInitializer2D (
-                fun x -> heightCellsInitializer cells2 x))
+            25,
+            20,
+            15,
+            25,
+            HeightsArrayInitializer2D(fun x -> heightCellsInitializer cells2 x)
+        )
+
     let array3 = HeightsArray(100, 0, 15, 25, someCells)
     let arrays = [ array1; array2; array3 ]
-    let mbr = Demeton.Dem.mbrOfHeightsArrays arrays 
-    let mergedMaybe = Dem.merge mbr arrays
+    let mbr = Demeton.Dem.Funcs.mbrOfHeightsArrays arrays
+    let mergedMaybe = Demeton.Dem.Funcs.merge mbr arrays
 
     test <@ (mergedMaybe |> Option.isSome) @>
 

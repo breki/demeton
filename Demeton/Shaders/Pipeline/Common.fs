@@ -1,6 +1,6 @@
 ﻿module Demeton.Shaders.Pipeline.Common
 
-open Demeton.DemTypes
+open Demeton.Dem.Types
 open Raster
 open Demeton.Shaders
 open Demeton.Shaders.Types

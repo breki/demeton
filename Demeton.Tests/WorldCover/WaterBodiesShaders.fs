@@ -3,7 +3,7 @@
 open System
 open System.Threading.Tasks
 
-open Demeton.DemTypes
+open Demeton.Dem.Types
 open Demeton.Geometry.Common
 open Demeton.Projections.Common
 open Demeton.Shaders.Types

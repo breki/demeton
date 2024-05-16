@@ -1,7 +1,7 @@
 ﻿module Tests.WorldCover.WaterBodiesColoring
 
 open System
-open Demeton.DemTypes
+open Demeton.Dem.Types
 open JetBrains.Profiler.Api
 open Raster
 
