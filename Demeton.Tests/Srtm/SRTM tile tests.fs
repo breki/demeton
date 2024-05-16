@@ -1,5 +1,6 @@
 ﻿module Tests.Srtm.``SRTM tile tests``
 
+open Demeton.Dem.Types
 open Demeton.Geometry.Common
 open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs

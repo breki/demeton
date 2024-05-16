@@ -10,7 +10,7 @@
 /// </remarks>
 module Demeton.Projections.MinLonLatDelta
 
-open Demeton.Srtm.Types
+open Demeton.Dem.Types
 open Demeton.Projections.Common
 open SimAnn
 open System

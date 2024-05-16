@@ -3,6 +3,7 @@ module Demeton.Commands.ShadeCommand
 
 open CommandLine
 open CommandLine.Common
+open Demeton.Dem.Types
 open Raster
 open Demeton.Geometry
 open Demeton.Geometry.Common
@@ -20,7 +21,6 @@ open Demeton.Shaders.Pipeline.BuildingIgorHillshading
 open Demeton.Shaders.Pipeline.BuildingSlopeShader
 open Demeton.Srtm
 open Demeton.Srtm.Funcs
-open Demeton.Srtm.Types
 open FileSys
 open Png.Types
 open Text

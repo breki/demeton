@@ -1,5 +1,6 @@
 ﻿module Demeton.Srtm.Fetch
 
+open Demeton.Dem.Types
 open Types
 open Funcs
 open Png
