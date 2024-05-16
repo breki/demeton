@@ -6,11 +6,9 @@ open Xunit
 open Swensen.Unquote
 
 open Demeton.Commands
-open Demeton.DemTypes
 open Demeton.Geometry.Common
 open Demeton.Projections.PROJParsing
 open Demeton.Shaders
-open Demeton.Srtm.Funcs
 open Demeton.WorldCover.Types
 open Demeton.WorldCover.Funcs
 open Png
@@ -78,32 +76,29 @@ let options: ShadeCommand.Options =
           IgnoredParameters = [] } }
 
 
-[<Fact(Skip = "takes a long time, run it explicitly")>]
+[<Fact>]
+// [<Fact(Skip = "takes a long time, run it explicitly")>]
 let ``Render hillshading with WorldCover water bodies`` () =
     if Environment.GetEnvironmentVariable("CI") = "true" then
         // this test cannot run on CI because we don't have the WorldCover
         // raster available (it's too big to be added to git repo)
         ()
     else
-        let worldCoverData =
-            readWorldCoverRaster
-                @"C:\temp\WorldCover\ESA_WorldCover_10m_2021_v200_N45E006_Map.tif"
-                { Lon = { Value = 6 }
-                  Lat = { Value = -45 } }
-                { Lon = { Value = 7 }
-                  Lat = { Value = -46 } }
+        let worldCoverTileId = { TileX = 6; TileY = -45 }
 
-        let tileId = Demeton.Srtm.Funcs.parseTileName "N46E007"
-        let cellMinX, cellMinY = tileMinCell WorldCoverTileSize tileId
+        let cacheDir = "cache"
+
+        let result =
+            ensureWorldCoverTile
+                cacheDir
+                FileSys.fileExists
+                FileSys.downloadFile
+                worldCoverTileId
+
+        test <@ result |> isOk @>
 
         let waterBodiesHeightsArray =
-            HeightsArray(
-                cellMinX,
-                cellMinY,
-                WorldCoverTileSize,
-                WorldCoverTileSize,
-                HeightsArrayDirectImport worldCoverData
-            )
+            readWorldCoverTile cacheDir worldCoverTileId
             |> convertWorldCoverRasterToWaterMonochrome
         // |> simplifyRaster 100
 

@@ -4,7 +4,6 @@ open System
 open System.IO
 open Demeton.DemTypes
 open Demeton.Geometry.Common
-open Demeton.Srtm.Types
 open Demeton.WorldCover.Types
 open FileSys
 open Newtonsoft.Json
@@ -167,27 +166,24 @@ let ensureWorldCoverTile cacheDir fileExists downloadFile tileId =
         downloadFile tileUrl cachedTifFileName |> Ok
 
 
-
-
-
 /// <summary>
-/// Reads a WorldCover raster file and returns the heights array for a specified
-/// tile.
+/// Reads a WorldCover tile file and returns the heights array for it.
 /// </summary>
 /// <remarks>
-/// The function accepts the SRTM-like tile coordinates of the lower left corner
-/// of the WorldCover raster file and the SRTM-like tile coordinates of the tile
-/// whose heights array is to be read.
+/// The function accepts the tile coordinates of the lower left corner
+/// of the WorldCover raster file.
 /// </remarks>
-let readWorldCoverRaster
-    (fileName: string)
-    (raster_file_tile_coords: SrtmTileCoords)
-    (requested_tile_coords: SrtmTileCoords)
-    : DemHeight[] =
-    use tiff = Tiff.Open(fileName, "r")
+let readWorldCoverTile
+    cacheDir
+    (worldCoverTileId: WorldCoverTileId)
+    : HeightsArray =
+    let worldCoverTiffFileName =
+        worldCoverTileCachedTifFileName cacheDir worldCoverTileId
+
+    use tiff = Tiff.Open(worldCoverTiffFileName, "r")
 
     if tiff = null then
-        failwithf $"Could not open the file %s{fileName}"
+        failwithf $"Could not open the file %s{worldCoverTiffFileName}"
 
     let rasterWidth = unbox (tiff.GetField(TiffTag.IMAGEWIDTH).[0].Value)
 
@@ -211,25 +207,8 @@ let readWorldCoverRaster
     if not (tiff.IsTiled()) then
         failwithf "Expected a tiled TIFF file"
 
-    let unreducedHeightsArrayWidth = WorldCoverTileSize
-    let unreducedHeightsArrayHeight = WorldCoverTileSize
-
     let worldCoverData: DemHeight[] =
-        Array.zeroCreate (
-            unreducedHeightsArrayWidth * unreducedHeightsArrayHeight
-        )
-
-    // calculate the box (in TIFF coordinates) of the requested SRTM tile
-    let startingTiffX =
-        (requested_tile_coords.Lon.Value - raster_file_tile_coords.Lon.Value)
-        * WorldCoverTileSize
-
-    let startingTiffY =
-        -(requested_tile_coords.Lat.Value - raster_file_tile_coords.Lat.Value)
-        * WorldCoverTileSize
-
-    let endingTiffX = startingTiffX + WorldCoverTileSize
-    let endingTiffY = startingTiffY + WorldCoverTileSize
+        Array.zeroCreate (WorldCoverTileSize * WorldCoverTileSize)
 
     // the size of an individual TIFF tile (not geographic tile, but a tile
     // in terms of tiling a TIFF raster into small quadratic pieces)
@@ -240,9 +219,9 @@ let readWorldCoverRaster
     let tiffTileBufferSize = tiff.TileSize()
     let tiffTileBuffer = Array.zeroCreate<byte> tiffTileBufferSize
 
-    // for each TIFF tile that intersects the requested SRTM tile
-    for tiffTileY in [ startingTiffY..tiffTileHeight..endingTiffY ] do
-        for tiffTileX in [ startingTiffX..tiffTileWidth..endingTiffX ] do
+    // for each TIFF tile
+    for tiffTileY in [ 0..tiffTileHeight..WorldCoverTileSize ] do
+        for tiffTileX in [ 0..tiffTileWidth..WorldCoverTileSize ] do
             /// 0-based byte offset in buffer at which to begin storing read
             /// and decoded bytes
             let offset = 0
@@ -250,7 +229,7 @@ let readWorldCoverRaster
             let tileZ = 0
             /// The zero-based index of the sample plane. The plane parameter is
             /// used only if data are organized in separate planes
-            /// (PLANARCONFIG = SEPARATE). In other cases the value is ignored.
+            /// (PLANARCONFbIG = SEPARATE). In other cases the value is ignored.
             let plane = int16 0
 
             // The tile to read and decode is selected by the (x, y, z, plane)
@@ -297,26 +276,26 @@ let readWorldCoverRaster
                 let tiffTileLocalY = i / tiffTileWidth
 
                 // coordinates of the pixel within the heights array
-                let heightsArrayX =
-                    (actualTileX - startingTiffX) + tiffTileLocalX
+                let heightsArrayX = actualTileX + tiffTileLocalX
 
-                let heightsArrayY =
-                    (actualTileY - startingTiffY) + tiffTileLocalY
+                let heightsArrayY = actualTileY + tiffTileLocalY
 
-                // copy the pixel to the heights array only if it fits within
-                // the array (some TIFF tiles may be partially outside the
-                // requested area)
-                if
-                    heightsArrayX >= 0
-                    && heightsArrayY >= 0
-                    && heightsArrayX < unreducedHeightsArrayWidth
-                    && heightsArrayY < unreducedHeightsArrayHeight
-                then
-                    // index of the pixel within the heights array
-                    let index =
-                        heightsArrayY * unreducedHeightsArrayWidth
-                        + heightsArrayX
+                // index of the pixel within the heights array
+                let index = heightsArrayY * WorldCoverTileSize + heightsArrayX
 
-                    worldCoverData.[index] <- int16 value
+                worldCoverData.[index] <- int16 value
 
-    worldCoverData
+    let cellMinX, cellMinY =
+        Demeton.Srtm.Funcs.tileMinCell
+            WorldCoverTileSize
+            { Level = { Value = 1 }
+              TileX = worldCoverTileId.TileX
+              TileY = worldCoverTileId.TileY }
+
+    HeightsArray(
+        cellMinX,
+        cellMinY,
+        WorldCoverTileSize,
+        WorldCoverTileSize,
+        HeightsArrayDirectImport worldCoverData
+    )
