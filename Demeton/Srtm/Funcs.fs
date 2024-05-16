@@ -3,7 +3,6 @@
 open Demeton.Geometry.Common
 open Demeton.IOTypes
 open Demeton.Dem.Types
-open Demeton.Srtm.Types
 
 open FileSys
 open System
@@ -38,7 +37,7 @@ let inline cellYToTileY (tileSize: int) (cellY: float) =
 /// <returns>
 /// A tuple representing the minimum cell coordinates (X, Y) of the tile.
 /// </returns>
-let tileMinCell (tileSize: int) (tileId: DemTileId) : SrtmTileCellCoordsInt =
+let tileMinCell (tileSize: int) (tileId: DemTileId) : DemTileCellCoordsInt =
     let cellX = tileXToCellX tileSize (tileId.TileX |> float)
     let cellY = tileYToCellY tileSize (tileId.TileY |> float)
 

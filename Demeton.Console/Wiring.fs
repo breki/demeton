@@ -1,8 +1,8 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Console.Wiring
 
+open Demeton.Dem.Types
 open Demeton.Srtm.Downsampling
-open Demeton.Srtm.Types
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 open Demeton.Srtm.Fetch
@@ -20,10 +20,7 @@ let writePngTile =
 
 let readZippedHgtFile = readZippedHgtFile FileSys.readZipFile
 
-let convertPngTile =
-    convertZippedHgtTileToPng
-        readZippedHgtFile
-        writePngTile
+let convertPngTile = convertZippedHgtTileToPng readZippedHgtFile writePngTile
 
 let fetchSrtmTile srtmDir localCacheDir : SrtmTileReader =
     fun tile ->

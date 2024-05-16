@@ -1,7 +1,7 @@
 ﻿module Tests.Srtm.SrtmHelper
 
-open Demeton.Srtm.Types
+open Demeton.Dem.Types
 
 let srtmTileCoords lon lat =
-    { Lon = SrtmLongitude.fromInt lon; 
-    Lat = SrtmLatitude.fromInt lat } 
+    { Lon = SrtmLongitude.fromInt lon
+      Lat = SrtmLatitude.fromInt lat }

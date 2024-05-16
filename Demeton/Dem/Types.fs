@@ -221,3 +221,42 @@ type DemTileId =
 /// its heights array.
 /// </summary>
 type DemTile = DemTileId * HeightsArray
+
+type DemTileCellCoordsInt = int * int
+type DemTileCellCoordsFloat = float * float
+
+
+
+[<StructuredFormatDisplay("{Value}")>]
+type SrtmLatitude =
+    { Value: int }
+
+    static member fromInt i =
+        if i < -90 || i > 90 then
+            invalidArg "i" "Latitude is out of range"
+        else
+            { Value = i }
+
+[<StructuredFormatDisplay("{Value}")>]
+type SrtmLongitude =
+    { Value: int }
+
+    static member fromInt i =
+        if i < -179 || i > 180 then
+            invalidArg "i" "Longitude is out of range"
+        else
+            { Value = i }
+
+[<StructuredFormatDisplay("{IdString}")>]
+type SrtmTileCoords =
+    { Lon: SrtmLongitude
+      Lat: SrtmLatitude }
+
+    member this.IdString = $"SrtmTile (%d{this.Lon.Value}/%d{this.Lat.Value})"
+
+/// <summary>
+/// A function that reads a SRTM tile.
+/// </summary>
+type SrtmTileReader = DemTileId -> HeightsArrayMaybeResult
+
+type SrtmTileName = string
