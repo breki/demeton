@@ -1,6 +1,7 @@
 ﻿module Tests.Srtm.``Reading SRTM HGT files``
 
 open Demeton.Dem.Types
+open Demeton.Dem.Funcs
 open Demeton.Srtm.Funcs
 
 open System
@@ -97,7 +98,7 @@ let ``Can create heights array from SRTM heights sequence`` () =
 
     use stream = new MemoryStream(byteArray)
 
-    let tile = createSrtmTileFromStream tileSize (srtmTileId 0 16 -45) stream
+    let tile = createSrtmTileFromStream tileSize (demTileId 0 16 -45) stream
 
     test <@ tile.Width = tileSize @>
     test <@ tile.Height = tileSize @>

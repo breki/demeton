@@ -5,7 +5,7 @@ open Demeton.Shaders.Types
 open Demeton.Projections.Common
 open Demeton.Geometry.Common
 open Demeton.Srtm
-open Demeton.Srtm.Funcs
+open Demeton.Dem.Funcs
 open Png
 
 open System

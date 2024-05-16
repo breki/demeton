@@ -1,6 +1,7 @@
 ﻿module Demeton.Srtm.Fetch
 
 open Demeton.Dem.Types
+open Demeton.Dem.Funcs
 open Funcs
 open Png
 open Downsampling
@@ -146,7 +147,7 @@ let determineTileStatus
         |> fileExists
 
     let checkSrtmDirTileStatus () =
-        checkSrtmDirTileStatus srtmDir fileExists (tile |> toSrtmTileCoords)
+        checkSrtmDirTileStatus srtmDir fileExists (tile |> toDemTileCoords)
 
     let localCacheStatus =
         determineLocalCacheTileStatus
@@ -165,8 +166,8 @@ let processNextCommand
     (localCacheDir: DirectoryName)
     (srtmDir: DirectoryName)
     determineTileStatus
-    (readPngTile: SrtmPngTileReader)
-    (convertFromHgt: SrtmHgtToPngTileConverter)
+    (readPngTile: DemPngTileReader)
+    (convertFromHgt: DemHgtToPngTileConverter)
     (constructHigherLevelTile: HigherLevelTileConstructor)
     (writeTileToCache: SrtmTileCacheWriter)
     ((commandStack, tilesStack): TileFetchingState)
@@ -213,7 +214,7 @@ let processNextCommand
 
     | ConvertTileFromHgt tile :: remainingCommands ->
         let zippedHgtFileName =
-            tile |> toSrtmTileCoords |> toZippedSrtmTileFileName srtmDir
+            tile |> toDemTileCoords |> toZippedSrtmTileFileName srtmDir
 
         let pngFileName = tile |> toLocalCacheTileFileName localCacheDir
 
@@ -257,7 +258,7 @@ let rec processCommandStack
     (localCacheDir: DirectoryName)
     (srtmDir: DirectoryName)
     determineTileStatus
-    (readPngTile: SrtmPngTileReader)
+    (readPngTile: DemPngTileReader)
     convertFromHgt
     (constructHigherLevelTile: HigherLevelTileConstructor)
     (writeTileToCache: SrtmTileCacheWriter)

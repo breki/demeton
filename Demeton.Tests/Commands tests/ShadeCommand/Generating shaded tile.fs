@@ -1,10 +1,10 @@
 ﻿module Tests.``Commands tests``.ShadeCommand.``Generating shaded tile``
 
 open Demeton.Dem.Types
+open Demeton.Dem.Funcs
 open Raster
 open Demeton.Commands
 open Demeton.Shaders
-open Demeton.Srtm.Funcs
 
 open Xunit
 open Swensen.Unquote
@@ -34,10 +34,10 @@ let ``Tile generator correctly calculates which SRTM tiles it needs`` () =
 
         test
             <@
-                tilesArray = [| srtmTileId 4 0 -4
-                                srtmTileId 4 1 -4
-                                srtmTileId 4 0 -3
-                                srtmTileId 4 1 -3 |]
+                tilesArray = [| demTileId 4 0 -4
+                                demTileId 4 1 -4
+                                demTileId 4 0 -3
+                                demTileId 4 1 -3 |]
             @>
 
         heights |> Some |> Ok

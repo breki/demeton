@@ -5,6 +5,7 @@ open Raster
 open Png
 open Png.Types
 open Png.File
+open Demeton.Dem.Funcs
 open Demeton.Srtm.Funcs
 
 open FileSys
@@ -15,6 +16,15 @@ let MissingHeightAsUint16 = 0us
 
 [<Literal>]
 let ZeroHeight = -32768s
+
+type HeightsArrayPngWriter =
+    FileName -> HeightsArray -> Result<HeightsArray, FileSysError>
+
+type DemPngTileReader = DemTileId -> FileName -> HeightsArrayResult
+
+type DemHgtToPngTileConverter =
+    DemTileId -> string -> string -> HeightsArrayResult
+
 
 let inline demHeightToUInt16Value (demHeight: DemHeight) : uint16 =
     match demHeight with
@@ -135,7 +145,7 @@ let writeSrtmTileToLocalCache
                 stream |> closeStream
                 None)
 
-let decodeSrtmTileFromPngFile (readFile: FileReader) : SrtmPngTileReader =
+let decodeSrtmTileFromPngFile (readFile: FileReader) : DemPngTileReader =
     fun tileId pngFileName ->
         Log.info "Loading PNG SRTM tile '%s'..." pngFileName
 
@@ -224,7 +234,7 @@ let readZippedHgtFile
 let convertZippedHgtTileToPng
     (readHgtFileFromStream: HgtFileStreamReader)
     (writeHeightsArrayIntoPng: HeightsArrayPngWriter)
-    : SrtmHgtToPngTileConverter =
+    : DemHgtToPngTileConverter =
     fun tileId zippedHgtFileName pngFileName ->
 
         let tileName = toTileName tileId
@@ -262,7 +272,7 @@ let convertZippedHgtTileToPng
 /// </summary>
 let readPngTilesBatch
     localCacheDir
-    (readPngTile: SrtmPngTileReader)
+    (readPngTile: DemPngTileReader)
     (tiles: DemTileId list)
     : Result<HeightsArray list, string> =
 

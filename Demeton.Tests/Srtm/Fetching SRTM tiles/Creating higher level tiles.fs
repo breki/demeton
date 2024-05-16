@@ -1,9 +1,10 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Creating higher level tiles``
 
-open Demeton.Srtm.Funcs
 open Demeton.Geometry.Common
-open Demeton.Srtm.Downsampling
 open Demeton.Dem.Types
+open Demeton.Dem.Funcs
+open Demeton.Srtm.Funcs
+open Demeton.Srtm.Downsampling
 
 open System
 
@@ -31,11 +32,11 @@ let ``Correctly calculates the list of needed children for level 1 for SomeFutur
            (0, 2)
            (1, 2)
            (2, 2) |]
-        |> Array.map (fun (x, y) -> srtmTileId 0 x y)
+        |> Array.map (fun (x, y) -> demTileId 0 x y)
 
     test
         <@
-            srtmTileId 1 0 0
+            demTileId 1 0 0
             |> childrenTilesNeededForDownsampling
                 DownsamplingMethod.SomeFutureMethod = expectedChildren
         @>

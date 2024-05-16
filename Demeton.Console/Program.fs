@@ -2,7 +2,7 @@
 open CommandLine.Common
 open Demeton.Commands
 open Demeton.Console
-open Demeton.Srtm.Funcs
+open Demeton.Dem.Funcs
 open System
 
 let runImportCommand parsedParameters =

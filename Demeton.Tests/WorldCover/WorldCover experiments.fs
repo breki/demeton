@@ -7,9 +7,9 @@ open Swensen.Unquote
 
 open Demeton.Commands
 open Demeton.Geometry.Common
+open Demeton.Dem.Funcs
 open Demeton.Projections.PROJParsing
 open Demeton.Shaders
-open Demeton.WorldCover.Types
 open Demeton.WorldCover.Funcs
 open Png
 open Tests.Shaders
@@ -83,7 +83,7 @@ let ``Render hillshading with WorldCover water bodies`` () =
         // raster available (it's too big to be added to git repo)
         ()
     else
-        let worldCoverTileId = { TileX = -6; TileY = -45 }
+        let worldCoverTileId = demTileXYId -6 -45
 
         let cacheDir = "cache"
 

@@ -2,9 +2,9 @@
 
 
 open System
-open Demeton.Aw3d.Types
 open Demeton.Commands
 open Demeton.Dem.Types
+open Demeton.Dem.Funcs
 open Demeton.Projections.PROJParsing
 open Demeton.Shaders
 open FsUnit
@@ -16,10 +16,10 @@ open BitMiracle.LibTiff.Classic
 open Swensen.Unquote
 
 
-// todo 0: transform into an AW3D tile loading function
+// todo 3: transform into an AW3D tile loading function
 let readAw3dHeights
     cacheDir
-    (tileId: Aw3dTileId)
+    (tileId: DemTileId)
     (fileName: string)
     : DemHeight[] =
     use tiff = Tiff.Open(fileName, "r")
@@ -75,7 +75,7 @@ let readAw3dHeights
 [<Fact>]
 let ``Load AW3D into a DemHeight`` () =
     let fileName = @"samples\ALPSMLC30_N046E007_DSM.tif"
-    let tileId = { TileX = 46; TileY = -7 }
+    let tileId = demTileXYId 46 -7
     let demHeight = readAw3dHeights "cache" tileId fileName
 
     test <@ demHeight <> null @>
@@ -159,11 +159,11 @@ let tileSize = 3600
 let fetchAw3dHeightsArray _ =
     let fileName = @"Samples\ALPSMLC30_N046E007_DSM.tif"
 
-    let tileId = { TileX = 46; TileY = -7 }
+    let tileId = demTileXYId 46 -7
     let demHeight = readAw3dHeights "cache" tileId fileName
 
-    let tileId = Demeton.Srtm.Funcs.parseTileName "N46E007"
-    let cellMinX, cellMinY = Demeton.Srtm.Funcs.tileMinCell tileSize tileId
+    let tileId = parseTileName "N46E007"
+    let cellMinX, cellMinY = tileMinCell tileSize tileId
 
     let cellMinX = cellMinX
     let cellMinY = cellMinY

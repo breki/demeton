@@ -4,7 +4,7 @@ module Demeton.Commands.TileShadeCommand
 open System
 open CommandLine
 open CommandLine.Common
-open Demeton.Aw3d.Types
+open Demeton.Dem.Types
 open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
@@ -165,7 +165,7 @@ let fillOptions parsedParameters =
 let ensureAw3dTiles
     cacheDir
     (bounds: LonLatBounds)
-    : Result<Aw3dTileId list, string> =
+    : Result<DemTileId list, string> =
     Log.info "Ensuring all needed AW3D tiles are there..."
 
     let aw3dTilesNeeded = bounds |> boundsToAw3dTiles |> Seq.toList
@@ -229,7 +229,7 @@ let ensureWorldCoverTiles
     | [] -> Result.Ok()
     | _ -> Result.Error(String.concat "\n" tilesErrors)
 
-// todo 0: implement loading of an AW3D tile into a HeightsArray
+// todo 4: implement loading of an AW3D tile into a HeightsArray
 let generateHillshadingTile cacheDir bounds aw3dTilesToUse =
     Log.info "Generating hillshading tile..."
 

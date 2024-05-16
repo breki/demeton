@@ -5,6 +5,7 @@
 module Tests.Srtm.``Saving SRTM tiles to cache``
 
 open Demeton.Dem.Types
+open Demeton.Dem.Funcs
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 
@@ -41,7 +42,7 @@ let writeAsNoneFile: FileSys.FileWriter =
 // in the cache, as a PNG file.
 [<Fact>]
 let ``Saves the tile into the cache directory`` () =
-    let tile = srtmTileId 0 10 -20
+    let tile = demTileId 0 10 -20
 
     let expectedFileName = tile |> toLocalCacheTileFileName cacheDir
 
@@ -59,7 +60,7 @@ let ``Saves the tile into the cache directory`` () =
 
 [<Fact>]
 let ``Ensures the cache directory exists before writing the file`` () =
-    let tile = srtmTileId 2 10 -20
+    let tile = demTileId 2 10 -20
 
     let expectedCreatedCacheDirectory =
         tile
@@ -83,7 +84,7 @@ let ``Ensures the cache directory exists before writing the file`` () =
 // ignore it and do nothing.
 [<Fact>]
 let ``Ignores the non-existing tile level 0`` () =
-    let tile = srtmTileId 0 10 -20
+    let tile = demTileId 0 10 -20
 
     let writtenTileIdMaybe =
         writeSrtmTileToLocalCache
@@ -103,7 +104,7 @@ let ``Ignores the non-existing tile level 0`` () =
 // tiles mechanism.
 [<Fact>]
 let ``Saves the non-existing tile info into the cache directory`` () =
-    let tile = srtmTileId 2 10 -20
+    let tile = demTileId 2 10 -20
 
     let expectedFileName =
         tile |> toLocalCacheTileFileName cacheDir |> Pth.extension ".none"

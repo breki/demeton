@@ -1,8 +1,9 @@
 ﻿module Tests.Srtm.``Bounds to SRTM tiles``
 
 open Demeton.Geometry.Common
-open Demeton.Srtm.Funcs
 open Demeton.Dem.Types
+open Demeton.Dem.Funcs
+open Demeton.Srtm.Funcs
 
 open FsUnit
 open Xunit
@@ -18,7 +19,7 @@ let ``Sample case 1`` () =
 
     let tiles = boundsToTiles 3600 (DemLevel.fromInt 1) bounds
 
-    tiles |> should equal [ srtmTileId 1 0 0 ]
+    tiles |> should equal [ demTileId 1 0 0 ]
 
 [<Fact>]
 let ``When bounds cover just a single tile inside 0,0 lon/lat, level 0`` () =
@@ -29,7 +30,7 @@ let ``When bounds cover just a single tile inside 0,0 lon/lat, level 0`` () =
           MaxLat = 0.2 }
 
     let tiles = boundsToTiles 3600 (DemLevel.fromInt 0) bounds
-    tiles |> should equal [ srtmTileId 0 0 -1 ]
+    tiles |> should equal [ demTileId 0 0 -1 ]
 
 [<Fact>]
 let ``When bounds cover just a single tile, inside 0,0 lon/lat, level 1`` () =
@@ -40,7 +41,7 @@ let ``When bounds cover just a single tile, inside 0,0 lon/lat, level 1`` () =
           MaxLat = 0.2 }
 
     let tiles = boundsToTiles 3600 (DemLevel.fromInt 1) bounds
-    tiles |> should equal [ srtmTileId 1 0 -1 ]
+    tiles |> should equal [ demTileId 1 0 -1 ]
 
 [<Fact>]
 let ``When bounds cover just a single tile (case 2)`` () =
@@ -51,7 +52,7 @@ let ``When bounds cover just a single tile (case 2)`` () =
           MaxLat = -0.1 }
 
     let tiles = boundsToTiles 3600 (DemLevel.fromInt 0) bounds
-    tiles |> should equal [ srtmTileId 0 0 0 ]
+    tiles |> should equal [ demTileId 0 0 0 ]
 
 [<Fact>]
 let ``When bounds cover just a single tile (case 3)`` () =
@@ -62,7 +63,7 @@ let ``When bounds cover just a single tile (case 3)`` () =
           MaxLat = 20.2 }
 
     let tiles = boundsToTiles 3600 (DemLevel.fromInt 0) bounds
-    tiles |> should equal [ srtmTileId 0 10 -21 ]
+    tiles |> should equal [ demTileId 0 10 -21 ]
 
 [<Fact>]
 let ``When bounds cover multiple tiles`` () =
@@ -77,10 +78,10 @@ let ``When bounds cover multiple tiles`` () =
     tiles
     |> should
         equal
-        [ srtmTileId 0 10 -22
-          srtmTileId 0 11 -22
-          srtmTileId 0 10 -21
-          srtmTileId 0 11 -21 ]
+        [ demTileId 0 10 -22
+          demTileId 0 11 -22
+          demTileId 0 10 -21
+          demTileId 0 11 -21 ]
 
 [<Fact>]
 let ``Supports calculating needed tiles when level higher than 0 is needed``
@@ -93,14 +94,14 @@ let ``Supports calculating needed tiles when level higher than 0 is needed``
           MaxLat = 21.2 }
 
     let tiles = boundsToTiles 3600 (DemLevel.fromInt 2) bounds
-    test <@ tiles = [ srtmTileId 2 2 -6; srtmTileId 2 2 -5 ] @>
+    test <@ tiles = [ demTileId 2 2 -6; demTileId 2 2 -5 ] @>
 
 [<Fact>]
 let ``Correctly calculates tiles lon/lat bounds`` () =
     let tileSize = 10
     let level = DemLevel.fromInt 1
 
-    let tile = srtmTileId 1 0 0
+    let tile = demTileId 1 0 0
     let bounds = tile |> tileLonLatBounds tileSize
 
     test
@@ -113,7 +114,7 @@ let ``Correctly calculates tiles lon/lat bounds`` () =
 
     test <@ bounds |> boundsToTiles tileSize level = [ tile ] @>
 
-    let tile = srtmTileId 1 0 -1
+    let tile = demTileId 1 0 -1
     let bounds = tile |> tileLonLatBounds tileSize
 
     test
@@ -126,7 +127,7 @@ let ``Correctly calculates tiles lon/lat bounds`` () =
 
     test <@ bounds |> boundsToTiles tileSize level = [ tile ] @>
 
-    let tile = srtmTileId 1 7 -24
+    let tile = demTileId 1 7 -24
     let bounds = tile |> tileLonLatBounds tileSize
 
     test

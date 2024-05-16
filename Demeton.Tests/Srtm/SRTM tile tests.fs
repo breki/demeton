@@ -2,6 +2,7 @@
 
 open Demeton.Dem.Types
 open Demeton.Geometry.Common
+open Demeton.Dem.Funcs
 open Demeton.Srtm.Funcs
 
 open FsUnit
@@ -181,7 +182,7 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
 
     let tileNames _ =
         let tileId =
-            srtmTileId
+            demTileId
                 level.Value
                 (tileX |> floor |> int)
                 (tileY |> floor |> int)
@@ -208,11 +209,11 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
 
             match tiles with
             | [ tile ] ->
-                let actualCoords = tile |> toSrtmTileCoords
+                let actualCoords = tile |> toDemTileCoords
 
                 let expectedCoords =
-                    { Lon = SrtmLongitude.fromInt (lonMin |> int)
-                      Lat = SrtmLatitude.fromInt (latMin |> int) }
+                    { Lon = DemLongitude.fromInt (lonMin |> int)
+                      Lat = DemLatitude.fromInt (latMin |> int) }
 
                 actualCoords = expectedCoords
                 |> Prop.label "conversion to SRTM HGT coordinates works"

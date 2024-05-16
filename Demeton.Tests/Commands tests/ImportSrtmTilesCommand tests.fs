@@ -2,9 +2,9 @@
 
 open CommandLine.Common
 open Demeton.Commands
-open Demeton.Srtm.Funcs
-open Demeton.Srtm.Fetch
 open Demeton.Dem.Types
+open Demeton.Dem.Funcs
+open Demeton.Srtm.Fetch
 
 open Xunit
 open Swensen.Unquote
@@ -168,7 +168,7 @@ let ``Parses the local cache dir parameter`` () =
 
 [<Fact>]
 let ``Imports all tiles within the specified boundaries`` () =
-    let tiles = [| srtmTileId 0 15 45; srtmTileId 0 16 46 |]
+    let tiles = [| demTileId 0 15 45; demTileId 0 16 46 |]
 
     // we use a lock because the import function employs parallelization
     let threadsLock = "some lock"

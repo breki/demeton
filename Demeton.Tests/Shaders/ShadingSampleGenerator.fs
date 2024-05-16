@@ -7,7 +7,7 @@ open Demeton.Projections.Common
 open Demeton.Projections.Factory
 open Demeton.Projections.PROJParsing
 open Demeton.Projections.MinLonLatDelta
-open Demeton.Srtm.Funcs
+open Demeton.Dem.Funcs
 open Xunit
 open Swensen.Unquote
 open TestHelp

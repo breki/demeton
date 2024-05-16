@@ -15,7 +15,7 @@ module Demeton.Srtm.Downsampling
 // - code: https://www.paulinternet.nl/?page=bicubic
 
 open Demeton.Dem.Types
-open Demeton.Srtm.Funcs
+open Demeton.Dem.Funcs
 
 /// <summary>
 /// Specifies which method will be used to downsample 2x2 lower level SRTM tiles

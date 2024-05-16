@@ -1,8 +1,8 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Finalizing fetch SRTM tile processing``
 
-open Demeton.Srtm.Funcs
-open Demeton.Srtm.Fetch
 open Demeton.Dem.Types
+open Demeton.Dem.Funcs
+open Demeton.Srtm.Fetch
 
 open Xunit
 open Swensen.Unquote
@@ -15,7 +15,7 @@ let tileHeights =
 // and the final command stack is empty.
 [<Fact>]
 let ``Successful fetching of a tile`` () =
-    let finalState = ([], [ Some(srtmTileId 0 1 2, tileHeights) ])
+    let finalState = ([], [ Some(demTileId 0 1 2, tileHeights) ])
 
     let result = finalState |> finalizeFetchSrtmTileProcessing
     test <@ result |> isOkValue (Some tileHeights) @>
@@ -36,7 +36,7 @@ let ``Handles the error indicator from the final state`` () =
     let errorMessage = "some error"
 
     let finalState =
-        ([ Failure errorMessage ], [ Some(srtmTileId 0 1 2, tileHeights) ])
+        ([ Failure errorMessage ], [ Some(demTileId 0 1 2, tileHeights) ])
 
     let result = finalState |> finalizeFetchSrtmTileProcessing
     test <@ result |> isErrorData errorMessage @>

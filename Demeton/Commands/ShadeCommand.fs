@@ -4,6 +4,7 @@ module Demeton.Commands.ShadeCommand
 open CommandLine
 open CommandLine.Common
 open Demeton.Dem.Types
+open Demeton.Dem.Funcs
 open Raster
 open Demeton.Geometry
 open Demeton.Geometry.Common
@@ -20,7 +21,6 @@ open Demeton.Shaders.Pipeline.BuildingElevationColoring
 open Demeton.Shaders.Pipeline.BuildingIgorHillshading
 open Demeton.Shaders.Pipeline.BuildingSlopeShader
 open Demeton.Srtm
-open Demeton.Srtm.Funcs
 open FileSys
 open Png.Types
 open Text
@@ -374,7 +374,7 @@ type ShadedRasterTileGenerator =
 /// A ShadedRasterTileGenerator function.
 /// </returns>
 let generateShadedRasterTile
-    (heightsArrayFetchers: SrtmHeightsArrayFetcher[])
+    (heightsArrayFetchers: DemHeightsArrayFetcher[])
     (createShaderFunction: ShadingFuncFactory)
     : ShadedRasterTileGenerator =
     fun srtmLevel (tileRect: Rect) rootShadingStep mapProjection ->

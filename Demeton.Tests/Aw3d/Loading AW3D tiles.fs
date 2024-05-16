@@ -3,6 +3,7 @@
 open System.IO
 
 open Demeton.Geometry.Common
+open Demeton.Dem.Funcs
 open Demeton.Aw3d.Types
 open Demeton.Aw3d.Funcs
 
@@ -16,42 +17,42 @@ open TestHelp
 [<Fact>]
 let ``Correctly calculates the AW3D tiles needed for a given boundary`` () =
     let bounds =
-        { MinLon = 46.1
-          MinLat = -8.1
-          MaxLon = 47.9
-          MaxLat = -6.9 }
+        { MinLon = 6.9
+          MinLat = 46.1
+          MaxLon = 8.1
+          MaxLat = 47.9 }
 
-    test
-        <@
-            boundsToAw3dTiles bounds |> Seq.toList = [ { TileX = 46; TileY = 6 }
-                                                       { TileX = 47; TileY = 6 }
-                                                       { TileX = 46; TileY = 7 }
-                                                       { TileX = 47; TileY = 7 }
-                                                       { TileX = 46; TileY = 8 }
-                                                       { TileX = 47; TileY = 8 } ]
-        @>
+    let expectedTiles =
+        [ demTileXYId 6 -47
+          demTileXYId 6 -48
+          demTileXYId 7 -47
+          demTileXYId 7 -48
+          demTileXYId 8 -47
+          demTileXYId 8 -48 ]
+        |> Set.ofList
+
+    test <@ (boundsToAw3dTiles bounds |> Set.ofSeq) = expectedTiles @>
 
 
 [<Theory>]
-[<InlineData(46,
-             6,
+[<InlineData(6,
+             -46,
              "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2303/N045E005/N046E006.zip")>]
-[<InlineData(-36,
-             -120,
+[<InlineData(-120,
+             36,
              "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2303/S035W120/S036W120.zip")>]
 let ``For a given AW3D tile, construct its download URL``
     tileX
     tileY
     expectedUrl
     =
-    test
-        <@ aw3dTileDownloadUrl { TileX = tileX; TileY = tileY } = expectedUrl @>
+    test <@ aw3dTileDownloadUrl (demTileXYId tileX tileY) = expectedUrl @>
 
 
 [<Fact>]
 let ``Do not download tile if TIFF already in cache`` () =
     let cacheDir = "cache"
-    let sampleTileId = { TileX = 46; TileY = 6 }
+    let sampleTileId = demTileXYId 6 -46
 
     let sampleCachedTifFileName =
         aw3dTileCachedTifFileName cacheDir sampleTileId
@@ -88,7 +89,7 @@ let ``Do not download tile if TIFF already in cache`` () =
 [<Fact>]
 let ``Download tile ZIP file if TIFF not in cache`` () =
     let cacheDir = "cache"
-    let sampleTileId = { TileX = 46; TileY = 6 }
+    let sampleTileId = demTileXYId 6 -46
 
     let expectedCachedZipFileName =
         Path.Combine(cacheDir, Aw3dDirName, $"N046E006.zip")
@@ -131,7 +132,7 @@ let ``Download tile ZIP file if TIFF not in cache`` () =
 [<Fact>]
 let ``Extract tile TIFF to the cache`` () =
     let cacheDir = "cache"
-    let sampleTileId = { TileX = 46; TileY = 6 }
+    let sampleTileId = demTileXYId 6 -46
 
     let expectedCachedTifFileName =
         Path.Combine("cache", Aw3dDirName, "N046E006.tif")
@@ -175,7 +176,7 @@ let ``Extract tile TIFF to the cache`` () =
 [<Fact>]
 let ``Delete downloaded ZIP file after extraction`` () =
     let cacheDir = "cache"
-    let sampleTileId = { TileX = 46; TileY = 6 }
+    let sampleTileId = demTileXYId 6 -46
 
     let expectedCachedTifFileName =
         Path.Combine("cache", Aw3dDirName, "N046E006.tif")
@@ -198,7 +199,10 @@ let ``Delete downloaded ZIP file after extraction`` () =
             zipFileDeleted := true
             Ok fileName
         else
-            fail "Unexpected ZIP file name"
+            fail (
+                "Unexpected ZIP file name, "
+                + $"expected %s{expectedCachedZipFileName}, got %s{fileName}"
+            )
 
     let x = zipFileDeleted
 

@@ -1,5 +1,6 @@
 ﻿module Tests.Srtm.``Fetching SRTM tiles``.``Integration tests``
 
+open Demeton.Dem.Funcs
 open Demeton.Srtm.Fetch
 open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
@@ -14,7 +15,7 @@ open TestHelp
 let private srtmDir = "srtm"
 let private cacheDir = Environment.GetEnvironmentVariable("SRTM_CACHE")
 
-let private readPngTile: SrtmPngTileReader =
+let private readPngTile: DemPngTileReader =
     fun fileName -> decodeSrtmTileFromPngFile FileSys.openFileToRead fileName
 
 let private determineTileStatus =
@@ -54,7 +55,7 @@ let ``Supports fetching already cached tile`` () =
     | null -> ()
     | _ ->
         let finalState =
-            initializeProcessingState (srtmTileId 0 15 -46)
+            initializeProcessingState (demTileId 0 15 -46)
             |> processCommandStack
                 cacheDir
                 srtmDir

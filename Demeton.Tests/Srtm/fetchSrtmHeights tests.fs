@@ -3,7 +3,7 @@
 open FsUnit
 open Xunit
 open Demeton.Dem.Types
-open Demeton.Srtm.Funcs
+open Demeton.Dem.Funcs
 open Swensen.Unquote
 open TestHelp
 
@@ -11,12 +11,12 @@ let tileSize = 10
 
 [<Fact>]
 let ``Returns None if there are no tiles to fetch`` () =
-    let srtmHeights = fetchSrtmHeights (fun _ -> Ok None) []
+    let srtmHeights = fetchDemHeights (fun _ -> Ok None) []
     test <@ srtmHeights = Ok None @>
 
 [<Fact>]
 let ``Returns HeightArray when at least one tile was found`` () =
-    let tilesToUse = [ srtmTileId 0 1 1 ]
+    let tilesToUse = [ demTileId 0 1 1 ]
 
     let (minX, minY) = tileMinCell tileSize tilesToUse.[0]
 
@@ -30,7 +30,7 @@ let ``Returns HeightArray when at least one tile was found`` () =
         )
 
     let srtmHeights =
-        fetchSrtmHeights (returnSomeHeightArray >> Some >> Ok) tilesToUse
+        fetchDemHeights (returnSomeHeightArray >> Some >> Ok) tilesToUse
 
     test <@ isOk srtmHeights @>
     test <@ Option.isSome (resultValue srtmHeights) @>

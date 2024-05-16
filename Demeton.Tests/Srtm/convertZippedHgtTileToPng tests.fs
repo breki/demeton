@@ -3,7 +3,7 @@
 
 open Swensen.Unquote
 open Demeton.Dem.Types
-open Demeton.Srtm.Funcs
+open Demeton.Dem.Funcs
 open Demeton.Srtm.Png
 open Xunit
 

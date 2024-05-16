@@ -2,14 +2,15 @@
 
 open System.IO
 open Demeton.Aw3d.Types
+open Demeton.Dem.Types
 open Demeton.Geometry.Common
-open Demeton.Srtm.Funcs
+open Demeton.Dem.Funcs
 open FileSys
 
 /// <summary>
 /// Given a bounding box, returns a sequence of AW3D tiles that cover it.
 /// </summary>
-let boundsToAw3dTiles (bounds: LonLatBounds) : Aw3dTileId seq =
+let boundsToAw3dTiles (bounds: LonLatBounds) : DemTileId seq =
     let cellsPerDegree = 3600
     let tileSize = 3600
 
@@ -46,43 +47,41 @@ let boundsToAw3dTiles (bounds: LonLatBounds) : Aw3dTileId seq =
     seq {
         for tileY in [ minTileY..maxTileY ] do
             for tileX in [ minTileX..maxTileX ] do
-                yield { TileX = tileX; TileY = tileY }
+                yield demTileXYId tileX tileY
     }
 
 /// <summary>
 /// Returns the download URL for the given AW3D tile.
 /// </summary>
-let aw3dTileDownloadUrl (tileId: Aw3dTileId) : string =
+let aw3dTileDownloadUrl (tileId: DemTileId) : string =
     let groupTileX = tileId.TileX / 5 * 5
     let groupTileY = tileId.TileY / 5 * 5
 
-    let groupTileId =
-        { TileX = groupTileX
-          TileY = groupTileY }
+    let groupTileId = demTileXYId groupTileX groupTileY
 
     sprintf
         "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2303/%s/%s.zip"
-        groupTileId.Aw3dTileName
-        tileId.Aw3dTileName
+        groupTileId.FormatLat3Lon3
+        tileId.FormatLat3Lon3
 
 
 /// <summary>
 /// Returns the path to the cached ZIP file for the given AW3D tile.
 /// </summary>
-let aw3dTileCachedZipFileName cacheDir (tileId: Aw3dTileId) =
-    Path.Combine(cacheDir, Aw3dDirName, $"{tileId.Aw3dTileName}.zip")
+let aw3dTileCachedZipFileName cacheDir (tileId: DemTileId) =
+    Path.Combine(cacheDir, Aw3dDirName, $"{tileId.FormatLat3Lon3}.zip")
 
 /// <summary>
 /// Returns the path to the cached TIFF file for the given AW3D tile.
 /// </summary>
-let aw3dTileCachedTifFileName cacheDir (tileId: Aw3dTileId) =
-    Path.Combine(cacheDir, Aw3dDirName, $"{tileId.Aw3dTileName}.tif")
+let aw3dTileCachedTifFileName cacheDir (tileId: DemTileId) =
+    Path.Combine(cacheDir, Aw3dDirName, $"{tileId.FormatLat3Lon3}.tif")
 
 /// <summary>
 /// Returns the name of the TIFF file entry in the AW3D tile ZIP file.
 /// </summary>
-let aw3dTileZipFileEntryName (tileId: Aw3dTileId) =
-    $"{tileId.Aw3dTileName}/ALPSMLC30_{tileId.Aw3dTileName}_DSM.tif"
+let aw3dTileZipFileEntryName (tileId: DemTileId) =
+    $"{tileId.FormatLat3Lon3}/ALPSMLC30_{tileId.FormatLat3Lon3}_DSM.tif"
 
 /// <summary>
 /// Ensures the specified AW3D tile TIFF file is available in the cache
@@ -102,7 +101,7 @@ let ensureAw3dTile
         let cachedTileZipFileName = tileId |> aw3dTileCachedZipFileName cacheDir
 
         Log.debug
-            $"Downloading AW3D tile %s{tileId.Aw3dTileName} from %s{url}..."
+            $"Downloading AW3D tile %s{tileId.FormatLat3Lon3} from %s{url}..."
 
         downloadFile url cachedTileZipFileName
 

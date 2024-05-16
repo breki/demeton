@@ -1,58 +1,14 @@
 ﻿module Demeton.WorldCover.Funcs
 
-open System
 open System.IO
 open Demeton.Dem.Types
+open Demeton.Dem.Funcs
 open Demeton.Geometry.Common
 open Demeton.WorldCover.Types
 open FileSys
 open Newtonsoft.Json
 open Newtonsoft.Json.Linq
 open BitMiracle.LibTiff.Classic
-
-
-
-/// <summary>
-/// Parses a WorldCover tile name and returns a corresponding WorldCoverTileId.
-/// </summary>
-/// <param name="tileName">The name of the WorldCover tile to parse.</param>
-/// <returns>
-/// A WorldCoverId that represents the parsed WorldCover tile.
-/// </returns>
-let parseTileName (tileName: WorldCoverTileName) : WorldCoverTileId =
-    let latitudeCharSign = tileName.[0]
-
-    let latitudeSign =
-        match latitudeCharSign with
-        | 'N' -> 1
-        | 'S' -> -1
-        | _ ->
-            raise (
-                InvalidOperationException
-                    $"Invalid SRTM tile ID: '%s{tileName}'"
-            )
-
-    let longitudeCharSign = tileName.[3]
-
-    let longitudeSign =
-        match longitudeCharSign with
-        | 'W' -> -1
-        | 'E' -> 1
-        | _ ->
-            raise (
-                InvalidOperationException
-                    $"Invalid SRTM tile ID: '%s{tileName}'"
-            )
-
-    let latitudeStr = tileName.[1..2]
-    let latitudeInt = Int32.Parse latitudeStr * latitudeSign
-
-    let longitudeStr = tileName.[4..6]
-    let longitudeInt = Int32.Parse longitudeStr * longitudeSign
-
-    { TileX = longitudeInt
-      TileY = latitudeInt }
-
 
 /// <summary>
 /// Construct the file name for the cached WorldCover geoJSON file.
@@ -85,7 +41,7 @@ let ensureGeoJsonFile
 let listAllAvailableTiles
     (openFileToRead: FileWriter)
     (geoJsonFile: string)
-    : WorldCoverTileId seq =
+    : DemTileId seq =
     match openFileToRead geoJsonFile with
     | Ok stream ->
         use reader = new StreamReader(stream)
@@ -106,7 +62,7 @@ let listAllAvailableTiles
 /// <summary>
 /// Given a bounding box, returns a sequence of WorldCover tiles that cover it.
 /// </summary>
-let boundsToWorldCoverTiles (bounds: LonLatBounds) : WorldCoverTileId seq =
+let boundsToWorldCoverTiles (bounds: LonLatBounds) : DemTileId seq =
     let degreesPerTile = 3
 
     let minTileX =
@@ -123,13 +79,13 @@ let boundsToWorldCoverTiles (bounds: LonLatBounds) : WorldCoverTileId seq =
     seq {
         for tileY in [ minTileY..degreesPerTile..maxTileY ] do
             for tileX in [ minTileX..degreesPerTile..maxTileX ] do
-                yield { TileX = tileX; TileY = tileY }
+                yield demTileXYId tileX tileY
     }
 
 /// <summary>
 /// Returns the download URL for the given WorldCover tile.
 /// </summary>
-let worldCoverTileDownloadUrl (tileId: WorldCoverTileId) : string =
+let worldCoverTileDownloadUrl (tileId: DemTileId) : string =
     sprintf
         "%s/%s/%i/map/ESA_WorldCover_10m_%i_%s_%s_Map.tif"
         WorldCoverS3Domain
@@ -137,13 +93,13 @@ let worldCoverTileDownloadUrl (tileId: WorldCoverTileId) : string =
         WorldCoverYear
         WorldCoverYear
         WorldCoverVersion
-        tileId.TileName
+        tileId.FormatLat2Lon3
 
 /// <summary>
 /// Returns the path to the cached TIFF file for the given AW3D tile.
 /// </summary>
-let worldCoverTileCachedTifFileName cacheDir (tileId: WorldCoverTileId) =
-    Path.Combine(cacheDir, WorldCoverDirName, $"{tileId.TileName}.tif")
+let worldCoverTileCachedTifFileName cacheDir (tileId: DemTileId) =
+    Path.Combine(cacheDir, WorldCoverDirName, $"{tileId.FormatLat2Lon3}.tif")
 
 
 
@@ -161,7 +117,7 @@ let ensureWorldCoverTile cacheDir fileExists downloadFile tileId =
         let tileUrl = tileId |> worldCoverTileDownloadUrl
 
         Log.debug
-            $"Downloading WorldCover tile {tileId.TileName} from {tileUrl}..."
+            $"Downloading WorldCover tile {tileId.FormatLat2Lon3} from {tileUrl}..."
 
         downloadFile tileUrl cachedTifFileName |> Ok
 
@@ -173,10 +129,7 @@ let ensureWorldCoverTile cacheDir fileExists downloadFile tileId =
 /// The function accepts the tile coordinates of the lower left corner
 /// of the WorldCover raster file.
 /// </remarks>
-let readWorldCoverTile
-    cacheDir
-    (worldCoverTileId: WorldCoverTileId)
-    : HeightsArray =
+let readWorldCoverTile cacheDir (worldCoverTileId: DemTileId) : HeightsArray =
     let worldCoverTiffFileName =
         worldCoverTileCachedTifFileName cacheDir worldCoverTileId
 
@@ -302,7 +255,7 @@ let readWorldCoverTile
                     worldCoverData.[index] <- int16 value
 
     let cellMinX, cellMinY =
-        Demeton.Srtm.Funcs.tileMinCell
+        tileMinCell
             WorldCoverTileSize
             { Level = { Value = 1 }
               TileX = worldCoverTileId.TileX

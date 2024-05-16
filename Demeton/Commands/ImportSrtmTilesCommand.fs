@@ -3,9 +3,9 @@ module Demeton.Commands.ImportSrtmTilesCommand
 
 open CommandLine
 open CommandLine.Common
-open Demeton.Dem.Types
 open Demeton.Geometry.Common
-open Demeton.Srtm.Funcs
+open Demeton.Dem.Types
+open Demeton.Dem.Funcs
 open Demeton.Srtm.Fetch
 
 open System.IO
@@ -103,7 +103,7 @@ type SrtmToPngEncoder = HeightsArray -> Stream -> unit
 let run
     (tiles: DemTileId[])
     determineTileStatus
-    (readTile: SrtmTileReader)
+    (readTile: DemTileReader)
     : unit =
 
     tiles

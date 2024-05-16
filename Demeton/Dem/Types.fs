@@ -215,6 +215,33 @@ type DemTileId =
 
     member this.IdString = $"%d{this.Level.Value}/%d{this.TileX}/%d{this.TileY}"
 
+    member this.FormatLat2Lon3 =
+        let latSign =
+            match this.TileY with
+            | y when y >= 0 -> 'S'
+            | _ -> 'N'
+
+        let lonSign =
+            match this.TileX with
+            | x when x >= 0 -> 'E'
+            | _ -> 'W'
+
+        $"%c{latSign}%02d{abs this.TileY}%c{lonSign}%03d{abs this.TileX}"
+
+    member this.FormatLat3Lon3 =
+        let latSign =
+            match this.TileY with
+            | y when y >= 0 -> 'S'
+            | _ -> 'N'
+
+        let lonSign =
+            match this.TileX with
+            | x when x >= 0 -> 'E'
+            | _ -> 'W'
+
+        $"%c{latSign}%03d{abs this.TileY}%c{lonSign}%03d{abs this.TileX}"
+
+
 
 /// <summary>
 /// In-memory representation of a DEM tile, identified by its ID and holding
@@ -228,7 +255,7 @@ type DemTileCellCoordsFloat = float * float
 
 
 [<StructuredFormatDisplay("{Value}")>]
-type SrtmLatitude =
+type DemLatitude =
     { Value: int }
 
     static member fromInt i =
@@ -238,25 +265,31 @@ type SrtmLatitude =
             { Value = i }
 
 [<StructuredFormatDisplay("{Value}")>]
-type SrtmLongitude =
+type DemLongitude =
     { Value: int }
 
     static member fromInt i =
-        if i < -179 || i > 180 then
+        if i < -180 || i > 180 then
             invalidArg "i" "Longitude is out of range"
         else
             { Value = i }
 
 [<StructuredFormatDisplay("{IdString}")>]
-type SrtmTileCoords =
-    { Lon: SrtmLongitude
-      Lat: SrtmLatitude }
+type DemTileCoords =
+    { Lon: DemLongitude
+      Lat: DemLatitude }
 
-    member this.IdString = $"SrtmTile (%d{this.Lon.Value}/%d{this.Lat.Value})"
+    member this.IdString = $"DemTile (%d{this.Lon.Value}/%d{this.Lat.Value})"
 
 /// <summary>
-/// A function that reads a SRTM tile.
+/// A function that reads a DEM tile.
 /// </summary>
-type SrtmTileReader = DemTileId -> HeightsArrayMaybeResult
+type DemTileReader = DemTileId -> HeightsArrayMaybeResult
 
-type SrtmTileName = string
+type DemTileName = string
+
+
+/// <summary>
+/// A function that fetches a heights array from a sequence of DEM tiles.
+/// </summary>
+type DemHeightsArrayFetcher = DemTileId seq -> HeightsArrayMaybeResult

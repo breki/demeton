@@ -3,5 +3,5 @@
 open Demeton.Dem.Types
 
 let srtmTileCoords lon lat =
-    { Lon = SrtmLongitude.fromInt lon
-      Lat = SrtmLatitude.fromInt lat }
+    { Lon = DemLongitude.fromInt lon
+      Lat = DemLatitude.fromInt lat }

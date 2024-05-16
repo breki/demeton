@@ -7,7 +7,7 @@ open Demeton.Dem.Types
 open Demeton.Geometry.Common
 open Demeton.Projections.Common
 open Demeton.Shaders.Types
-open Demeton.Srtm.Funcs
+open Demeton.Dem.Funcs
 open Demeton.WorldCover.Types
 open Png
 open Raster

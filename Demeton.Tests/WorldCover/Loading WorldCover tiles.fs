@@ -1,6 +1,7 @@
 ﻿module Tests.WorldCover.Loading_WorldCover_tiles
 
 open Demeton.Geometry.Common
+open Demeton.Dem.Funcs
 open Demeton.WorldCover.Types
 open Demeton.WorldCover.Funcs
 open FileSys
@@ -84,10 +85,10 @@ let ``Correctly calculates the WorldCover tiles needed for a given boundary, pos
     test
         <@
             boundsToWorldCoverTiles bounds |> Set.ofSeq = set
-                [ { TileX = 45; TileY = -6 }
-                  { TileX = 48; TileY = -6 }
-                  { TileX = 45; TileY = -9 }
-                  { TileX = 48; TileY = -9 } ]
+                [ demTileXYId 45 -6
+                  demTileXYId 48 -6
+                  demTileXYId 45 -9
+                  demTileXYId 48 -9 ]
         @>
 
 [<Fact>]
@@ -103,10 +104,10 @@ let ``Correctly calculates the WorldCover tiles needed for a given boundary, neg
     test
         <@
             boundsToWorldCoverTiles bounds |> Set.ofSeq = set
-                [ { TileX = -6; TileY = 6 }
-                  { TileX = -6; TileY = 3 }
-                  { TileX = -3; TileY = 6 }
-                  { TileX = -3; TileY = 3 } ]
+                [ demTileXYId -6 6
+                  demTileXYId -6 3
+                  demTileXYId -3 6
+                  demTileXYId -3 3 ]
         @>
 
 
@@ -123,17 +124,17 @@ let ``Correctly calculates the WorldCover tiles needed for a given boundary, aro
     test
         <@
             boundsToWorldCoverTiles bounds |> Set.ofSeq = set
-                [ { TileX = -3; TileY = 0 }
-                  { TileX = -3; TileY = 3 }
-                  { TileX = 0; TileY = 0 }
-                  { TileX = 0; TileY = 3 } ]
+                [ demTileXYId -3 0
+                  demTileXYId -3 3
+                  demTileXYId 0 0
+                  demTileXYId 0 3 ]
         @>
 
 
 [<Fact>]
 let ``Do not download tile if TIFF already in cache`` () =
     let cacheDir = "cache"
-    let sampleTileId = { TileX = 46; TileY = 6 }
+    let sampleTileId = demTileXYId 46 6
 
     let sampleCachedTifFileName =
         worldCoverTileCachedTifFileName cacheDir sampleTileId
@@ -155,7 +156,7 @@ let ``Do not download tile if TIFF already in cache`` () =
 [<Fact>]
 let ``Download tile file if not in cache`` () =
     let cacheDir = "cache"
-    let sampleTileId = { TileX = 46; TileY = 6 }
+    let sampleTileId = demTileXYId 6 -46
 
     let expectedCachedTiffFileName =
         worldCoverTileCachedTifFileName cacheDir sampleTileId

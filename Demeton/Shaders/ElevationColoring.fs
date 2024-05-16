@@ -10,7 +10,7 @@ open FParsec
 open Png
 open System.Threading.Tasks
 open Text
-open Demeton.Srtm.Funcs
+open Demeton.Dem.Funcs
 
 type ColorScaleMark = DemHeight * Rgba8Bit.RgbaColor
 

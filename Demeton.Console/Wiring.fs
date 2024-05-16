@@ -2,12 +2,12 @@
 module Demeton.Console.Wiring
 
 open Demeton.Dem.Types
+open Demeton.Dem.Funcs
 open Demeton.Srtm.Downsampling
-open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 open Demeton.Srtm.Fetch
 
-let readPngTile: SrtmPngTileReader =
+let readPngTile: DemPngTileReader =
     decodeSrtmTileFromPngFile FileSys.openFileToRead
 
 let determineTileStatus srtmDir localCacheDir =
@@ -22,7 +22,7 @@ let readZippedHgtFile = readZippedHgtFile FileSys.readZipFile
 
 let convertPngTile = convertZippedHgtTileToPng readZippedHgtFile writePngTile
 
-let fetchSrtmTile srtmDir localCacheDir : SrtmTileReader =
+let fetchSrtmTile srtmDir localCacheDir : DemTileReader =
     fun tile ->
 
         let constructHigherLevelTile = constructHigherLevelTileHeightsArray 3600
@@ -51,4 +51,4 @@ let fetchSrtmTile srtmDir localCacheDir : SrtmTileReader =
         |> finalizeFetchSrtmTileProcessing
 
 let fetchSrtmHeights srtmDir localCacheDir =
-    fetchSrtmHeights (fetchSrtmTile srtmDir localCacheDir)
+    fetchDemHeights (fetchSrtmTile srtmDir localCacheDir)

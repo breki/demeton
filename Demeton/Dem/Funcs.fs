@@ -2,7 +2,316 @@
 
 open System
 open Demeton.Dem.Types
+open Demeton.Geometry.Common
 
+
+let inline private levelFactorFloat (level: DemLevel) =
+    1 <<< level.Value |> float
+
+let inline tileXToCellX (tileSize: int) (tileX: float) =
+    tileX * (tileSize |> float)
+
+let inline tileYToCellY (tileSize: int) (tileY: float) =
+    tileY * (tileSize |> float)
+
+/// <summary>
+/// Converts DEM cell X coordinate to a fractional tile X coordinate.
+/// </summary>
+let inline cellXToTileX (tileSize: int) (cellX: float) =
+    cellX / (tileSize |> float)
+
+/// <summary>
+/// Converts DEM cell Y coordinate to a fractional tile Y coordinate.
+/// </summary>
+let inline cellYToTileY (tileSize: int) (cellY: float) =
+    cellY / (tileSize |> float)
+
+/// <summary>
+/// Calculates the minimum cell coordinates for a given DEM tile.
+/// </summary>
+/// <param name="tileSize">The size of the tile in cells.</param>
+/// <param name="tileId">The ID of the DEM tile.</param>
+/// <returns>
+/// A tuple representing the minimum cell coordinates (X, Y) of the tile.
+/// </returns>
+let tileMinCell (tileSize: int) (tileId: DemTileId) : DemTileCellCoordsInt =
+    let cellX = tileXToCellX tileSize (tileId.TileX |> float)
+    let cellY = tileYToCellY tileSize (tileId.TileY |> float)
+
+    (cellX |> Math.Round |> int, cellY |> Math.Round |> int)
+
+let findTileFromGlobalCoordinates
+    tileSize
+    (level: DemLevel)
+    (x, y)
+    : DemTileId =
+    let tileX = cellXToTileX tileSize x |> floor |> int
+    let tileY = cellYToTileY tileSize y |> floor |> int
+
+    { Level = level
+      TileX = tileX
+      TileY = tileY }
+
+let inline cellsPerDegree tileSize (level: DemLevel) =
+    (float tileSize) / levelFactorFloat level
+
+/// <summary>
+/// Converts longitude value (in degrees) to DEM cell X coordinate.
+/// </summary>
+let inline longitudeToCellX cellsPerDegree (lon: float) = lon * cellsPerDegree
+
+/// <summary>
+/// Converts latitude value (in degrees) to DEM cell Y coordinate.
+/// </summary>
+let inline latitudeToCellY cellsPerDegree (lat: float) = -lat * cellsPerDegree
+
+/// <summary>
+/// Converts cell X coordinates to longitude (in degrees).
+/// </summary>
+/// <param name="cellsPerDegree">
+/// The number of cells per degree, calculated based on the tile size and the
+/// DEM level.
+/// </param>
+/// <param name="cellX">The X coordinate of a cell in the DEM tile.</param>
+/// <returns>
+/// The longitude (in degrees) corresponding to the cell X coordinate.
+/// </returns>
+let inline cellXToLongitude cellsPerDegree cellX = cellX / cellsPerDegree
+
+/// <summary>
+/// Converts cell Y coordinates to latitude (in degrees).
+/// </summary>
+/// <param name="cellsPerDegree">
+/// The number of cells per degree, calculated based on the tile size and the
+/// DEM level.
+/// </param>
+/// <param name="cellY">The Y coordinate of a cell in the DEM tile.</param>
+/// <returns>
+/// The latitude (in degrees) corresponding to the cell Y coordinate.
+/// </returns>
+let inline cellYToLatitude cellsPerDegree cellY = -cellY / cellsPerDegree
+
+let inline demTileId level tileX tileY =
+    { Level = DemLevel.fromInt level
+      TileX = tileX
+      TileY = tileY }
+
+let inline demTileXYId tileX tileY =
+    { Level = DemLevel.fromInt 0
+      TileX = tileX
+      TileY = tileY }
+
+let toDemTileCoords (tileId: DemTileId) : DemTileCoords =
+    match tileId.Level.Value with
+    | 0 ->
+        let lon = tileId.TileX |> DemLongitude.fromInt
+        let lat = -(tileId.TileY + 1) |> DemLatitude.fromInt
+        { Lon = lon; Lat = lat }
+    | _ ->
+        invalidOp
+            "Cannot convert DEM tile ID with level > 0 to DEM tile coords."
+
+let toHgtTileName (tileCoords: DemTileCoords) =
+    let latitudeCharSign (latitude: DemLatitude) =
+        match latitude with
+        | x when x.Value >= 0 -> 'N'
+        | _ -> 'S'
+
+    let longitudeCharSign (longitude: DemLongitude) =
+        match longitude with
+        | x when x.Value >= 0 -> 'E'
+        | _ -> 'W'
+
+    let latSign = latitudeCharSign tileCoords.Lat
+    let lonSign = longitudeCharSign tileCoords.Lon
+
+    $"%c{latSign}%02d{abs tileCoords.Lat.Value}%c{lonSign}%03d{abs tileCoords.Lon.Value}"
+
+let toTileName (tileId: DemTileId) : DemTileName =
+    let lonSign tileX = if tileX >= 0 then 'e' else 'w'
+
+    let latSign tileY = if tileY >= 0 then 's' else 'n'
+
+    match tileId.Level.Value with
+    | 0 -> tileId |> toDemTileCoords |> toHgtTileName
+    | _ ->
+        $"l%01d{tileId.Level.Value}%c{lonSign tileId.TileX}%02d{abs tileId.TileX}%c{latSign tileId.TileY}%02d{abs tileId.TileY}"
+
+
+/// <summary>
+/// Parses a SRTM tile name in HGT format and returns a corresponding
+/// SrtmTileCoords.
+/// </summary>
+/// <param name="tileId">
+/// The name of the SRTM tile in HGT format to parse.
+/// </param>
+/// <returns>
+/// A SrtmTileCoords that represents the parsed SRTM tile.
+/// </returns>
+/// <remarks>
+/// The HGT format is a string of 7 characters: the first character is
+/// either 'N' or 'S' indicating the latitude direction,
+/// followed by 2 digits for the latitude value, then a character 'E' or 'W'
+/// indicating the longitude direction, and finally 3 digits for the
+/// longitude value. For example, "N46E006".
+/// </remarks>
+let parseHgtTileName (tileId: string) =
+    let latitudeCharSign = tileId.[0]
+
+    let latitudeSign =
+        match latitudeCharSign with
+        | 'N' -> 1
+        | 'S' -> -1
+        | _ ->
+            raise (
+                InvalidOperationException $"Invalid SRTM tile ID: '%s{tileId}'"
+            )
+
+    let longitudeCharSign = tileId.[3]
+
+    let longitudeSign =
+        match longitudeCharSign with
+        | 'W' -> -1
+        | 'E' -> 1
+        | _ ->
+            raise (
+                InvalidOperationException $"Invalid SRTM tile ID: '%s{tileId}'"
+            )
+
+    let latitudeStr = tileId.[1..2]
+    let latitudeInt = Int32.Parse latitudeStr * latitudeSign
+    let latitude = DemLatitude.fromInt latitudeInt
+
+    let longitudeStr = tileId.[4..6]
+    let longitudeInt = Int32.Parse longitudeStr * longitudeSign
+    let longitude = DemLongitude.fromInt longitudeInt
+
+    { Lon = longitude; Lat = latitude }
+
+
+/// <summary>
+/// Parses a DEM tile name in the SRTM format and returns a corresponding SrtmTileId.
+/// </summary>
+/// <param name="tileName">The name of the DEM tile to parse.</param>
+/// <returns>
+/// A DemTileId that represents the parsed DEM tile.
+/// </returns>
+let parseTileName (tileName: DemTileName) : DemTileId =
+    match tileName.[0] with
+    | 'l' ->
+        let level = tileName.[1..1] |> Int32.Parse |> DemLevel.fromInt
+
+        let longitudeSign =
+            match tileName.[2..2] with
+            | "w" -> -1
+            | "e" -> 1
+            | _ -> invalidOp "Invalid longitude sign"
+
+        let x = (tileName.[3..4] |> Int32.Parse) * longitudeSign
+
+        let latitudeSign =
+            match tileName.[5..5] with
+            | "n" -> -1
+            | "s" -> 1
+            | _ -> invalidOp "Invalid latitude sign"
+
+        let y = (tileName.[6..7] |> Int32.Parse) * latitudeSign
+
+        { Level = level; TileX = x; TileY = y }
+
+    | _ ->
+        let tileCoords = parseHgtTileName tileName
+
+        { Level = DemLevel.fromInt 0
+          TileX = tileCoords.Lon.Value
+          TileY = -(tileCoords.Lat.Value + 1) }
+
+
+let tileLonLatBounds tileSize (tile: DemTileId) : LonLatBounds =
+    let level = tile.Level
+    let minCellX, minCellY = tile |> tileMinCell tileSize
+
+    let cellsPerDegree = cellsPerDegree tileSize level
+    let minLon = minCellX |> float |> cellXToLongitude cellsPerDegree
+    let maxLat = minCellY |> float |> cellYToLatitude cellsPerDegree
+
+    let maxLon =
+        (minCellX + tileSize) |> float |> cellXToLongitude cellsPerDegree
+
+    let minLat =
+        (minCellY + tileSize) |> float |> cellYToLatitude cellsPerDegree
+
+    { MinLon = minLon
+      MinLat = minLat
+      MaxLon = maxLon
+      MaxLat = maxLat }
+
+/// <summary>
+/// Generates a list of DEM tiles that cover a given geographical bounds.
+/// </summary>
+/// <param name="tileSize">The size of the tile (in cells).</param>
+/// <param name="level">The DEM level of the tiles.</param>
+/// <param name="bounds">The geographical bounds to cover.</param>
+/// <returns>
+/// A list of DEM tiles that cover the given geographical bounds.
+/// </returns>
+/// <remarks>
+/// This function calculates the minimum and maximum tile coordinates that
+/// cover the given geographical bounds. It then generates a list of all
+/// tiles within these coordinates.
+/// </remarks>
+let boundsToTiles
+    tileSize
+    (level: DemLevel)
+    (bounds: LonLatBounds)
+    : DemTileId list =
+
+    let cellsPerDegree = cellsPerDegree tileSize level
+
+    let minTileX =
+        bounds.MinLon
+        |> longitudeToCellX cellsPerDegree
+        |> cellXToTileX tileSize
+        |> floor
+        |> int
+
+    let minTileY =
+        bounds.MaxLat
+        |> latitudeToCellY cellsPerDegree
+        |> cellYToTileY tileSize
+        |> floor
+        |> int
+
+    let maxTileX =
+        (bounds.MaxLon
+         |> longitudeToCellX cellsPerDegree
+         |> cellXToTileX tileSize
+         |> ceil
+         |> int)
+        - 1
+
+    let maxTileY =
+        (bounds.MinLat
+         |> latitudeToCellY cellsPerDegree
+         |> cellYToTileY tileSize
+         |> ceil
+         |> int)
+        - 1
+
+    [ for tileY in [ minTileY..maxTileY ] do
+          for tileX in [ minTileX..maxTileX ] do
+              yield
+                  { Level = level
+                    TileX = tileX
+                    TileY = tileY } ]
+
+
+let inline heightFromBytes firstByte secondByte =
+    let height: int16 = (int16 firstByte) <<< 8 ||| int16 secondByte
+
+    match height with
+    | 0x8000s -> DemHeightNone
+    | _ -> height
 
 
 let mbrOfHeightsArrays (heightsArrays: HeightsArray seq) : Raster.Rect =
@@ -13,6 +322,7 @@ let mbrOfHeightsArrays (heightsArrays: HeightsArray seq) : Raster.Rect =
         let minY = (heightsArrays |> Seq.minBy (fun d -> d.MinY)).MinY
         let maxX = (heightsArrays |> Seq.maxBy (fun d -> d.MaxX)).MaxX
         let maxY = (heightsArrays |> Seq.maxBy (fun d -> d.MaxY)).MaxY
+
         let width = maxX - minX + 1
         let height = maxY - minY + 1
 
@@ -55,7 +365,7 @@ let merge
         Some merged
 
 /// <summary>
-/// Extracts a sub-array from the given array. If the sub-array is outside of
+/// Extracts a sub-array from the given array. If the sub-array is outside
 /// the bounds of the given array, the missing values are filled with
 /// Int16.MinValue.
 /// </summary>
@@ -84,3 +394,39 @@ let extract
         extractBounds.Height,
         HeightsArrayInitializer2D getValue
     )
+
+
+/// <summary>
+/// Provides a function to fetch a heights array from a sequence of DEM tiles,
+/// using a specified DEM tile reader.
+/// </summary>
+let fetchDemHeights (readDemTile: DemTileReader) : DemHeightsArrayFetcher =
+    fun tilesToUse ->
+
+        let mutable errorMessage = None
+        let mutable i = 0
+
+        let tilesArray = tilesToUse |> Seq.toArray
+        let mutable heightsArraysToMerge = []
+
+        while i < tilesArray.Length && Option.isNone errorMessage do
+            let tileCoords = tilesArray.[i]
+            let tileLoadResult = readDemTile tileCoords
+
+            match tileLoadResult with
+            | Ok(Some heightsArray) ->
+                heightsArraysToMerge <- heightsArray :: heightsArraysToMerge
+                ()
+            | Error message ->
+                errorMessage <- Some message
+                ()
+            | _ -> ()
+
+            i <- i + 1
+
+        match errorMessage with
+        | Some error -> Error error
+        | _ ->
+            let mergedRect = heightsArraysToMerge |> mbrOfHeightsArrays
+
+            Ok(merge mergedRect heightsArraysToMerge)
