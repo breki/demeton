@@ -2,6 +2,7 @@
 
 
 open System
+open Demeton.Aw3d.Types
 open Demeton.Commands
 open Demeton.DemTypes
 open Demeton.Projections.PROJParsing
@@ -15,7 +16,12 @@ open BitMiracle.LibTiff.Classic
 open Swensen.Unquote
 
 
-let readAw3dHeights (fileName: string) : DemHeight[] =
+// todo 0: transform into an AW3D tile loading function
+let readAw3dHeights
+    cacheDir
+    (tileId: Aw3dTileId)
+    (fileName: string)
+    : DemHeight[] =
     use tiff = Tiff.Open(fileName, "r")
 
     let width = unbox (tiff.GetField(TiffTag.IMAGEWIDTH).[0].Value)
@@ -69,7 +75,8 @@ let readAw3dHeights (fileName: string) : DemHeight[] =
 [<Fact>]
 let ``Load AW3D into a DemHeight`` () =
     let fileName = @"samples\ALPSMLC30_N046E007_DSM.tif"
-    let demHeight = readAw3dHeights fileName
+    let tileId = { TileX = 46; TileY = -7 }
+    let demHeight = readAw3dHeights "cache" tileId fileName
 
     test <@ demHeight <> null @>
 
@@ -152,7 +159,8 @@ let tileSize = 3600
 let fetchAw3dHeightsArray _ =
     let fileName = @"Samples\ALPSMLC30_N046E007_DSM.tif"
 
-    let demHeight = readAw3dHeights fileName
+    let tileId = { TileX = 46; TileY = -7 }
+    let demHeight = readAw3dHeights "cache" tileId fileName
 
     let tileId = Demeton.Srtm.Funcs.parseTileName "N46E007"
     let cellMinX, cellMinY = Demeton.Srtm.Funcs.tileMinCell tileSize tileId
@@ -178,6 +186,7 @@ let ``Generate hillshading from AW3D sample file`` () =
     let createShaderFunction _ =
         Demeton.Shaders.Hillshading.shadeRaster 0 pixelShader
 
+    // todo 5: can we reuse these functions for the new command?
     let generateTile =
         ShadeCommand.generateShadedRasterTile
             [| fetchAw3dHeightsArray |]

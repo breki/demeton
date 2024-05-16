@@ -4,6 +4,7 @@ module Demeton.Commands.TileShadeCommand
 open System
 open CommandLine
 open CommandLine.Common
+open Demeton.Aw3d.Types
 open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
@@ -12,7 +13,7 @@ open Demeton.Aw3d.Funcs
 open Demeton.WorldCover.Funcs
 open FileSys
 
-// todo 10: add cache dir parameter
+// todo 30: add cache dir parameter
 
 type Options =
     { TileWidth: int
@@ -161,7 +162,10 @@ let fillOptions parsedParameters =
 
     filledOptions
 
-let ensureAw3dTiles cacheDir (bounds: LonLatBounds) : Result<unit, string> =
+let ensureAw3dTiles
+    cacheDir
+    (bounds: LonLatBounds)
+    : Result<Aw3dTileId list, string> =
     Log.info "Ensuring all needed AW3D tiles are there..."
 
     let aw3dTilesNeeded = bounds |> boundsToAw3dTiles |> Seq.toList
@@ -187,7 +191,7 @@ let ensureAw3dTiles cacheDir (bounds: LonLatBounds) : Result<unit, string> =
             | Error message -> Some message)
 
     match aw3dErrors with
-    | [] -> Result.Ok()
+    | [] -> Result.Ok aw3dTilesNeeded
     | _ -> Result.Error(String.concat "\n" aw3dErrors)
 
 let ensureWorldCoverTiles
@@ -225,7 +229,8 @@ let ensureWorldCoverTiles
     | [] -> Result.Ok()
     | _ -> Result.Error(String.concat "\n" tilesErrors)
 
-let generateHillshadingTile cacheDir bounds =
+// todo 0: implement loading of an AW3D tile into a HeightsArray
+let generateHillshadingTile cacheDir bounds aw3dTilesToUse =
     Log.info "Generating hillshading tile..."
 
     Result.Ok()
@@ -307,9 +312,13 @@ let run (options: Options) : Result<unit, string> =
             let cacheDir = "cache"
 
             match ensureAw3dTiles cacheDir geoAreaNeeded with
-            | Ok _ ->
+            | Ok aw3dTilesNeeded ->
                 match ensureWorldCoverTiles cacheDir geoAreaNeeded with
-                | Ok _ -> generateHillshadingTile cacheDir geoAreaNeeded
+                | Ok _ ->
+                    generateHillshadingTile
+                        cacheDir
+                        geoAreaNeeded
+                        aw3dTilesNeeded
                 | Error message -> Result.Error message
             | Error message -> Result.Error message
         else

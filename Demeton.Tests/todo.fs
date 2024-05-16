@@ -2,6 +2,8 @@
 
 module Demeton.Tests.todo
 
+// todo 0: expose a common DEM tile ID and funcs
+
 // todo 100: update shading docs now that we have added an array of fetchers
 
 // todo 100: implement support for variable-resolution height arrays, not just

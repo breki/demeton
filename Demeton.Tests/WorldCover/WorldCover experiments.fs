@@ -76,15 +76,14 @@ let options: ShadeCommand.Options =
           IgnoredParameters = [] } }
 
 
-[<Fact>]
-// [<Fact(Skip = "takes a long time, run it explicitly")>]
+[<Fact(Skip = "I need to reduce the size of the dataset, it's taking too long to process")>]
 let ``Render hillshading with WorldCover water bodies`` () =
     if Environment.GetEnvironmentVariable("CI") = "true" then
         // this test cannot run on CI because we don't have the WorldCover
         // raster available (it's too big to be added to git repo)
         ()
     else
-        let worldCoverTileId = { TileX = 6; TileY = -45 }
+        let worldCoverTileId = { TileX = -6; TileY = -45 }
 
         let cacheDir = "cache"
 
@@ -99,7 +98,9 @@ let ``Render hillshading with WorldCover water bodies`` () =
 
         let waterBodiesHeightsArray =
             readWorldCoverTile cacheDir worldCoverTileId
-            |> convertWorldCoverRasterToWaterMonochrome
+
+        let waterBodiesHeightsArray =
+            waterBodiesHeightsArray |> convertWorldCoverRasterToWaterMonochrome
         // |> simplifyRaster 100
 
         let waterBodies = waterBodiesHeightsArray |> colorWaterBodies

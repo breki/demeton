@@ -23,8 +23,8 @@ type Aw3dTileId =
     member this.Aw3dTileName =
         let latSign =
             match this.TileY with
-            | x when x >= 0 -> 'N'
-            | _ -> 'S'
+            | y when y >= 0 -> 'S'
+            | _ -> 'N'
 
         let lonSign =
             match this.TileX with
