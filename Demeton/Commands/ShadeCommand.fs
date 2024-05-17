@@ -395,6 +395,9 @@ let generateShadedRasterTile
               MaxLon = radToDeg (max lon1Rad lon2Rad)
               MaxLat = radToDeg (max lat1Rad lat2Rad) }
 
+        // todo 15: the needed tiles calculation has to be generalized so we
+        //   could also load non-SRTM tiles. We should probably move the
+        //   responsibility to the tile downloader itself, giving it lonLatBounds.
         let srtmTilesNeeded = boundsToTiles 3600 srtmLevel lonLatBounds
 
         let fetchingResults =

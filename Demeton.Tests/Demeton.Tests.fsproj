@@ -129,6 +129,7 @@
             <Link>Samples\ALPSMLC30_N046E007_DSM.tif</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <Compile Include="Aw3d\Downloading AW3D tiles.fs"/>
         <Compile Include="Aw3d\Loading AW3D tiles.fs"/>
         <Compile Include="Aw3d\AW3D experiments.fs"/>
         <Compile Include="WorldCover\Loading WorldCover tiles.fs"/>

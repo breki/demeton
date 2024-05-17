@@ -122,6 +122,43 @@ let ensureWorldCoverTile cacheDir fileExists downloadFile tileId =
         downloadFile tileUrl cachedTifFileName |> Ok
 
 
+
+let ensureWorldCoverTiles
+    cacheDir
+    (bounds: LonLatBounds)
+    : Result<unit, string> =
+    Log.info "Ensuring all needed WorldCover tiles are there..."
+
+    let geoJsonFile = ensureGeoJsonFile cacheDir fileExists downloadFile
+
+    let allAvailableTiles = listAllAvailableTiles openFileToRead geoJsonFile
+
+    let tilesNeeded = bounds |> boundsToWorldCoverTiles |> Seq.toList
+
+    let availableTilesNeeded =
+        tilesNeeded
+        |> List.filter (fun tileId ->
+            allAvailableTiles
+            |> Seq.exists (fun availableTileId -> availableTileId = tileId))
+
+    let tilesResults =
+        availableTilesNeeded
+        |> List.map (fun tileId ->
+            tileId,
+            ensureWorldCoverTile cacheDir fileExists downloadFile tileId)
+
+    let tilesErrors =
+        tilesResults
+        |> List.choose (fun (_, result) ->
+            match result with
+            | Ok _ -> None
+            | Error message -> Some message)
+
+    match tilesErrors with
+    | [] -> Result.Ok()
+    | _ -> Result.Error(String.concat "\n" tilesErrors)
+
+
 /// <summary>
 /// Reads a WorldCover tile file and returns the heights array for it.
 /// </summary>
@@ -257,7 +294,7 @@ let readWorldCoverTile cacheDir (worldCoverTileId: DemTileId) : HeightsArray =
     let cellMinX, cellMinY =
         tileMinCell
             WorldCoverTileSize
-            { Level = { Value = 1 }
+            { Level = { Value = 0 }
               TileX = worldCoverTileId.TileX
               TileY = worldCoverTileId.TileY }
 

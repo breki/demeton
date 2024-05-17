@@ -1,6 +1,8 @@
 ﻿module Demeton.Aw3d.Funcs
 
+open System
 open System.IO
+open BitMiracle.LibTiff.Classic
 open Demeton.Aw3d.Types
 open Demeton.Dem.Types
 open Demeton.Geometry.Common
@@ -130,3 +132,105 @@ let ensureAw3dTile
             | Ok _ -> Ok tiffFilePath
             | Error error -> Error error.Exception.Message
         | Error error -> Error error.Exception.Message
+
+
+let ensureAw3dTiles
+    cacheDir
+    (bounds: LonLatBounds)
+    : Result<DemTileId list, string> =
+    Log.info "Ensuring all needed AW3D tiles are there..."
+
+    let aw3dTilesNeeded = bounds |> boundsToAw3dTiles |> Seq.toList
+
+    let aw3dTileResults =
+        aw3dTilesNeeded
+        |> List.map (fun tileId ->
+            tileId,
+            ensureAw3dTile
+                cacheDir
+                fileExists
+                downloadFile
+                readZipFile
+                copyStreamToFile
+                deleteFile
+                tileId)
+
+    let aw3dErrors =
+        aw3dTileResults
+        |> List.choose (fun (_, result) ->
+            match result with
+            | Ok _ -> None
+            | Error message -> Some message)
+
+    match aw3dErrors with
+    | [] -> Result.Ok aw3dTilesNeeded
+    | _ -> Result.Error(String.concat "\n" aw3dErrors)
+
+
+
+let readAw3dTile cacheDir (tileId: DemTileId) : HeightsArray =
+    let fileName = tileId |> aw3dTileCachedTifFileName cacheDir
+
+    use tiff = Tiff.Open(fileName, "r")
+
+    let width = unbox (tiff.GetField(TiffTag.IMAGEWIDTH).[0].Value)
+
+    if width <> Aw3dTileSize then
+        failwithf $"Expected width %d{Aw3dTileSize}, but got %d{width}"
+
+    let height = unbox (tiff.GetField(TiffTag.IMAGELENGTH).[0].Value)
+
+    if height <> Aw3dTileSize then
+        failwithf $"Expected height %d{Aw3dTileSize}, but got %d{height}"
+
+    let arraySize = width * height
+    let heightsArray: DemHeight[] = Array.zeroCreate arraySize
+
+    let samplesPerPixel: int16 =
+        unbox (tiff.GetField(TiffTag.SAMPLESPERPIXEL).[0].Value)
+
+    let bitsPerSample: int16 =
+        unbox (tiff.GetField(TiffTag.BITSPERSAMPLE).[0].Value)
+
+    let scanlineSize = tiff.ScanlineSize()
+    let buffer = Array.zeroCreate<byte> scanlineSize
+
+    let pixelBytesSize = int samplesPerPixel * (int bitsPerSample / 8)
+
+    let mutable heightsWrittenCount = 0
+
+    for row in 0 .. height - 1 do
+        let success = tiff.ReadScanline(buffer, row)
+
+        if not success then
+            failwithf $"Failed to read scanline %d{row}"
+
+        // Process the buffer to get the pixel data
+
+        let mutable pixelStart = 0
+
+        for col in 0 .. width - 1 do
+            // todo 5: do we already have a function for this?
+
+            // read little-endian int16 value from pixelData
+            let height = BitConverter.ToInt16(buffer, pixelStart)
+
+            heightsArray.[heightsWrittenCount] <- height
+            heightsWrittenCount <- heightsWrittenCount + 1
+
+            pixelStart <- pixelStart + pixelBytesSize
+
+    let cellMinX, cellMinY =
+        tileMinCell
+            Aw3dTileSize
+            { Level = { Value = 0 }
+              TileX = tileId.TileX
+              TileY = tileId.TileY }
+
+    HeightsArray(
+        cellMinX,
+        cellMinY,
+        Aw3dTileSize,
+        Aw3dTileSize,
+        HeightsArrayDirectImport heightsArray
+    )

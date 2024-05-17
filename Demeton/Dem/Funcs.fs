@@ -318,10 +318,10 @@ let mbrOfHeightsArrays (heightsArrays: HeightsArray seq) : Raster.Rect =
     match heightsArrays |> Seq.isEmpty with
     | true -> Raster.Rect.Empty
     | false ->
-        let minX = (heightsArrays |> Seq.minBy (fun d -> d.MinX)).MinX
-        let minY = (heightsArrays |> Seq.minBy (fun d -> d.MinY)).MinY
-        let maxX = (heightsArrays |> Seq.maxBy (fun d -> d.MaxX)).MaxX
-        let maxY = (heightsArrays |> Seq.maxBy (fun d -> d.MaxY)).MaxY
+        let minX = (heightsArrays |> Seq.minBy (_.MinX)).MinX
+        let minY = (heightsArrays |> Seq.minBy (_.MinY)).MinY
+        let maxX = (heightsArrays |> Seq.maxBy (_.MaxX)).MaxX
+        let maxY = (heightsArrays |> Seq.maxBy (_.MaxY)).MaxY
 
         let width = maxX - minX + 1
         let height = maxY - minY + 1
@@ -331,6 +331,19 @@ let mbrOfHeightsArrays (heightsArrays: HeightsArray seq) : Raster.Rect =
           Width = width
           Height = height }
 
+/// <summary>
+/// Merges a list of heights arrays into a single heights array whose
+/// bounds are pre-determined.
+/// </summary>
+/// <remarks>
+/// If the list is empty or the width or height of the merged heights array
+/// is zero, the function returns None.
+/// </remarks>
+/// <param name="mergedArrayBounds">
+/// The bounds of the merged heights array. Everything outside the bounds will
+/// be ignored.
+/// </param>
+/// <param name="heightArrays">A list of heights arrays to be merged</param>
 let merge
     (mergedArrayBounds: Raster.Rect)
     (heightArrays: HeightsArray list)
