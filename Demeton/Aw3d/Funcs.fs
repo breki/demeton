@@ -140,6 +140,13 @@ let ensureAw3dTiles
     : Result<DemTileId list, string> =
     Log.info "Ensuring all needed AW3D tiles are there..."
 
+    Log.info
+        "Geo area needed: minLon: %f, minLat: %f, maxLon: %f, maxLat: %f"
+        bounds.MinLon
+        bounds.MinLat
+        bounds.MaxLon
+        bounds.MaxLat
+
     let aw3dTilesNeeded = bounds |> boundsToAw3dTiles |> Seq.toList
 
     let aw3dTileResults =

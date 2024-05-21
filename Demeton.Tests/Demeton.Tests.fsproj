@@ -102,13 +102,15 @@
         <Compile Include="Vectorization tests\Steps to moves transformation.fs"/>
         <Compile Include="Svg\SVG path tests.fs"/>
         <Compile Include="Svg\SVG XML writing tests.fs"/>
+        <Compile Include="Commands tests\Command line parameters parsing.fs"/>
         <Compile Include="Commands tests\ShadeCommand\Command line parsing.fs"/>
         <Compile Include="Commands tests\ShadeCommand\Running the command.fs"/>
         <Compile Include="Commands tests\ShadeCommand\Splitting into intervals.fs"/>
         <Compile Include="Commands tests\ShadeCommand\Generating shaded tile.fs"/>
         <Compile Include="Commands tests\ShadeCommand\Shading the raster.fs"/>
         <Compile Include="Commands tests\ShadeCommand\Saving the tile.fs"/>
-        <Compile Include="Commands tests\Command line parameters parsing.fs"/>
+        <Compile Include="Commands tests\TileShadeCommand\Creating map projection.fs" />
+        <Compile Include="Commands tests\TileShadeCommand\Calculating geo area needed.fs" />
         <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs"/>
         <Compile Include="Acceptance tests\Generating hillshading rasters.fs"/>
         <Compile Include="FParsec exploratory tests.fs"/>

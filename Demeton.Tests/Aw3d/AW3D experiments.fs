@@ -52,7 +52,7 @@ let xcTracerHillshader
         | true -> Rgba8Bit.TransparentColor
         | false ->
             let aspectDiff =
-                Demeton.Geometry.Common.differenceBetweenAngles
+                differenceBetweenAngles
                     aspect
                     parameters.SunAzimuth
                     (Math.PI * 2.)

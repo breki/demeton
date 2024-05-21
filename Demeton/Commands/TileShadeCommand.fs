@@ -4,14 +4,12 @@ module Demeton.Commands.TileShadeCommand
 open System
 open CommandLine
 open CommandLine.Common
-open Demeton.Dem.Types
 open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Projections.PROJParsing
 open Demeton.Aw3d.Funcs
 open Demeton.WorldCover.Funcs
-open FileSys
 
 // todo 30: add cache dir parameter
 
@@ -162,16 +160,8 @@ let fillOptions parsedParameters =
 
     filledOptions
 
-// todo 4: implement loading of an AW3D tile into a HeightsArray
-let generateHillshadingTile cacheDir bounds aw3dTilesToUse =
-    Log.info "Generating hillshading tile..."
-
-    Result.Ok()
-
-let run (options: Options) : Result<unit, string> =
+let createProjection options =
     let centerLon, centerLat = options.TileCenter
-    // we invert the latitude since in our internal system, + is north
-    let centerLat = -centerLat
 
     // https://desktop.arcgis.com/en/arcmap/latest/map/projections/lambert-conformal-conic.htm
     let projectionParameters: LambertConformalConic.Parameters =
@@ -199,62 +189,70 @@ let run (options: Options) : Result<unit, string> =
         { MapScale = mapScaleValue
           Dpi = options.Dpi }
 
-    let projection =
-        Factory.createMapProjection
-            (LambertConformalConic projectionParameters)
-            mapScale
+    Factory.createMapProjection
+        (LambertConformalConic projectionParameters)
+        mapScale
 
-    match projection with
-    | Ok projection ->
-        let halfWidth = options.TileWidth / 2
-        let halfHeight = options.TileHeight / 2
+let calculateGeoAreaNeeded options projection =
+    let tileBoundingPoints: (int * int)[] =
+        [| (-1, -1); (1, -1); (1, 1); (-1, 1) |]
 
-        let tileBoundingPoints: (int * int)[] =
-            [| (-1, -1); (1, -1); (1, 1); (-1, 1) |]
+    let halfWidth = options.TileWidth / 2
+    let halfHeight = options.TileHeight / 2
 
-        let tileBoundingGeoPointsMaybe =
-            tileBoundingPoints
-            |> Array.map (fun (x, y) ->
-                let x = x * halfWidth
-                let y = y * halfHeight
+    let tileBoundingGeoPoints =
+        tileBoundingPoints
+        |> Array.map (fun (x, y) ->
+            let x = x * halfWidth
+            let y = y * halfHeight
 
-                projection.Invert x y)
+            projection.Invert x -y)
+        |> Array.choose id
+        |> Array.map (fun (lon, lat) -> (radToDeg lon, radToDeg lat))
 
-        let tileBoundingGeoPoints =
-            tileBoundingGeoPointsMaybe |> Array.choose id
+    if
+        tileBoundingGeoPoints |> Array.length = (tileBoundingPoints
+                                                 |> Array.length)
+    then
+        Demeton.Geometry.Bounds.mbrOf tileBoundingGeoPoints
+        |> lonLatBoundsFromBounds |> Ok
+    else
+        Result.Error
+            "Some of the tile bounding points could not be projected."
 
-        if
-            tileBoundingGeoPoints |> Array.length = (tileBoundingPoints
-                                                     |> Array.length)
-        then
-            let tileBoundingGeoPoints =
-                tileBoundingGeoPoints
-                |> Array.map (fun (lon, lat) -> (radToDeg lon, radToDeg lat))
 
-            let geoAreaNeeded =
-                Demeton.Geometry.Bounds.mbrOf tileBoundingGeoPoints
-                |> lonLatBoundsFromBounds
+let run (options: Options) : Result<unit, string> =
+    let cacheDir = "cache"
 
-            Log.info
-                "Geo area needed: minLon: %f, minLat: %f, maxLon: %f, maxLat: %f"
-                geoAreaNeeded.MinLon
-                -geoAreaNeeded.MinLat
-                geoAreaNeeded.MaxLon
-                -geoAreaNeeded.MaxLat
+    let result =
+        createProjection options
+        |> Result.bind (calculateGeoAreaNeeded options)
 
-            let cacheDir = "cache"
+    match result with
+    | Ok geoAreaNeeded ->
+        match ensureAw3dTiles cacheDir geoAreaNeeded with
+        | Ok aw3dTilesNeeded ->
+            match ensureWorldCoverTiles cacheDir geoAreaNeeded with
+            | Ok _ ->
+                // let fetchAw3dTiles =
+                //     let tilesHeightsArrays =
+                //         aw3dTilesNeeded |> Seq.map (readAw3dTile CacheDir) |> Seq.toList
 
-            match ensureAw3dTiles cacheDir geoAreaNeeded with
-            | Ok aw3dTilesNeeded ->
-                match ensureWorldCoverTiles cacheDir geoAreaNeeded with
-                | Ok _ ->
-                    generateHillshadingTile
-                        cacheDir
-                        geoAreaNeeded
-                        aw3dTilesNeeded
-                | Error message -> Result.Error message
+// type DemHeightsArrayFetcher = DemTileId seq -> HeightsArrayMaybeResult
+
+
+                raise (NotImplementedException())
+                // ShadeCommand.generateShadedRasterTile
+                //     [| fetchAw3dHeightsArray |]
+                //     (fun _ -> Demeton.Shaders.Hillshading.shadeRaster 0
+                //                   (xcTracerHillshader IgorHillshader.defaultParameters))
+// let generateShadedRasterTile
+//     (heightsArrayFetchers: DemHeightsArrayFetcher[])
+//     (createShaderFunction: ShadingFuncFactory)
+//     : ShadedRasterTileGenerator =
+//     fun srtmLevel (tileRect: Rect) rootShadingStep mapProjection ->
+
+
             | Error message -> Result.Error message
-        else
-            Result.Error
-                "Some of the tile bounding points could not be projected."
+        | Error message -> Result.Error message
     | Error message -> Result.Error message

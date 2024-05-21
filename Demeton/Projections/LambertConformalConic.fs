@@ -146,7 +146,7 @@ type MapProjection(parameters: Parameters, mapScale: MapScale) =
 
     do
         match validateParameters parameters with
-        | Result.Ok() -> ignore ()
+        | Result.Ok() -> ()
         | Result.Error message -> invalidArg "parameters" message
 
     member this.proj: ProjectFunc =

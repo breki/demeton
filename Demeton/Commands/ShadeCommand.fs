@@ -327,6 +327,82 @@ let splitIntoIntervals minValue maxValue intervalSize =
         let intervalMaxValue = min (intervalMinValue + intervalSize) maxValue
         (intervalIndex, intervalMinValue, intervalMaxValue))
 
+
+/// <summary>
+/// Based on the coverage points specified in the options, calculate the
+/// minimum bounding rectangle of the points projected onto the map.
+/// This effectively calculates the total raster area that needs to be shaded.
+/// </summary>
+let calculateRasterMbr mapProjection options =
+    // project each coverage point
+    let projectedPoints =
+        options.CoveragePoints
+        |> List.map (fun (lonDegrees, latDegrees) ->
+            mapProjection.Proj (degToRad lonDegrees) (degToRad latDegrees))
+        |> List.filter Option.isSome
+        |> List.map (Option.get >> (fun (x, y) -> (x, -y)))
+
+    // calculate the minimum bounding rectangle of all the projected points
+    let rasterMbr = Bounds.mbrOf projectedPoints
+
+    // round off the raster so we work with integer coordinates
+    Rect.asMinMax
+        (int (floor rasterMbr.MinX))
+        (int (floor rasterMbr.MinY))
+        (int (ceil rasterMbr.MaxX))
+        (int (ceil rasterMbr.MaxY))
+
+
+/// <summary>
+/// Based on the map projection and the raster MBR, calculate the SRTM level
+/// needed for the shading process.
+/// </summary>
+let calculateSrtmLevelNeeded mapProjection rasterMbr =
+    minLonLatDelta rasterMbr mapProjection.Invert
+    |> lonLatDeltaToSrtmLevel 3600
+
+
+/// <summary>
+/// Calculates the list of raster tiles to generate based on the raster MBR and
+/// options.
+/// Also returns the maximum tile index (either on X or Y axes, whichever is
+/// larger).
+/// </summary>
+let constructRasterTilesList options (rasterMbr: Rect)  =
+    let tilesToGenerate =
+        [ for yIndex, tileMinY, tileMaxY in
+              splitIntoIntervals
+                  rasterMbr.MinY
+                  rasterMbr.MaxY
+                  options.TileSize do
+              for xIndex, tileMinX, tileMaxX in
+                  splitIntoIntervals
+                      rasterMbr.MinX
+                      rasterMbr.MaxX
+                      options.TileSize do
+                  let tileBounds =
+                      Rect.asMinMax tileMinX tileMinY tileMaxX tileMaxY
+
+                  yield (xIndex, yIndex, tileBounds) ]
+
+    let maxTileIndexX =
+        tilesToGenerate |> List.map (fun (xIndex, _, _) -> xIndex) |> List.max
+
+    let maxTileIndexY =
+        tilesToGenerate |> List.map (fun (_, yIndex, _) -> yIndex) |> List.max
+
+    let maxTileIndex = max maxTileIndexX maxTileIndexY
+
+    Log.info
+        "NOTE: The command will generate a total raster size of %dx%d pixels (%dx%d tiles)."
+        rasterMbr.Width
+        rasterMbr.Height
+        (maxTileIndexX + 1)
+        (maxTileIndexY + 1)
+
+    tilesToGenerate, maxTileIndex
+
+
 /// <summary>
 /// A function the generates a shaded raster tile.
 /// </summary>
@@ -490,96 +566,54 @@ let saveShadedRasterTile
             tilePngFileName)
         |> Result.mapError fileSysErrorMessage
 
+
+
+
 let runWithProjection
     mapProjection
     (options: Options)
     (generateTile: ShadedRasterTileGenerator)
     (saveTile: ShadedRasterTileSaver)
     : Result<unit, string> =
-
-    // project each coverage point
-    let projectedPoints =
-        options.CoveragePoints
-        |> List.map (fun (lonDegrees, latDegrees) ->
-            mapProjection.Proj (degToRad lonDegrees) (degToRad latDegrees))
-        |> List.filter Option.isSome
-        |> List.map (Option.get >> (fun (x, y) -> (x, -y)))
-
-    // calculate the minimum bounding rectangle of all the projected points
-    let rasterMbr = Bounds.mbrOf projectedPoints
-
-    // round off the raster so we work with integer coordinates
-    let rasterMbrRounded =
-        Rect.asMinMax
-            (int (floor rasterMbr.MinX))
-            (int (floor rasterMbr.MinY))
-            (int (ceil rasterMbr.MaxX))
-            (int (ceil rasterMbr.MaxY))
+    let rasterMbr = calculateRasterMbr mapProjection options
 
     // calculate SRTM level needed
-    let srtmLevel =
-        minLonLatDelta rasterMbrRounded mapProjection.Invert
-        |> lonLatDeltaToSrtmLevel 3600
+    let srtmLevel = calculateSrtmLevelNeeded mapProjection rasterMbr
 
     // then split it up into tiles
-    let tilesToGenerate =
-        [ for yIndex, tileMinY, tileMaxY in
-              splitIntoIntervals
-                  rasterMbrRounded.MinY
-                  rasterMbrRounded.MaxY
-                  options.TileSize do
-              for xIndex, tileMinX, tileMaxX in
-                  splitIntoIntervals
-                      rasterMbrRounded.MinX
-                      rasterMbrRounded.MaxX
-                      options.TileSize do
-                  let tileBounds =
-                      Rect.asMinMax tileMinX tileMinY tileMaxX tileMaxY
+    let tilesToGenerate, maxTileIndex = constructRasterTilesList options rasterMbr
 
-                  yield (xIndex, yIndex, tileBounds) ]
+    let generateAndSaveHillshadingTile
+        xIndex yIndex tileBounds tilesGeneratedSoFar =
+        Log.info $"Generating a shade tile %d{xIndex}/%d{yIndex}..."
 
-    let maxTileIndexX =
-        tilesToGenerate |> List.map (fun (xIndex, _, _) -> xIndex) |> List.max
+        generateTile
+            srtmLevel
+            tileBounds
+            options.RootShadingStep
+            mapProjection
+        |> Result.map (fun maybeGeneratedTile ->
+            match maybeGeneratedTile with
+            | Some imageData ->
+                Log.info "Saving the shade tile..."
 
-    let maxTileIndexY =
-        tilesToGenerate |> List.map (fun (_, yIndex, _) -> yIndex) |> List.max
+                saveTile
+                    options
+                    maxTileIndex
+                    (xIndex, yIndex)
+                    tileBounds
+                    imageData
+                |> ignore
 
-    let maxTileIndex = max maxTileIndexX maxTileIndexY
+                tilesGeneratedSoFar + 1
+            | None -> tilesGeneratedSoFar)
 
-    Log.info
-        "NOTE: The command will generate a total raster size of %dx%d pixels (%dx%d tiles)."
-        rasterMbrRounded.Width
-        rasterMbrRounded.Height
-        (maxTileIndexX + 1)
-        (maxTileIndexY + 1)
 
     tilesToGenerate
     |> List.fold
         (fun state (xIndex, yIndex, tileBounds) ->
             state
-            |> Result.bind (fun tilesGeneratedSoFar ->
-                Log.info $"Generating a shade tile %d{xIndex}/%d{yIndex}..."
-
-                generateTile
-                    srtmLevel
-                    tileBounds
-                    options.RootShadingStep
-                    mapProjection
-                |> Result.map (fun maybeGeneratedTile ->
-                    match maybeGeneratedTile with
-                    | Some imageData ->
-                        Log.info "Saving the shade tile..."
-
-                        saveTile
-                            options
-                            maxTileIndex
-                            (xIndex, yIndex)
-                            tileBounds
-                            imageData
-                        |> ignore
-
-                        tilesGeneratedSoFar + 1
-                    | None -> tilesGeneratedSoFar)))
+            |> Result.bind (generateAndSaveHillshadingTile xIndex yIndex tileBounds))
         (Ok 0)
     |> Result.map (fun actualTilesGenerated ->
         match actualTilesGenerated with
