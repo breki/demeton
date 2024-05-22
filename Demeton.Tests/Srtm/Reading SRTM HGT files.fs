@@ -72,7 +72,7 @@ let ``Can create heights array from SRTM heights sequence`` () =
 
         let byteArray: byte[] = Array.zeroCreate (arrayLength * 2)
 
-        let rnd = System.Random(123)
+        let rnd = Random(123)
 
         for i in 0 .. arrayLength - 1 do
             let firstByte, secondByte =
@@ -103,7 +103,7 @@ let ``Can create heights array from SRTM heights sequence`` () =
     test <@ tile.Width = tileSize @>
     test <@ tile.Height = tileSize @>
     test <@ tile.MinX = 16 * tileSize @>
-    test <@ tile.MinY = -45 * tileSize @>
+    test <@ tile.MinY = -46 * tileSize @>
     test <@ tile.Cells.[0] = sampleHeight1 @>
     test <@ tile.Cells.[tileSize] = sampleHeight2 @>
 

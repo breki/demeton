@@ -79,6 +79,7 @@ let xcTracerHillshader
 
                 Rgba8Bit.rgbColor darknessByte darknessByte darknessByte
 
+// todo 0: move this to the command module?
 let fetchAw3dHeightsArray _ =
     let tileDownloadingResult = ensureAw3dTiles CacheDir area
 
@@ -129,7 +130,6 @@ let ``Generate hillshading from AW3D`` () =
     let createShaderFunction _ =
         Demeton.Shaders.Hillshading.shadeRaster 0 pixelShader
 
-    // todo 5: can we reuse these functions for the new command?
     let generateTile =
         ShadeCommand.generateShadedRasterTile
             [| fetchAw3dHeightsArray |]

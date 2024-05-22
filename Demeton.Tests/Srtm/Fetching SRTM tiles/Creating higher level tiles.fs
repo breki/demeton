@@ -3,7 +3,6 @@
 open Demeton.Geometry.Common
 open Demeton.Dem.Types
 open Demeton.Dem.Funcs
-open Demeton.Srtm.Funcs
 open Demeton.Srtm.Downsampling
 
 open System
@@ -82,9 +81,9 @@ let ``Correctly calculates the list of needed children for level 1 for SomeFutur
     test
         <@
             childrenBounds = { MinLon = 13.
-                               MinLat = 45.
+                               MinLat = 44.
                                MaxLon = 17.
-                               MaxLat = 49. }
+                               MaxLat = 48. }
         @>
 
 [<Fact>]
@@ -112,9 +111,9 @@ let ``Correctly calculates the list of needed children for level 1 for Average m
     test
         <@
             childrenBounds = { MinLon = 14.
-                               MinLat = 46.
+                               MinLat = 45.
                                MaxLon = 16.
-                               MaxLat = 48. }
+                               MaxLat = 47. }
         @>
 
 [<Fact>]

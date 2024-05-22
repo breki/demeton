@@ -74,6 +74,7 @@
         <Compile Include="Projections\MinLonLatDelta.fs"/>
         <Compile Include="Projections\Factory.fs"/>
         <Compile Include="Shaders\Types.fs"/>
+        <Compile Include="Shaders\SolidBackground.fs"/>
         <Compile Include="Shaders\ElevationColoring.fs"/>
         <Compile Include="Shaders\Hillshading.fs"/>
         <Compile Include="Shaders\SlopeShader.fs"/>

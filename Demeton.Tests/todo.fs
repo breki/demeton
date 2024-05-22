@@ -2,6 +2,11 @@
 
 module Demeton.Tests.todo
 
+
+// todo 0: expose the XCTracer shader as a new shader
+
+// todo 2: limit the command to stick to the SRTM level 0
+
 // todo 100: update shading docs now that we have added an array of fetchers
 
 // todo 100: implement support for variable-resolution height arrays, not just

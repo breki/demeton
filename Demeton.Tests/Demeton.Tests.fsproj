@@ -109,8 +109,9 @@
         <Compile Include="Commands tests\ShadeCommand\Generating shaded tile.fs"/>
         <Compile Include="Commands tests\ShadeCommand\Shading the raster.fs"/>
         <Compile Include="Commands tests\ShadeCommand\Saving the tile.fs"/>
-        <Compile Include="Commands tests\TileShadeCommand\Creating map projection.fs" />
-        <Compile Include="Commands tests\TileShadeCommand\Calculating geo area needed.fs" />
+        <Compile Include="Commands tests\TileShadeCommand\Creating map projection.fs"/>
+        <Compile Include="Commands tests\TileShadeCommand\Calculating geo area needed.fs"/>
+        <Compile Include="Commands tests\TileShadeCommand\Integration tests.fs"/>
         <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs"/>
         <Compile Include="Acceptance tests\Generating hillshading rasters.fs"/>
         <Compile Include="FParsec exploratory tests.fs"/>

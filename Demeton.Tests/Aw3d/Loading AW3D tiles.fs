@@ -32,4 +32,4 @@ let ``Load AW3D into a DemHeight`` () =
     test <@ heightsArray.Width = Aw3dTileSize @>
     test <@ heightsArray.Height = Aw3dTileSize @>
     test <@ heightsArray.MinX = 165600 @>
-    test <@ heightsArray.MinY = -25200 @>
+    test <@ heightsArray.MinY = -28800 @>

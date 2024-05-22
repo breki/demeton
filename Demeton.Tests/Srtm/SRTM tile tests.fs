@@ -3,7 +3,6 @@
 open Demeton.Dem.Types
 open Demeton.Geometry.Common
 open Demeton.Dem.Funcs
-open Demeton.Srtm.Funcs
 
 open FsUnit
 open Xunit

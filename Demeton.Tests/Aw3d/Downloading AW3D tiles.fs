@@ -24,11 +24,11 @@ let ``Correctly calculates the AW3D tiles needed for a given boundary`` () =
 
     let expectedTiles =
         [ demTileXYId 6 -47
-          demTileXYId 6 -48
+          demTileXYId 6 -46
           demTileXYId 7 -47
-          demTileXYId 7 -48
+          demTileXYId 7 -46
           demTileXYId 8 -47
-          demTileXYId 8 -48 ]
+          demTileXYId 8 -46 ]
         |> Set.ofList
 
     test <@ (boundsToAw3dTiles bounds |> Set.ofSeq) = expectedTiles @>

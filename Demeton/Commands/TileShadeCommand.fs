@@ -4,12 +4,20 @@ module Demeton.Commands.TileShadeCommand
 open System
 open CommandLine
 open CommandLine.Common
+open Demeton.Dem.Types
+open Demeton.Dem.Funcs
 open Demeton.Geometry.Common
 open Demeton.Projections
 open Demeton.Projections.Common
 open Demeton.Projections.PROJParsing
+open Demeton.Aw3d.Types
 open Demeton.Aw3d.Funcs
-open Demeton.WorldCover.Funcs
+open Demeton.Shaders
+open FileSys
+open Png
+open Png.Types
+open Raster
+open Demeton.Shaders.Pipeline.Common
 
 // todo 30: add cache dir parameter
 
@@ -20,7 +28,7 @@ type Options =
       PixelSize: float option
       MapScale: float option
       Dpi: float
-      WaterBodiesColor: Png.Rgba8Bit.ArgbColor }
+      WaterBodiesColor: Rgba8Bit.ArgbColor }
 
 [<Literal>]
 let TileWidthParameter = "tile-width"
@@ -46,10 +54,10 @@ let DpiParameter = "dpi"
 [<Literal>]
 let WaterBodiesColor = "water-color"
 
-let defaultWaterBodiesColor = "#49C8FF" |> Png.Rgba8Bit.parseColorHexValue
+let defaultWaterBodiesColor = "#49C8FF" |> Rgba8Bit.parseColorHexValue
 
 let parseColorParameter value =
-    match Png.Rgba8Bit.tryParseColorHexValue value with
+    match Rgba8Bit.tryParseColorHexValue value with
     | Ok color -> OkValue color
     | Error error -> InvalidValue error.Message
 
@@ -143,7 +151,7 @@ let fillOptions parsedParameters =
         | ParsedOption { Name = WaterBodiesColor
                          Value = value } ->
             { options with
-                WaterBodiesColor = value :?> Png.Rgba8Bit.ArgbColor }
+                WaterBodiesColor = value :?> Rgba8Bit.ArgbColor }
         | _ -> invalidOp "Unrecognized parameter."
 
     let filledOptions =
@@ -161,20 +169,6 @@ let fillOptions parsedParameters =
     filledOptions
 
 let createProjection options =
-    let centerLon, centerLat = options.TileCenter
-
-    // https://desktop.arcgis.com/en/arcmap/latest/map/projections/lambert-conformal-conic.htm
-    let projectionParameters: LambertConformalConic.Parameters =
-        { X0 = centerLon
-          Y0 = centerLat
-          Lon0 = centerLon
-          Lat0 = centerLat
-          // todo 50: we set standard parallels to be the same as the center, for now
-          Lat1 = centerLat
-          Lat2 = centerLat
-          K0 = 1.
-          Ellipsoid = WGS84 }
-
     let mapScaleValue =
         match options.MapScale with
         | Some mapScale -> mapScale
@@ -189,11 +183,29 @@ let createProjection options =
         { MapScale = mapScaleValue
           Dpi = options.Dpi }
 
+    let centerLon, centerLat = options.TileCenter
+
+    // https://desktop.arcgis.com/en/arcmap/latest/map/projections/lambert-conformal-conic.htm
+    let projectionParameters: LambertConformalConic.Parameters =
+        { X0 = 0
+          Y0 = 0
+          Lon0 = centerLon
+          Lat0 = centerLat
+          // todo 50: we set standard parallels to be the same as the center, for now
+          Lat1 = centerLat
+          Lat2 = centerLat
+          K0 = 1.
+          Ellipsoid = WGS84 }
+
     Factory.createMapProjection
         (LambertConformalConic projectionParameters)
         mapScale
 
-let calculateGeoAreaNeeded options projection =
+// Factory.createMapProjection Mercator mapScale
+
+
+
+let calculateGeoAreaMbr options projection =
     let tileBoundingPoints: (int * int)[] =
         [| (-1, -1); (1, -1); (1, 1); (-1, 1) |]
 
@@ -215,44 +227,152 @@ let calculateGeoAreaNeeded options projection =
                                                  |> Array.length)
     then
         Demeton.Geometry.Bounds.mbrOf tileBoundingGeoPoints
-        |> lonLatBoundsFromBounds |> Ok
+        |> lonLatBoundsFromBounds
+        |> Ok
     else
-        Result.Error
-            "Some of the tile bounding points could not be projected."
+        Result.Error "Some of the tile bounding points could not be projected."
+
+
+let fetchAw3dHeightsArray
+    mapProjection
+    cacheDir
+    coverageArea
+    (tilesIds: DemTileId seq)
+    =
+    let coveragePoints =
+        [ (coverageArea.MinLon, coverageArea.MinLat)
+          (coverageArea.MaxLon, coverageArea.MaxLat) ]
+
+    let tileDownloadingResult = ensureAw3dTiles cacheDir coverageArea
+
+    match tileDownloadingResult with
+    | Ok tilesIds ->
+        let tilesHeightsArrays =
+            tilesIds |> Seq.map (readAw3dTile cacheDir) |> Seq.toList
+
+        // calculate mergedArrayBounds for the given area
+        let projectedCoveragePoints =
+            coveragePoints
+            |> List.map (fun (lon, lat) ->
+                mapProjection.Proj (lon |> degToRad) (lat |> degToRad))
+            |> List.choose id
+
+        let deprojectedCoveragePoints =
+            projectedCoveragePoints
+            |> List.map (fun (x, y) -> mapProjection.Invert x y)
+            |> List.choose id
+
+        let cellsPerDegree = Aw3dTileSize
+
+        // now convert lon, lat to DEM coordinates
+        let coveragePointsInDemCoords =
+            deprojectedCoveragePoints
+            |> List.map (fun (lon, lat) ->
+                let cellX = lon |> radToDeg |> longitudeToCellX cellsPerDegree
+                let cellY = lat |> radToDeg |> latitudeToCellY cellsPerDegree
+                (cellX, cellY))
+
+        let demMbr = Demeton.Geometry.Bounds.mbrOf coveragePointsInDemCoords
+
+        // a buffer around the DEM MBR so we don't end up outside of the array
+        // when we calculate the heights
+        let safetyBuffer = 5
+
+        let mergedArrayBounds =
+            Rect.asMinMax
+                ((demMbr.MinX |> floor |> int) - safetyBuffer)
+                ((demMbr.MinY |> floor |> int) - safetyBuffer)
+                ((demMbr.MaxX |> ceil |> int) + safetyBuffer)
+                ((demMbr.MaxY |> ceil |> int) + safetyBuffer)
+
+        merge mergedArrayBounds tilesHeightsArrays |> Result.Ok
+    | Error message -> Result.Error message
+
+
+let saveTileFile
+    (ensureDirectoryExists: DirectoryExistsEnsurer)
+    (openFileToWrite: FileWriter)
+    (writePngToStream: File.PngStreamWriter)
+    (tileRect: Rect)
+    imageData
+    =
+    // todo 10: add OutputDir to options
+    let outputDir = "output"
+
+    ensureDirectoryExists outputDir |> ignore
+
+    let tilePngFileName = outputDir |> Pth.combine ("tile.png")
+
+    openFileToWrite tilePngFileName
+    |> Result.map (fun stream ->
+        let ihdr: IhdrData =
+            { Width = tileRect.Width
+              Height = tileRect.Height
+              BitDepth = PngBitDepth.BitDepth8
+              ColorType = PngColorType.RgbAlpha
+              InterlaceMethod = PngInterlaceMethod.NoInterlace }
+
+        stream |> writePngToStream ihdr imageData |> closeStream
+
+        Log.info $"Saved the tile to %s{tilePngFileName}"
+
+        tilePngFileName)
+    |> Result.mapError fileSysErrorMessage
 
 
 let run (options: Options) : Result<unit, string> =
     let cacheDir = "cache"
+    let srtmLevel: DemLevel = { Value = 0 }
 
-    let result =
-        createProjection options
-        |> Result.bind (calculateGeoAreaNeeded options)
+    // the center of the raster rect should represent the center specified in
+    // the options
+    let tileRect =
+        { MinX = -options.TileWidth / 2
+          MinY = -options.TileHeight / 2
+          Width = options.TileWidth
+          Height = options.TileHeight }
 
-    match result with
-    | Ok geoAreaNeeded ->
-        match ensureAw3dTiles cacheDir geoAreaNeeded with
-        | Ok aw3dTilesNeeded ->
-            match ensureWorldCoverTiles cacheDir geoAreaNeeded with
-            | Ok _ ->
-                // let fetchAw3dTiles =
-                //     let tilesHeightsArrays =
-                //         aw3dTilesNeeded |> Seq.map (readAw3dTile CacheDir) |> Seq.toList
+    let solidBackgroundStepParameters: SolidBackground.Parameters =
+        { BackgroundColor = Rgba8Bit.parseColorHexValue "#FFFFFF" }
 
-// type DemHeightsArrayFetcher = DemTileId seq -> HeightsArrayMaybeResult
+    let solidBackgroundStep =
+        ShadingStep.SolidBackground solidBackgroundStepParameters
 
+    let igorHillshadingStep =
+        ShadingStep.IgorHillshading IgorHillshader.defaultParameters
 
-                raise (NotImplementedException())
-                // ShadeCommand.generateShadedRasterTile
-                //     [| fetchAw3dHeightsArray |]
-                //     (fun _ -> Demeton.Shaders.Hillshading.shadeRaster 0
-                //                   (xcTracerHillshader IgorHillshader.defaultParameters))
-// let generateShadedRasterTile
-//     (heightsArrayFetchers: DemHeightsArrayFetcher[])
-//     (createShaderFunction: ShadingFuncFactory)
-//     : ShadedRasterTileGenerator =
-//     fun srtmLevel (tileRect: Rect) rootShadingStep mapProjection ->
+    let rootShadingStep =
+        Compositing(
+            solidBackgroundStep,
+            igorHillshadingStep,
+            CompositingFuncIdOver
+        )
 
+    match createProjection options with
+    | Ok mapProjection ->
+        match calculateGeoAreaMbr options mapProjection with
+        | Ok coverageArea ->
+            ShadeCommand.generateShadedRasterTile
+                [| fetchAw3dHeightsArray mapProjection cacheDir coverageArea |]
+                createShadingFuncById
+                srtmLevel
+                tileRect
+                rootShadingStep
+                mapProjection
+            |> Result.bind (fun imageData ->
+                match imageData with
+                | Some imageData ->
+                    Log.info "Saving the tile..."
 
-            | Error message -> Result.Error message
+                    saveTileFile
+                        ensureDirectoryExists
+                        openFileToWrite
+                        File.savePngToStream
+                        tileRect
+                        imageData
+                    |> ignore
+
+                    Ok()
+                | None -> Error "No image data generated.")
         | Error message -> Result.Error message
     | Error message -> Result.Error message

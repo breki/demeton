@@ -18,6 +18,7 @@ type CompositingFuncFactory =
 /// Defines a single step in the shading pipeline.
 /// </summary>
 type ShadingStep =
+    | SolidBackground of SolidBackground.Parameters
     | ElevationColoring of ElevationColoring.Parameters
     | IgorHillshading of IgorHillshader.ShaderParameters
     | SlopeShading of SlopeShader.ShaderParameters
@@ -106,6 +107,10 @@ let rec executeShadingStep
                 Hillshading.shadeRaster
                     parameters.HeightsArrayIndex
                     (AspectShader.shadePixel parameters)
+            | SolidBackground parameters ->
+                Log.info "Running solid background coloring step..."
+
+                SolidBackground.shadeRaster parameters.BackgroundColor
             | ElevationColoring parameters ->
                 Log.info "Running elevation coloring step..."
 

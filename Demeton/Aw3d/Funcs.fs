@@ -13,38 +13,35 @@ open FileSys
 /// Given a bounding box, returns a sequence of AW3D tiles that cover it.
 /// </summary>
 let boundsToAw3dTiles (bounds: LonLatBounds) : DemTileId seq =
-    let cellsPerDegree = 3600
-    let tileSize = 3600
-
     let minTileX =
         bounds.MinLon
-        |> longitudeToCellX cellsPerDegree
-        |> cellXToTileX tileSize
+        |> longitudeToCellX Aw3dTileSize
+        |> cellXToTileX Aw3dTileSize
         |> floor
         |> int
 
     let minTileY =
-        bounds.MaxLat
-        |> latitudeToCellY cellsPerDegree
-        |> cellYToTileY tileSize
-        |> floor
-        |> int
+        (bounds.MaxLat
+         |> latitudeToCellY Aw3dTileSize
+         |> cellYToTileY Aw3dTileSize
+         |> floor
+         |> int)
+        + 1
 
     let maxTileX =
         (bounds.MaxLon
-         |> longitudeToCellX cellsPerDegree
-         |> cellXToTileX tileSize
+         |> longitudeToCellX Aw3dTileSize
+         |> cellXToTileX Aw3dTileSize
          |> ceil
          |> int)
         - 1
 
     let maxTileY =
-        (bounds.MinLat
-         |> latitudeToCellY cellsPerDegree
-         |> cellYToTileY tileSize
-         |> ceil
-         |> int)
-        - 1
+        bounds.MinLat
+        |> latitudeToCellY Aw3dTileSize
+        |> cellYToTileY Aw3dTileSize
+        |> ceil
+        |> int
 
     seq {
         for tileY in [ minTileY..maxTileY ] do

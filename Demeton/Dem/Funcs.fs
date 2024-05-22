@@ -36,7 +36,7 @@ let inline cellYToTileY (tileSize: int) (cellY: float) =
 /// </returns>
 let tileMinCell (tileSize: int) (tileId: DemTileId) : DemTileCellCoordsInt =
     let cellX = tileXToCellX tileSize (tileId.TileX |> float)
-    let cellY = tileYToCellY tileSize (tileId.TileY |> float)
+    let cellY = tileYToCellY tileSize ((tileId.TileY - 1) |> float)
 
     (cellX |> Math.Round |> int, cellY |> Math.Round |> int)
 
@@ -105,7 +105,7 @@ let toDemTileCoords (tileId: DemTileId) : DemTileCoords =
     match tileId.Level.Value with
     | 0 ->
         let lon = tileId.TileX |> DemLongitude.fromInt
-        let lat = -(tileId.TileY + 1) |> DemLatitude.fromInt
+        let lat = -tileId.TileY |> DemLatitude.fromInt
         { Lon = lon; Lat = lat }
     | _ ->
         invalidOp
@@ -128,13 +128,11 @@ let toHgtTileName (tileCoords: DemTileCoords) =
     $"%c{latSign}%02d{abs tileCoords.Lat.Value}%c{lonSign}%03d{abs tileCoords.Lon.Value}"
 
 let toTileName (tileId: DemTileId) : DemTileName =
-    let lonSign tileX = if tileX >= 0 then 'e' else 'w'
-
-    let latSign tileY = if tileY >= 0 then 's' else 'n'
-
     match tileId.Level.Value with
     | 0 -> tileId |> toDemTileCoords |> toHgtTileName
     | _ ->
+        let lonSign tileX = if tileX >= 0 then 'e' else 'w'
+        let latSign tileY = if tileY <= 0 then 'n' else 's'
         $"l%01d{tileId.Level.Value}%c{lonSign tileId.TileX}%02d{abs tileId.TileX}%c{latSign tileId.TileY}%02d{abs tileId.TileY}"
 
 
@@ -224,7 +222,7 @@ let parseTileName (tileName: DemTileName) : DemTileId =
 
         { Level = DemLevel.fromInt 0
           TileX = tileCoords.Lon.Value
-          TileY = -(tileCoords.Lat.Value + 1) }
+          TileY = -tileCoords.Lat.Value }
 
 
 let tileLonLatBounds tileSize (tile: DemTileId) : LonLatBounds =
@@ -276,11 +274,12 @@ let boundsToTiles
         |> int
 
     let minTileY =
-        bounds.MaxLat
-        |> latitudeToCellY cellsPerDegree
-        |> cellYToTileY tileSize
-        |> floor
-        |> int
+        (bounds.MaxLat
+         |> latitudeToCellY cellsPerDegree
+         |> cellYToTileY tileSize
+         |> floor
+         |> int)
+        + 1
 
     let maxTileX =
         (bounds.MaxLon
@@ -291,12 +290,12 @@ let boundsToTiles
         - 1
 
     let maxTileY =
-        (bounds.MinLat
-         |> latitudeToCellY cellsPerDegree
-         |> cellYToTileY tileSize
-         |> ceil
-         |> int)
-        - 1
+        bounds.MinLat
+        |> latitudeToCellY cellsPerDegree
+        |> cellYToTileY tileSize
+        |> ceil
+        |> int
+
 
     [ for tileY in [ minTileY..maxTileY ] do
           for tileX in [ minTileX..maxTileX ] do
