@@ -341,12 +341,21 @@ let run (options: Options) : Result<unit, string> =
     let igorHillshadingStep =
         ShadingStep.IgorHillshading IgorHillshader.defaultParameters
 
-    let rootShadingStep =
+    let highwireHillshadingStep =
+        ShadingStep.HighwireHillshading HighwireHillshader.defaultParameters
+
+    let slopeShadingStep =
+        ShadingStep.SlopeShading SlopeShader.defaultParameters
+
+    let hillshadingStep =
         Compositing(
-            solidBackgroundStep,
-            igorHillshadingStep,
+            highwireHillshadingStep,
+            slopeShadingStep,
             CompositingFuncIdOver
         )
+
+    let rootShadingStep =
+        Compositing(solidBackgroundStep, hillshadingStep, CompositingFuncIdOver)
 
     match createProjection options with
     | Ok mapProjection ->

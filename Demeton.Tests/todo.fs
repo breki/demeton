@@ -3,7 +3,8 @@
 module Demeton.Tests.todo
 
 
-// todo 0: expose the XCTracer shader as a new shader
+// todo 0: add less intensity to slope shading
+// todo 1: add more intensity to the main hillshading
 
 // todo 2: limit the command to stick to the SRTM level 0
 

@@ -1,7 +1,6 @@
 ﻿module Tests.Aw3d.``AW3D experiments``
 
 
-open System
 open Demeton.Commands
 open Demeton.Geometry.Common
 open Demeton.Dem.Funcs
@@ -44,40 +43,6 @@ let options: ShadeCommand.Options =
         { Projection = PROJParameters.Mercator
           IgnoredParameters = [] } }
 
-let xcTracerHillshader
-    (parameters: IgorHillshader.ShaderParameters)
-    : Hillshading.PixelHillshader =
-    fun _ slope aspect ->
-        match Double.IsNaN(aspect) with
-        | true -> Rgba8Bit.TransparentColor
-        | false ->
-            let aspectDiff =
-                differenceBetweenAngles
-                    aspect
-                    parameters.SunAzimuth
-                    (Math.PI * 2.)
-
-            let slopeDarkness = slope / (Math.PI / 2.)
-            let aspectDarkness = aspectDiff / Math.PI
-            let darkness = slopeDarkness * aspectDarkness
-
-            // let darknessByteLimit = 220uy
-            //
-            // let darknessByte =
-            //     darknessByteLimit
-            //     - Hillshading.colorComponentRatioToByteLimited
-            //         darknessByteLimit
-            //         darkness
-
-            // let darknessByte = Hillshading.colorComponentRatioToByte darkness
-
-            if aspectDarkness > 1. || aspectDarkness < 0. then
-                Rgba8Bit.rgbColor 255uy 0uy 0uy
-            else
-                let darknessByte =
-                    255uy - Hillshading.colorComponentRatioToByte darkness
-
-                Rgba8Bit.rgbColor darknessByte darknessByte darknessByte
 
 // todo 0: move this to the command module?
 let fetchAw3dHeightsArray _ =
@@ -125,7 +90,10 @@ let fetchAw3dHeightsArray _ =
 
 [<Fact(Skip = "downloads the tile so it takes too long")>]
 let ``Generate hillshading from AW3D`` () =
-    let pixelShader = xcTracerHillshader IgorHillshader.defaultParameters
+    let pixelShader =
+        HighwireHillshader.shadePixel
+            { SunAzimuth = IgorHillshader.DefaultSunAzimuth
+              HeightsArrayIndex = 0 }
 
     let createShaderFunction _ =
         Demeton.Shaders.Hillshading.shadeRaster 0 pixelShader

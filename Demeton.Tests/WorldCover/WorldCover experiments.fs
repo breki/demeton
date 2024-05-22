@@ -32,15 +32,15 @@ let area, heights, srtmLevel, mapProjection, mapScale, tileRect =
 let coveragePoints = [ (area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat) ]
 
 [<Literal>]
-let StepNameXcTracerHillshading = "XCTracer-hillshading"
-
-[<Literal>]
 let StepNameXcTracerWaterBodies = "XCTracer-water-bodies"
 
 [<Literal>]
 let StepNameXcTracerWaterBodiesOutline = "XCTracer-water-bodies-outline"
 
-let hillshadingStep = Pipeline.Common.CustomShading StepNameXcTracerHillshading
+let hillshadingStep =
+    Demeton.Shaders.Pipeline.Common.ShadingStep.HighwireHillshading
+        Demeton.Shaders.HighwireHillshader.defaultParameters
+
 let waterBodiesStep = Pipeline.Common.CustomShading StepNameXcTracerWaterBodies
 
 let waterBodiesOutlineStep =
@@ -119,10 +119,6 @@ let ``Render hillshading with WorldCover water bodies`` () =
 
         let createShaderFunction shaderFunctionName =
             match shaderFunctionName with
-            | StepNameXcTracerHillshading ->
-                Tests.Aw3d.``AW3D experiments``.xcTracerHillshader
-                    IgorHillshader.defaultParameters
-                |> Demeton.Shaders.Hillshading.shadeRaster 0
             | StepNameXcTracerWaterBodies ->
                 worldCoverWaterBodiesShader 1 waterBodies
             | StepNameXcTracerWaterBodiesOutline ->

@@ -23,6 +23,7 @@ type ShadingStep =
     | IgorHillshading of IgorHillshader.ShaderParameters
     | SlopeShading of SlopeShader.ShaderParameters
     | AspectShading of AspectShader.ShaderParameters
+    | HighwireHillshading of HighwireHillshader.ShaderParameters
     | CustomShading of ShadingFuncId
     | Compositing of (ShadingStep * ShadingStep * CompositingFuncId)
 
@@ -129,6 +130,12 @@ let rec executeShadingStep
                 Hillshading.shadeRaster
                     parameters.HeightsArrayIndex
                     (SlopeShader.shadePixel parameters)
+            | HighwireHillshading parameters ->
+                Log.info "Running highwire hillshading step..."
+
+                Hillshading.shadeRaster
+                    parameters.HeightsArrayIndex
+                    (HighwireHillshader.shadePixel parameters)
             | CustomShading shadingFuncId -> shadingFuncFactory shadingFuncId
             | _ -> invalidOp "Unsupported shading step"
 

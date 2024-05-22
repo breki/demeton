@@ -80,6 +80,7 @@
         <Compile Include="Shaders\SlopeShader.fs"/>
         <Compile Include="Shaders\AspectShader.fs"/>
         <Compile Include="Shaders\IgorHillshader.fs"/>
+        <Compile Include="Shaders\HighwireHillshader.fs"/>
         <Compile Include="Shaders\Pipeline\Common.fs"/>
         <Compile Include="Shaders\Pipeline\Parsing.fs"/>
         <Compile Include="Shaders\Pipeline\Building.fs"/>
