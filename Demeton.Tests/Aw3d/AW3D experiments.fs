@@ -91,8 +91,9 @@ let fetchAw3dHeightsArray _ =
 [<Fact(Skip = "downloads the tile so it takes too long")>]
 let ``Generate hillshading from AW3D`` () =
     let pixelShader =
-        HighwireHillshader.shadePixel
+        IgorHillshader.shadePixel
             { SunAzimuth = IgorHillshader.DefaultSunAzimuth
+              ShadingColor = 0u
               HeightsArrayIndex = 0 }
 
     let createShaderFunction _ =

@@ -341,17 +341,17 @@ let run (options: Options) : Result<unit, string> =
     let igorHillshadingStep =
         ShadingStep.IgorHillshading IgorHillshader.defaultParameters
 
-    let highwireHillshadingStep =
-        ShadingStep.HighwireHillshading HighwireHillshader.defaultParameters
+    let igorHillshadingStep =
+        ShadingStep.IgorHillshading IgorHillshader.defaultParameters
 
     let slopeShadingStep =
         ShadingStep.SlopeShading SlopeShader.defaultParameters
 
     let hillshadingStep =
         Compositing(
-            highwireHillshadingStep,
+            igorHillshadingStep,
             slopeShadingStep,
-            CompositingFuncIdOver
+            CompositingFuncIdAlphaDarken
         )
 
     let rootShadingStep =

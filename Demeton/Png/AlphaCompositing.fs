@@ -93,3 +93,39 @@ let imageOver: CompositingFunc =
         |> ignore
 
         dest
+
+let darken: CompositingFunc =
+    fun
+        (imageWidth: int)
+        (imageHeight: int)
+        (source: RawImageData)
+        (dest: RawImageData) ->
+        Parallel.For(
+            0,
+            imageHeight,
+            fun y ->
+                for x in 0 .. imageWidth - 1 do
+                    let sourceDarknessRatio =
+                        Rgba8Bit.pixelAt source imageWidth x y
+                        |> Rgba8Bit.a
+                        |> byteToRatio
+
+                    let destDarknessRatio =
+                        Rgba8Bit.pixelAt dest imageWidth x y
+                        |> Rgba8Bit.a
+                        |> byteToRatio
+
+                    let outDarknessRatio =
+                        1.
+                        - ((1. - sourceDarknessRatio) * (1. - destDarknessRatio))
+
+                    let outAlpha = ratioToByte outDarknessRatio
+
+                    // todo 5: use source RGB value instead of always black
+                    let outPixel = Rgba8Bit.rgbaColor 0uy 0uy 0uy outAlpha
+
+                    Rgba8Bit.setPixelAt dest imageWidth x y outPixel
+        )
+        |> ignore
+
+        dest

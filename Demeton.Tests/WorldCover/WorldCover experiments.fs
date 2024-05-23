@@ -38,8 +38,8 @@ let StepNameXcTracerWaterBodies = "XCTracer-water-bodies"
 let StepNameXcTracerWaterBodiesOutline = "XCTracer-water-bodies-outline"
 
 let hillshadingStep =
-    Demeton.Shaders.Pipeline.Common.ShadingStep.HighwireHillshading
-        Demeton.Shaders.HighwireHillshader.defaultParameters
+    Demeton.Shaders.Pipeline.Common.ShadingStep.IgorHillshading
+        IgorHillshader.defaultParameters
 
 let waterBodiesStep = Pipeline.Common.CustomShading StepNameXcTracerWaterBodies
 

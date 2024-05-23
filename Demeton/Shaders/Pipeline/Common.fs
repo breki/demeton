@@ -23,12 +23,14 @@ type ShadingStep =
     | IgorHillshading of IgorHillshader.ShaderParameters
     | SlopeShading of SlopeShader.ShaderParameters
     | AspectShading of AspectShader.ShaderParameters
-    | HighwireHillshading of HighwireHillshader.ShaderParameters
     | CustomShading of ShadingFuncId
     | Compositing of (ShadingStep * ShadingStep * CompositingFuncId)
 
 [<Literal>]
 let CompositingFuncIdOver = "over"
+
+[<Literal>]
+let CompositingFuncIdAlphaDarken = "alpha-darken"
 
 let createShadingFuncById shadingFuncId =
     invalidOp "we currently do not support custom shading functions"
@@ -36,6 +38,7 @@ let createShadingFuncById shadingFuncId =
 let createCompositingFuncById compositingFuncId =
     match compositingFuncId with
     | CompositingFuncIdOver -> AlphaCompositing.imageOver
+    | CompositingFuncIdAlphaDarken -> AlphaCompositing.darken
     | _ -> invalidOp "Unknown compositing function."
 
 
@@ -130,12 +133,6 @@ let rec executeShadingStep
                 Hillshading.shadeRaster
                     parameters.HeightsArrayIndex
                     (SlopeShader.shadePixel parameters)
-            | HighwireHillshading parameters ->
-                Log.info "Running highwire hillshading step..."
-
-                Hillshading.shadeRaster
-                    parameters.HeightsArrayIndex
-                    (HighwireHillshader.shadePixel parameters)
             | CustomShading shadingFuncId -> shadingFuncFactory shadingFuncId
             | _ -> invalidOp "Unsupported shading step"
 
