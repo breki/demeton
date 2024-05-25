@@ -44,7 +44,7 @@ let options: ShadeCommand.Options =
           IgnoredParameters = [] } }
 
 
-// todo 0: move this to the command module?
+// todo 10: move this to the command module?
 let fetchAw3dHeightsArray _ =
     let tileDownloadingResult = ensureAw3dTiles CacheDir area
 
@@ -94,6 +94,7 @@ let ``Generate hillshading from AW3D`` () =
         IgorHillshader.shadePixel
             { SunAzimuth = IgorHillshader.DefaultSunAzimuth
               ShadingColor = 0u
+              Intensity = 1.
               HeightsArrayIndex = 0 }
 
     let createShaderFunction _ =

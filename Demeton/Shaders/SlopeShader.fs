@@ -10,13 +10,13 @@ open System
 type ShaderParameters =
     { HorizontalColor: Rgba8Bit.RgbaColor
       VerticalColor: Rgba8Bit.RgbaColor
-      HeightsArrayIndex: int
-
-    }
+      Intensity: float
+      HeightsArrayIndex: int }
 
 let defaultParameters =
     { HorizontalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
       VerticalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy
+      Intensity = 1.
       HeightsArrayIndex = 0 }
 
 let shadePixel parameters : Hillshading.PixelHillshader =
@@ -26,7 +26,9 @@ let shadePixel parameters : Hillshading.PixelHillshader =
         | false ->
             let degrees = radToDeg slope
 
+            let slopeIntensity = degrees / 90. * parameters.Intensity
+
             Rgba8Bit.mixColors
                 parameters.HorizontalColor
                 parameters.VerticalColor
-                (degrees / 90.)
+                slopeIntensity

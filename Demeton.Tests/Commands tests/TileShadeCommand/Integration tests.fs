@@ -14,6 +14,10 @@ let ``run command`` () =
           PixelSize = None
           MapScale = Some 500000
           Dpi = 245
-          WaterBodiesColor = "#49C8FF" |> Png.Rgba8Bit.parseColorHexValue }
+          IgorHillshadingIntensity = 1.
+          SlopeShadingIntensity = 1.
+          WaterBodiesColor = "#49C8FF" |> Png.Rgba8Bit.parseColorHexValue
+          LocalCacheDir = TileShadeCommand.DefaultLocalCacheDir
+          OutputDir = TileShadeCommand.DefaultOutputDir }
 
     TileShadeCommand.run options

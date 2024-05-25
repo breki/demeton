@@ -27,6 +27,7 @@ let ``Can parse step without parameters`` () =
                 SlopeShading
                     { HorizontalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
                       VerticalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy
+                      Intensity = 1.
                       HeightsArrayIndex = 0 }
             )
         @>
@@ -48,6 +49,7 @@ let ``Can parse step with valid parameters`` () =
                     { HorizontalColor = 0u
                       VerticalColor =
                         Rgba8Bit.rgbaColor 0x33uy 0x33uy 0x33uy 0xffuy
+                      Intensity = 1.
                       HeightsArrayIndex = 0 }
                 )
             )

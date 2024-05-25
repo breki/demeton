@@ -12,6 +12,7 @@ type ShaderParameters =
       // https://en.wikipedia.org/wiki/Azimuth
       SunAzimuth: float
       ShadingColor: Rgba8Bit.RgbaColor
+      Intensity: float
       HeightsArrayIndex: int }
 
 [<Literal>]
@@ -20,6 +21,7 @@ let DefaultSunAzimuth = -45.
 let defaultParameters =
     { SunAzimuth = degToRad DefaultSunAzimuth
       ShadingColor = 0u
+      Intensity = 1.
       HeightsArrayIndex = 0 }
 
 let shadePixel parameters : Hillshading.PixelHillshader =
@@ -35,7 +37,7 @@ let shadePixel parameters : Hillshading.PixelHillshader =
 
             let slopeDarkness = slope / (Math.PI / 2.)
             let aspectDarkness = aspectDiff / Math.PI
-            let darkness = slopeDarkness * aspectDarkness
+            let darkness = slopeDarkness * aspectDarkness * parameters.Intensity
 
             let alpha = Hillshading.colorComponentRatioToByte darkness
 

@@ -19,8 +19,6 @@ open Png.Types
 open Raster
 open Demeton.Shaders.Pipeline.Common
 
-// todo 30: add cache dir parameter
-
 type Options =
     { TileWidth: int
       TileHeight: int
@@ -28,6 +26,10 @@ type Options =
       PixelSize: float option
       MapScale: float option
       Dpi: float
+      LocalCacheDir: string
+      OutputDir: string
+      IgorHillshadingIntensity: float
+      SlopeShadingIntensity: float
       WaterBodiesColor: Rgba8Bit.ArgbColor }
 
 [<Literal>]
@@ -52,7 +54,25 @@ let MapScaleParameter = "map-scale"
 let DpiParameter = "dpi"
 
 [<Literal>]
+let LocalCacheDirParameter = "local-cache-dir"
+
+[<Literal>]
+let OutputDirParameter = "output-dir"
+
+[<Literal>]
+let IgorHillshadingIntensityParameter = "igor-hillshading-intensity"
+
+[<Literal>]
+let SlopeShadingIntensityParameter = "slope-shading-intensity"
+
+[<Literal>]
 let WaterBodiesColor = "water-color"
+
+[<Literal>]
+let DefaultLocalCacheDir = "cache"
+
+[<Literal>]
+let DefaultOutputDir = "output"
 
 let defaultWaterBodiesColor = "#49C8FF" |> Rgba8Bit.parseColorHexValue
 
@@ -99,11 +119,39 @@ let supportedParameters: CommandParameter[] =
        |> Option.defaultValue 254.
        |> Option.toPar
 
+       Option.build IgorHillshadingIntensityParameter
+       |> Option.desc
+           "The intensity of the Igor hillshading (a non-negative float value, default is 1.0)."
+       |> Option.asNonNegativeFloat
+       |> Option.defaultValue 1.
+       |> Option.toPar
+
+       Option.build SlopeShadingIntensityParameter
+       |> Option.desc
+           "The intensity of the slope shading (a non-negative float value, default is 1.0)."
+       |> Option.asNonNegativeFloat
+       |> Option.defaultValue 1.
+       |> Option.toPar
+
        Option.build WaterBodiesColor
        |> Option.desc "The color of the water bodies."
        |> Option.example "#49C8FF" "uses a light blue color for water bodies"
        |> Option.parser parseColorParameter
        |> Option.defaultValue defaultWaterBodiesColor
+       |> Option.toPar
+
+       Option.build LocalCacheDirParameter
+       |> Option.desc
+           "The path to the local DEM cache directory. The directory will be created if it does not exist yet."
+       |> Option.asDirectory
+       |> Option.defaultValue DefaultLocalCacheDir
+       |> Option.toPar
+
+       Option.build OutputDirParameter
+       |> Option.desc
+           "The path to the directory where the raster files will be generated. The directory will be created if it does not exist yet."
+       |> Option.asDirectory
+       |> Option.defaultValue DefaultOutputDir
        |> Option.toPar |]
 
 let fillOptions parsedParameters =
@@ -114,7 +162,11 @@ let fillOptions parsedParameters =
           PixelSize = None
           MapScale = None
           Dpi = 254.
-          WaterBodiesColor = defaultWaterBodiesColor }
+          IgorHillshadingIntensity = 1.
+          SlopeShadingIntensity = 1.
+          WaterBodiesColor = defaultWaterBodiesColor
+          LocalCacheDir = DefaultLocalCacheDir
+          OutputDir = DefaultOutputDir }
 
     let processParameter options parameter =
         match parameter with
@@ -148,10 +200,26 @@ let fillOptions parsedParameters =
                 MapScale = Some(value :?> float) }
         | ParsedOption { Name = DpiParameter; Value = value } ->
             { options with Dpi = value :?> float }
+        | ParsedOption { Name = IgorHillshadingIntensityParameter
+                         Value = value } ->
+            { options with
+                IgorHillshadingIntensity = value :?> float }
+        | ParsedOption { Name = SlopeShadingIntensityParameter
+                         Value = value } ->
+            { options with
+                SlopeShadingIntensity = value :?> float }
         | ParsedOption { Name = WaterBodiesColor
                          Value = value } ->
             { options with
                 WaterBodiesColor = value :?> Rgba8Bit.ArgbColor }
+        | ParsedOption { Name = LocalCacheDirParameter
+                         Value = value } ->
+            { options with
+                LocalCacheDir = value :?> string }
+        | ParsedOption { Name = OutputDirParameter
+                         Value = value } ->
+            { options with
+                OutputDir = value :?> string }
         | _ -> invalidOp "Unrecognized parameter."
 
     let filledOptions =
@@ -294,11 +362,9 @@ let saveTileFile
     (openFileToWrite: FileWriter)
     (writePngToStream: File.PngStreamWriter)
     (tileRect: Rect)
+    outputDir
     imageData
     =
-    // todo 10: add OutputDir to options
-    let outputDir = "output"
-
     ensureDirectoryExists outputDir |> ignore
 
     let tilePngFileName = outputDir |> Pth.combine ("tile.png")
@@ -321,7 +387,7 @@ let saveTileFile
 
 
 let run (options: Options) : Result<unit, string> =
-    let cacheDir = "cache"
+    let cacheDir = options.LocalCacheDir
     let srtmLevel: DemLevel = { Value = 0 }
 
     // the center of the raster rect should represent the center specified in
@@ -339,13 +405,18 @@ let run (options: Options) : Result<unit, string> =
         ShadingStep.SolidBackground solidBackgroundStepParameters
 
     let igorHillshadingStep =
-        ShadingStep.IgorHillshading IgorHillshader.defaultParameters
-
-    let igorHillshadingStep =
-        ShadingStep.IgorHillshading IgorHillshader.defaultParameters
+        ShadingStep.IgorHillshading
+            { SunAzimuth = degToRad IgorHillshader.DefaultSunAzimuth
+              ShadingColor = 0u
+              Intensity = options.IgorHillshadingIntensity
+              HeightsArrayIndex = 0 }
 
     let slopeShadingStep =
-        ShadingStep.SlopeShading SlopeShader.defaultParameters
+        ShadingStep.SlopeShading
+            { HorizontalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
+              VerticalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy
+              Intensity = options.SlopeShadingIntensity
+              HeightsArrayIndex = 0 }
 
     let hillshadingStep =
         Compositing(
@@ -378,6 +449,7 @@ let run (options: Options) : Result<unit, string> =
                         openFileToWrite
                         File.savePngToStream
                         tileRect
+                        options.OutputDir
                         imageData
                     |> ignore
 

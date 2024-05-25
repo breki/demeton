@@ -87,6 +87,7 @@ let ``Igor shading properties test`` () =
         ) : IgorHillshader.ShaderParameters =
         { SunAzimuth = az
           ShadingColor = col
+          Intensity = 1.
           HeightsArrayIndex = 0 }
 
     let genCircleAngle = floatInRange 0 360 |> Gen.map degToRad

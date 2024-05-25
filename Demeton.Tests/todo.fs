@@ -2,11 +2,7 @@
 
 module Demeton.Tests.todo
 
-
-// todo 0: add less intensity to slope shading
-// todo 1: add more intensity to the main hillshading
-
-// todo 2: limit the command to stick to the SRTM level 0
+// todo 6: limit the command to stick to the SRTM level 0
 
 // todo 100: update shading docs now that we have added an array of fetchers
 
