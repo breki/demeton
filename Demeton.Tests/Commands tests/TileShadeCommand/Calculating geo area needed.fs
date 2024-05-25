@@ -2,6 +2,7 @@
 
 open Demeton.Commands
 
+open Demeton.Shaders
 open Xunit
 open Swensen.Unquote
 open TestHelp
@@ -17,6 +18,7 @@ let ``Geo area needed is calculated correctly`` () =
           Dpi = 245
           IgorHillshadingIntensity = 1.
           SlopeShadingIntensity = 1.
+          SunAzimuth = IgorHillshader.DefaultSunAzimuth
           WaterBodiesColor = "#49C8FF" |> Png.Rgba8Bit.parseColorHexValue
           LocalCacheDir = TileShadeCommand.DefaultLocalCacheDir
           OutputDir = TileShadeCommand.DefaultOutputDir }

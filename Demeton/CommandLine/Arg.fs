@@ -11,9 +11,13 @@ let build name =
       Example = None
       Parser = fun value -> OkValue value }
 
-let asFloat minValue (arg: CommandArg) =
+let asFloat (arg: CommandArg) =
     { arg with
-        Parser = (ValueParsers.parseFloat minValue) }
+        Parser = (ValueParsers.parseFloat None) }
+
+let asFloatWithMin minValue (arg: CommandArg) =
+    { arg with
+        Parser = (ValueParsers.parseFloat (Some minValue)) }
 
 let asPositiveInt (arg: CommandArg) =
     { arg with

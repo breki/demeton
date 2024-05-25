@@ -4,12 +4,13 @@ module CommandLine.ValueParsers
 open CommandLine.Common
 open System.IO
 
-let parseInt: OptionValueParser = fun text ->
-    let intResult = TextParsers.parseInt text
+let parseInt: OptionValueParser =
+    fun text ->
+        let intResult = TextParsers.parseInt text
 
-    match intResult with
-    | Error _ -> InvalidValue "it has to be an integer value"
-    | Ok value -> OkValue value
+        match intResult with
+        | Error _ -> InvalidValue "it has to be an integer value"
+        | Ok value -> OkValue value
 
 let parsePositiveInt value =
     let intResult = TextParsers.parseInt value
@@ -18,24 +19,27 @@ let parsePositiveInt value =
     | Error _ -> InvalidValue "it has to be an integer value larger than 0"
     | Ok value ->
         match value with
-        | x when x < 1 -> 
+        | x when x < 1 ->
             InvalidValue "it has to be an integer value larger than 0"
         | _ -> OkValue value
 
-    
+
 let parseDir: OptionValueParser = fun text -> OkValue text
 
 let parseFloat minValue value =
-    let invalidValue() =
-        InvalidValue (sprintf "it has to be a numeric value >= %g" minValue)
-    
+    let invalidValue () =
+        match minValue with
+        | Some minValue ->
+            InvalidValue(sprintf "it has to be a numeric value >= %g" minValue)
+        | None -> InvalidValue "it has to be a numeric value"
+
     let floatResult = TextParsers.parseFloat value
 
     match floatResult with
-    | Error _ -> invalidValue()
+    | Error _ -> invalidValue ()
     | Ok value ->
-        match value with
-        | x when x < minValue -> invalidValue()
+        match value, minValue with
+        | x, Some minValue when x < minValue -> invalidValue ()
         | _ -> OkValue value
 
 let parsePositiveFloat value =
@@ -45,8 +49,7 @@ let parsePositiveFloat value =
     | Error _ -> InvalidValue "it has to be a positive numeric value"
     | Ok value ->
         match value with
-        | x when x <= 0. -> 
-            InvalidValue "it has to be a positive numeric value"
+        | x when x <= 0. -> InvalidValue "it has to be a positive numeric value"
         | _ -> OkValue value
 
 let parseFileName (value: string) =

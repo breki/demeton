@@ -30,6 +30,7 @@ type Options =
       OutputDir: string
       IgorHillshadingIntensity: float
       SlopeShadingIntensity: float
+      SunAzimuth: float
       WaterBodiesColor: Rgba8Bit.ArgbColor }
 
 [<Literal>]
@@ -66,6 +67,9 @@ let IgorHillshadingIntensityParameter = "igor-hillshading-intensity"
 let SlopeShadingIntensityParameter = "slope-shading-intensity"
 
 [<Literal>]
+let SunAzimuth = "sun-azimuth"
+
+[<Literal>]
 let WaterBodiesColor = "water-color"
 
 [<Literal>]
@@ -94,12 +98,12 @@ let supportedParameters: CommandParameter[] =
 
        Arg.build CenterLongitudeParameter
        |> Arg.desc "The longitude of the center of the tile."
-       |> Arg.asFloat -180
+       |> Arg.asFloatWithMin -180
        |> Arg.toPar
 
        Arg.build CenterLatitudeParameter
        |> Arg.desc "The latitude of the center of the tile."
-       |> Arg.asFloat -90
+       |> Arg.asFloatWithMin -90
        |> Arg.toPar
 
        Option.build PixelSizeParameter
@@ -133,6 +137,13 @@ let supportedParameters: CommandParameter[] =
        |> Option.defaultValue 1.
        |> Option.toPar
 
+       Option.build SunAzimuth
+       |> Option.desc
+           "The azimuth of the sun in degrees, 0° representing north (default is 315°, northwest)."
+       |> Option.defaultValue IgorHillshader.DefaultSunAzimuth
+       |> Option.asFloat
+       |> Option.toPar
+
        Option.build WaterBodiesColor
        |> Option.desc "The color of the water bodies."
        |> Option.example "#49C8FF" "uses a light blue color for water bodies"
@@ -164,6 +175,7 @@ let fillOptions parsedParameters =
           Dpi = 254.
           IgorHillshadingIntensity = 1.
           SlopeShadingIntensity = 1.
+          SunAzimuth = IgorHillshader.DefaultSunAzimuth
           WaterBodiesColor = defaultWaterBodiesColor
           LocalCacheDir = DefaultLocalCacheDir
           OutputDir = DefaultOutputDir }
@@ -208,6 +220,9 @@ let fillOptions parsedParameters =
                          Value = value } ->
             { options with
                 SlopeShadingIntensity = value :?> float }
+        | ParsedOption { Name = SunAzimuth; Value = value } ->
+            { options with
+                SunAzimuth = value :?> float |> degToRad }
         | ParsedOption { Name = WaterBodiesColor
                          Value = value } ->
             { options with
@@ -367,7 +382,7 @@ let saveTileFile
     =
     ensureDirectoryExists outputDir |> ignore
 
-    let tilePngFileName = outputDir |> Pth.combine ("tile.png")
+    let tilePngFileName = outputDir |> Pth.combine "tile.png"
 
     openFileToWrite tilePngFileName
     |> Result.map (fun stream ->
@@ -406,7 +421,7 @@ let run (options: Options) : Result<unit, string> =
 
     let igorHillshadingStep =
         ShadingStep.IgorHillshading
-            { SunAzimuth = degToRad IgorHillshader.DefaultSunAzimuth
+            { SunAzimuth = options.SunAzimuth
               ShadingColor = 0u
               Intensity = options.IgorHillshadingIntensity
               HeightsArrayIndex = 0 }

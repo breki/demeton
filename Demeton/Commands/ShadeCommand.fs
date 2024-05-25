@@ -191,7 +191,7 @@ let supportedParameters: CommandParameter[] =
 
        Option.build MapScaleParameter
        |> Option.desc "The map scale needed for the resulting raster image."
-       |> Option.asFloat 1.
+       |> Option.asFloatWithMin 1.
        |> Option.defaultValue DefaultMapScale
        |> Option.example
            "100000"
@@ -358,8 +358,7 @@ let calculateRasterMbr mapProjection options =
 /// needed for the shading process.
 /// </summary>
 let calculateSrtmLevelNeeded mapProjection rasterMbr =
-    minLonLatDelta rasterMbr mapProjection.Invert
-    |> lonLatDeltaToSrtmLevel 3600
+    minLonLatDelta rasterMbr mapProjection.Invert |> lonLatDeltaToSrtmLevel 3600
 
 
 /// <summary>
@@ -368,13 +367,10 @@ let calculateSrtmLevelNeeded mapProjection rasterMbr =
 /// Also returns the maximum tile index (either on X or Y axes, whichever is
 /// larger).
 /// </summary>
-let constructRasterTilesList options (rasterMbr: Rect)  =
+let constructRasterTilesList options (rasterMbr: Rect) =
     let tilesToGenerate =
         [ for yIndex, tileMinY, tileMaxY in
-              splitIntoIntervals
-                  rasterMbr.MinY
-                  rasterMbr.MaxY
-                  options.TileSize do
+              splitIntoIntervals rasterMbr.MinY rasterMbr.MaxY options.TileSize do
               for xIndex, tileMinX, tileMaxX in
                   splitIntoIntervals
                       rasterMbr.MinX
@@ -581,17 +577,18 @@ let runWithProjection
     let srtmLevel = calculateSrtmLevelNeeded mapProjection rasterMbr
 
     // then split it up into tiles
-    let tilesToGenerate, maxTileIndex = constructRasterTilesList options rasterMbr
+    let tilesToGenerate, maxTileIndex =
+        constructRasterTilesList options rasterMbr
 
     let generateAndSaveHillshadingTile
-        xIndex yIndex tileBounds tilesGeneratedSoFar =
+        xIndex
+        yIndex
+        tileBounds
+        tilesGeneratedSoFar
+        =
         Log.info $"Generating a shade tile %d{xIndex}/%d{yIndex}..."
 
-        generateTile
-            srtmLevel
-            tileBounds
-            options.RootShadingStep
-            mapProjection
+        generateTile srtmLevel tileBounds options.RootShadingStep mapProjection
         |> Result.map (fun maybeGeneratedTile ->
             match maybeGeneratedTile with
             | Some imageData ->
@@ -613,7 +610,9 @@ let runWithProjection
     |> List.fold
         (fun state (xIndex, yIndex, tileBounds) ->
             state
-            |> Result.bind (generateAndSaveHillshadingTile xIndex yIndex tileBounds))
+            |> Result.bind (
+                generateAndSaveHillshadingTile xIndex yIndex tileBounds
+            ))
         (Ok 0)
     |> Result.map (fun actualTilesGenerated ->
         match actualTilesGenerated with

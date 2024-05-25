@@ -15,9 +15,15 @@ let build name : CommandOption =
 let desc description (opt: CommandOption) =
     { opt with Description = description }
 
-let asFloat minValue (opt: CommandOption) =
+let asFloat (opt: CommandOption) =
     { opt with
-        Parser = (ValueParsers.parseFloat minValue)
+        Parser = (ValueParsers.parseFloat None)
+        ValuePlaceholder = "number"
+        Format = "real number" }
+
+let asFloatWithMin minValue (opt: CommandOption) =
+    { opt with
+        Parser = (ValueParsers.parseFloat (Some minValue))
         ValuePlaceholder = "number"
         Format = sprintf "real number >= %g" minValue }
 
@@ -47,7 +53,7 @@ let asPositiveFloat (opt: CommandOption) =
 
 let asNonNegativeFloat (opt: CommandOption) =
     { opt with
-        Parser = (ValueParsers.parseFloat 0.)
+        Parser = (ValueParsers.parseFloat (Some 0.))
         ValuePlaceholder = "number"
         Format = "non-negative real number" }
 
