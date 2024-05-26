@@ -26,12 +26,13 @@ type Options =
       PixelSize: float option
       MapScale: float option
       Dpi: float
-      LocalCacheDir: string
-      OutputDir: string
       IgorHillshadingIntensity: float
       SlopeShadingIntensity: float
       SunAzimuth: float
-      WaterBodiesColor: Rgba8Bit.ArgbColor }
+      WaterBodiesColor: Rgba8Bit.ArgbColor
+      LocalCacheDir: string
+      OutputDir: string
+      OutputFileName: string }
 
 [<Literal>]
 let TileWidthParameter = "tile-width"
@@ -55,28 +56,35 @@ let MapScaleParameter = "map-scale"
 let DpiParameter = "dpi"
 
 [<Literal>]
-let LocalCacheDirParameter = "local-cache-dir"
-
-[<Literal>]
-let OutputDirParameter = "output-dir"
-
-[<Literal>]
 let IgorHillshadingIntensityParameter = "igor-hillshading-intensity"
 
 [<Literal>]
 let SlopeShadingIntensityParameter = "slope-shading-intensity"
 
 [<Literal>]
-let SunAzimuth = "sun-azimuth"
+let SunAzimuthParameter = "sun-azimuth"
 
 [<Literal>]
-let WaterBodiesColor = "water-color"
+let WaterBodiesColorParameter = "water-color"
+
+[<Literal>]
+let LocalCacheDirParameter = "local-cache-dir"
+
+[<Literal>]
+let OutputDirParameter = "output-dir"
+
+[<Literal>]
+let OutputFileNameParameter = "output-file"
 
 [<Literal>]
 let DefaultLocalCacheDir = "cache"
 
 [<Literal>]
 let DefaultOutputDir = "output"
+
+[<Literal>]
+let DefaultOutputFileName = "tile.png"
+
 
 let defaultWaterBodiesColor = "#49C8FF" |> Rgba8Bit.parseColorHexValue
 
@@ -137,14 +145,14 @@ let supportedParameters: CommandParameter[] =
        |> Option.defaultValue 1.
        |> Option.toPar
 
-       Option.build SunAzimuth
+       Option.build SunAzimuthParameter
        |> Option.desc
            "The azimuth of the sun in degrees, 0° representing north (default is 315°, northwest)."
        |> Option.defaultValue IgorHillshader.DefaultSunAzimuth
        |> Option.asFloat
        |> Option.toPar
 
-       Option.build WaterBodiesColor
+       Option.build WaterBodiesColorParameter
        |> Option.desc "The color of the water bodies."
        |> Option.example "#49C8FF" "uses a light blue color for water bodies"
        |> Option.parser parseColorParameter
@@ -163,6 +171,12 @@ let supportedParameters: CommandParameter[] =
            "The path to the directory where the raster files will be generated. The directory will be created if it does not exist yet."
        |> Option.asDirectory
        |> Option.defaultValue DefaultOutputDir
+       |> Option.toPar
+
+       Option.build OutputFileNameParameter
+       |> Option.desc "The name of the output file (default it 'tile.png')."
+       |> Option.asFileName
+       |> Option.defaultValue DefaultOutputFileName
        |> Option.toPar |]
 
 let fillOptions parsedParameters =
@@ -178,7 +192,8 @@ let fillOptions parsedParameters =
           SunAzimuth = IgorHillshader.DefaultSunAzimuth
           WaterBodiesColor = defaultWaterBodiesColor
           LocalCacheDir = DefaultLocalCacheDir
-          OutputDir = DefaultOutputDir }
+          OutputDir = DefaultOutputDir
+          OutputFileName = DefaultOutputFileName }
 
     let processParameter options parameter =
         match parameter with
@@ -220,10 +235,11 @@ let fillOptions parsedParameters =
                          Value = value } ->
             { options with
                 SlopeShadingIntensity = value :?> float }
-        | ParsedOption { Name = SunAzimuth; Value = value } ->
+        | ParsedOption { Name = SunAzimuthParameter
+                         Value = value } ->
             { options with
                 SunAzimuth = value :?> float |> degToRad }
-        | ParsedOption { Name = WaterBodiesColor
+        | ParsedOption { Name = WaterBodiesColorParameter
                          Value = value } ->
             { options with
                 WaterBodiesColor = value :?> Rgba8Bit.ArgbColor }
@@ -235,6 +251,10 @@ let fillOptions parsedParameters =
                          Value = value } ->
             { options with
                 OutputDir = value :?> string }
+        | ParsedOption { Name = OutputFileNameParameter
+                         Value = value } ->
+            { options with
+                OutputFileName = value :?> string }
         | _ -> invalidOp "Unrecognized parameter."
 
     let filledOptions =
@@ -378,11 +398,12 @@ let saveTileFile
     (writePngToStream: File.PngStreamWriter)
     (tileRect: Rect)
     outputDir
+    outputFileName
     imageData
     =
     ensureDirectoryExists outputDir |> ignore
 
-    let tilePngFileName = outputDir |> Pth.combine "tile.png"
+    let tilePngFileName = outputDir |> Pth.combine outputFileName
 
     openFileToWrite tilePngFileName
     |> Result.map (fun stream ->
@@ -465,6 +486,7 @@ let run (options: Options) : Result<unit, string> =
                         File.savePngToStream
                         tileRect
                         options.OutputDir
+                        options.OutputFileName
                         imageData
                     |> ignore
 

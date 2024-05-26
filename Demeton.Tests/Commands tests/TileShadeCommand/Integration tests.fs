@@ -20,6 +20,7 @@ let ``run command`` () =
           SunAzimuth = IgorHillshader.DefaultSunAzimuth
           WaterBodiesColor = "#49C8FF" |> Png.Rgba8Bit.parseColorHexValue
           LocalCacheDir = TileShadeCommand.DefaultLocalCacheDir
-          OutputDir = TileShadeCommand.DefaultOutputDir }
+          OutputDir = TileShadeCommand.DefaultOutputDir
+          OutputFileName = TileShadeCommand.DefaultOutputFileName }
 
     TileShadeCommand.run options

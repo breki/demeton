@@ -19,7 +19,8 @@ let ``Projection is created`` () =
           SunAzimuth = IgorHillshader.DefaultSunAzimuth
           WaterBodiesColor = "#49C8FF" |> Png.Rgba8Bit.parseColorHexValue
           LocalCacheDir = TileShadeCommand.DefaultLocalCacheDir
-          OutputDir = TileShadeCommand.DefaultOutputDir }
+          OutputDir = TileShadeCommand.DefaultOutputDir
+          OutputFileName = TileShadeCommand.DefaultOutputFileName }
 
     let projection = TileShadeCommand.createProjection options
 
