@@ -93,7 +93,6 @@ let ``Generate hillshading from AW3D`` () =
     let pixelShader =
         IgorHillshader.shadePixel
             { SunAzimuth = IgorHillshader.DefaultSunAzimuth |> degToRad
-              SunAltitude = IgorHillshader.DefaultSunAltitude |> degToRad
               ShadingColor = 0u
               Intensity = 1.
               HeightsArrayIndex = 0 }

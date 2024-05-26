@@ -163,7 +163,7 @@ let supportedParameters: CommandParameter[] =
        Option.build SunAltitudeParameter
        |> Option.desc
            "The altitude of the sun in degrees, 0° representing the horizon (default is 45°)."
-       |> Option.defaultValue IgorHillshader.DefaultSunAltitude
+       |> Option.defaultValue LambertHillshader.DefaultSunAltitude
        |> Option.asFloat
        |> Option.toPar
 
@@ -205,7 +205,7 @@ let fillOptions parsedParameters =
           IgorHillshadingIntensity = 1.
           SlopeShadingIntensity = 1.
           SunAzimuth = IgorHillshader.DefaultSunAzimuth |> degToRad
-          SunAltitude = IgorHillshader.DefaultSunAltitude |> degToRad
+          SunAltitude = LambertHillshader.DefaultSunAltitude |> degToRad
           WaterBodiesColor = defaultWaterBodiesColor
           LocalCacheDir = DefaultLocalCacheDir
           OutputDir = DefaultOutputDir
@@ -463,6 +463,13 @@ let run (options: Options) : Result<unit, string> =
     let igorHillshadingStep =
         ShadingStep.IgorHillshading
             { SunAzimuth = options.SunAzimuth
+              ShadingColor = 0u
+              Intensity = options.IgorHillshadingIntensity
+              HeightsArrayIndex = 0 }
+
+    let lambertHillshadingStep =
+        ShadingStep.LambertHillshading
+            { SunAzimuth = options.SunAzimuth
               SunAltitude = options.SunAltitude
               ShadingColor = 0u
               Intensity = options.IgorHillshadingIntensity
@@ -477,7 +484,7 @@ let run (options: Options) : Result<unit, string> =
 
     let hillshadingStep =
         Compositing(
-            igorHillshadingStep,
+            lambertHillshadingStep,
             slopeShadingStep,
             CompositingFuncIdAlphaDarken
         )

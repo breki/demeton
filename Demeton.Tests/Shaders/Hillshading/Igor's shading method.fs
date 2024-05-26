@@ -86,7 +86,6 @@ let ``Igor shading properties test`` () =
             col: Rgba8Bit.RgbaColor
         ) : IgorHillshader.ShaderParameters =
         { SunAzimuth = az
-          SunAltitude = IgorHillshader.DefaultSunAltitude
           ShadingColor = col
           Intensity = 1.
           HeightsArrayIndex = 0 }

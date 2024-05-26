@@ -21,6 +21,7 @@ type ShadingStep =
     | SolidBackground of SolidBackground.Parameters
     | ElevationColoring of ElevationColoring.Parameters
     | IgorHillshading of IgorHillshader.ShaderParameters
+    | LambertHillshading of LambertHillshader.ShaderParameters
     | SlopeShading of SlopeShader.ShaderParameters
     | AspectShading of AspectShader.ShaderParameters
     | CustomShading of ShadingFuncId
@@ -127,6 +128,12 @@ let rec executeShadingStep
                 Hillshading.shadeRaster
                     parameters.HeightsArrayIndex
                     (IgorHillshader.shadePixel parameters)
+            | LambertHillshading parameters ->
+                Log.info "Running lambert hillshading step..."
+
+                Hillshading.shadeRaster
+                    parameters.HeightsArrayIndex
+                    (LambertHillshader.shadePixel parameters)
             | SlopeShading parameters ->
                 Log.info "Running slope shading step..."
 
