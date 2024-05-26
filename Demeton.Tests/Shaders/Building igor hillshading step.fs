@@ -1,5 +1,6 @@
 ﻿module Tests.Shaders.``Building igor hillshading step``
 
+open Demeton.Shaders
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
 open Demeton.Shaders.Pipeline.BuildingIgorHillshading
@@ -25,6 +26,7 @@ let ``Can parse step without parameters`` () =
             step = Ok(
                 IgorHillshading(
                     { SunAzimuth = degToRad -45.
+                      SunAltitude = IgorHillshader.DefaultSunAltitude
                       ShadingColor = 0u
                       Intensity = 1.
                       HeightsArrayIndex = 0 }
@@ -47,6 +49,7 @@ let ``Can parse step with valid parameters`` () =
             step = Ok(
                 IgorHillshading(
                     { SunAzimuth = degToRad -90.
+                      SunAltitude = IgorHillshader.DefaultSunAltitude
                       ShadingColor = 0x333333ffu
                       Intensity = 1.
                       HeightsArrayIndex = 0 }

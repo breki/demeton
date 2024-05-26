@@ -28,7 +28,10 @@ type Options =
       Dpi: float
       IgorHillshadingIntensity: float
       SlopeShadingIntensity: float
+      // In radians
       SunAzimuth: float
+      // In radians
+      SunAltitude: float
       WaterBodiesColor: Rgba8Bit.ArgbColor
       LocalCacheDir: string
       OutputDir: string
@@ -65,6 +68,9 @@ let SlopeShadingIntensityParameter = "slope-shading-intensity"
 let SunAzimuthParameter = "sun-azimuth"
 
 [<Literal>]
+let SunAltitudeParameter = "sun-altitude"
+
+[<Literal>]
 let WaterBodiesColorParameter = "water-color"
 
 [<Literal>]
@@ -85,6 +91,8 @@ let DefaultOutputDir = "output"
 [<Literal>]
 let DefaultOutputFileName = "tile.png"
 
+[<Literal>]
+let DefaultDpi = 254.
 
 let defaultWaterBodiesColor = "#49C8FF" |> Rgba8Bit.parseColorHexValue
 
@@ -128,7 +136,7 @@ let supportedParameters: CommandParameter[] =
        Option.build DpiParameter
        |> Option.desc "The DPI of the output image (the default is 254 DPI)."
        |> Option.asPositiveFloat
-       |> Option.defaultValue 254.
+       |> Option.defaultValue DefaultDpi
        |> Option.toPar
 
        Option.build IgorHillshadingIntensityParameter
@@ -149,6 +157,13 @@ let supportedParameters: CommandParameter[] =
        |> Option.desc
            "The azimuth of the sun in degrees, 0° representing north (default is 315°, northwest)."
        |> Option.defaultValue IgorHillshader.DefaultSunAzimuth
+       |> Option.asFloat
+       |> Option.toPar
+
+       Option.build SunAltitudeParameter
+       |> Option.desc
+           "The altitude of the sun in degrees, 0° representing the horizon (default is 45°)."
+       |> Option.defaultValue IgorHillshader.DefaultSunAltitude
        |> Option.asFloat
        |> Option.toPar
 
@@ -186,10 +201,11 @@ let fillOptions parsedParameters =
           TileCenter = (0., 0.)
           PixelSize = None
           MapScale = None
-          Dpi = 254.
+          Dpi = DefaultDpi
           IgorHillshadingIntensity = 1.
           SlopeShadingIntensity = 1.
-          SunAzimuth = IgorHillshader.DefaultSunAzimuth
+          SunAzimuth = IgorHillshader.DefaultSunAzimuth |> degToRad
+          SunAltitude = IgorHillshader.DefaultSunAltitude |> degToRad
           WaterBodiesColor = defaultWaterBodiesColor
           LocalCacheDir = DefaultLocalCacheDir
           OutputDir = DefaultOutputDir
@@ -239,6 +255,10 @@ let fillOptions parsedParameters =
                          Value = value } ->
             { options with
                 SunAzimuth = value :?> float |> degToRad }
+        | ParsedOption { Name = SunAltitudeParameter
+                         Value = value } ->
+            { options with
+                SunAltitude = value :?> float |> degToRad }
         | ParsedOption { Name = WaterBodiesColorParameter
                          Value = value } ->
             { options with
@@ -443,6 +463,7 @@ let run (options: Options) : Result<unit, string> =
     let igorHillshadingStep =
         ShadingStep.IgorHillshading
             { SunAzimuth = options.SunAzimuth
+              SunAltitude = options.SunAltitude
               ShadingColor = 0u
               Intensity = options.IgorHillshadingIntensity
               HeightsArrayIndex = 0 }

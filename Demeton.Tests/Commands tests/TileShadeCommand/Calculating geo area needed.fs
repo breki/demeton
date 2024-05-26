@@ -1,6 +1,7 @@
 ﻿module Tests.Commands_tests.TileShadeCommand.Calculating_geo_area_needed
 
 open Demeton.Commands
+open Demeton.Geometry.Common
 
 open Demeton.Shaders
 open Xunit
@@ -18,12 +19,12 @@ let ``Geo area needed is calculated correctly`` () =
           Dpi = 245
           IgorHillshadingIntensity = 1.
           SlopeShadingIntensity = 1.
-          SunAzimuth = IgorHillshader.DefaultSunAzimuth
+          SunAzimuth = IgorHillshader.DefaultSunAzimuth |> degToRad
+          SunAltitude = IgorHillshader.DefaultSunAltitude |> degToRad
           WaterBodiesColor = "#49C8FF" |> Png.Rgba8Bit.parseColorHexValue
           LocalCacheDir = TileShadeCommand.DefaultLocalCacheDir
           OutputDir = TileShadeCommand.DefaultOutputDir
-          OutputFileName = TileShadeCommand.DefaultOutputFileName
-          }
+          OutputFileName = TileShadeCommand.DefaultOutputFileName }
 
     match
         TileShadeCommand.createProjection options

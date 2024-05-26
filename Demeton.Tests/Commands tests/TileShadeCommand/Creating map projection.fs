@@ -4,6 +4,7 @@ open Demeton.Commands
 
 open Demeton.Shaders
 open Xunit
+open Demeton.Geometry.Common
 
 [<Fact>]
 let ``Projection is created`` () =
@@ -16,7 +17,8 @@ let ``Projection is created`` () =
           Dpi = 245
           IgorHillshadingIntensity = 1.
           SlopeShadingIntensity = 1.
-          SunAzimuth = IgorHillshader.DefaultSunAzimuth
+          SunAzimuth = IgorHillshader.DefaultSunAzimuth |> degToRad
+          SunAltitude = IgorHillshader.DefaultSunAltitude |> degToRad
           WaterBodiesColor = "#49C8FF" |> Png.Rgba8Bit.parseColorHexValue
           LocalCacheDir = TileShadeCommand.DefaultLocalCacheDir
           OutputDir = TileShadeCommand.DefaultOutputDir
