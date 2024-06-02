@@ -50,5 +50,7 @@ let fetchSrtmTile srtmDir localCacheDir : DemTileReader =
             writeTileToCache
         |> finalizeFetchSrtmTileProcessing
 
-let fetchSrtmHeights srtmDir localCacheDir =
-    fetchDemHeights (fetchSrtmTile srtmDir localCacheDir)
+let fetchSrtmHeights srtmDir localCacheDir srtmLevel lonLatBounds =
+    let tileReader = fetchSrtmTile srtmDir localCacheDir
+    let srtmTilesNeeded = boundsToTiles 3600 srtmLevel lonLatBounds
+    fetchDemHeights tileReader srtmTilesNeeded

@@ -1,7 +1,6 @@
 ﻿module Tests.``Commands tests``.ShadeCommand.``Generating shaded tile``
 
-open Demeton.Dem.Types
-open Demeton.Dem.Funcs
+open Demeton.Geometry.Common
 open Raster
 open Demeton.Commands
 open Demeton.Shaders
@@ -27,23 +26,27 @@ let mockRasterShader _ _ _ _ _ _ = ()
 let rootShadingStep = Pipeline.Common.CustomShading "some shader"
 
 [<Fact>]
-let ``Tile generator correctly calculates which SRTM tiles it needs`` () =
+let ``Tile generator correctly specifies DEM level and bounds for tile downloaders``
+    ()
+    =
 
-    let correctSrtmTilesWereRequested (tiles: DemTileId seq) =
-        let tilesArray = tiles |> Seq.toArray
+    let correctLevelAndAreaWereProvided level area =
+        test <@ level = srtmLevel @>
 
         test
             <@
-                tilesArray = [| demTileId 4 0 -4
-                                demTileId 4 1 -4
-                                demTileId 4 0 -3
-                                demTileId 4 1 -3 |]
+                // todo 0: update the expectation
+                area = { MinLon = 0
+                         MinLat = 0
+                         MaxLon = 20
+                         MaxLat = 30 }
             @>
 
         heights |> Some |> Ok
 
+    // todo 0: looks like the correctLevelAndAreaWereProvided is never called
     ShadeCommand.generateShadedRasterTile
-        [| correctSrtmTilesWereRequested |]
+        [| correctLevelAndAreaWereProvided |]
         (fun _ -> mockRasterShader)
         srtmLevel
         tileRect
@@ -57,7 +60,7 @@ let ``When heights array fetcher returns None, tile generator does nothing and r
     ()
     =
 
-    let returnNoneForHeightsArray _ = Ok None
+    let returnNoneForHeightsArray _ _ = Ok None
 
     let shadeTileResult =
         ShadeCommand.generateShadedRasterTile
@@ -76,7 +79,7 @@ let ``When heights array fetcher returns an error, tile generator returns an err
     ()
     =
 
-    let returnErrorInsteadOfHeightsArray _ = Error "something is wrong"
+    let returnErrorInsteadOfHeightsArray _ _ = Error "something is wrong"
 
     let shadeTileResult =
         ShadeCommand.generateShadedRasterTile
@@ -91,7 +94,7 @@ let ``When heights array fetcher returns an error, tile generator returns an err
 
 [<Fact>]
 let ``Tile generator prepares the tile image data and returns it`` () =
-    let fetchSomeHeights _ = heights |> Some |> Ok
+    let fetchSomeHeights _ _ = heights |> Some |> Ok
 
     let mutable imageDataReceived = None
 

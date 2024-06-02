@@ -85,7 +85,9 @@ let ``Render hillshading with WorldCover water bodies`` () =
         // raster available (it's too big to be added to git repo)
         ()
     else
-        let worldCoverTileId = demTileXYId -6 -45
+        let worldCoverTilesNeeded = boundsToWorldCoverTiles area
+
+        let worldCoverTileId = demTileXYId 6 -45
 
         let cacheDir = "cache"
 
@@ -112,7 +114,7 @@ let ``Render hillshading with WorldCover water bodies`` () =
             |> outlineWaterBodies waterBodiesHeightsArray
             |> Seq.toList
 
-        let fetchWorldCoverHeightsArray tileIds =
+        let fetchWorldCoverHeightsArray level area =
             waterBodiesHeightsArray |> Some |> Result.Ok
 
         let heightsArraysFetchers =

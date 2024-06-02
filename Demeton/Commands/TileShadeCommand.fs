@@ -356,12 +356,7 @@ let calculateGeoAreaMbr options projection =
         Result.Error "Some of the tile bounding points could not be projected."
 
 
-let fetchAw3dHeightsArray
-    mapProjection
-    cacheDir
-    coverageArea
-    (tilesIds: DemTileId seq)
-    =
+let fetchAw3dHeightsArray mapProjection cacheDir demLevel coverageArea =
     let coveragePoints =
         [ (coverageArea.MinLon, coverageArea.MinLat)
           (coverageArea.MaxLon, coverageArea.MaxLat) ]
@@ -497,7 +492,7 @@ let run (options: Options) : Result<unit, string> =
         match calculateGeoAreaMbr options mapProjection with
         | Ok coverageArea ->
             ShadeCommand.generateShadedRasterTile
-                [| fetchAw3dHeightsArray mapProjection cacheDir coverageArea |]
+                [| fetchAw3dHeightsArray mapProjection cacheDir |]
                 createShadingFuncById
                 srtmLevel
                 tileRect

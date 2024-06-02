@@ -412,36 +412,37 @@ let extract
 /// Provides a function to fetch a heights array from a sequence of DEM tiles,
 /// using a specified DEM tile reader.
 /// </summary>
-let fetchDemHeights (readDemTile: DemTileReader) : DemHeightsArrayFetcher =
-    fun tilesToUse ->
+let fetchDemHeights
+    (readDemTile: DemTileReader)
+    (tilesToUse: DemTileId seq)
+    : HeightsArrayMaybeResult =
+    let mutable errorMessage = None
+    let mutable i = 0
 
-        let mutable errorMessage = None
-        let mutable i = 0
+    let tilesArray = tilesToUse |> Seq.toArray
+    let mutable heightsArraysToMerge = []
 
-        let tilesArray = tilesToUse |> Seq.toArray
-        let mutable heightsArraysToMerge = []
+    while i < tilesArray.Length && Option.isNone errorMessage do
+        let tileCoords = tilesArray.[i]
+        let tileLoadResult = readDemTile tileCoords
 
-        while i < tilesArray.Length && Option.isNone errorMessage do
-            let tileCoords = tilesArray.[i]
-            let tileLoadResult = readDemTile tileCoords
+        match tileLoadResult with
+        | Ok(Some heightsArray) ->
+            heightsArraysToMerge <- heightsArray :: heightsArraysToMerge
+            ()
+        | Error message ->
+            errorMessage <- Some message
+            ()
+        | _ -> ()
 
-            match tileLoadResult with
-            | Ok(Some heightsArray) ->
-                heightsArraysToMerge <- heightsArray :: heightsArraysToMerge
-                ()
-            | Error message ->
-                errorMessage <- Some message
-                ()
-            | _ -> ()
+        i <- i + 1
 
-            i <- i + 1
+    match errorMessage with
+    | Some error -> Error error
+    | _ ->
+        let mergedRect = heightsArraysToMerge |> mbrOfHeightsArrays
 
-        match errorMessage with
-        | Some error -> Error error
-        | _ ->
-            let mergedRect = heightsArraysToMerge |> mbrOfHeightsArrays
-
-            Ok(merge mergedRect heightsArraysToMerge)
+        Ok(merge mergedRect heightsArraysToMerge)
 
 
 

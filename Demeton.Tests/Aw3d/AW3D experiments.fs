@@ -45,7 +45,7 @@ let options: ShadeCommand.Options =
 
 
 // todo 10: move this to the command module?
-let fetchAw3dHeightsArray _ =
+let fetchAw3dHeightsArray _ _ =
     let tileDownloadingResult = ensureAw3dTiles CacheDir area
 
     match tileDownloadingResult with
