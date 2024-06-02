@@ -9,11 +9,11 @@ open Demeton.Projections.Common
 open Demeton.Shaders.Types
 open Demeton.Dem.Funcs
 open Demeton.WorldCover.Types
+open Demeton.WorldCover.WaterBodiesColoring
+open Demeton.WorldCover.WaterBodiesOutlining
 open Png
 open Raster
 
-open Tests.WorldCover.WaterBodiesColoring
-open Tests.WorldCover.WaterBodiesOutlining
 
 
 

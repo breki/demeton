@@ -10,13 +10,14 @@ open Demeton.Geometry.Common
 open Demeton.Dem.Funcs
 open Demeton.Projections.PROJParsing
 open Demeton.Shaders
+open Demeton.WorldCover.Fetch
 open Demeton.WorldCover.Funcs
+open Demeton.WorldCover.WaterBodiesColoring
+open Demeton.WorldCover.WaterBodiesOutlining
 open Png
+
 open Tests.Shaders
-open Tests.WorldCover.RasterSimplification
 open Tests.WorldCover.WaterBodiesShaders
-open Tests.WorldCover.WaterBodiesColoring
-open Tests.WorldCover.WaterBodiesOutlining
 open TestHelp
 
 

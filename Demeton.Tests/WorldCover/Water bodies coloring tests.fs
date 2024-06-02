@@ -1,11 +1,12 @@
 ﻿module Tests.WorldCover.Water_bodies_coloring_tests
 
-open Xunit
-open Swensen.Unquote
+open Demeton.WorldCover.WaterBodiesColoring
+open Demeton.WorldCover.WaterBodiesOutlining
 
 open Tests.Dem.HeightArraysScenes
-open Tests.WorldCover.WaterBodiesColoring
-open Tests.WorldCover.WaterBodiesOutlining
+
+open Xunit
+open Swensen.Unquote
 
 
 [<Fact>]

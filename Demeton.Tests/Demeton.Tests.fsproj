@@ -58,7 +58,7 @@
         <Compile Include="Dem\Working with HeightsArrays.fs"/>
         <Compile Include="Dem\Merging height arrays.fs"/>
         <Compile Include="Dem\Merging height arrays properties.fs"/>
-        <Compile Include="Dem\HeightArraysScenes.fs" />
+        <Compile Include="Dem\HeightArraysScenes.fs"/>
         <Compile Include="Srtm\SrtmHelper.fs"/>
         <Compile Include="Srtm\SRTM tile tests.fs"/>
         <Compile Include="Srtm\Bounds to SRTM tiles.fs"/>
@@ -138,8 +138,6 @@
         <Compile Include="Aw3d\AW3D experiments.fs"/>
         <Compile Include="WorldCover\Loading WorldCover tiles.fs"/>
         <Compile Include="WorldCover\RasterSimplification.fs"/>
-        <Compile Include="WorldCover\WaterBodiesColoring.fs"/>
-        <Compile Include="WorldCover\WaterBodiesOutlining.fs"/>
         <Compile Include="WorldCover\WaterBodiesShaders.fs"/>
         <Compile Include="WorldCover\Water bodies coloring tests.fs"/>
         <Compile Include="WorldCover\WorldCover experiments.fs"/>

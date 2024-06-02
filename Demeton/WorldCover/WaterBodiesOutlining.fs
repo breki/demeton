@@ -1,9 +1,9 @@
-﻿module Tests.WorldCover.WaterBodiesOutlining
+﻿module Demeton.WorldCover.WaterBodiesOutlining
 
 open System
 open Demeton.Dem.Types
 open Raster
-open Tests.WorldCover.WaterBodiesColoring
+open Demeton.WorldCover.WaterBodiesColoring
 
 type WaterBodyOutline =
     { Raster: HeightsArray
@@ -113,7 +113,7 @@ let outlineWaterBodies
         let waterBodyRaster = initializeWaterBodyRaster waterBody
 
         while discoveredPixelsInTotal < waterBody.SurfaceArea do
-            let waterBodyRaster, discoveredPixels =
+            let _waterBodyRaster, discoveredPixels =
                 waterBodyRaster |> outlineWaterBody waterBody distance
 
             if discoveredPixels > 0 then

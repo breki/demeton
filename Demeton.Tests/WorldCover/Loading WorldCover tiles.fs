@@ -3,7 +3,7 @@
 open Demeton.Geometry.Common
 open Demeton.Dem.Funcs
 open Demeton.WorldCover.Types
-open Demeton.WorldCover.Funcs
+open Demeton.WorldCover.Fetch
 open FileSys
 
 open FsUnit

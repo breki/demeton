@@ -1,58 +1,13 @@
 ﻿module Tests.WorldCover.RasterSimplification
 
 open Demeton.Dem.Types
+open Demeton.Dem.Funcs
 open FsUnit
 open Xunit
 open Swensen.Unquote
 
-let mapRasterValues mapFunc (heightsArray: HeightsArray) =
-    let mappedCells = heightsArray.Cells |> Array.map mapFunc
 
-    HeightsArray(
-        heightsArray.MinX,
-        heightsArray.MinY,
-        heightsArray.Width,
-        heightsArray.Height,
-        HeightsArrayDirectImport mappedCells
-    )
-
-
-let convertWorldCoverRasterToWaterMonochrome
-    (heightsArray: HeightsArray)
-    : HeightsArray =
-    let waterToMonochrome value =
-        match value with
-        // 80 represents water
-        | 80s -> 1s
-        | _ -> 0s
-
-    heightsArray |> mapRasterValues waterToMonochrome
-
-
-let sumCells9 x y (heightsArray: HeightsArray) =
-    let rasterWidth = heightsArray.Width
-    let rasterWidth2 = rasterWidth * 2
-
-    let startingIndex =
-        (y - 1 - heightsArray.MinY) * rasterWidth + x - 1 - heightsArray.MinX
-
-    let rowCellsIndexes =
-        [| 0
-           1
-           2
-           rasterWidth
-           rasterWidth + 1
-           rasterWidth + 2
-           rasterWidth2
-           rasterWidth2 + 1
-           rasterWidth2 + 2 |]
-
-    let sum =
-        rowCellsIndexes
-        |> Array.sumBy (fun i -> heightsArray.Cells[startingIndex + i])
-
-    sum, heightsArray.Cells[startingIndex + rasterWidth + 1]
-
+// this function is currently not used in the production code
 let simplifyRaster
     minPixelsChanged
     (heightsArray: HeightsArray)

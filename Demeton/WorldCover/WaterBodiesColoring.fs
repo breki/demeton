@@ -1,8 +1,8 @@
-﻿module Tests.WorldCover.WaterBodiesColoring
+﻿module Demeton.WorldCover.WaterBodiesColoring
 
 open System
 open Demeton.Dem.Types
-open JetBrains.Profiler.Api
+// open JetBrains.Profiler.Api
 open Raster
 
 type WaterBodyColor = int16
@@ -52,7 +52,6 @@ let tryColorNextWaterBody
             let mutable surfaceArea = 0
 
             let mutable coverage = Rect.Empty
-            let mutable stillMorePoints = true
 
             while pointsToColor |> List.isEmpty |> not do
                 match pointsToColor with
@@ -137,7 +136,7 @@ let tryColorNextWaterBody
     waterBody
 
 let colorWaterBodies (waterHeightsArray: HeightsArray) : WaterBody list =
-    MeasureProfiler.StartCollectingData()
+    // MeasureProfiler.StartCollectingData()
 
     let rec colorWaterBodiesRec color startingPoint waterBodies =
         match tryColorNextWaterBody color startingPoint waterHeightsArray with
@@ -159,7 +158,7 @@ let colorWaterBodies (waterHeightsArray: HeightsArray) : WaterBody list =
 
     let result = colorWaterBodiesRec 2s (0, 0) List.empty |> List.rev
 
-    MeasureProfiler.StopCollectingData()
-    MeasureProfiler.SaveData()
+    // MeasureProfiler.StopCollectingData()
+    // MeasureProfiler.SaveData()
 
     result

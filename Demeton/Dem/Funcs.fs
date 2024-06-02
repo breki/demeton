@@ -442,3 +442,52 @@ let fetchDemHeights (readDemTile: DemTileReader) : DemHeightsArrayFetcher =
             let mergedRect = heightsArraysToMerge |> mbrOfHeightsArrays
 
             Ok(merge mergedRect heightsArraysToMerge)
+
+
+
+/// <summary>
+/// Maps the values of a raster heights array using a specified function.
+/// </summary>
+let mapRasterValues mapFunc (heightsArray: HeightsArray) =
+    let mappedCells = heightsArray.Cells |> Array.map mapFunc
+
+    HeightsArray(
+        heightsArray.MinX,
+        heightsArray.MinY,
+        heightsArray.Width,
+        heightsArray.Height,
+        HeightsArrayDirectImport mappedCells
+    )
+
+
+/// <summary>
+/// Calculates the sum of the values of the 8 cells around the cell at (x, y)
+/// and the cell itself.
+/// </summary>
+/// <remarks>
+/// Returns a tuple of the sum of the values of the 9 cells and the value of
+/// the central cell.
+/// </remarks>
+let sumCells9 x y (heightsArray: HeightsArray) =
+    let rasterWidth = heightsArray.Width
+    let rasterWidth2 = rasterWidth * 2
+
+    let startingIndex =
+        (y - 1 - heightsArray.MinY) * rasterWidth + x - 1 - heightsArray.MinX
+
+    let rowCellsIndexes =
+        [| 0
+           1
+           2
+           rasterWidth
+           rasterWidth + 1
+           rasterWidth + 2
+           rasterWidth2
+           rasterWidth2 + 1
+           rasterWidth2 + 2 |]
+
+    let sum =
+        rowCellsIndexes
+        |> Array.sumBy (fun i -> heightsArray.Cells[startingIndex + i])
+
+    sum, heightsArray.Cells[startingIndex + rasterWidth + 1]
