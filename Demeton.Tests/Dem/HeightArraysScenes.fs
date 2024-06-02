@@ -1,4 +1,4 @@
-﻿module Tests.WorldCover.HeightArraysScenes
+﻿module Tests.Dem.HeightArraysScenes
 
 
 open System

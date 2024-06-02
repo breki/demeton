@@ -77,6 +77,7 @@ let options: ShadeCommand.Options =
 
 
 [<Fact(Skip = "I need to reduce the size of the dataset, it's taking too long to process")>]
+// [<Fact>]
 let ``Render hillshading with WorldCover water bodies`` () =
     if Environment.GetEnvironmentVariable("CI") = "true" then
         // this test cannot run on CI because we don't have the WorldCover

@@ -3,7 +3,7 @@
 open Xunit
 open Swensen.Unquote
 
-open Tests.WorldCover.HeightArraysScenes
+open Tests.Dem.HeightArraysScenes
 open Tests.WorldCover.WaterBodiesColoring
 open Tests.WorldCover.WaterBodiesOutlining
 
