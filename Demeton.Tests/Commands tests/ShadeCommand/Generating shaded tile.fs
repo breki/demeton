@@ -33,25 +33,23 @@ let ``Tile generator correctly specifies DEM level and bounds for tile downloade
     let correctLevelAndAreaWereProvided level area =
         test <@ level = srtmLevel @>
 
-        test
-            <@
-                // todo 0: update the expectation
-                area = { MinLon = 0
-                         MinLat = 0
-                         MaxLon = 20
-                         MaxLat = 30 }
-            @>
+        test <@ area.MinLon |> isApproxEqualTo 4.249 (Decimals 3) @>
+        test <@ area.MinLat |> isApproxEqualTo 42.900 (Decimals 3) @>
+        test <@ area.MaxLon |> isApproxEqualTo 16.984 (Decimals 3) @>
+        test <@ area.MaxLat |> isApproxEqualTo 48.508 (Decimals 3) @>
 
         heights |> Some |> Ok
 
-    // todo 0: looks like the correctLevelAndAreaWereProvided is never called
-    ShadeCommand.generateShadedRasterTile
-        [| correctLevelAndAreaWereProvided |]
-        (fun _ -> mockRasterShader)
-        srtmLevel
-        tileRect
-        rootShadingStep
-    |> ignore
+    let result =
+        ShadeCommand.generateShadedRasterTile
+            [| correctLevelAndAreaWereProvided |]
+            (fun _ -> mockRasterShader)
+            srtmLevel
+            tileRect
+            rootShadingStep
+            mapProjection
+
+    test <@ result |> isOk @>
 
     test <@ true @>
 
