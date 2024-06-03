@@ -118,7 +118,7 @@ let ``Render hillshading with WorldCover water bodies`` () =
             waterBodiesHeightsArray |> Some |> Result.Ok
 
         let heightsArraysFetchers =
-            [| Tests.Aw3d.``AW3D experiments``.fetchAw3dHeightsArray
+            [| TileShadeCommand.fetchAw3dHeightsArray mapProjection cacheDir
                fetchWorldCoverHeightsArray |]
 
         let createShaderFunction shaderFunctionName =
