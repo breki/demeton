@@ -19,6 +19,9 @@ let WorldCoverDirName = "WorldCover"
 let WorldCoverTileSize = 12000
 
 [<Literal>]
+let WorldCoverCellsPerDegree = WorldCoverTileSize
+
+[<Literal>]
 let WorldCoverBitmapSize = WorldCoverTileSize * 3
 
 

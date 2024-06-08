@@ -6,7 +6,8 @@ open Demeton.Projections.Common
 
 /// <summary>
 /// A function that takes a list of heights arrays, a SRTM level,
-/// a rectangle, a raw image data and a map projection forward and inverse
+/// a rectangle specifying the area of the heights array to work on,
+/// a raw image data and a map projection forward and inverse
 /// functions and applies a shader to the image.
 /// </summary>
 type RasterShader =

@@ -10,6 +10,7 @@ open Demeton.Geometry.Common
 open Demeton.Dem.Funcs
 open Demeton.Projections.PROJParsing
 open Demeton.Shaders
+open Demeton.WorldCover.Types
 open Demeton.WorldCover.Fetch
 open Demeton.WorldCover.Funcs
 open Demeton.WorldCover.WaterBodiesColoring
@@ -70,15 +71,18 @@ let options: ShadeCommand.Options =
       SrtmDir = "srtm"
       TileSize = 10000
       // RootShadingStep = outlineOverHillAndWaterStep
-      RootShadingStep = hillshadingStep
+      RootShadingStep = hillAndWaterStep
       MapScale = mapScale
       MapProjection =
         { Projection = PROJParameters.Mercator
           IgnoredParameters = [] } }
 
 
-[<Fact(Skip = "I need to reduce the size of the dataset, it's taking too long to process")>]
-// [<Fact>]
+// todo 0: looks like there's something wrong with the WorldCover tiles cell
+//   coordinates calculation
+
+// [<Fact(Skip = "I need to reduce the size of the dataset, it's taking too long to process")>]
+[<Fact>]
 let ``Render hillshading with WorldCover water bodies`` () =
     if Environment.GetEnvironmentVariable("CI") = "true" then
         // this test cannot run on CI because we don't have the WorldCover
@@ -114,7 +118,51 @@ let ``Render hillshading with WorldCover water bodies`` () =
             |> outlineWaterBodies waterBodiesHeightsArray
             |> Seq.toList
 
+        // todo 0: calculate the list of tiles needed so we can ensure we have
+        //   all of them
         let fetchWorldCoverHeightsArray level area =
+            let coveragePoints =
+                [ (area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat) ]
+
+            let projectedCoveragePoints =
+                coveragePoints
+                |> List.map (fun (lon, lat) ->
+                    mapProjection.Proj (lon |> degToRad) (lat |> degToRad))
+                |> List.choose id
+
+            let deprojectedCoveragePoints =
+                projectedCoveragePoints
+                |> List.map (fun (x, y) -> mapProjection.Invert x y)
+                |> List.choose id
+
+            let cellsPerDegree = WorldCoverCellsPerDegree
+
+            // now convert lon, lat to DEM coordinates
+            let coveragePointsInDemCoords =
+                deprojectedCoveragePoints
+                |> List.map (fun (lon, lat) ->
+                    let cellX =
+                        lon |> radToDeg |> longitudeToCellX cellsPerDegree
+
+                    let cellY =
+                        lat |> radToDeg |> latitudeToCellY cellsPerDegree
+
+                    (cellX, cellY))
+
+            let demMbr = Demeton.Geometry.Bounds.mbrOf coveragePointsInDemCoords
+
+            let minTileLon = demMbr.MinX |> cellXToLongitudeFloat cellsPerDegree
+
+            let minTileLat = demMbr.MaxY |> cellYToLatitudeFloat cellsPerDegree
+
+            let maxTileLon = demMbr.MaxX |> cellXToLongitudeFloat cellsPerDegree
+
+            let maxTileLat = demMbr.MinY |> cellYToLatitudeFloat cellsPerDegree
+
+            let tileDownloadingResult = ensureWorldCoverTiles cacheDir area
+
+            // todo 2: use merged array from the above function + apply any
+            //   needed water bodies transformations
             waterBodiesHeightsArray |> Some |> Result.Ok
 
         let heightsArraysFetchers =

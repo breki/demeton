@@ -126,7 +126,7 @@ let ensureWorldCoverTile cacheDir fileExists downloadFile tileId =
 let ensureWorldCoverTiles
     cacheDir
     (bounds: LonLatBounds)
-    : Result<unit, string> =
+    : Result<DemTileId list, string> =
     Log.info "Ensuring all needed WorldCover tiles are there..."
 
     let geoJsonFile = ensureGeoJsonFile cacheDir fileExists downloadFile
@@ -155,7 +155,7 @@ let ensureWorldCoverTiles
             | Error message -> Some message)
 
     match tilesErrors with
-    | [] -> Result.Ok()
+    | [] -> Result.Ok availableTilesNeeded
     | _ -> Result.Error(String.concat "\n" tilesErrors)
 
 

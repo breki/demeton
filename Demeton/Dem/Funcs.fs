@@ -78,6 +78,9 @@ let inline latitudeToCellY cellsPerDegree (lat: float) = -lat * cellsPerDegree
 /// </returns>
 let inline cellXToLongitude cellsPerDegree cellX = cellX / cellsPerDegree
 
+let inline cellXToLongitudeFloat (cellsPerDegree: int) (cellX: float) =
+    cellX / float cellsPerDegree
+
 /// <summary>
 /// Converts cell Y coordinates to latitude (in degrees).
 /// </summary>
@@ -90,6 +93,9 @@ let inline cellXToLongitude cellsPerDegree cellX = cellX / cellsPerDegree
 /// The latitude (in degrees) corresponding to the cell Y coordinate.
 /// </returns>
 let inline cellYToLatitude cellsPerDegree cellY = -cellY / cellsPerDegree
+
+let inline cellYToLatitudeFloat (cellsPerDegree: int) (cellY: float) =
+    -cellY / float cellsPerDegree
 
 let inline demTileId level tileX tileY =
     { Level = DemLevel.fromInt level

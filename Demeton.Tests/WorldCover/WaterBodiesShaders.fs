@@ -18,16 +18,16 @@ open Raster
 
 
 /// <summary>
-/// Get the value of a cell in a heights array for a given tile pixel.
+/// Get the value of a cell in a heights array for a given projected pixel.
 /// </summary>
-let valueForTilePixel
-    x
-    y
+let valueForProjectedPixel
+    pixelX
+    pixelY
     cellsPerDegree
     inverse
     (heightsArray: HeightsArray)
     : DemHeight option =
-    let lonLatOption = inverse (float x) (float -y)
+    let lonLatOption = inverse (float pixelX) (float -pixelY)
 
     match lonLatOption with
     | None -> None
@@ -64,10 +64,10 @@ let worldCoverWaterBodiesShader
     heightsArrayIndex
     (waterBodies: WaterBody list)
     : RasterShader =
-    fun heightsArrays srtmLevel tileRect imageData forward inverse ->
+    fun heightsArrays srtmLevel heightsArrayTargetArea imageData forward inverse ->
         let cellsPerDegree = cellsPerDegree WorldCoverTileSize srtmLevel
 
-        let tileWidth = tileRect.Width
+        let targetAreaWidth = heightsArrayTargetArea.Width
 
         let waterColor =
             match (Rgba8Bit.tryParseColorHexValue "#49C8FF") with
@@ -87,10 +87,11 @@ let worldCoverWaterBodiesShader
         let noWaterColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
 
         let processRasterLine y =
-            for x in tileRect.MinX .. (tileRect.MaxX - 1) do
+            for x in
+                heightsArrayTargetArea.MinX .. (heightsArrayTargetArea.MaxX - 1) do
                 let rasterValue =
                     heightsArrays[heightsArrayIndex]
-                    |> valueForTilePixel x y cellsPerDegree inverse
+                    |> valueForProjectedPixel x y cellsPerDegree inverse
 
                 let pixelValue =
                     match rasterValue with
@@ -107,12 +108,17 @@ let worldCoverWaterBodiesShader
 
                 Rgba8Bit.setPixelAt
                     imageData
-                    tileWidth
-                    (x - tileRect.MinX)
-                    (y - tileRect.MinY)
+                    targetAreaWidth
+                    (x - heightsArrayTargetArea.MinX)
+                    (y - heightsArrayTargetArea.MinY)
                     pixelValue
 
-        Parallel.For(tileRect.MinY, tileRect.MaxY, processRasterLine) |> ignore
+        Parallel.For(
+            heightsArrayTargetArea.MinY,
+            heightsArrayTargetArea.MaxY,
+            processRasterLine
+        )
+        |> ignore
 
 let worldCoverWaterBodiesOutlineShader
     (waterBodiesAndOutlines: (WaterBody * WaterBodyOutline) list)
@@ -121,13 +127,15 @@ let worldCoverWaterBodiesOutlineShader
     let colorWaterBodyOutline
         srtmLevel
         imageData
-        tileRect
+        heightsArrayTargetArea
         (forward: ProjectFunc)
         (inverse: InvertFunc)
         ((waterBody, waterBodyOutline): WaterBody * WaterBodyOutline)
         =
         if shouldShowWaterBody waterBody then
-            let tileWidth = tileRect.Width
+            let cellsPerDegree = cellsPerDegree WorldCoverTileSize srtmLevel
+
+            let targetAreaWidth = heightsArrayTargetArea.Width
 
             let outlinePixelColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy
 
@@ -139,18 +147,18 @@ let worldCoverWaterBodiesOutlineShader
 
                     // if the pixel indicates an outline
                     if outlineDistance >= 1s && outlineDistance <= 3s then
-                        // project the raster pixel into the coordinate space of the
-                        // tile image
+                        // project the raster pixel into the coordinate space
+                        // of the image
                         let lon =
                             (waterBodyOutline.Raster.MinX + localX)
                             |> float
-                            |> cellXToLongitude (float WorldCoverTileSize)
+                            |> cellXToLongitude cellsPerDegree
                             |> degToRad
 
                         let lat =
                             (waterBodyOutline.Raster.MinY + localY)
                             |> float
-                            |> cellYToLatitude (float WorldCoverTileSize)
+                            |> cellYToLatitude cellsPerDegree
                             |> degToRad
 
                         let projectedPoint = forward lon lat
@@ -159,22 +167,24 @@ let worldCoverWaterBodiesOutlineShader
                         projectedPoint
                         |> Option.iter (fun (tileX, tileY) ->
                             let imageX =
-                                (tileX |> Math.Round |> int) - tileRect.MinX
+                                (tileX |> Math.Round |> int)
+                                - heightsArrayTargetArea.MinX
 
                             let imageY =
-                                (-tileY |> Math.Round |> int) - tileRect.MinY
+                                (-tileY |> Math.Round |> int)
+                                - heightsArrayTargetArea.MinY
 
                             // ... and within the tile image,
                             // render a black pixel at the projected point
                             if
                                 imageX >= 0
-                                && imageX < tileRect.Width
+                                && imageX < heightsArrayTargetArea.Width
                                 && imageY >= 0
-                                && imageY < tileRect.Height
+                                && imageY < heightsArrayTargetArea.Height
                             then
                                 Rgba8Bit.setPixelAt
                                     imageData
-                                    tileWidth
+                                    targetAreaWidth
                                     imageX
                                     imageY
                                     outlinePixelColor)

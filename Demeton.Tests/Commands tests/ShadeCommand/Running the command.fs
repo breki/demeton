@@ -42,7 +42,7 @@ let mutable savedTiles = []
 /// A dummy shaded raster tile generator that asserts that the
 /// provided SRTM level is equal to the expected SRTM level.
 /// </summary>
-let mockTileGeneratorAssertingSrtmLevel: ShadeCommand.ShadedRasterTileGenerator =
+let mockTileGeneratorAssertingSrtmLevel: ShadeCommand.ShadedRasterImageGenerator =
     fun providedSrtmLevel _ _ _ ->
         test <@ srtmLevel = providedSrtmLevel @>
         Ok(Some(Rgba8Bit.createImageData 10 10 Rgba8Bit.ImageDataZero))
@@ -51,7 +51,7 @@ let mockTileGeneratorAssertingSrtmLevel: ShadeCommand.ShadedRasterTileGenerator 
 /// A dummy shaded raster tile generator that records the generated
 /// tiles in a mutable list that can be inspected later in the test.
 /// </summary>
-let mockTileGenerator: ShadeCommand.ShadedRasterTileGenerator =
+let mockTileGenerator: ShadeCommand.ShadedRasterImageGenerator =
     fun _ rasterTileCoords _ _ ->
         generatedTiles <- rasterTileCoords :: generatedTiles
         Ok(Some(Rgba8Bit.createImageData 10 10 Rgba8Bit.ImageDataZero))

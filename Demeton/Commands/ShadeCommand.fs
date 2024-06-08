@@ -398,25 +398,30 @@ let constructRasterTilesList options (rasterMbr: Rect) =
     tilesToGenerate, maxTileIndex
 
 
+// todo 0: problem: tile rectangle is dependent on the resolution of the heights array,
+//   but here we're using it as if all heights arrays have the same resolution
+
+// todo 0: also, in what coordinates is the tile rectangle specified?
+
 /// <summary>
-/// A function the generates a shaded raster tile.
+/// A function that generates a shaded raster image.
 /// </summary>
 /// <remarks>
-/// Given the SRTM level, the tile rectangle, the root shading step, and the
+/// Given the DEM level, the tile rectangle, the root shading step, and the
 /// map projection, the function should obtain the necessary geographical
 /// information, run the shading pipeline, and return the raw image data of
-/// the shaded raster tile.
+/// the shaded raster.
 /// </remarks>
-/// <param name="srtmLevel">The SRTM level for the tile.</param>
+/// <param name="demLevel">The DEM level to use.</param>
 /// <param name="tileRect">The rectangle representing the tile.</param>
-/// <param name="rootShadingStep">The root shading step for the tile.</param>
-/// <param name="mapProjection">The map projection for the tile.</param>
+/// <param name="rootShadingStep">The root shading step to use.</param>
+/// <param name="mapProjection">The map projection to use.</param>
 /// <returns>
-/// A result type that contains the raw image data of the shaded raster tile
+/// A result type that contains the raw image data of the shaded raster
 /// if the generation is successful, or an error message if the generation
 /// fails
-/// .</returns>
-type ShadedRasterTileGenerator =
+/// </returns>
+type ShadedRasterImageGenerator =
     DemLevel
         -> Rect
         -> ShadingStep
@@ -425,30 +430,30 @@ type ShadedRasterTileGenerator =
 
 
 /// <summary>
-/// Returns a ShadedRasterTileGenerator that uses the given functions
+/// Returns a ShadedRasterImageGenerator that uses the given functions
 /// to fetch the heights array and create the shading function.
 /// </summary>
 /// <param name="heightsArrayFetchers">
 /// An array of functions that fetch the heights arrays for a given
-/// set of SRTM tiles. The heights array fetched by each of these functions
-/// will be added to the array of heights array at the index corresponding
+/// set of DEM tiles. The heights array fetched by each of these functions
+/// will be added to the array of heights arrays at the index corresponding
 /// to the index of the function in the array.
 /// </param>
 /// <param name="createShaderFunction">
 /// A function that creates a shading function for a given shading step.
 /// </param>
-/// <param name="srtmLevel">The SRTM level for the tile.</param>
+/// <param name="demLevel">The DEM level to use.</param>
 /// <param name="tileRect">The rectangle representing the tile.</param>
 /// <param name="rootShadingStep">The root shading step.</param>
 /// <param name="mapProjection">The map projection to use.</param>
 /// <returns>
-/// A ShadedRasterTileGenerator function.
+/// A ShadedRasterImageGenerator function.
 /// </returns>
 let generateShadedRasterTile
     (heightsArrayFetchers: DemHeightsArrayFetcher[])
     (createShaderFunction: ShadingFuncFactory)
-    : ShadedRasterTileGenerator =
-    fun srtmLevel (tileRect: Rect) rootShadingStep mapProjection ->
+    : ShadedRasterImageGenerator =
+    fun demLevel (tileRect: Rect) rootShadingStep mapProjection ->
 
         let buffer = 1
 
@@ -468,7 +473,7 @@ let generateShadedRasterTile
 
         let fetchingResults =
             heightsArrayFetchers
-            |> Array.map (fun fetcher -> fetcher srtmLevel lonLatBounds)
+            |> Array.map (fun fetcher -> fetcher demLevel lonLatBounds)
 
         let firstErrorMaybe = fetchingResults |> Array.tryFind Result.isError
 
@@ -493,7 +498,7 @@ let generateShadedRasterTile
                         createShaderFunction
                         createCompositingFuncById
                         heightsArrays
-                        srtmLevel
+                        demLevel
                         tileRect
                         mapProjection.Proj
                         mapProjection.Invert
@@ -562,8 +567,8 @@ let saveShadedRasterTile
 let runWithProjection
     mapProjection
     (options: Options)
-    (generateTile: ShadedRasterTileGenerator)
-    (saveTile: ShadedRasterTileSaver)
+    (generateImageTile: ShadedRasterImageGenerator)
+    (saveImageTile: ShadedRasterTileSaver)
     : Result<unit, string> =
     let rasterMbr = calculateRasterMbr mapProjection options
 
@@ -582,13 +587,17 @@ let runWithProjection
         =
         Log.info $"Generating a shade tile %d{xIndex}/%d{yIndex}..."
 
-        generateTile srtmLevel tileBounds options.RootShadingStep mapProjection
+        generateImageTile
+            srtmLevel
+            tileBounds
+            options.RootShadingStep
+            mapProjection
         |> Result.map (fun maybeGeneratedTile ->
             match maybeGeneratedTile with
             | Some imageData ->
                 Log.info "Saving the shade tile..."
 
-                saveTile
+                saveImageTile
                     options
                     maxTileIndex
                     (xIndex, yIndex)
@@ -644,9 +653,9 @@ let runWithProjection
 /// The options for the shading process, including parameters
 /// like coverage points, root shading step, map scale, and map projection.
 /// </param>
-/// <param name="generateTile">
+/// <param name="generateImageTile">
 /// A function that generates an individual shaded raster tile.</param>
-/// <param name="saveTile">
+/// <param name="saveImageTile">
 /// A function that saves a shaded raster tile as an image file.
 /// </param>
 /// <returns>
@@ -654,10 +663,10 @@ let runWithProjection
 /// .</returns>
 let run
     (options: Options)
-    (generateTile: ShadedRasterTileGenerator)
-    (saveTile: ShadedRasterTileSaver)
+    (generateImageTile: ShadedRasterImageGenerator)
+    (saveImageTile: ShadedRasterTileSaver)
     : Result<unit, string> =
 
     createMapProjection options.MapProjection.Projection options.MapScale
     |> Result.bind (fun mapProjection ->
-        runWithProjection mapProjection options generateTile saveTile)
+        runWithProjection mapProjection options generateImageTile saveImageTile)
