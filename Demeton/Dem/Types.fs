@@ -1,7 +1,6 @@
 ﻿module Demeton.Dem.Types
 
 open System
-open Demeton.Geometry.Common
 open Raster
 
 type DemHeight = int16
@@ -288,11 +287,3 @@ type DemTileCoords =
 type DemTileReader = DemTileId -> HeightsArrayMaybeResult
 
 type DemTileName = string
-
-
-/// <summary>
-/// A function that fetches a heights array from a sequence of DEM tiles
-/// needed to cover the specified area using DEM tiles of the specified level.
-/// </summary>
-type DemHeightsArrayFetcher =
-    DemLevel -> LonLatBounds -> HeightsArrayMaybeResult

@@ -1,5 +1,6 @@
 ﻿module Tests.Shaders.``Building slope shader step``
 
+open Demeton.Shaders.Types
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
 open Demeton.Shaders.Pipeline.BuildingSlopeShader
@@ -28,7 +29,7 @@ let ``Can parse step without parameters`` () =
                     { HorizontalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
                       VerticalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy
                       Intensity = 1.
-                      HeightsArrayIndex = 0 }
+                      DataSourceKey = DefaultDataSourceKey }
             )
         @>
 
@@ -50,7 +51,7 @@ let ``Can parse step with valid parameters`` () =
                       VerticalColor =
                         Rgba8Bit.rgbaColor 0x33uy 0x33uy 0x33uy 0xffuy
                       Intensity = 1.
-                      HeightsArrayIndex = 0 }
+                      DataSourceKey = DefaultDataSourceKey }
                 )
             )
         @>

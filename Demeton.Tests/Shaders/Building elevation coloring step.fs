@@ -4,6 +4,7 @@ open Demeton.Shaders
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
 open Demeton.Shaders.Pipeline.BuildingElevationColoring
+open Demeton.Shaders.Types
 open Png
 
 open Xunit
@@ -48,7 +49,7 @@ let ``Can parse elevation coloring step with valid parameters`` () =
             step = Ok(
                 ElevationColoring
                     { ColorScale = expectedColorScale
-                      HeightsArraysIndex = 0 }
+                      DataSourceKey = DefaultDataSourceKey }
             )
         @>
 

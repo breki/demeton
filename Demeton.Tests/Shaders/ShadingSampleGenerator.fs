@@ -8,6 +8,7 @@ open Demeton.Projections.Factory
 open Demeton.Projections.PROJParsing
 open Demeton.Projections.MinLonLatDelta
 open Demeton.Dem.Funcs
+open Demeton.Shaders.Types
 open Xunit
 open Swensen.Unquote
 open TestHelp
@@ -44,7 +45,7 @@ let generateSampleWithParameters minLon minLat maxLon maxLat mapScale dpi =
 
     let srtmLevelNeeded =
         minLonLatDelta rasterRect projection.Invert
-        |> lonLatDeltaToSrtmLevel 3600
+        |> lonLatDeltaToDemLevel 3600
 
     let minLonNeeded, minLatNeeded =
         projection.Invert
@@ -86,7 +87,18 @@ let generateSampleWithParameters minLon minLat maxLon maxLat mapScale dpi =
             HeightsArrayInitializer1D(fun _ -> DemHeight 1000)
         )
 
-    (area, heights, srtmLevelNeeded, projection, mapScale, rasterRect)
+    let dataSources =
+        heights
+        |> Some
+        |> Ok
+        |> heightsArrayResultToShadingDataSource
+            DefaultDataSourceKey
+            (Ok(ShadingDataSources.Create()))
+
+    match dataSources with
+    | Ok dataSources ->
+        (area, dataSources, srtmLevelNeeded, projection, mapScale, rasterRect)
+    | _ -> failwith "Data sources are not Ok."
 
 /// <summary>
 /// Generates a sample geographic area bounds, its corresponding heights array
@@ -104,7 +116,10 @@ let generateSample () =
 
 [<Fact>]
 let ``Sample data is valid and sane`` () =
-    let _, heights, srtmLevel, _, _, rasterRect = generateSample ()
+    let _, dataSources, srtmLevel, _, _, rasterRect = generateSample ()
+
+    let heights =
+        dataSources.FetchDataSource DefaultDataSourceKey :?> HeightsArray
 
     test <@ srtmLevel = DemLevel.fromInt 2 @>
     test <@ heights.Width = 129 @>

@@ -3,6 +3,7 @@ open CommandLine.Common
 open Demeton.Commands
 open Demeton.Console
 open Demeton.Dem.Funcs
+open Demeton.Shaders.Types
 open System
 
 let runImportCommand parsedParameters =
@@ -31,7 +32,15 @@ let runShadeCommand parsedParameters =
 
     let generateTile =
         ShadeCommand.generateShadedRasterTile
-            [| Wiring.fetchSrtmHeights options.SrtmDir options.LocalCacheDir |]
+            [| fun level coverageArea dataSources ->
+                   Wiring.fetchSrtmHeights
+                       options.SrtmDir
+                       options.LocalCacheDir
+                       level
+                       coverageArea
+                   |> heightsArrayResultToShadingDataSource
+                       DefaultDataSourceKey
+                       (Ok dataSources) |]
             Demeton.Shaders.Pipeline.Common.createShadingFuncById
 
     let saveTile =

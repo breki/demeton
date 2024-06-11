@@ -20,7 +20,7 @@ type ColorScale =
 
 type Parameters =
     { ColorScale: ColorScale
-      HeightsArraysIndex: int }
+      DataSourceKey: string }
 
 let colorScaleToString scale =
     scale.Marks
@@ -138,10 +138,12 @@ let colorScaleMaperitive =
 
 let defaultParameters =
     { ColorScale = colorScaleMaperitive
-      HeightsArraysIndex = 0 }
+      DataSourceKey = DefaultDataSourceKey }
 
-let shadeRaster heightsArraysIndex (colorScale: ColorScale) : RasterShader =
-    fun heightsArrays srtmLevel tileRect imageData _ inverse ->
+let shadeRaster dataSourceKey (colorScale: ColorScale) : RasterShader =
+    fun dataSources srtmLevel tileRect imageData _ inverse ->
+        let heightsArray =
+            (dataSources.FetchDataSource dataSourceKey) :?> HeightsArray
 
         let cellsPerDegree = cellsPerDegree 3600 srtmLevel
 
@@ -159,8 +161,7 @@ let shadeRaster heightsArraysIndex (colorScale: ColorScale) : RasterShader =
                 let globalSrtmX = lonDeg |> longitudeToCellX cellsPerDegree
                 let globalSrtmY = latDeg |> latitudeToCellY cellsPerDegree
 
-                heightsArrays.[heightsArraysIndex]
-                    .interpolateHeightAt (globalSrtmX, globalSrtmY)
+                heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
 
         let processRasterLine y =
             for x in tileRect.MinX .. (tileRect.MaxX - 1) do

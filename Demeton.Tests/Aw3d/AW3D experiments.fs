@@ -5,6 +5,7 @@ open Demeton.Commands
 open Demeton.Geometry.Common
 open Demeton.Projections.PROJParsing
 open Demeton.Shaders
+open Demeton.Shaders.Types
 open FsUnit
 open Png
 open Tests.Shaders
@@ -47,14 +48,22 @@ let ``Generate hillshading from AW3D`` () =
             { SunAzimuth = IgorHillshader.DefaultSunAzimuth |> degToRad
               ShadingColor = 0u
               Intensity = 1.
-              HeightsArrayIndex = 0 }
+              DataSourceKey = "aw3d" }
 
     let createShaderFunction _ =
-        Demeton.Shaders.Hillshading.shadeRaster 0 pixelShader
+        Demeton.Shaders.Hillshading.shadeRaster "aw3d" pixelShader
 
     let generateTile =
         ShadeCommand.generateShadedRasterTile
-            [| TileShadeCommand.fetchAw3dHeightsArray mapProjection CacheDir |]
+            [| fun level coverageArea dataSources ->
+                   TileShadeCommand.fetchAw3dHeightsArray
+                       mapProjection
+                       CacheDir
+                       level
+                       coverageArea
+                   |> heightsArrayResultToShadingDataSource
+                       "aw3d"
+                       (Ok dataSources) |]
             createShaderFunction
 
     let saveTile =

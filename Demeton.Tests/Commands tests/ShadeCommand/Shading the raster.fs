@@ -4,6 +4,7 @@ open Demeton.Commands
 open Demeton.Geometry.Common
 open Demeton.Projections.PROJParsing
 open Demeton.Shaders
+open Demeton.Shaders.Types
 open Demeton.Srtm
 open Png
 
@@ -11,7 +12,7 @@ open Xunit
 open Swensen.Unquote
 open Tests.Shaders
 
-let area, heightsArray, srtmLevel, mapProjection, mapScale, tileRect =
+let area, dataSources, srtmLevel, mapProjection, mapScale, tileRect =
     ShadingSampleGenerator.generateSampleWithParameters
         15.331473
         46.45726
@@ -45,9 +46,9 @@ let ``Elevation colorer colors all of the image`` () =
         Rgba8Bit.createImageData imageWidth imageHeight Rgba8Bit.ImageDataZero
 
     ElevationColoring.shadeRaster
-        0
+        DefaultDataSourceKey
         ElevationColoring.colorScaleMaperitive
-        [| heightsArray |]
+        dataSources
         srtmLevel
         tileRect
         imageData

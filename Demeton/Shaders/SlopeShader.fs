@@ -3,6 +3,7 @@ module Demeton.Shaders.SlopeShader
 
 open Demeton.Geometry.Common
 open Demeton.Shaders
+open Demeton.Shaders.Types
 open Png
 
 open System
@@ -11,13 +12,13 @@ type ShaderParameters =
     { HorizontalColor: Rgba8Bit.RgbaColor
       VerticalColor: Rgba8Bit.RgbaColor
       Intensity: float
-      HeightsArrayIndex: int }
+      DataSourceKey: string }
 
 let defaultParameters =
     { HorizontalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
       VerticalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy
       Intensity = 1.
-      HeightsArrayIndex = 0 }
+      DataSourceKey = DefaultDataSourceKey }
 
 let shadePixel parameters : Hillshading.PixelHillshader =
     fun _ slope _ ->

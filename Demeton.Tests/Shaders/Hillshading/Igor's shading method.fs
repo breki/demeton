@@ -2,6 +2,7 @@ module Tests.Shaders.Hillshading.``Igor's shading method``
 
 open Demeton.Geometry.Common
 open Demeton.Shaders
+open Demeton.Shaders.Types
 open Png
 
 open System
@@ -88,7 +89,7 @@ let ``Igor shading properties test`` () =
         { SunAzimuth = az
           ShadingColor = col
           Intensity = 1.
-          HeightsArrayIndex = 0 }
+          DataSourceKey = DefaultDataSourceKey }
 
     let genCircleAngle = floatInRange 0 360 |> Gen.map degToRad
 

@@ -10,7 +10,10 @@ open Swensen.Unquote
 open TestHelp
 open Tests.Shaders
 
-let area, heights, srtmLevel, mapProjection, mapScale, tileRect =
+[<Literal>]
+let SampleDataSourceKey = "sample"
+
+let area, dataSources, srtmLevel, mapProjection, mapScale, tileRect =
     ShadingSampleGenerator.generateSampleWithParameters
         4.262676
         42.90816
@@ -30,7 +33,7 @@ let ``Tile generator correctly specifies DEM level and bounds for tile downloade
     ()
     =
 
-    let correctLevelAndAreaWereProvided level area =
+    let correctLevelAndAreaWereProvided level area dataSources =
         test <@ level = srtmLevel @>
 
         test <@ area.MinLon |> isApproxEqualTo 4.249 (Decimals 3) @>
@@ -38,7 +41,7 @@ let ``Tile generator correctly specifies DEM level and bounds for tile downloade
         test <@ area.MaxLon |> isApproxEqualTo 16.984 (Decimals 3) @>
         test <@ area.MaxLat |> isApproxEqualTo 48.508 (Decimals 3) @>
 
-        heights |> Some |> Ok
+        Ok dataSources
 
     let result =
         ShadeCommand.generateShadedRasterTile
@@ -53,31 +56,13 @@ let ``Tile generator correctly specifies DEM level and bounds for tile downloade
 
     test <@ true @>
 
-[<Fact>]
-let ``When heights array fetcher returns None, tile generator does nothing and returns None``
-    ()
-    =
-
-    let returnNoneForHeightsArray _ _ = Ok None
-
-    let shadeTileResult =
-        ShadeCommand.generateShadedRasterTile
-            [| returnNoneForHeightsArray |]
-            (fun _ -> mockRasterShader)
-            srtmLevel
-            tileRect
-            rootShadingStep
-            mapProjection
-
-    test <@ isOk shadeTileResult @>
-    test <@ shadeTileResult |> isOkValue None @>
 
 [<Fact>]
 let ``When heights array fetcher returns an error, tile generator returns an error, too``
     ()
     =
 
-    let returnErrorInsteadOfHeightsArray _ _ = Error "something is wrong"
+    let returnErrorInsteadOfHeightsArray _ _ _ = Error "something is wrong"
 
     let shadeTileResult =
         ShadeCommand.generateShadedRasterTile
@@ -92,7 +77,7 @@ let ``When heights array fetcher returns an error, tile generator returns an err
 
 [<Fact>]
 let ``Tile generator prepares the tile image data and returns it`` () =
-    let fetchSomeHeights _ _ = heights |> Some |> Ok
+    let fetchSomeHeights _ _ _ = dataSources |> Ok
 
     let mutable imageDataReceived = None
 

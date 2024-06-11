@@ -4,6 +4,7 @@ open Demeton.Shaders
 open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.Pipeline.Parsing
 open Demeton.Shaders.Pipeline.BuildingAspectShader
+open Demeton.Shaders.Types
 
 open Xunit
 open Swensen.Unquote
@@ -37,7 +38,7 @@ let ``Can parse step with valid parameters`` () =
                       EastColor = 0x111111ffu
                       SouthColor = 0x222222ffu
                       WestColor = 0x333333ffu
-                      HeightsArrayIndex = 0 }
+                      DataSourceKey = DefaultDataSourceKey }
                 )
             )
         @>

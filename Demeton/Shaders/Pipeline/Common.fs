@@ -1,6 +1,5 @@
 ﻿module Demeton.Shaders.Pipeline.Common
 
-open Demeton.Dem.Types
 open Raster
 open Demeton.Shaders
 open Demeton.Shaders.Types
@@ -54,11 +53,14 @@ let createCompositingFuncById compositingFuncId =
 /// A function that creates a compositing function given a compositing function
 /// ID. The function is used for Compositing steps.
 /// </param>
-/// <param name="heightsArrays">A list of arrays of height values.</param>
-/// <param name="srtmLevel">
-/// The SRTM level to use for shading.
+/// <param name="shadingDataSources">
+/// Holds the data that the shading steps work on.
 /// </param>
-/// <param name="tileRect">The rectangle representing the tile.</param>
+/// <param name="demLevel">
+/// The DEM level to use for shading.
+/// </param>
+/// <param name="imageRect">The rectangle representing the image,
+/// in the coordinates of the map projection.</param>
 /// <param name="forward">A forward map projection function to use.</param>
 /// <param name="inverse">An inverse map projection function to use.</param>
 /// <param name="step">The shading step to execute.</param>
@@ -68,9 +70,9 @@ let createCompositingFuncById compositingFuncId =
 let rec executeShadingStep
     shadingFuncFactory
     compositingFuncFactory
-    (heightsArrays: HeightsArray[])
-    srtmLevel
-    tileRect
+    (shadingDataSources: ShadingDataSources)
+    demLevel
+    imageRect
     forward
     inverse
     (step: ShadingStep)
@@ -82,9 +84,9 @@ let rec executeShadingStep
             executeShadingStep
                 shadingFuncFactory
                 compositingFuncFactory
-                heightsArrays
-                srtmLevel
-                tileRect
+                shadingDataSources
+                demLevel
+                imageRect
                 forward
                 inverse
                 step1
@@ -93,16 +95,16 @@ let rec executeShadingStep
             executeShadingStep
                 shadingFuncFactory
                 compositingFuncFactory
-                heightsArrays
-                srtmLevel
-                tileRect
+                shadingDataSources
+                demLevel
+                imageRect
                 forward
                 inverse
                 step2
 
         Log.info $"Running compositing step '%s{compositingFuncId}'..."
         let compositingFunc = compositingFuncFactory compositingFuncId
-        compositingFunc tileRect.Width tileRect.Height sourceImage destImage
+        compositingFunc imageRect.Width imageRect.Height sourceImage destImage
     | _ ->
         let rasterShaderToUse =
             match step with
@@ -110,7 +112,7 @@ let rec executeShadingStep
                 Log.info "Running aspect shading step..."
 
                 Hillshading.shadeRaster
-                    parameters.HeightsArrayIndex
+                    parameters.DataSourceKey
                     (AspectShader.shadePixel parameters)
             | SolidBackground parameters ->
                 Log.info "Running solid background coloring step..."
@@ -120,39 +122,39 @@ let rec executeShadingStep
                 Log.info "Running elevation coloring step..."
 
                 ElevationColoring.shadeRaster
-                    parameters.HeightsArraysIndex
+                    parameters.DataSourceKey
                     parameters.ColorScale
             | IgorHillshading parameters ->
                 Log.info "Running igor hillshading step..."
 
                 Hillshading.shadeRaster
-                    parameters.HeightsArrayIndex
+                    parameters.DataSourceKey
                     (IgorHillshader.shadePixel parameters)
             | LambertHillshading parameters ->
                 Log.info "Running lambert hillshading step..."
 
                 Hillshading.shadeRaster
-                    parameters.HeightsArrayIndex
+                    parameters.DataSourceKey
                     (LambertHillshader.shadePixel parameters)
             | SlopeShading parameters ->
                 Log.info "Running slope shading step..."
 
                 Hillshading.shadeRaster
-                    parameters.HeightsArrayIndex
+                    parameters.DataSourceKey
                     (SlopeShader.shadePixel parameters)
             | CustomShading shadingFuncId -> shadingFuncFactory shadingFuncId
             | _ -> invalidOp "Unsupported shading step"
 
         let imageData =
             Rgba8Bit.createImageData
-                tileRect.Width
-                tileRect.Height
+                imageRect.Width
+                imageRect.Height
                 Rgba8Bit.ImageDataZero
 
         rasterShaderToUse
-            heightsArrays
-            srtmLevel
-            tileRect
+            shadingDataSources
+            demLevel
+            imageRect
             imageData
             forward
             inverse

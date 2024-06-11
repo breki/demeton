@@ -12,7 +12,10 @@ open Demeton.Projections.Common
 open Demeton.Projections.PROJParsing
 open Demeton.Aw3d.Types
 open Demeton.Aw3d.Funcs
+open Demeton.WorldCover.Types
+open Demeton.WorldCover.Fetch
 open Demeton.Shaders
+open Demeton.Shaders.Types
 open FileSys
 open Png
 open Png.Types
@@ -406,6 +409,55 @@ let fetchAw3dHeightsArray mapProjection cacheDir demLevel coverageArea =
         merge mergedArrayBounds tilesHeightsArrays |> Result.Ok
     | Error message -> Result.Error message
 
+let fetchWorldCoverHeightsArray mapProjection cacheDir demLevel coverageArea =
+    let coveragePoints =
+        [ (coverageArea.MinLon, coverageArea.MinLat)
+          (coverageArea.MaxLon, coverageArea.MaxLat) ]
+
+    let tileDownloadingResult = ensureWorldCoverTiles cacheDir coverageArea
+
+    match tileDownloadingResult with
+    | Ok tilesIds ->
+        let tilesHeightsArrays =
+            tilesIds |> Seq.map (readWorldCoverTile cacheDir) |> Seq.toList
+
+        // calculate mergedArrayBounds for the given area
+        let projectedCoveragePoints =
+            coveragePoints
+            |> List.map (fun (lon, lat) ->
+                mapProjection.Proj (lon |> degToRad) (lat |> degToRad))
+            |> List.choose id
+
+        let deprojectedCoveragePoints =
+            projectedCoveragePoints
+            |> List.map (fun (x, y) -> mapProjection.Invert x y)
+            |> List.choose id
+
+        let cellsPerDegree = WorldCoverTileSize
+
+        // now convert lon, lat to DEM coordinates
+        let coveragePointsInDemCoords =
+            deprojectedCoveragePoints
+            |> List.map (fun (lon, lat) ->
+                let cellX = lon |> radToDeg |> longitudeToCellX cellsPerDegree
+                let cellY = lat |> radToDeg |> latitudeToCellY cellsPerDegree
+                (cellX, cellY))
+
+        let demMbr = Demeton.Geometry.Bounds.mbrOf coveragePointsInDemCoords
+
+        // a buffer around the DEM MBR so we don't end up outside of the array
+        // when we calculate the heights
+        let safetyBuffer = 5
+
+        let mergedArrayBounds =
+            Rect.asMinMax
+                ((demMbr.MinX |> floor |> int) - safetyBuffer)
+                ((demMbr.MinY |> floor |> int) - safetyBuffer)
+                ((demMbr.MaxX |> ceil |> int) + safetyBuffer)
+                ((demMbr.MaxY |> ceil |> int) + safetyBuffer)
+
+        merge mergedArrayBounds tilesHeightsArrays |> Result.Ok
+    | Error message -> Result.Error message
 
 let saveTileFile
     (ensureDirectoryExists: DirectoryExistsEnsurer)
@@ -460,7 +512,7 @@ let run (options: Options) : Result<unit, string> =
             { SunAzimuth = options.SunAzimuth
               ShadingColor = 0u
               Intensity = options.IgorHillshadingIntensity
-              HeightsArrayIndex = 0 }
+              DataSourceKey = DefaultDataSourceKey }
 
     let lambertHillshadingStep =
         ShadingStep.LambertHillshading
@@ -468,14 +520,14 @@ let run (options: Options) : Result<unit, string> =
               SunAltitude = options.SunAltitude
               ShadingColor = 0u
               Intensity = options.IgorHillshadingIntensity
-              HeightsArrayIndex = 0 }
+              DataSourceKey = DefaultDataSourceKey }
 
     let slopeShadingStep =
         ShadingStep.SlopeShading
             { HorizontalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
               VerticalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy
               Intensity = options.SlopeShadingIntensity
-              HeightsArrayIndex = 0 }
+              DataSourceKey = DefaultDataSourceKey }
 
     let hillshadingStep =
         Compositing(
@@ -492,7 +544,15 @@ let run (options: Options) : Result<unit, string> =
         match calculateGeoAreaMbr options mapProjection with
         | Ok coverageArea ->
             ShadeCommand.generateShadedRasterTile
-                [| fetchAw3dHeightsArray mapProjection cacheDir |]
+                [| fun level coverageArea dataSources ->
+                       fetchAw3dHeightsArray
+                           mapProjection
+                           cacheDir
+                           level
+                           coverageArea
+                       |> heightsArrayResultToShadingDataSource
+                           "aw3d"
+                           (Ok dataSources) |]
                 createShadingFuncById
                 srtmLevel
                 tileRect

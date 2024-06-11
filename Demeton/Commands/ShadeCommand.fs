@@ -4,6 +4,7 @@ module Demeton.Commands.ShadeCommand
 open CommandLine
 open CommandLine.Common
 open Demeton.Dem.Types
+open Demeton.Shaders.Types
 open Raster
 open Demeton.Geometry
 open Demeton.Geometry.Common
@@ -241,7 +242,7 @@ let fillOptions parsedParameters =
         Compositing(
             ElevationColoring
                 { ColorScale = ElevationColoring.colorScaleMaperitive
-                  HeightsArraysIndex = 0 },
+                  DataSourceKey = DefaultDataSourceKey },
             IgorHillshading igorShaderParameters,
             CompositingFuncIdOver
         )
@@ -353,11 +354,11 @@ let calculateRasterMbr mapProjection options =
 
 
 /// <summary>
-/// Based on the map projection and the raster MBR, calculate the SRTM level
+/// Based on the map projection and the raster MBR, calculate the DEM level
 /// needed for the shading process.
 /// </summary>
-let calculateSrtmLevelNeeded mapProjection rasterMbr =
-    minLonLatDelta rasterMbr mapProjection.Invert |> lonLatDeltaToSrtmLevel 3600
+let calculateDemLevelNeeded mapProjection rasterMbr =
+    minLonLatDelta rasterMbr mapProjection.Invert |> lonLatDeltaToDemLevel 3600
 
 
 /// <summary>
@@ -375,10 +376,10 @@ let constructRasterTilesList options (rasterMbr: Rect) =
                       rasterMbr.MinX
                       rasterMbr.MaxX
                       options.TileSize do
-                  let tileBounds =
+                  let rasterTileRect =
                       Rect.asMinMax tileMinX tileMinY tileMaxX tileMaxY
 
-                  yield (xIndex, yIndex, tileBounds) ]
+                  yield (xIndex, yIndex, rasterTileRect) ]
 
     let maxTileIndexX =
         tilesToGenerate |> List.map (fun (xIndex, _, _) -> xIndex) |> List.max
@@ -398,11 +399,6 @@ let constructRasterTilesList options (rasterMbr: Rect) =
     tilesToGenerate, maxTileIndex
 
 
-// todo 0: problem: tile rectangle is dependent on the resolution of the heights array,
-//   but here we're using it as if all heights arrays have the same resolution
-
-// todo 0: also, in what coordinates is the tile rectangle specified?
-
 /// <summary>
 /// A function that generates a shaded raster image.
 /// </summary>
@@ -413,7 +409,8 @@ let constructRasterTilesList options (rasterMbr: Rect) =
 /// the shaded raster.
 /// </remarks>
 /// <param name="demLevel">The DEM level to use.</param>
-/// <param name="tileRect">The rectangle representing the tile.</param>
+/// <param name="imageRect">The rectangle representing the image,
+/// in the coordinates of the map projection.</param>
 /// <param name="rootShadingStep">The root shading step to use.</param>
 /// <param name="mapProjection">The map projection to use.</param>
 /// <returns>
@@ -433,36 +430,35 @@ type ShadedRasterImageGenerator =
 /// Returns a ShadedRasterImageGenerator that uses the given functions
 /// to fetch the heights array and create the shading function.
 /// </summary>
-/// <param name="heightsArrayFetchers">
-/// An array of functions that fetch the heights arrays for a given
-/// set of DEM tiles. The heights array fetched by each of these functions
-/// will be added to the array of heights arrays at the index corresponding
-/// to the index of the function in the array.
+/// <param name="dataSourcesFetchers">
+/// An array of functions that fetch the shading data sources for a given
+/// geographical area at the specific DEM level.
 /// </param>
 /// <param name="createShaderFunction">
 /// A function that creates a shading function for a given shading step.
 /// </param>
 /// <param name="demLevel">The DEM level to use.</param>
-/// <param name="tileRect">The rectangle representing the tile.</param>
+/// <param name="imageRect">The rectangle representing the image,
+/// in the coordinates of the map projection.</param>
 /// <param name="rootShadingStep">The root shading step.</param>
 /// <param name="mapProjection">The map projection to use.</param>
 /// <returns>
 /// A ShadedRasterImageGenerator function.
 /// </returns>
 let generateShadedRasterTile
-    (heightsArrayFetchers: DemHeightsArrayFetcher[])
+    (dataSourcesFetchers: ShadingDataSourcesFetcher[])
     (createShaderFunction: ShadingFuncFactory)
     : ShadedRasterImageGenerator =
-    fun demLevel (tileRect: Rect) rootShadingStep mapProjection ->
+    fun demLevel (imageRect: Rect) rootShadingStep mapProjection ->
 
         let buffer = 1
 
-        let x1 = float (tileRect.MinX - buffer)
-        let y1 = float (tileRect.MinY - buffer)
+        let x1 = float (imageRect.MinX - buffer)
+        let y1 = float (imageRect.MinY - buffer)
         let lon1Rad, lat1Rad = mapProjection.Invert x1 -y1 |> Option.get
 
-        let x2 = float (tileRect.MaxX + buffer)
-        let y2 = float (tileRect.MaxY + buffer)
+        let x2 = float (imageRect.MaxX + buffer)
+        let y2 = float (imageRect.MaxY + buffer)
         let lon2Rad, lat2Rad = mapProjection.Invert x2 -y2 |> Option.get
 
         let lonLatBounds: LonLatBounds =
@@ -471,42 +467,30 @@ let generateShadedRasterTile
               MaxLon = radToDeg (max lon1Rad lon2Rad)
               MaxLat = radToDeg (max lat1Rad lat2Rad) }
 
-        let fetchingResults =
-            heightsArrayFetchers
-            |> Array.map (fun fetcher -> fetcher demLevel lonLatBounds)
+        let dataSourcesResult =
+            dataSourcesFetchers
+            |> Array.fold
+                (fun dataSourcesResult fetcher ->
+                    dataSourcesResult
+                    |> Result.bind (fun dataSources ->
+                        dataSources |> fetcher demLevel lonLatBounds))
+                (Ok(ShadingDataSources.Create()))
 
-        let firstErrorMaybe = fetchingResults |> Array.tryFind Result.isError
+        match dataSourcesResult with
+        | Error errorMessage -> Error errorMessage
+        | Ok dataSources ->
+            let imageData =
+                executeShadingStep
+                    createShaderFunction
+                    createCompositingFuncById
+                    dataSources
+                    demLevel
+                    imageRect
+                    mapProjection.Proj
+                    mapProjection.Invert
+                    rootShadingStep
 
-        match firstErrorMaybe with
-        | Some(Error errorMessage) -> Error errorMessage
-        | _ ->
-            let fetchedHeightsArraysMaybe =
-                fetchingResults
-                |> Array.map (fun result ->
-                    match result with
-                    | Ok heightsArrayOption -> heightsArrayOption
-                    | Error _ -> None)
-
-            let allHeightsArraysAreAvailable =
-                fetchedHeightsArraysMaybe |> Array.exists Option.isNone |> not
-
-            if allHeightsArraysAreAvailable then
-                let heightsArrays = fetchedHeightsArraysMaybe |> Array.choose id
-
-                let imageData =
-                    executeShadingStep
-                        createShaderFunction
-                        createCompositingFuncById
-                        heightsArrays
-                        demLevel
-                        tileRect
-                        mapProjection.Proj
-                        mapProjection.Invert
-                        rootShadingStep
-
-                Ok(Some imageData)
-            else
-                Ok None
+            Ok(Some imageData)
 
 type ShadedRasterTileSaver =
     Options
@@ -572,8 +556,8 @@ let runWithProjection
     : Result<unit, string> =
     let rasterMbr = calculateRasterMbr mapProjection options
 
-    // calculate SRTM level needed
-    let srtmLevel = calculateSrtmLevelNeeded mapProjection rasterMbr
+    // calculate DEM level needed
+    let demLevel = calculateDemLevelNeeded mapProjection rasterMbr
 
     // then split it up into tiles
     let tilesToGenerate, maxTileIndex =
@@ -582,14 +566,14 @@ let runWithProjection
     let generateAndSaveHillshadingTile
         xIndex
         yIndex
-        tileBounds
+        imageRect
         tilesGeneratedSoFar
         =
         Log.info $"Generating a shade tile %d{xIndex}/%d{yIndex}..."
 
         generateImageTile
-            srtmLevel
-            tileBounds
+            demLevel
+            imageRect
             options.RootShadingStep
             mapProjection
         |> Result.map (fun maybeGeneratedTile ->
@@ -601,7 +585,7 @@ let runWithProjection
                     options
                     maxTileIndex
                     (xIndex, yIndex)
-                    tileBounds
+                    imageRect
                     imageData
                 |> ignore
 
@@ -611,10 +595,10 @@ let runWithProjection
 
     tilesToGenerate
     |> List.fold
-        (fun state (xIndex, yIndex, tileBounds) ->
+        (fun state (xIndex, yIndex, rasterTileRect) ->
             state
             |> Result.bind (
-                generateAndSaveHillshadingTile xIndex yIndex tileBounds
+                generateAndSaveHillshadingTile xIndex yIndex rasterTileRect
             ))
         (Ok 0)
     |> Result.map (fun actualTilesGenerated ->

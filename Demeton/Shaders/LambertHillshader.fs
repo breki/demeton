@@ -2,6 +2,7 @@
 module Demeton.Shaders.LambertHillshader
 
 open Demeton.Shaders
+open Demeton.Shaders.Types
 open Demeton.Geometry.Common
 open Png
 
@@ -14,7 +15,7 @@ type ShaderParameters =
       SunAltitude: float
       ShadingColor: Rgba8Bit.RgbaColor
       Intensity: float
-      HeightsArrayIndex: int }
+      DataSourceKey: string }
 
 [<Literal>]
 let DefaultSunAzimuth = -45.
@@ -27,7 +28,7 @@ let defaultParameters =
       SunAltitude = DefaultSunAltitude |> degToRad
       ShadingColor = 0u
       Intensity = 1.
-      HeightsArrayIndex = 0 }
+      DataSourceKey = DefaultDataSourceKey }
 
 let shadePixel parameters : Hillshading.PixelHillshader =
     fun _ slope aspect ->

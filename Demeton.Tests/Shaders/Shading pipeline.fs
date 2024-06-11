@@ -43,7 +43,7 @@ let createCompositingFuncById compositingFuncId =
     | CompositingFuncIdStupid -> stupidCompositing
     | _ -> invalidOp "Unknown compositing function."
 
-let area, heightsArray, srtmLevel, mapProjection, mapScale, tileRect =
+let area, shadingDataSources, srtmLevel, mapProjection, mapScale, tileRect =
     ShadingSampleGenerator.generateSample ()
 
 [<Fact>]
@@ -54,7 +54,7 @@ let ``Supports running a simple, single-step pipeline`` () =
         executeShadingStep
             createShadingFuncById
             createCompositingFuncById
-            [| heightsArray |]
+            shadingDataSources
             srtmLevel
             tileRect
             mapProjection.Proj
@@ -75,7 +75,7 @@ let ``Supports compositing of images`` () =
         executeShadingStep
             createShadingFuncById
             createCompositingFuncById
-            [| heightsArray |]
+            shadingDataSources
             srtmLevel
             tileRect
             mapProjection.Proj
@@ -91,7 +91,7 @@ let ``Supports elevation coloring`` () =
     executeShadingStep
         createShadingFuncById
         createCompositingFuncById
-        [| heightsArray |]
+        shadingDataSources
         srtmLevel
         tileRect
         mapProjection.Proj
@@ -106,7 +106,7 @@ let ``Supports aspect shading`` () =
     executeShadingStep
         createShadingFuncById
         createCompositingFuncById
-        [| heightsArray |]
+        shadingDataSources
         srtmLevel
         tileRect
         mapProjection.Proj
@@ -121,7 +121,7 @@ let ``Supports slope shading`` () =
     executeShadingStep
         createShadingFuncById
         createCompositingFuncById
-        [| heightsArray |]
+        shadingDataSources
         srtmLevel
         tileRect
         mapProjection.Proj
@@ -136,7 +136,7 @@ let ``Supports igor shading`` () =
     executeShadingStep
         createShadingFuncById
         createCompositingFuncById
-        [| heightsArray |]
+        shadingDataSources
         srtmLevel
         tileRect
         mapProjection.Proj

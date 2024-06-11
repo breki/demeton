@@ -10,6 +10,7 @@ open Demeton.Geometry.Common
 open Demeton.Dem.Funcs
 open Demeton.Projections.PROJParsing
 open Demeton.Shaders
+open Demeton.Shaders.Types
 open Demeton.WorldCover.Types
 open Demeton.WorldCover.Fetch
 open Demeton.WorldCover.Funcs
@@ -81,8 +82,8 @@ let options: ShadeCommand.Options =
 // todo 0: looks like there's something wrong with the WorldCover tiles cell
 //   coordinates calculation
 
-// [<Fact(Skip = "I need to reduce the size of the dataset, it's taking too long to process")>]
-[<Fact>]
+[<Fact(Skip = "Work in progress")>]
+// [<Fact>]
 let ``Render hillshading with WorldCover water bodies`` () =
     if Environment.GetEnvironmentVariable("CI") = "true" then
         // this test cannot run on CI because we don't have the WorldCover
@@ -165,14 +166,33 @@ let ``Render hillshading with WorldCover water bodies`` () =
             //   needed water bodies transformations
             waterBodiesHeightsArray |> Some |> Result.Ok
 
-        let heightsArraysFetchers =
-            [| TileShadeCommand.fetchAw3dHeightsArray mapProjection cacheDir
-               fetchWorldCoverHeightsArray |]
+        // todo 0: heightsArraysFetchers return a heights array, but there is
+        //  no way for them to return something else that could be used by the
+        //  (custom) shader
+        let shadingDataSourcesFetchers =
+            [| fun level coverageArea dataSources ->
+                   TileShadeCommand.fetchAw3dHeightsArray
+                       mapProjection
+                       cacheDir
+                       level
+                       coverageArea
+                   |> heightsArrayResultToShadingDataSource
+                       "aw3d"
+                       (Ok dataSources)
+               fun level coverageArea dataSources ->
+                   TileShadeCommand.fetchWorldCoverHeightsArray
+                       mapProjection
+                       cacheDir
+                       level
+                       coverageArea
+                   |> heightsArrayResultToShadingDataSource
+                       "worldCover"
+                       (Ok dataSources) |]
 
         let createShaderFunction shaderFunctionName =
             match shaderFunctionName with
             | StepNameXcTracerWaterBodies ->
-                worldCoverWaterBodiesShader 1 waterBodies
+                worldCoverWaterBodiesShader "waterBodies" waterBodies
             | StepNameXcTracerWaterBodiesOutline ->
                 let waterBodiesAndOutlines =
                     List.zip waterBodies waterBodiesOutlines
@@ -184,7 +204,7 @@ let ``Render hillshading with WorldCover water bodies`` () =
 
         let generateTile =
             ShadeCommand.generateShadedRasterTile
-                heightsArraysFetchers
+                shadingDataSourcesFetchers
                 createShaderFunction
 
         let saveTile =

@@ -61,11 +61,14 @@ let shouldShowWaterBody waterBody =
 /// and renders water bodies in blue and everything else in transparent.
 /// </summary>
 let worldCoverWaterBodiesShader
-    heightsArrayIndex
+    dataSourceKey
     (waterBodies: WaterBody list)
     : RasterShader =
-    fun heightsArrays srtmLevel heightsArrayTargetArea imageData forward inverse ->
+    fun dataSources srtmLevel heightsArrayTargetArea imageData forward inverse ->
         let cellsPerDegree = cellsPerDegree WorldCoverTileSize srtmLevel
+
+        let heightsArray =
+            dataSources.FetchDataSource(dataSourceKey) :?> HeightsArray
 
         let targetAreaWidth = heightsArrayTargetArea.Width
 
@@ -90,7 +93,7 @@ let worldCoverWaterBodiesShader
             for x in
                 heightsArrayTargetArea.MinX .. (heightsArrayTargetArea.MaxX - 1) do
                 let rasterValue =
-                    heightsArrays[heightsArrayIndex]
+                    heightsArray
                     |> valueForProjectedPixel x y cellsPerDegree inverse
 
                 let pixelValue =

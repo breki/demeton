@@ -1,6 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Shaders.Hillshading
 
+open Demeton.Dem.Types
 open Demeton.Shaders.Types
 open Demeton.Projections.Common
 open Demeton.Geometry.Common
@@ -85,10 +86,13 @@ let calculateSlopeAndAspect p q : SlopeAndAspect =
 /// Returns a raster shader that uses a specific pixel hillshader.
 /// </summary>
 let shadeRaster
-    heightsArraysIndex
+    dataSourceKey
     (pixelHillshader: PixelHillshader)
     : RasterShader =
-    fun heightsArrays srtmLevel tileRect imageData forward inverse ->
+    fun dataSources srtmLevel tileRect imageData forward inverse ->
+        let heightsArray =
+            dataSources.FetchDataSource dataSourceKey :?> HeightsArray
+
         let tileWidth = tileRect.Width
         let cellsPerDegree = cellsPerDegree 3600 srtmLevel
 
@@ -101,8 +105,7 @@ let shadeRaster
             let globalSrtmX = lonDeg |> longitudeToCellX cellsPerDegree
             let globalSrtmY = latDeg |> latitudeToCellY cellsPerDegree
 
-            heightsArrays[heightsArraysIndex]
-                .interpolateHeightAt (globalSrtmX, globalSrtmY)
+            heightsArray.interpolateHeightAt (globalSrtmX, globalSrtmY)
 
         let neighborHeights neighborCoords : float option[] option =
             let allCoordsAreAvailable =

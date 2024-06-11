@@ -3,6 +3,7 @@ module Demeton.Shaders.AspectShader
 
 open Demeton.Geometry.Common
 open Demeton.Shaders
+open Demeton.Shaders.Types
 open Png
 
 open System
@@ -12,14 +13,14 @@ type ShaderParameters =
       EastColor: Rgba8Bit.RgbaColor
       SouthColor: Rgba8Bit.RgbaColor
       WestColor: Rgba8Bit.RgbaColor
-      HeightsArrayIndex: int }
+      DataSourceKey: string }
 
 let defaultParameters =
     { NorthColor = Rgba8Bit.rgbColor 255uy 0uy 0uy
       EastColor = Rgba8Bit.rgbColor 0uy 255uy 0uy
       SouthColor = Rgba8Bit.rgbColor 0uy 0uy 255uy
       WestColor = Rgba8Bit.rgbColor 0uy 255uy 255uy
-      HeightsArrayIndex = 0 }
+      DataSourceKey = DefaultDataSourceKey }
 
 let shadePixel parameters : Hillshading.PixelHillshader =
     fun _ _ aspect ->
