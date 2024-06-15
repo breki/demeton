@@ -9,7 +9,7 @@ open FsCheck
 let ``Properties of merging height arrays``
     (
         arraysToMerge: HeightsArray list,
-        newArrayBounds: Raster.Rect
+        newArrayBounds: Rect
     ) =
 
     let findCellHeightInArrays (x, y) : DemHeight =

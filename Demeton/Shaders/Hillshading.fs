@@ -96,7 +96,7 @@ let shadeRaster
         let tileWidth = tileRect.Width
         let cellsPerDegree = cellsPerDegree 3600 srtmLevel
 
-        let inline lonLatOf x y = inverse (float x) (float -y)
+        let inline lonLatOf x y = inverse (float x) (float y)
 
         let heightOf (lonRad, latRad) =
             let lonDeg = radToDeg lonRad

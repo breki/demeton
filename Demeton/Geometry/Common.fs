@@ -49,6 +49,9 @@ type LonLatBounds =
       MaxLon: float
       MaxLat: float }
 
+type LongitudeDegrees = float
+type LatitudeDegrees = float
+
 let lonLatBoundsFromBounds bounds =
     { MinLon = bounds.MinX
       MinLat = bounds.MinY

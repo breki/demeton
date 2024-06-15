@@ -62,18 +62,18 @@ let ``Skip downloading WorldCover geoJSON file if it is already cached`` () =
 
 
 [<Fact>]
-let ``Can fetch the list of all available WorldCover tiles`` () =
+let ``Can fetch the list of all available WorldCover files`` () =
     let cacheDir = "cache"
 
     let geoJsonFile = ensureGeoJsonFile cacheDir fileExists downloadFile
 
-    let allAvailableTiles = listAllAvailableTiles openFileToRead geoJsonFile
+    let allAvailableFiles = listAllAvailableFiles openFileToRead geoJsonFile
 
-    test <@ allAvailableTiles |> Seq.length = 2651 @>
+    test <@ allAvailableFiles |> Seq.length = 2651 @>
 
 
 [<Fact>]
-let ``Correctly calculates the WorldCover tiles needed for a given boundary, positive values``
+let ``Correctly calculates the WorldCover files needed for a given boundary, positive values``
     ()
     =
     let bounds =
@@ -84,15 +84,15 @@ let ``Correctly calculates the WorldCover tiles needed for a given boundary, pos
 
     test
         <@
-            boundsToWorldCoverTiles bounds |> Set.ofSeq = set
-                [ demTileXYId 45 -6
-                  demTileXYId 48 -6
-                  demTileXYId 45 -9
-                  demTileXYId 48 -9 ]
+            boundsToWorldCoverFiles bounds |> Set.ofSeq = set
+                [ demTileXYId 45 6
+                  demTileXYId 48 6
+                  demTileXYId 45 9
+                  demTileXYId 48 9 ]
         @>
 
 [<Fact>]
-let ``Correctly calculates the WorldCover tiles needed for a given boundary, negative values``
+let ``Correctly calculates the WorldCover files needed for a given boundary, negative values``
     ()
     =
     let bounds =
@@ -103,16 +103,16 @@ let ``Correctly calculates the WorldCover tiles needed for a given boundary, neg
 
     test
         <@
-            boundsToWorldCoverTiles bounds |> Set.ofSeq = set
-                [ demTileXYId -6 6
-                  demTileXYId -6 3
-                  demTileXYId -3 6
-                  demTileXYId -3 3 ]
+            boundsToWorldCoverFiles bounds |> Set.ofSeq = set
+                [ demTileXYId -6 -6
+                  demTileXYId -6 -3
+                  demTileXYId -3 -6
+                  demTileXYId -3 -3 ]
         @>
 
 
 [<Fact>]
-let ``Correctly calculates the WorldCover tiles needed for a given boundary, around null island``
+let ``Correctly calculates the WorldCover files needed for a given boundary, around null island``
     ()
     =
     let bounds =
@@ -123,11 +123,11 @@ let ``Correctly calculates the WorldCover tiles needed for a given boundary, aro
 
     test
         <@
-            boundsToWorldCoverTiles bounds |> Set.ofSeq = set
+            boundsToWorldCoverFiles bounds |> Set.ofSeq = set
                 [ demTileXYId -3 0
-                  demTileXYId -3 3
+                  demTileXYId -3 -3
                   demTileXYId 0 0
-                  demTileXYId 0 3 ]
+                  demTileXYId 0 -3 ]
         @>
 
 
@@ -148,7 +148,7 @@ let ``Do not download tile if TIFF already in cache`` () =
         fail "Downloading file should not have been called"
 
     let result =
-        sampleTileId |> ensureWorldCoverTile "cache" fileExists downloadFile
+        sampleTileId |> ensureWorldCoverFile "cache" fileExists downloadFile
 
     test <@ result |> isOkValue sampleCachedTifFileName @>
 
@@ -168,7 +168,7 @@ let ``Download tile file if not in cache`` () =
     let downloadFile url localFileName =
         if
             url = "https://esa-worldcover.s3.eu-central-1.amazonaws.com/"
-                  + "v200/2021/map/ESA_WorldCover_10m_2021_v200_N46E006_Map.tif"
+                  + "v200/2021/map/ESA_WorldCover_10m_2021_v200_S46E006_Map.tif"
         then
             if localFileName = expectedCachedTiffFileName then
                 fileDownloaded <- true
@@ -179,7 +179,7 @@ let ``Download tile file if not in cache`` () =
             fail "Unexpected URL"
 
     let result =
-        sampleTileId |> ensureWorldCoverTile "cache" fileExists downloadFile
+        sampleTileId |> ensureWorldCoverFile "cache" fileExists downloadFile
 
     test <@ result |> isOk @>
     test <@ fileDownloaded @>

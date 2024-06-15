@@ -29,19 +29,19 @@ let generateSampleWithParameters minLon minLat maxLon maxLat mapScale dpi =
     let projection = createMapProjection Mercator mapScale |> resultValue
 
     let minCornerX, minCornerY =
-        projection.Proj (area.MinLon |> degToRad) (area.MaxLat |> degToRad)
+        projection.Proj (area.MinLon |> degToRad) (area.MinLat |> degToRad)
         |> Option.get
 
     let maxCornerX, maxCornerY =
-        projection.Proj (area.MaxLon |> degToRad) (area.MinLat |> degToRad)
+        projection.Proj (area.MaxLon |> degToRad) (area.MaxLat |> degToRad)
         |> Option.get
 
     let rasterRect =
         Raster.Rect.asMinMax
             (int (floor minCornerX))
-            -(int (floor minCornerY))
+            (int (floor minCornerY))
             (int (ceil maxCornerX))
-            -(int (ceil maxCornerY))
+            (int (ceil maxCornerY))
 
     let srtmLevelNeeded =
         minLonLatDelta rasterRect projection.Invert
@@ -50,13 +50,13 @@ let generateSampleWithParameters minLon minLat maxLon maxLat mapScale dpi =
     let minLonNeeded, minLatNeeded =
         projection.Invert
             (rasterRect.MinX - 1 |> float)
-            -(rasterRect.MinY - 1 |> float)
+            (rasterRect.MinY - 1 |> float)
         |> Option.get
 
     let maxLonNeeded, maxLatNeeded =
         projection.Invert
             (rasterRect.MaxX + 1 |> float)
-            -(rasterRect.MaxY + 1 |> float)
+            (rasterRect.MaxY + 1 |> float)
         |> Option.get
 
     let minLonNeededDeg = radToDeg minLonNeeded
@@ -123,6 +123,6 @@ let ``Sample data is valid and sane`` () =
 
     test <@ srtmLevel = DemLevel.fromInt 2 @>
     test <@ heights.Width = 129 @>
-    test <@ heights.Height = 76 @>
+    test <@ heights.Height = 79 @>
     test <@ rasterRect.Width = 60 @>
-    test <@ rasterRect.Height = 51 @>
+    test <@ rasterRect.Height = 53 @>

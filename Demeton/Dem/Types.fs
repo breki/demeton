@@ -5,6 +5,16 @@ open Raster
 
 type DemHeight = int16
 
+type DemTileX = int
+type DemTileY = int
+type DemTileFractionalX = float
+type DemTileFractionalY = float
+
+type DemCellX = int
+type DemCellY = int
+type DemCellFractionalX = float
+type DemCellFractionalY = float
+
 [<Literal>]
 let DemHeightNone = Int16.MinValue
 
@@ -24,18 +34,18 @@ let interpolateHeight h1 h2 h3 h4 (dx: float) (dy: float) =
 
 let inline DemHeight x = int16 x
 
-type GlobalCellCoords = int * int
-type GlobalCellCoordsFractional = float * float
+type DemLocalCellCoords = DemCellX * DemCellY
+type DemGlobalCellCoords = DemCellX * DemCellY
 
 type HeightCell =
-    { Coords: GlobalCellCoords
+    { Coords: DemGlobalCellCoords
       Height: DemHeight }
 
 type HeightsArrayInitializer =
     | EmptyHeightsArray
     | HeightsArrayDirectImport of DemHeight[]
     | HeightsArrayInitializer1D of (int -> DemHeight)
-    | HeightsArrayInitializer2D of (GlobalCellCoords -> DemHeight)
+    | HeightsArrayInitializer2D of (DemGlobalCellCoords -> DemHeight)
     | HeightsArrayCustomInitializer of (DemHeight[] -> unit)
 
 
@@ -99,7 +109,7 @@ type HeightsArray
     member this.MaxY = minY + height - 1
     member this.Cells = cells
 
-    member this.heightAt((x, y): GlobalCellCoords) : DemHeight =
+    member this.heightAt((x, y): DemGlobalCellCoords) : DemHeight =
 
 #if DEBUG
         match (x, y) with
@@ -141,7 +151,7 @@ type HeightsArray
         let h4 = this.heightAt (x2, y2)
         interpolateHeight h1 h2 h3 h4 (fractionOf x) (fractionOf y)
 
-    member this.setHeightAt ((x, y): GlobalCellCoords) (height: DemHeight) =
+    member this.setHeightAt ((x, y): DemGlobalCellCoords) (height: DemHeight) =
         let index = (y - this.MinY) * width + x - this.MinX
         this.Cells.[index] <- height
 
@@ -203,44 +213,40 @@ type DemTileId =
         /// This is an integer value which is positive for tiles east of the
         /// Greenwich meridian and negative for tiles west of it.
         /// </summary>
-        TileX: int
+        TileX: DemTileX
 
         /// <summary>
         /// Represents the Y coordinate of the DEM tile.
         /// This is an integer value which is positive for tile south of the
         /// Equator and negative for tiles north of it.
         /// </summary>
-        TileY: int
+        TileY: DemTileY
     }
 
     member this.IdString = $"%d{this.Level.Value}/%d{this.TileX}/%d{this.TileY}"
 
     member this.FormatLat2Lon3 =
-        let latSign =
-            match this.TileY with
-            | y when y >= 0 -> 'S'
-            | _ -> 'N'
-
-        let lonSign =
-            match this.TileX with
-            | x when x >= 0 -> 'E'
-            | _ -> 'W'
+        let lonSign, latSign = this.LonLatCardinalDirectionsSigns
 
         $"%c{latSign}%02d{abs this.TileY}%c{lonSign}%03d{abs this.TileX}"
 
     member this.FormatLat3Lon3 =
+        let lonSign, latSign = this.LonLatCardinalDirectionsSigns
+
+        $"%c{latSign}%03d{abs this.TileY}%c{lonSign}%03d{abs this.TileX}"
+
+    member this.LonLatCardinalDirectionsSigns =
         let latSign =
             match this.TileY with
-            | y when y >= 0 -> 'S'
-            | _ -> 'N'
+            | y when y >= 0 -> 'N'
+            | _ -> 'S'
 
         let lonSign =
             match this.TileX with
             | x when x >= 0 -> 'E'
             | _ -> 'W'
 
-        $"%c{latSign}%03d{abs this.TileY}%c{lonSign}%03d{abs this.TileX}"
-
+        lonSign, latSign
 
 
 /// <summary>
@@ -248,10 +254,6 @@ type DemTileId =
 /// its heights array.
 /// </summary>
 type DemTile = DemTileId * HeightsArray
-
-type DemTileCellCoordsInt = int * int
-type DemTileCellCoordsFloat = float * float
-
 
 
 [<StructuredFormatDisplay("{Value}")>]

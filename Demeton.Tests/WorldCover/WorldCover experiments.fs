@@ -7,12 +7,9 @@ open Swensen.Unquote
 
 open Demeton.Commands
 open Demeton.Geometry.Common
-open Demeton.Dem.Funcs
 open Demeton.Projections.PROJParsing
 open Demeton.Shaders
 open Demeton.Shaders.Types
-open Demeton.WorldCover.Types
-open Demeton.WorldCover.Fetch
 open Demeton.WorldCover.Funcs
 open Demeton.WorldCover.WaterBodiesColoring
 open Demeton.WorldCover.WaterBodiesOutlining
@@ -42,7 +39,8 @@ let StepNameXcTracerWaterBodiesOutline = "XCTracer-water-bodies-outline"
 
 let hillshadingStep =
     Demeton.Shaders.Pipeline.Common.ShadingStep.IgorHillshading
-        IgorHillshader.defaultParameters
+        { IgorHillshader.defaultParameters with
+            DataSourceKey = "aw3d" }
 
 let waterBodiesStep = Pipeline.Common.CustomShading StepNameXcTracerWaterBodies
 
@@ -78,97 +76,83 @@ let options: ShadeCommand.Options =
         { Projection = PROJParameters.Mercator
           IgnoredParameters = [] } }
 
+// todo 5: we should move this to the production project once we get it working
+[<Literal>]
+let WaterBodiesHeightsArrayDataSourceKey = "waterBodiesRaster"
 
-// todo 0: looks like there's something wrong with the WorldCover tiles cell
-//   coordinates calculation
+[<Literal>]
+let WaterBodiesColoredListDataSourceKey = "waterBodiesColoredList"
 
-[<Fact(Skip = "Work in progress")>]
-// [<Fact>]
+[<Literal>]
+let WaterBodiesOutlinesDataSourceKey = "waterBodiesOutlines"
+
+
+let fetchWaterBodiesDataSources
+    mapProjection
+    cacheDir
+    level
+    coverageArea
+    dataSources
+    =
+    let waterBodiesHeightsArrayResult =
+        TileShadeCommand.fetchWorldCoverHeightsArray
+            mapProjection
+            cacheDir
+            level
+            coverageArea
+
+    let dataSources =
+        waterBodiesHeightsArrayResult
+        |> heightsArrayResultToShadingDataSource "worldCover" (Ok dataSources)
+
+    // if we actually got the water bodies heights array, we can calculate
+    // the derived data sources from it
+    dataSources
+    |> Result.bind (fun dataSources ->
+        match waterBodiesHeightsArrayResult with
+        | Ok(Some waterBodiesHeightsArray) ->
+            let waterBodiesHeightsArray =
+                waterBodiesHeightsArray
+                |> convertWorldCoverRasterToWaterMonochrome
+            // |> simplifyRaster 100
+
+            let dataSources =
+                dataSources.WithDataSource
+                    WaterBodiesHeightsArrayDataSourceKey
+                    waterBodiesHeightsArray
+
+            // construct water bodies data source and add it to the sources
+            let waterBodies = waterBodiesHeightsArray |> colorWaterBodies
+
+            let dataSources =
+                dataSources.WithDataSource
+                    WaterBodiesColoredListDataSourceKey
+                    waterBodies
+
+            // construct water bodies outline data source and add it to the sources
+            let waterBodiesOutlines =
+                waterBodies
+                |> outlineWaterBodies waterBodiesHeightsArray
+                |> Seq.toList
+
+            let dataSources =
+                dataSources.WithDataSource
+                    WaterBodiesOutlinesDataSourceKey
+                    waterBodiesOutlines
+
+            dataSources |> Ok
+        | _ -> dataSources |> Ok)
+
+// [<Fact(Skip = "Work in progress")>]
+[<Fact>]
 let ``Render hillshading with WorldCover water bodies`` () =
     if Environment.GetEnvironmentVariable("CI") = "true" then
         // this test cannot run on CI because we don't have the WorldCover
         // raster available (it's too big to be added to git repo)
         ()
     else
-        let worldCoverTilesNeeded = boundsToWorldCoverTiles area
-
-        let worldCoverTileId = demTileXYId 6 -45
-
         let cacheDir = "cache"
 
-        let result =
-            ensureWorldCoverTile
-                cacheDir
-                FileSys.fileExists
-                FileSys.downloadFile
-                worldCoverTileId
-
-        test <@ result |> isOk @>
-
-        let waterBodiesHeightsArray =
-            readWorldCoverTile cacheDir worldCoverTileId
-
-        let waterBodiesHeightsArray =
-            waterBodiesHeightsArray |> convertWorldCoverRasterToWaterMonochrome
-        // |> simplifyRaster 100
-
-        let waterBodies = waterBodiesHeightsArray |> colorWaterBodies
-
-        let waterBodiesOutlines =
-            waterBodies
-            |> outlineWaterBodies waterBodiesHeightsArray
-            |> Seq.toList
-
-        // todo 0: calculate the list of tiles needed so we can ensure we have
-        //   all of them
-        let fetchWorldCoverHeightsArray level area =
-            let coveragePoints =
-                [ (area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat) ]
-
-            let projectedCoveragePoints =
-                coveragePoints
-                |> List.map (fun (lon, lat) ->
-                    mapProjection.Proj (lon |> degToRad) (lat |> degToRad))
-                |> List.choose id
-
-            let deprojectedCoveragePoints =
-                projectedCoveragePoints
-                |> List.map (fun (x, y) -> mapProjection.Invert x y)
-                |> List.choose id
-
-            let cellsPerDegree = WorldCoverCellsPerDegree
-
-            // now convert lon, lat to DEM coordinates
-            let coveragePointsInDemCoords =
-                deprojectedCoveragePoints
-                |> List.map (fun (lon, lat) ->
-                    let cellX =
-                        lon |> radToDeg |> longitudeToCellX cellsPerDegree
-
-                    let cellY =
-                        lat |> radToDeg |> latitudeToCellY cellsPerDegree
-
-                    (cellX, cellY))
-
-            let demMbr = Demeton.Geometry.Bounds.mbrOf coveragePointsInDemCoords
-
-            let minTileLon = demMbr.MinX |> cellXToLongitudeFloat cellsPerDegree
-
-            let minTileLat = demMbr.MaxY |> cellYToLatitudeFloat cellsPerDegree
-
-            let maxTileLon = demMbr.MaxX |> cellXToLongitudeFloat cellsPerDegree
-
-            let maxTileLat = demMbr.MinY |> cellYToLatitudeFloat cellsPerDegree
-
-            let tileDownloadingResult = ensureWorldCoverTiles cacheDir area
-
-            // todo 2: use merged array from the above function + apply any
-            //   needed water bodies transformations
-            waterBodiesHeightsArray |> Some |> Result.Ok
-
-        // todo 0: heightsArraysFetchers return a heights array, but there is
-        //  no way for them to return something else that could be used by the
-        //  (custom) shader
         let shadingDataSourcesFetchers =
             [| fun level coverageArea dataSources ->
                    TileShadeCommand.fetchAw3dHeightsArray
@@ -179,25 +163,18 @@ let ``Render hillshading with WorldCover water bodies`` () =
                    |> heightsArrayResultToShadingDataSource
                        "aw3d"
                        (Ok dataSources)
-               fun level coverageArea dataSources ->
-                   TileShadeCommand.fetchWorldCoverHeightsArray
-                       mapProjection
-                       cacheDir
-                       level
-                       coverageArea
-                   |> heightsArrayResultToShadingDataSource
-                       "worldCover"
-                       (Ok dataSources) |]
+               fetchWaterBodiesDataSources mapProjection cacheDir |]
 
         let createShaderFunction shaderFunctionName =
             match shaderFunctionName with
             | StepNameXcTracerWaterBodies ->
-                worldCoverWaterBodiesShader "waterBodies" waterBodies
+                worldCoverWaterBodiesShader
+                    WaterBodiesHeightsArrayDataSourceKey
+                    WaterBodiesColoredListDataSourceKey
             | StepNameXcTracerWaterBodiesOutline ->
-                let waterBodiesAndOutlines =
-                    List.zip waterBodies waterBodiesOutlines
-
-                worldCoverWaterBodiesOutlineShader waterBodiesAndOutlines
+                worldCoverWaterBodiesOutlineShader
+                    WaterBodiesHeightsArrayDataSourceKey
+                    WaterBodiesOutlinesDataSourceKey
             | _ ->
                 failwithf
                     $"Unknown shader function name: %s{shaderFunctionName}"

@@ -5,10 +5,11 @@ open Raster
 open Demeton.Dem.Types
 open Demeton.Projections.Common
 
-// todo 0: create a ShadingDataSources type that stores the data that the shading
-// steps work on in a form of a data dictionary and provide a method to retrieve
-// the data based on its key
-
+/// <summary>
+/// Stores the data that the shading steps work on in a form of a data
+/// dictionary and provides a method to retrieve individual data source based
+/// on its key.
+/// </summary>
 type ShadingDataSources =
     { Sources: Map<string, obj> }
 

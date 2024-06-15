@@ -150,7 +150,7 @@ let shadeRaster dataSourceKey (colorScale: ColorScale) : RasterShader =
         let tileWidth = tileRect.Width
 
         let heightForTilePixel x y =
-            let lonLatOption = inverse (float x) (float -y)
+            let lonLatOption = inverse (float x) (float y)
 
             match lonLatOption with
             | None -> None

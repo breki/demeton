@@ -23,12 +23,12 @@ let ``Correctly calculates the AW3D tiles needed for a given boundary`` () =
           MaxLat = 47.9 }
 
     let expectedTiles =
-        [ demTileXYId 6 -47
-          demTileXYId 6 -46
-          demTileXYId 7 -47
-          demTileXYId 7 -46
-          demTileXYId 8 -47
-          demTileXYId 8 -46 ]
+        [ demTileXYId 6 46
+          demTileXYId 6 47
+          demTileXYId 7 46
+          demTileXYId 7 47
+          demTileXYId 8 46
+          demTileXYId 8 47 ]
         |> Set.ofList
 
     test <@ (boundsToAw3dTiles bounds |> Set.ofSeq) = expectedTiles @>
@@ -36,10 +36,10 @@ let ``Correctly calculates the AW3D tiles needed for a given boundary`` () =
 
 [<Theory>]
 [<InlineData(6,
-             -46,
+             46,
              "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2303/N045E005/N046E006.zip")>]
 [<InlineData(-120,
-             36,
+             -36,
              "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2303/S035W120/S036W120.zip")>]
 let ``For a given AW3D tile, construct its download URL``
     tileX
@@ -89,7 +89,7 @@ let ``Do not download tile if TIFF already in cache`` () =
 [<Fact>]
 let ``Download tile ZIP file if TIFF not in cache`` () =
     let cacheDir = "cache"
-    let sampleTileId = demTileXYId 6 -46
+    let sampleTileId = demTileXYId 6 46
 
     let expectedCachedZipFileName =
         Path.Combine(cacheDir, Aw3dDirName, $"N046E006.zip")
@@ -132,7 +132,7 @@ let ``Download tile ZIP file if TIFF not in cache`` () =
 [<Fact>]
 let ``Extract tile TIFF to the cache`` () =
     let cacheDir = "cache"
-    let sampleTileId = demTileXYId 6 -46
+    let sampleTileId = demTileXYId 6 46
 
     let expectedCachedTifFileName =
         Path.Combine("cache", Aw3dDirName, "N046E006.tif")
@@ -176,7 +176,7 @@ let ``Extract tile TIFF to the cache`` () =
 [<Fact>]
 let ``Delete downloaded ZIP file after extraction`` () =
     let cacheDir = "cache"
-    let sampleTileId = demTileXYId 6 -46
+    let sampleTileId = demTileXYId 6 46
 
     let expectedCachedTifFileName =
         Path.Combine("cache", Aw3dDirName, "N046E006.tif")

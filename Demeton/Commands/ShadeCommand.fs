@@ -340,7 +340,7 @@ let calculateRasterMbr mapProjection options =
         |> List.map (fun (lonDegrees, latDegrees) ->
             mapProjection.Proj (degToRad lonDegrees) (degToRad latDegrees))
         |> List.filter Option.isSome
-        |> List.map (Option.get >> (fun (x, y) -> (x, -y)))
+        |> List.map (Option.get >> (fun (x, y) -> (x, y)))
 
     // calculate the minimum bounding rectangle of all the projected points
     let rasterMbr = Bounds.mbrOf projectedPoints
@@ -455,11 +455,11 @@ let generateShadedRasterTile
 
         let x1 = float (imageRect.MinX - buffer)
         let y1 = float (imageRect.MinY - buffer)
-        let lon1Rad, lat1Rad = mapProjection.Invert x1 -y1 |> Option.get
+        let lon1Rad, lat1Rad = mapProjection.Invert x1 y1 |> Option.get
 
         let x2 = float (imageRect.MaxX + buffer)
         let y2 = float (imageRect.MaxY + buffer)
-        let lon2Rad, lat2Rad = mapProjection.Invert x2 -y2 |> Option.get
+        let lon2Rad, lat2Rad = mapProjection.Invert x2 y2 |> Option.get
 
         let lonLatBounds: LonLatBounds =
             { MinLon = radToDeg (min lon1Rad lon2Rad)

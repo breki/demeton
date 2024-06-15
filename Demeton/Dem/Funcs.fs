@@ -8,22 +8,22 @@ open Demeton.Geometry.Common
 let inline private levelFactorFloat (level: DemLevel) =
     1 <<< level.Value |> float
 
-let inline tileXToCellX (tileSize: int) (tileX: float) =
+let inline tileXToCellX (tileSize: int) (tileX: DemTileFractionalX) =
     tileX * (tileSize |> float)
 
-let inline tileYToCellY (tileSize: int) (tileY: float) =
+let inline tileYToCellY (tileSize: int) (tileY: DemTileFractionalY) =
     tileY * (tileSize |> float)
 
 /// <summary>
 /// Converts DEM cell X coordinate to a fractional tile X coordinate.
 /// </summary>
-let inline cellXToTileX (tileSize: int) (cellX: float) =
+let inline cellXToTileX (tileSize: int) (cellX: DemCellFractionalX) =
     cellX / (tileSize |> float)
 
 /// <summary>
 /// Converts DEM cell Y coordinate to a fractional tile Y coordinate.
 /// </summary>
-let inline cellYToTileY (tileSize: int) (cellY: float) =
+let inline cellYToTileY (tileSize: int) (cellY: DemCellFractionalY) =
     cellY / (tileSize |> float)
 
 /// <summary>
@@ -34,19 +34,19 @@ let inline cellYToTileY (tileSize: int) (cellY: float) =
 /// <returns>
 /// A tuple representing the minimum cell coordinates (X, Y) of the tile.
 /// </returns>
-let tileMinCell (tileSize: int) (tileId: DemTileId) : DemTileCellCoordsInt =
+let tileMinCell (tileSize: int) (tileId: DemTileId) : DemGlobalCellCoords =
     let cellX = tileXToCellX tileSize (tileId.TileX |> float)
-    let cellY = tileYToCellY tileSize ((tileId.TileY - 1) |> float)
+    let cellY = tileYToCellY tileSize (tileId.TileY |> float)
 
-    (cellX |> Math.Round |> int, cellY |> Math.Round |> int)
+    (cellX |> Math.Floor |> int, cellY |> Math.Floor |> int)
 
-let findTileFromGlobalCoordinates
+let findTileFromGlobalCellCoordinates
     tileSize
     (level: DemLevel)
-    (x, y)
+    ((cellX, cellY): DemGlobalCellCoords)
     : DemTileId =
-    let tileX = cellXToTileX tileSize x |> floor |> int
-    let tileY = cellYToTileY tileSize y |> floor |> int
+    let tileX = cellXToTileX tileSize cellX |> floor |> int
+    let tileY = cellYToTileY tileSize cellY |> floor |> int
 
     { Level = level
       TileX = tileX
@@ -58,12 +58,14 @@ let inline cellsPerDegree tileSize (level: DemLevel) =
 /// <summary>
 /// Converts longitude value (in degrees) to DEM cell X coordinate.
 /// </summary>
-let inline longitudeToCellX cellsPerDegree (lon: float) = lon * cellsPerDegree
+let inline longitudeToCellX cellsPerDegree (lon: LongitudeDegrees) =
+    lon * cellsPerDegree
 
 /// <summary>
 /// Converts latitude value (in degrees) to DEM cell Y coordinate.
 /// </summary>
-let inline latitudeToCellY cellsPerDegree (lat: float) = -lat * cellsPerDegree
+let inline latitudeToCellY cellsPerDegree (lat: LatitudeDegrees) =
+    lat * cellsPerDegree
 
 /// <summary>
 /// Converts cell X coordinates to longitude (in degrees).
@@ -76,10 +78,11 @@ let inline latitudeToCellY cellsPerDegree (lat: float) = -lat * cellsPerDegree
 /// <returns>
 /// The longitude (in degrees) corresponding to the cell X coordinate.
 /// </returns>
-let inline cellXToLongitude cellsPerDegree cellX = cellX / cellsPerDegree
-
-let inline cellXToLongitudeFloat (cellsPerDegree: int) (cellX: float) =
-    cellX / float cellsPerDegree
+let inline cellXToLongitude
+    cellsPerDegree
+    (cellX: DemCellFractionalX)
+    : LongitudeDegrees =
+    cellX / cellsPerDegree
 
 /// <summary>
 /// Converts cell Y coordinates to latitude (in degrees).
@@ -92,54 +95,52 @@ let inline cellXToLongitudeFloat (cellsPerDegree: int) (cellX: float) =
 /// <returns>
 /// The latitude (in degrees) corresponding to the cell Y coordinate.
 /// </returns>
-let inline cellYToLatitude cellsPerDegree cellY = -cellY / cellsPerDegree
+let inline cellYToLatitude
+    cellsPerDegree
+    (cellY: DemCellFractionalY)
+    : LatitudeDegrees =
+    cellY / cellsPerDegree
 
-let inline cellYToLatitudeFloat (cellsPerDegree: int) (cellY: float) =
-    -cellY / float cellsPerDegree
-
-let inline demTileId level tileX tileY =
+let inline demTileId level (tileX: DemTileX) (tileY: DemTileY) =
     { Level = DemLevel.fromInt level
       TileX = tileX
       TileY = tileY }
 
-let inline demTileXYId tileX tileY =
+let inline demTileXYId (tileX: DemTileX) (tileY: DemTileY) =
     { Level = DemLevel.fromInt 0
       TileX = tileX
       TileY = tileY }
+
+/// <summary>
+/// Construct a DEM tile ID from a fractional tile X and Y coordinates.
+/// </summary>
+let inline demTileIdFromFractional
+    level
+    (tileX: DemTileFractionalX)
+    (tileY: DemTileFractionalY)
+    =
+    { Level = DemLevel.fromInt level
+      TileX = Math.Floor tileX |> int
+      TileY = Math.Floor tileY |> int }
 
 let toDemTileCoords (tileId: DemTileId) : DemTileCoords =
     match tileId.Level.Value with
     | 0 ->
         let lon = tileId.TileX |> DemLongitude.fromInt
-        let lat = -tileId.TileY |> DemLatitude.fromInt
+        let lat = tileId.TileY |> DemLatitude.fromInt
         { Lon = lon; Lat = lat }
     | _ ->
         invalidOp
             "Cannot convert DEM tile ID with level > 0 to DEM tile coords."
 
-let toHgtTileName (tileCoords: DemTileCoords) =
-    let latitudeCharSign (latitude: DemLatitude) =
-        match latitude with
-        | x when x.Value >= 0 -> 'N'
-        | _ -> 'S'
-
-    let longitudeCharSign (longitude: DemLongitude) =
-        match longitude with
-        | x when x.Value >= 0 -> 'E'
-        | _ -> 'W'
-
-    let latSign = latitudeCharSign tileCoords.Lat
-    let lonSign = longitudeCharSign tileCoords.Lon
-
-    $"%c{latSign}%02d{abs tileCoords.Lat.Value}%c{lonSign}%03d{abs tileCoords.Lon.Value}"
-
 let toTileName (tileId: DemTileId) : DemTileName =
     match tileId.Level.Value with
-    | 0 -> tileId |> toDemTileCoords |> toHgtTileName
+    | 0 -> tileId.FormatLat2Lon3
     | _ ->
-        let lonSign tileX = if tileX >= 0 then 'e' else 'w'
-        let latSign tileY = if tileY <= 0 then 'n' else 's'
-        $"l%01d{tileId.Level.Value}%c{lonSign tileId.TileX}%02d{abs tileId.TileX}%c{latSign tileId.TileY}%02d{abs tileId.TileY}"
+        let lonSign, latSign = tileId.LonLatCardinalDirectionsSigns
+        let lonSign = (lonSign |> string).ToLower()
+        let latSign = (latSign |> string).ToLower()
+        $"l%01d{tileId.Level.Value}%s{lonSign}%02d{abs tileId.TileX}%s{latSign}%02d{abs tileId.TileY}"
 
 
 /// <summary>
@@ -215,8 +216,8 @@ let parseTileName (tileName: DemTileName) : DemTileId =
 
         let latitudeSign =
             match tileName.[5..5] with
-            | "n" -> -1
-            | "s" -> 1
+            | "n" -> 1
+            | "s" -> -1
             | _ -> invalidOp "Invalid latitude sign"
 
         let y = (tileName.[6..7] |> Int32.Parse) * latitudeSign
@@ -228,7 +229,7 @@ let parseTileName (tileName: DemTileName) : DemTileId =
 
         { Level = DemLevel.fromInt 0
           TileX = tileCoords.Lon.Value
-          TileY = -tileCoords.Lat.Value }
+          TileY = tileCoords.Lat.Value }
 
 
 let tileLonLatBounds tileSize (tile: DemTileId) : LonLatBounds =
@@ -237,12 +238,12 @@ let tileLonLatBounds tileSize (tile: DemTileId) : LonLatBounds =
 
     let cellsPerDegree = cellsPerDegree tileSize level
     let minLon = minCellX |> float |> cellXToLongitude cellsPerDegree
-    let maxLat = minCellY |> float |> cellYToLatitude cellsPerDegree
+    let minLat = minCellY |> float |> cellYToLatitude cellsPerDegree
 
     let maxLon =
         (minCellX + tileSize) |> float |> cellXToLongitude cellsPerDegree
 
-    let minLat =
+    let maxLat =
         (minCellY + tileSize) |> float |> cellYToLatitude cellsPerDegree
 
     { MinLon = minLon
@@ -280,12 +281,11 @@ let boundsToTiles
         |> int
 
     let minTileY =
-        (bounds.MaxLat
-         |> latitudeToCellY cellsPerDegree
-         |> cellYToTileY tileSize
-         |> floor
-         |> int)
-        + 1
+        bounds.MinLat
+        |> latitudeToCellY cellsPerDegree
+        |> cellYToTileY tileSize
+        |> floor
+        |> int
 
     let maxTileX =
         (bounds.MaxLon
@@ -296,11 +296,12 @@ let boundsToTiles
         - 1
 
     let maxTileY =
-        bounds.MinLat
-        |> latitudeToCellY cellsPerDegree
-        |> cellYToTileY tileSize
-        |> ceil
-        |> int
+        (bounds.MaxLat
+         |> latitudeToCellY cellsPerDegree
+         |> cellYToTileY tileSize
+         |> ceil
+         |> int)
+        - 1
 
 
     [ for tileY in [ minTileY..maxTileY ] do
@@ -475,7 +476,7 @@ let mapRasterValues mapFunc (heightsArray: HeightsArray) =
 /// Returns a tuple of the sum of the values of the 9 cells and the value of
 /// the central cell.
 /// </remarks>
-let sumCells9 x y (heightsArray: HeightsArray) =
+let sumCells9 (x: DemCellX) (y: DemCellY) (heightsArray: HeightsArray) =
     let rasterWidth = heightsArray.Width
     let rasterWidth2 = rasterWidth * 2
 

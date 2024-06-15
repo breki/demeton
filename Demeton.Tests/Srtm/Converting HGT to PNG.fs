@@ -56,7 +56,7 @@ let ``Can convert HeightsArray to 16-bit grayscale`` () =
 
     let sampleCellX = 50
     let sampleCellY = 75
-    let sampleCell = GlobalCellCoords(10 + sampleCellX, 15 + sampleCellY)
+    let sampleCell = DemGlobalCellCoords(10 + sampleCellX, 15 + sampleCellY)
     let originalHeightAtSampleCell = heightsArray.heightAt sampleCell
 
     let imageData =

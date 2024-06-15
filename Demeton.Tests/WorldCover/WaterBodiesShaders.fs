@@ -27,7 +27,7 @@ let valueForProjectedPixel
     inverse
     (heightsArray: HeightsArray)
     : DemHeight option =
-    let lonLatOption = inverse (float pixelX) (float -pixelY)
+    let lonLatOption = inverse (float pixelX) (float pixelY)
 
     match lonLatOption with
     | None -> None
@@ -61,31 +61,25 @@ let shouldShowWaterBody waterBody =
 /// and renders water bodies in blue and everything else in transparent.
 /// </summary>
 let worldCoverWaterBodiesShader
-    dataSourceKey
-    (waterBodies: WaterBody list)
+    waterBodiesHeightsArrayDataSourceKey
+    waterBodiesColoredListDataSourceKey
     : RasterShader =
-    fun dataSources srtmLevel heightsArrayTargetArea imageData forward inverse ->
-        let cellsPerDegree = cellsPerDegree WorldCoverTileSize srtmLevel
+    fun dataSources demLevel heightsArrayTargetArea imageData forward inverse ->
+        let cellsPerDegree = cellsPerDegree WorldCoverTileSize demLevel
 
-        let heightsArray =
-            dataSources.FetchDataSource(dataSourceKey) :?> HeightsArray
+        let waterBodiesHeightsArray =
+            dataSources.FetchDataSource(waterBodiesHeightsArrayDataSourceKey)
+            :?> HeightsArray
+
+        let waterBodiesColoredList =
+            dataSources.FetchDataSource(waterBodiesColoredListDataSourceKey)
+            :?> WaterBody list
 
         let targetAreaWidth = heightsArrayTargetArea.Width
 
-        let waterColor =
-            match (Rgba8Bit.tryParseColorHexValue "#49C8FF") with
-            | Ok color -> color
-            | Error _ -> failwith "Could not parse color"
-
-        let ignoredWaterColor =
-            match (Rgba8Bit.tryParseColorHexValue "#FF96D1") with
-            | Ok color -> color
-            | Error _ -> failwith "Could not parse color"
-
-        let errorWaterColor =
-            match (Rgba8Bit.tryParseColorHexValue "#FF4800") with
-            | Ok color -> color
-            | Error _ -> failwith "Could not parse color"
+        let waterColor = Rgba8Bit.parseColorHexValue "#49C8FF"
+        let ignoredWaterColor = Rgba8Bit.parseColorHexValue "#FF96D1"
+        let errorWaterColor = Rgba8Bit.parseColorHexValue "#FF4800"
 
         let noWaterColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
 
@@ -93,7 +87,7 @@ let worldCoverWaterBodiesShader
             for x in
                 heightsArrayTargetArea.MinX .. (heightsArrayTargetArea.MaxX - 1) do
                 let rasterValue =
-                    heightsArray
+                    waterBodiesHeightsArray
                     |> valueForProjectedPixel x y cellsPerDegree inverse
 
                 let pixelValue =
@@ -102,7 +96,8 @@ let worldCoverWaterBodiesShader
                     | Some 0s -> noWaterColor
                     | Some 1s -> errorWaterColor
                     | Some waterBodyColor ->
-                        let waterBody = waterBodies.[int waterBodyColor - 2]
+                        let waterBody =
+                            waterBodiesColoredList.[int waterBodyColor - 2]
 
                         if shouldShowWaterBody waterBody then
                             waterColor
@@ -124,11 +119,12 @@ let worldCoverWaterBodiesShader
         |> ignore
 
 let worldCoverWaterBodiesOutlineShader
-    (waterBodiesAndOutlines: (WaterBody * WaterBodyOutline) list)
+    waterBodiesColoredListDataSourceKey
+    waterBodiesOutlinesDataSourceKey
     : RasterShader =
 
     let colorWaterBodyOutline
-        srtmLevel
+        demLevel
         imageData
         heightsArrayTargetArea
         (forward: ProjectFunc)
@@ -136,7 +132,7 @@ let worldCoverWaterBodiesOutlineShader
         ((waterBody, waterBodyOutline): WaterBody * WaterBodyOutline)
         =
         if shouldShowWaterBody waterBody then
-            let cellsPerDegree = cellsPerDegree WorldCoverTileSize srtmLevel
+            let cellsPerDegree = cellsPerDegree WorldCoverTileSize demLevel
 
             let targetAreaWidth = heightsArrayTargetArea.Width
 
@@ -196,8 +192,19 @@ let worldCoverWaterBodiesOutlineShader
         else
             ()
 
-    fun heightsArrays srtmLevel (tileRect: Rect) imageData forward inverse ->
+    fun dataSources demLevel (tileRect: Rect) imageData forward inverse ->
+        let waterBodiesColoredList =
+            dataSources.FetchDataSource(waterBodiesColoredListDataSourceKey)
+            :?> WaterBody list
+
+        let waterBodiesAndOutlines =
+            dataSources.FetchDataSource(waterBodiesOutlinesDataSourceKey)
+            :?> WaterBodyOutline list
+
+        let waterBodiesAndOutlines =
+            waterBodiesAndOutlines |> List.zip waterBodiesColoredList
+
         waterBodiesAndOutlines
         |> Seq.iter (
-            colorWaterBodyOutline srtmLevel imageData tileRect forward inverse
+            colorWaterBodyOutline demLevel imageData tileRect forward inverse
         )

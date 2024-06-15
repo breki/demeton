@@ -21,12 +21,11 @@ let boundsToAw3dTiles (bounds: LonLatBounds) : DemTileId seq =
         |> int
 
     let minTileY =
-        (bounds.MaxLat
-         |> latitudeToCellY Aw3dTileSize
-         |> cellYToTileY Aw3dTileSize
-         |> floor
-         |> int)
-        + 1
+        bounds.MinLat
+        |> latitudeToCellY Aw3dTileSize
+        |> cellYToTileY Aw3dTileSize
+        |> floor
+        |> int
 
     let maxTileX =
         (bounds.MaxLon
@@ -37,11 +36,12 @@ let boundsToAw3dTiles (bounds: LonLatBounds) : DemTileId seq =
         - 1
 
     let maxTileY =
-        bounds.MinLat
-        |> latitudeToCellY Aw3dTileSize
-        |> cellYToTileY Aw3dTileSize
-        |> ceil
-        |> int
+        (bounds.MaxLat
+         |> latitudeToCellY Aw3dTileSize
+         |> cellYToTileY Aw3dTileSize
+         |> ceil
+         |> int)
+        - 1
 
     seq {
         for tileY in [ minTileY..maxTileY ] do

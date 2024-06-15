@@ -37,9 +37,9 @@ let ``Tile generator correctly specifies DEM level and bounds for tile downloade
         test <@ level = srtmLevel @>
 
         test <@ area.MinLon |> isApproxEqualTo 4.249 (Decimals 3) @>
-        test <@ area.MinLat |> isApproxEqualTo 42.900 (Decimals 3) @>
+        test <@ area.MinLat |> isApproxEqualTo 42.892 (Decimals 3) @>
         test <@ area.MaxLon |> isApproxEqualTo 16.984 (Decimals 3) @>
-        test <@ area.MaxLat |> isApproxEqualTo 48.508 (Decimals 3) @>
+        test <@ area.MaxLat |> isApproxEqualTo 48.516 (Decimals 3) @>
 
         Ok dataSources
 

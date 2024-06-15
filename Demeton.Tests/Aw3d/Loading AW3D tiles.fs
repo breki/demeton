@@ -13,7 +13,7 @@ let CacheDir = "cache"
 
 [<Fact>]
 let ``Load AW3D into a DemHeight`` () =
-    let tileId = demTileXYId 46 -7
+    let tileId = demTileXYId 7 46
 
     let result =
         tileId
@@ -31,5 +31,5 @@ let ``Load AW3D into a DemHeight`` () =
 
     test <@ heightsArray.Width = Aw3dTileSize @>
     test <@ heightsArray.Height = Aw3dTileSize @>
-    test <@ heightsArray.MinX = 165600 @>
-    test <@ heightsArray.MinY = -28800 @>
+    test <@ heightsArray.MinX = 7 * 3600 @>
+    test <@ heightsArray.MinY = 46 * 3600 @>

@@ -81,9 +81,9 @@ let ``Correctly calculates the list of needed children for level 1 for SomeFutur
     test
         <@
             childrenBounds = { MinLon = 13.
-                               MinLat = 44.
+                               MinLat = 45.
                                MaxLon = 17.
-                               MaxLat = 48. }
+                               MaxLat = 49. }
         @>
 
 [<Fact>]
@@ -111,9 +111,9 @@ let ``Correctly calculates the list of needed children for level 1 for Average m
     test
         <@
             childrenBounds = { MinLon = 14.
-                               MinLat = 45.
+                               MinLat = 46.
                                MaxLon = 16.
-                               MaxLat = 47. }
+                               MaxLat = 48. }
         @>
 
 [<Fact>]

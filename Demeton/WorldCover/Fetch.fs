@@ -35,10 +35,10 @@ let ensureGeoJsonFile
 
 
 /// <summary>
-/// List all available WorldCover tiles by reading the specified WorldCover
+/// List all available WorldCover files by reading the specified WorldCover
 /// geoJSON file.
 /// </summary>
-let listAllAvailableTiles
+let listAllAvailableFiles
     (openFileToRead: FileWriter)
     (geoJsonFile: string)
     : DemTileId seq =
@@ -58,23 +58,27 @@ let listAllAvailableTiles
 
     | Error e -> failwith e.Exception.Message
 
-
+// todo 0: write tests for boundsToWorldCoverFiles or make sure the existing ones work properly
 /// <summary>
-/// Given a bounding box, returns a sequence of WorldCover tiles that cover it.
+/// Given a bounding box, returns a sequence of WorldCover files that cover it.
+/// Each file covers a 3x3 degree area.
 /// </summary>
-let boundsToWorldCoverTiles (bounds: LonLatBounds) : DemTileId seq =
+let boundsToWorldCoverFiles (bounds: LonLatBounds) : DemTileId seq =
     let degreesPerTile = 3
 
     let minTileX =
         (bounds.MinLon / float degreesPerTile) |> floor |> int |> (*) 3
 
-    let minTileY = (bounds.MaxLat / float degreesPerTile) |> ceil |> int
-    let minTileY = -(minTileY - 1 |> (*) degreesPerTile)
-    let maxTileX = (bounds.MaxLon / float degreesPerTile) |> ceil |> int
-    let maxTileX = maxTileX - 1 |> (*) degreesPerTile
+    let minTileY =
+        (bounds.MinLat / float degreesPerTile) |> floor |> int |> (*) 3
+
+    let maxTileX =
+        ((bounds.MaxLon / float degreesPerTile) |> ceil |> int) - 1
+        |> (*) degreesPerTile
 
     let maxTileY =
-        -(bounds.MinLat / float degreesPerTile |> floor |> int |> (*) 3)
+        ((bounds.MaxLat / float degreesPerTile) |> ceil |> int) - 1
+        |> (*) degreesPerTile
 
     seq {
         for tileY in [ minTileY..degreesPerTile..maxTileY ] do
@@ -107,7 +111,7 @@ let worldCoverTileCachedTifFileName cacheDir (tileId: DemTileId) =
 /// Ensures the specified AW3D tile TIFF file is available in the cache
 /// directory, downloading it if necessary.
 /// </summary>
-let ensureWorldCoverTile cacheDir fileExists downloadFile tileId =
+let ensureWorldCoverFile cacheDir fileExists downloadFile tileId =
     let cachedTifFileName = worldCoverTileCachedTifFileName cacheDir tileId
 
     if fileExists cachedTifFileName then
@@ -123,50 +127,58 @@ let ensureWorldCoverTile cacheDir fileExists downloadFile tileId =
 
 
 
-let ensureWorldCoverTiles
+let ensureWorldCoverFiles
     cacheDir
     (bounds: LonLatBounds)
     : Result<DemTileId list, string> =
-    Log.info "Ensuring all needed WorldCover tiles are there..."
+    Log.info "Ensuring all needed WorldCover files are there..."
 
     let geoJsonFile = ensureGeoJsonFile cacheDir fileExists downloadFile
 
-    let allAvailableTiles = listAllAvailableTiles openFileToRead geoJsonFile
+    let allAvailableFiles = listAllAvailableFiles openFileToRead geoJsonFile
 
-    let tilesNeeded = bounds |> boundsToWorldCoverTiles |> Seq.toList
+    let filesNeeded = bounds |> boundsToWorldCoverFiles |> Seq.toList
 
-    let availableTilesNeeded =
-        tilesNeeded
+    let availableFilesNeeded =
+        filesNeeded
         |> List.filter (fun tileId ->
-            allAvailableTiles
+            allAvailableFiles
             |> Seq.exists (fun availableTileId -> availableTileId = tileId))
 
-    let tilesResults =
-        availableTilesNeeded
+    let filesResults =
+        availableFilesNeeded
         |> List.map (fun tileId ->
             tileId,
-            ensureWorldCoverTile cacheDir fileExists downloadFile tileId)
+            ensureWorldCoverFile cacheDir fileExists downloadFile tileId)
 
-    let tilesErrors =
-        tilesResults
+    let filesErrors =
+        filesResults
         |> List.choose (fun (_, result) ->
             match result with
             | Ok _ -> None
             | Error message -> Some message)
 
-    match tilesErrors with
-    | [] -> Result.Ok availableTilesNeeded
-    | _ -> Result.Error(String.concat "\n" tilesErrors)
+    match filesErrors with
+    | [] -> Result.Ok availableFilesNeeded
+    | _ -> Result.Error(String.concat "\n" filesErrors)
 
+
+// todo 0: problem: WorldCover file covers not a single 1x1 degree tile, but
+//   a 3x3 degree tile, so here we have a mix up between a "file tile" and a
+//   a 1x1 degree "geo tile"
 
 /// <summary>
-/// Reads a WorldCover tile file and returns the heights array for it.
+/// Reads a WorldCover TIFF file and returns the heights array for it.
 /// </summary>
 /// <remarks>
 /// The function accepts the tile coordinates of the lower left corner
-/// of the WorldCover raster file.
+/// of the WorldCover TIFF file. Note that the TIFF file covers a 3x3 degree
+/// area.
 /// </remarks>
-let readWorldCoverTile cacheDir (worldCoverTileId: DemTileId) : HeightsArray =
+let readWorldCoverTiffFile
+    cacheDir
+    (worldCoverTileId: DemTileId)
+    : HeightsArray =
     let worldCoverTiffFileName =
         worldCoverTileCachedTifFileName cacheDir worldCoverTileId
 

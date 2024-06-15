@@ -1,4 +1,4 @@
-﻿module Tests.Srtm.``SRTM tile tests``
+﻿module Tests.Dem.``DEM tile tests``
 
 open Demeton.Dem.Types
 open Demeton.Geometry.Common
@@ -7,31 +7,40 @@ open Demeton.Dem.Funcs
 open FsUnit
 open Xunit
 open Swensen.Unquote
-open Tests.Srtm.SrtmHelper
+
+let tileName lon lat =
+    let tileId = demTileXYId lon lat
+    tileId.FormatLat2Lon3
 
 [<Fact>]
-let ``Latitude 0 means north`` () =
-    srtmTileCoords 10 0 |> toHgtTileName |> should equal "N00E010"
+let ``Latitude 0 means north`` () = tileName 10 0 |> should equal "N00E010"
 
 [<Fact>]
 let ``Latitude -1 means south`` () =
-    srtmTileCoords 10 -1 |> toHgtTileName |> should equal "S01E010"
+    tileName 10 -1 |> should equal "S01E010"
 
 [<Fact>]
-let ``Longitude 0 means east`` () =
-    srtmTileCoords 0 10 |> toHgtTileName |> should equal "N10E000"
+let ``Longitude 0 means east`` () = tileName 0 10 |> should equal "N10E000"
 
 [<Fact>]
 let ``Longitude -1 means west`` () =
-    srtmTileCoords -1 10 |> toHgtTileName |> should equal "N10W001"
+    tileName -1 10 |> should equal "N10W001"
 
 [<Fact>]
 let ``Can parse north and west tile IDs`` () =
-    test <@ parseHgtTileName "N10W001" = srtmTileCoords -1 10 @>
+    test
+        <@
+            parseHgtTileName "N10W001" = { Lon = DemLongitude.fromInt -1
+                                           Lat = DemLatitude.fromInt 10 }
+        @>
 
 [<Fact>]
 let ``Can parse south and east tile IDs`` () =
-    test <@ parseHgtTileName "S22E080" = srtmTileCoords 80 -22 @>
+    test
+        <@
+            parseHgtTileName "S22E080" = { Lon = DemLongitude.fromInt 80
+                                           Lat = DemLatitude.fromInt -22 }
+        @>
 
 [<Literal>]
 let Multiply_minus_179_with_3600 = -644400
@@ -40,10 +49,10 @@ let Multiply_minus_179_with_3600 = -644400
 let Multiply_80_with_3600 = 288000
 
 [<Theory>]
-[<InlineData("N90W179", 1, -179, -91)>]
-[<InlineData("N00W179", 1, -179, -1)>]
-[<InlineData("N00W179", 3600, Multiply_minus_179_with_3600, -3600)>]
-[<InlineData("S22E080", 3600, Multiply_80_with_3600, 75600)>]
+[<InlineData("N90W179", 1, -179, 90)>]
+[<InlineData("N00W179", 1, -179, 0)>]
+[<InlineData("N00W179", 3600, Multiply_minus_179_with_3600, 0)>]
+[<InlineData("S22E080", 3600, Multiply_80_with_3600, -22 * 3600)>]
 let ``Calculates global coordinates for a given tile ID``
     tileName
     tileSize
@@ -57,15 +66,15 @@ let ``Calculates global coordinates for a given tile ID``
         @>
 
 [<Theory>]
-[<InlineData(0, 0., 90., 1, 0., -90.)>]
+[<InlineData(0, 0., 90., 1, 0., 90.)>]
 [<InlineData(0, 0., 0., 1, 0., 0.)>]
-[<InlineData(0, 1., -1., 1, 1., 1.)>]
-[<InlineData(0, 0.5, 0.5, 1, 0.5, -0.5)>]
+[<InlineData(0, 1., -1., 1, 1., -1.)>]
+[<InlineData(0, 0.5, 0.5, 1, 0.5, 0.5)>]
 [<InlineData(0, 0., 0., 3600, 0., 0.)>]
-[<InlineData(0, 46.557611, 15.6455, 3600, 167607.3996, -56323.8)>]
-[<InlineData(1, 0., 90., 1, 0., -45.)>]
-[<InlineData(1, 1., -1., 1, 0.5, 0.5)>]
-[<InlineData(2, 1., -1., 1, 0.25, 0.25)>]
+[<InlineData(0, 46.557611, 15.6455, 3600, 167607.3996, 56323.8)>]
+[<InlineData(1, 0., 90., 1, 0., 45.)>]
+[<InlineData(1, 1., -1., 1, 0.5, -0.5)>]
+[<InlineData(2, 1., -1., 1, 0.25, -0.25)>]
 let ``Calculates fractional global coordinates for given longitude and latitude``
     level
     longitude
@@ -75,8 +84,8 @@ let ``Calculates fractional global coordinates for given longitude and latitude`
     expectedGlobalY
     =
 
-    let srtmLevel = DemLevel.fromInt level
-    let cellsPerDegree = cellsPerDegree tileSize srtmLevel
+    let level = DemLevel.fromInt level
+    let cellsPerDegree = cellsPerDegree tileSize level
 
     let globalX = longitude |> longitudeToCellX cellsPerDegree
     test <@ globalX = expectedGlobalX @>

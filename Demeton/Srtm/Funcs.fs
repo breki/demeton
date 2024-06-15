@@ -80,7 +80,9 @@ let createSrtmTileFromStream tileSize tileId stream =
     )
 
 let toZippedSrtmTileFileName (srtmDir: string) (tileCoords: DemTileCoords) =
-    srtmDir |> Pth.combine $"%s{toHgtTileName tileCoords}.SRTMGL1.hgt.zip"
+    let tileId = demTileXYId tileCoords.Lon.Value tileCoords.Lat.Value
+
+    srtmDir |> Pth.combine $"%s{tileId.FormatLat2Lon3}.SRTMGL1.hgt.zip"
 
 let toLocalCacheTileFileName
     (localCacheDir: DirectoryName)

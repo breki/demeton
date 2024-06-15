@@ -81,19 +81,19 @@ let ``Correctly splits the raster into multiple tiles`` () =
     test
         <@
             generatedTiles = [ { MinX = 886
-                                 MinY = -3256
+                                 MinY = 3478
                                  Width = 184
                                  Height = 28 }
                                { MinX = 636
-                                 MinY = -3256
+                                 MinY = 3478
                                  Width = 250
                                  Height = 28 }
                                { MinX = 886
-                                 MinY = -3506
+                                 MinY = 3228
                                  Width = 184
                                  Height = 250 }
                                { MinX = 636
-                                 MinY = -3506
+                                 MinY = 3228
                                  Width = 250
                                  Height = 250 } ]
         @>

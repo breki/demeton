@@ -344,7 +344,7 @@ let calculateGeoAreaMbr options projection =
             let x = x * halfWidth
             let y = y * halfHeight
 
-            projection.Invert x -y)
+            projection.Invert x y)
         |> Array.choose id
         |> Array.map (fun (lon, lat) -> (radToDeg lon, radToDeg lat))
 
@@ -409,17 +409,19 @@ let fetchAw3dHeightsArray mapProjection cacheDir demLevel coverageArea =
         merge mergedArrayBounds tilesHeightsArrays |> Result.Ok
     | Error message -> Result.Error message
 
+// todo 0: looks like the calculation of the downloaded WorldCover tiles does
+//   not match the calculation of the mergedArrayBounds
 let fetchWorldCoverHeightsArray mapProjection cacheDir demLevel coverageArea =
     let coveragePoints =
         [ (coverageArea.MinLon, coverageArea.MinLat)
           (coverageArea.MaxLon, coverageArea.MaxLat) ]
 
-    let tileDownloadingResult = ensureWorldCoverTiles cacheDir coverageArea
+    let fileDownloadingResult = ensureWorldCoverFiles cacheDir coverageArea
 
-    match tileDownloadingResult with
+    match fileDownloadingResult with
     | Ok tilesIds ->
-        let tilesHeightsArrays =
-            tilesIds |> Seq.map (readWorldCoverTile cacheDir) |> Seq.toList
+        let filesHeightsArrays =
+            tilesIds |> Seq.map (readWorldCoverTiffFile cacheDir) |> Seq.toList
 
         // calculate mergedArrayBounds for the given area
         let projectedCoveragePoints =
@@ -456,7 +458,7 @@ let fetchWorldCoverHeightsArray mapProjection cacheDir demLevel coverageArea =
                 ((demMbr.MaxX |> ceil |> int) + safetyBuffer)
                 ((demMbr.MaxY |> ceil |> int) + safetyBuffer)
 
-        merge mergedArrayBounds tilesHeightsArrays |> Result.Ok
+        merge mergedArrayBounds filesHeightsArrays |> Result.Ok
     | Error message -> Result.Error message
 
 let saveTileFile

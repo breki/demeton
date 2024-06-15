@@ -24,7 +24,7 @@ type LonLatDelta = float
 type MinLonLatDeltaState = Raster.Point
 
 let private rasterXYToLonLat (inverse: InvertFunc) (rasterX, rasterY) =
-    inverse (float rasterX) -(float rasterY)
+    inverse (float rasterX) (float rasterY)
 
 /// <summary>
 /// Calculates the minimum longitude/latitude delta for the given raster point.

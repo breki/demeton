@@ -59,8 +59,8 @@
         <Compile Include="Dem\Merging height arrays.fs"/>
         <Compile Include="Dem\Merging height arrays properties.fs"/>
         <Compile Include="Dem\HeightArraysScenes.fs"/>
-        <Compile Include="Srtm\SrtmHelper.fs"/>
-        <Compile Include="Srtm\SRTM tile tests.fs"/>
+        <Compile Include="Dem\DEM tile tests.fs"/>
+        <Compile Include="Dem\DEM coordinate system.fs"/>
         <Compile Include="Srtm\Bounds to SRTM tiles.fs"/>
         <Compile Include="Srtm\Reading SRTM HGT files.fs"/>
         <Compile Include="Srtm\encodeHeightsArrayIntoPngFile tests.fs"/>

@@ -98,12 +98,12 @@ let ``Can create heights array from SRTM heights sequence`` () =
 
     use stream = new MemoryStream(byteArray)
 
-    let tile = createSrtmTileFromStream tileSize (demTileId 0 16 -45) stream
+    let tile = createSrtmTileFromStream tileSize (demTileId 0 16 45) stream
 
     test <@ tile.Width = tileSize @>
     test <@ tile.Height = tileSize @>
     test <@ tile.MinX = 16 * tileSize @>
-    test <@ tile.MinY = -46 * tileSize @>
+    test <@ tile.MinY = 45 * tileSize @>
     test <@ tile.Cells.[0] = sampleHeight1 @>
     test <@ tile.Cells.[tileSize] = sampleHeight2 @>
 
