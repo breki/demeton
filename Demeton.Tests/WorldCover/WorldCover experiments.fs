@@ -13,6 +13,7 @@ open Demeton.Shaders.Types
 open Demeton.WorldCover.Funcs
 open Demeton.WorldCover.WaterBodiesColoring
 open Demeton.WorldCover.WaterBodiesOutlining
+open Demeton.Shaders.WaterBodiesShading
 open Png
 
 open Tests.Shaders
@@ -95,7 +96,7 @@ let fetchWaterBodiesDataSources
     (dataSources: ShadingDataSources)
     =
     let waterBodiesHeightsArrayResult =
-        TileShadeCommand.fetchWorldCoverHeightsArray
+        fetchWorldCoverHeightsArray
             mapProjection
             cacheDir
             level
