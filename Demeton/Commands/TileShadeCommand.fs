@@ -409,8 +409,7 @@ let fetchAw3dHeightsArray mapProjection cacheDir demLevel coverageArea =
         merge mergedArrayBounds tilesHeightsArrays |> Result.Ok
     | Error message -> Result.Error message
 
-// todo 0: looks like the calculation of the downloaded WorldCover tiles does
-//   not match the calculation of the mergedArrayBounds
+// todo 2: we need tests for readWorldCoverTiffFile
 let fetchWorldCoverHeightsArray mapProjection cacheDir demLevel coverageArea =
     let coveragePoints =
         [ (coverageArea.MinLon, coverageArea.MinLat)

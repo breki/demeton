@@ -92,7 +92,7 @@ let fetchWaterBodiesDataSources
     cacheDir
     level
     coverageArea
-    dataSources
+    (dataSources: ShadingDataSources)
     =
     let waterBodiesHeightsArrayResult =
         TileShadeCommand.fetchWorldCoverHeightsArray
@@ -101,47 +101,41 @@ let fetchWaterBodiesDataSources
             level
             coverageArea
 
-    let dataSources =
-        waterBodiesHeightsArrayResult
-        |> heightsArrayResultToShadingDataSource "worldCover" (Ok dataSources)
-
     // if we actually got the water bodies heights array, we can calculate
     // the derived data sources from it
-    dataSources
-    |> Result.bind (fun dataSources ->
-        match waterBodiesHeightsArrayResult with
-        | Ok(Some waterBodiesHeightsArray) ->
-            let waterBodiesHeightsArray =
+    match waterBodiesHeightsArrayResult with
+    | Ok(Some waterBodiesHeightsArray) ->
+        let waterBodiesHeightsArray =
+            waterBodiesHeightsArray
+            |> convertWorldCoverRasterToWaterMonochrome
+        // |> simplifyRaster 100
+
+        let dataSources =
+            dataSources.WithDataSource
+                WaterBodiesHeightsArrayDataSourceKey
                 waterBodiesHeightsArray
-                |> convertWorldCoverRasterToWaterMonochrome
-            // |> simplifyRaster 100
 
-            let dataSources =
-                dataSources.WithDataSource
-                    WaterBodiesHeightsArrayDataSourceKey
-                    waterBodiesHeightsArray
+        // construct water bodies data source and add it to the sources
+        let waterBodies = waterBodiesHeightsArray |> colorWaterBodies
 
-            // construct water bodies data source and add it to the sources
-            let waterBodies = waterBodiesHeightsArray |> colorWaterBodies
-
-            let dataSources =
-                dataSources.WithDataSource
-                    WaterBodiesColoredListDataSourceKey
-                    waterBodies
-
-            // construct water bodies outline data source and add it to the sources
-            let waterBodiesOutlines =
+        let dataSources =
+            dataSources.WithDataSource
+                WaterBodiesColoredListDataSourceKey
                 waterBodies
-                |> outlineWaterBodies waterBodiesHeightsArray
-                |> Seq.toList
 
-            let dataSources =
-                dataSources.WithDataSource
-                    WaterBodiesOutlinesDataSourceKey
-                    waterBodiesOutlines
+        // construct water bodies outline data source and add it to the sources
+        let waterBodiesOutlines =
+            waterBodies
+            |> outlineWaterBodies waterBodiesHeightsArray
+            |> Seq.toList
 
-            dataSources |> Ok
-        | _ -> dataSources |> Ok)
+        let dataSources =
+            dataSources.WithDataSource
+                WaterBodiesOutlinesDataSourceKey
+                waterBodiesOutlines
+
+        dataSources |> Ok
+    | _ -> dataSources |> Ok
 
 // [<Fact(Skip = "Work in progress")>]
 [<Fact>]

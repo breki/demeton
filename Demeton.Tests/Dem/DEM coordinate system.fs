@@ -228,7 +228,7 @@ let tileNameIsAsExpected ((lon, lat), tileSize: int) =
             lon
             lat
 
-    // todo 0: extend the test to also check the tile X, Y values
+    // todo 3: extend the test to also check the tile X, Y values
     let propertyValid =
         if lat >= 0 then
             tileName.StartsWith "N"
@@ -243,6 +243,7 @@ let tileNameIsAsExpected ((lon, lat), tileSize: int) =
 
     propertyValid |> Prop.label label
 
+// todo 5: continue with the following properties
 // toHgtTileName
 // parseHgtTileName
 // parseTileName

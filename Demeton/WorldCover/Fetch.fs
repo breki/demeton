@@ -58,7 +58,6 @@ let listAllAvailableFiles
 
     | Error e -> failwith e.Exception.Message
 
-// todo 0: write tests for boundsToWorldCoverFiles or make sure the existing ones work properly
 /// <summary>
 /// Given a bounding box, returns a sequence of WorldCover files that cover it.
 /// Each file covers a 3x3 degree area.
@@ -163,10 +162,6 @@ let ensureWorldCoverFiles
     | _ -> Result.Error(String.concat "\n" filesErrors)
 
 
-// todo 0: problem: WorldCover file covers not a single 1x1 degree tile, but
-//   a 3x3 degree tile, so here we have a mix up between a "file tile" and a
-//   a 1x1 degree "geo tile"
-
 /// <summary>
 /// Reads a WorldCover TIFF file and returns the heights array for it.
 /// </summary>
@@ -210,7 +205,7 @@ let readWorldCoverTiffFile
         failwithf "Expected a tiled TIFF file"
 
     let worldCoverData: DemHeight[] =
-        Array.zeroCreate (WorldCoverTileSize * WorldCoverTileSize)
+        Array.zeroCreate (WorldCoverBitmapSize * WorldCoverBitmapSize)
 
     // the size of an individual TIFF tile (not geographic tile, but a tile
     // in terms of tiling a TIFF raster into small quadratic pieces)
@@ -222,7 +217,7 @@ let readWorldCoverTiffFile
     let tiffTileBuffer = Array.zeroCreate<byte> tiffTileBufferSize
 
     // for each TIFF tile
-    for tiffTileY in [ 0..tiffTileHeight..WorldCoverTileSize ] do
+    for tiffTileY in [ 0..tiffTileHeight..WorldCoverBitmapSize ] do
         // Y coordinate (row) of this TIFF tile in the grid of TIFF tiles
         let tileGridRow = tiffTileY / tiffTileHeight
 
@@ -230,7 +225,7 @@ let readWorldCoverTiffFile
         // grid of cells
         let tileMinY = tileGridRow * tiffTileHeight
 
-        for tiffTileX in [ 0..tiffTileWidth..WorldCoverTileSize ] do
+        for tiffTileX in [ 0..tiffTileWidth..WorldCoverBitmapSize ] do
             /// 0-based byte offset in buffer at which to begin storing read
             /// and decoded bytes
             let offset = 0
@@ -290,7 +285,7 @@ let readWorldCoverTiffFile
                 let heightsArrayY = tileMinY + tiffTileLocalY
 
                 // index of the pixel within the heights array
-                let index = heightsArrayY * WorldCoverTileSize + heightsArrayX
+                let index = heightsArrayY * WorldCoverBitmapSize + heightsArrayX
 
                 // copy the pixel to the heights array only if it fits within
                 // the array (some TIFF tiles may be partially outside the
@@ -298,8 +293,8 @@ let readWorldCoverTiffFile
                 if
                     heightsArrayX >= 0
                     && heightsArrayY >= 0
-                    && heightsArrayX < WorldCoverTileSize
-                    && heightsArrayY < WorldCoverTileSize
+                    && heightsArrayX < WorldCoverBitmapSize
+                    && heightsArrayY < WorldCoverBitmapSize
                 then
                     worldCoverData.[index] <- int16 value
 
@@ -313,7 +308,7 @@ let readWorldCoverTiffFile
     HeightsArray(
         cellMinX,
         cellMinY,
-        WorldCoverTileSize,
-        WorldCoverTileSize,
+        WorldCoverBitmapSize,
+        WorldCoverBitmapSize,
         HeightsArrayDirectImport worldCoverData
     )
