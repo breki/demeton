@@ -13,7 +13,7 @@ open Demeton.Shaders.Types
 open Demeton.WorldCover.Funcs
 open Demeton.WorldCover.WaterBodiesColoring
 open Demeton.WorldCover.WaterBodiesOutlining
-open Demeton.Shaders.WaterBodies.WaterBodiesShading
+open Demeton.Shaders.WaterBodies.DataSources
 open Demeton.Shaders.WaterBodies.WaterBodiesShaders
 open Png
 

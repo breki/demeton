@@ -1,4 +1,4 @@
-﻿module Demeton.Shaders.WaterBodies.WaterBodiesShading
+﻿module Demeton.Shaders.WaterBodies.DataSources
 
 open Demeton.Geometry.Common
 open Demeton.Dem.Funcs

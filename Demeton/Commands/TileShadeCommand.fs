@@ -16,7 +16,7 @@ open Demeton.WorldCover.Types
 open Demeton.WorldCover.Fetch
 open Demeton.Shaders
 open Demeton.Shaders.Types
-open Demeton.Shaders.WaterBodies.WaterBodiesShading
+open Demeton.Shaders.WaterBodies.DataSources
 open Demeton.Shaders.WaterBodies.WaterBodiesShaders
 open FileSys
 open Png
@@ -339,7 +339,6 @@ let WaterBodiesColoredListDataSourceKey = "waterBodiesColoredList"
 [<Literal>]
 let WaterBodiesOutlinesDataSourceKey = "waterBodiesOutlines"
 
-// todo 0: move createShaderFunction to the command
 let createShaderFunction shaderFunctionName =
     match shaderFunctionName with
     | StepNameWaterBodies ->
@@ -488,7 +487,7 @@ let run (options: Options) : Result<unit, string> =
             { SunAzimuth = options.SunAzimuth
               ShadingColor = 0u
               Intensity = options.IgorHillshadingIntensity
-              DataSourceKey = DefaultDataSourceKey }
+              DataSourceKey = "aw3d" }
 
     let lambertHillshadingStep =
         ShadingStep.LambertHillshading
@@ -496,14 +495,14 @@ let run (options: Options) : Result<unit, string> =
               SunAltitude = options.SunAltitude
               ShadingColor = 0u
               Intensity = options.IgorHillshadingIntensity
-              DataSourceKey = DefaultDataSourceKey }
+              DataSourceKey = "aw3d" }
 
     let slopeShadingStep =
         ShadingStep.SlopeShading
             { HorizontalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
               VerticalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy
               Intensity = options.SlopeShadingIntensity
-              DataSourceKey = DefaultDataSourceKey }
+              DataSourceKey = "aw3d" }
 
     let hillshadingStep =
         Compositing(
@@ -512,8 +511,17 @@ let run (options: Options) : Result<unit, string> =
             CompositingFuncIdAlphaDarken
         )
 
+    let waterBodiesStep = Pipeline.Common.CustomShading StepNameWaterBodies
+
+    let hillAndWaterStep =
+        Pipeline.Common.Compositing(
+            hillshadingStep,
+            waterBodiesStep,
+            Demeton.Shaders.Pipeline.Common.CompositingFuncIdOver
+        )
+
     let rootShadingStep =
-        Compositing(solidBackgroundStep, hillshadingStep, CompositingFuncIdOver)
+        Compositing(solidBackgroundStep, hillAndWaterStep, CompositingFuncIdOver)
 
     match createProjection options with
     | Ok mapProjection ->
@@ -528,8 +536,9 @@ let run (options: Options) : Result<unit, string> =
                            coverageArea
                        |> heightsArrayResultToShadingDataSource
                            "aw3d"
-                           (Ok dataSources) |]
-                createShadingFuncById
+                           (Ok dataSources)
+                   fetchWaterBodiesDataSources mapProjection cacheDir |]
+                createShaderFunction
                 srtmLevel
                 tileRect
                 rootShadingStep
