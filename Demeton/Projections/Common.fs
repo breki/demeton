@@ -1,6 +1,8 @@
 ﻿module Demeton.Projections.Common
 
 open Demeton.Geometry.Common
+open Demeton.Dem.Types
+open Demeton.Dem.Funcs
 
 open System
 
@@ -195,3 +197,30 @@ let phi2z e ts =
 
     let startingPhi = Math.PI / 2. - 2. * atan ts
     search 0 startingPhi
+
+
+/// <summary>
+/// Get the value of a cell in a heights array for a given projected pixel.
+/// </summary>
+let valueForProjectedPixel
+    pixelX
+    pixelY
+    cellsPerDegree
+    inverse
+    (heightsArray: HeightsArray)
+    : DemHeight option =
+    let lonLatOption = inverse (float pixelX) (float pixelY)
+
+    match lonLatOption with
+    | None -> None
+    | Some(lonRad, latRad) ->
+        let lonDeg = radToDeg lonRad
+        let latDeg = radToDeg latRad
+
+        let globalSrtmX =
+            lonDeg |> longitudeToCellX cellsPerDegree |> Math.Round |> int
+
+        let globalSrtmY =
+            latDeg |> latitudeToCellY cellsPerDegree |> Math.Round |> int
+
+        heightsArray.heightAt (globalSrtmX, globalSrtmY) |> Some

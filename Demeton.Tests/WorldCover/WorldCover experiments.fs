@@ -13,11 +13,11 @@ open Demeton.Shaders.Types
 open Demeton.WorldCover.Funcs
 open Demeton.WorldCover.WaterBodiesColoring
 open Demeton.WorldCover.WaterBodiesOutlining
-open Demeton.Shaders.WaterBodiesShading
+open Demeton.Shaders.WaterBodies.WaterBodiesShading
+open Demeton.Shaders.WaterBodies.WaterBodiesShaders
 open Png
 
 open Tests.Shaders
-open Tests.WorldCover.WaterBodiesShaders
 open TestHelp
 
 
@@ -32,21 +32,15 @@ let area, heights, srtmLevel, mapProjection, mapScale, tileRect =
 
 let coveragePoints = [ (area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat) ]
 
-[<Literal>]
-let StepNameXcTracerWaterBodies = "XCTracer-water-bodies"
-
-[<Literal>]
-let StepNameXcTracerWaterBodiesOutline = "XCTracer-water-bodies-outline"
-
 let hillshadingStep =
     Demeton.Shaders.Pipeline.Common.ShadingStep.IgorHillshading
         { IgorHillshader.defaultParameters with
             DataSourceKey = "aw3d" }
 
-let waterBodiesStep = Pipeline.Common.CustomShading StepNameXcTracerWaterBodies
+let waterBodiesStep = Pipeline.Common.CustomShading StepNameWaterBodies
 
 let waterBodiesOutlineStep =
-    Pipeline.Common.CustomShading StepNameXcTracerWaterBodiesOutline
+    Pipeline.Common.CustomShading StepNameWaterBodiesOutline
 
 let hillAndWaterStep =
     Pipeline.Common.Compositing(
@@ -76,16 +70,6 @@ let options: ShadeCommand.Options =
       MapProjection =
         { Projection = PROJParameters.Mercator
           IgnoredParameters = [] } }
-
-// todo 5: we should move this to the production project once we get it working
-[<Literal>]
-let WaterBodiesHeightsArrayDataSourceKey = "waterBodiesRaster"
-
-[<Literal>]
-let WaterBodiesColoredListDataSourceKey = "waterBodiesColoredList"
-
-[<Literal>]
-let WaterBodiesOutlinesDataSourceKey = "waterBodiesOutlines"
 
 
 let fetchWaterBodiesDataSources
@@ -160,24 +144,10 @@ let ``Render hillshading with WorldCover water bodies`` () =
                        (Ok dataSources)
                fetchWaterBodiesDataSources mapProjection cacheDir |]
 
-        let createShaderFunction shaderFunctionName =
-            match shaderFunctionName with
-            | StepNameXcTracerWaterBodies ->
-                worldCoverWaterBodiesShader
-                    WaterBodiesHeightsArrayDataSourceKey
-                    WaterBodiesColoredListDataSourceKey
-            | StepNameXcTracerWaterBodiesOutline ->
-                worldCoverWaterBodiesOutlineShader
-                    WaterBodiesHeightsArrayDataSourceKey
-                    WaterBodiesOutlinesDataSourceKey
-            | _ ->
-                failwithf
-                    $"Unknown shader function name: %s{shaderFunctionName}"
-
         let generateTile =
             ShadeCommand.generateShadedRasterTile
                 shadingDataSourcesFetchers
-                createShaderFunction
+                Demeton.Commands.TileShadeCommand.createShaderFunction
 
         let saveTile =
             ShadeCommand.saveShadedRasterTile

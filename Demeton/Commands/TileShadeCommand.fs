@@ -16,6 +16,8 @@ open Demeton.WorldCover.Types
 open Demeton.WorldCover.Fetch
 open Demeton.Shaders
 open Demeton.Shaders.Types
+open Demeton.Shaders.WaterBodies.WaterBodiesShading
+open Demeton.Shaders.WaterBodies.WaterBodiesShaders
 open FileSys
 open Png
 open Png.Types
@@ -327,7 +329,30 @@ let createProjection options =
         (LambertConformalConic projectionParameters)
         mapScale
 
-// Factory.createMapProjection Mercator mapScale
+
+[<Literal>]
+let WaterBodiesHeightsArrayDataSourceKey = "waterBodiesRaster"
+
+[<Literal>]
+let WaterBodiesColoredListDataSourceKey = "waterBodiesColoredList"
+
+[<Literal>]
+let WaterBodiesOutlinesDataSourceKey = "waterBodiesOutlines"
+
+// todo 0: move createShaderFunction to the command
+let createShaderFunction shaderFunctionName =
+    match shaderFunctionName with
+    | StepNameWaterBodies ->
+        worldCoverWaterBodiesShader
+            WaterBodiesHeightsArrayDataSourceKey
+            WaterBodiesColoredListDataSourceKey
+    | StepNameWaterBodiesOutline ->
+        worldCoverWaterBodiesOutlineShader
+            WaterBodiesHeightsArrayDataSourceKey
+            WaterBodiesOutlinesDataSourceKey
+    | _ ->
+        failwithf
+            $"Unknown shader function name: %s{shaderFunctionName}"
 
 
 

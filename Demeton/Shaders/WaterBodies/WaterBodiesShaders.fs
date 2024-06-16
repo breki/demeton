@@ -1,4 +1,4 @@
-﻿module Tests.WorldCover.WaterBodiesShaders
+﻿module Demeton.Shaders.WaterBodies.WaterBodiesShaders
 
 open System
 open System.Threading.Tasks
@@ -15,33 +15,12 @@ open Png
 open Raster
 
 
+[<Literal>]
+let StepNameWaterBodies = "water-bodies"
 
+[<Literal>]
+let StepNameWaterBodiesOutline = "water-bodies-outline"
 
-/// <summary>
-/// Get the value of a cell in a heights array for a given projected pixel.
-/// </summary>
-let valueForProjectedPixel
-    pixelX
-    pixelY
-    cellsPerDegree
-    inverse
-    (heightsArray: HeightsArray)
-    : DemHeight option =
-    let lonLatOption = inverse (float pixelX) (float pixelY)
-
-    match lonLatOption with
-    | None -> None
-    | Some(lonRad, latRad) ->
-        let lonDeg = radToDeg lonRad
-        let latDeg = radToDeg latRad
-
-        let globalSrtmX =
-            lonDeg |> longitudeToCellX cellsPerDegree |> Math.Round |> int
-
-        let globalSrtmY =
-            latDeg |> latitudeToCellY cellsPerDegree |> Math.Round |> int
-
-        heightsArray.heightAt (globalSrtmX, globalSrtmY) |> Some
 
 /// <summary>
 /// A filter function that, based on the water body's surface area and coverage
