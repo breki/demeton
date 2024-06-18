@@ -87,7 +87,9 @@ let worldCoverWaterBodiesShader
                     imageData
                     targetAreaWidth
                     (x - heightsArrayTargetArea.MinX)
-                    (y - heightsArrayTargetArea.MinY)
+                    // we flip the Y coordinate since DEM heights array
+                    // is flipped vertically compared to the bitmap
+                    (heightsArrayTargetArea.MaxY - y - 1)
                     pixelValue
 
         Parallel.For(
@@ -148,9 +150,9 @@ let worldCoverWaterBodiesOutlineShader
                                 (tileX |> Math.Round |> int)
                                 - heightsArrayTargetArea.MinX
 
-                            let imageY =
-                                (-tileY |> Math.Round |> int)
-                                - heightsArrayTargetArea.MinY
+                            // we flip the Y coordinate since DEM heights array
+                            // is flipped vertically compared to the bitmap
+                            let imageY = heightsArrayTargetArea.MaxY - (tileY |> Math.Round |> int)
 
                             // ... and within the tile image,
                             // render a black pixel at the projected point

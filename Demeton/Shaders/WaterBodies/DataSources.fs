@@ -59,7 +59,7 @@ let fetchWorldCoverHeightsArray (mapProjection: MapProjection) cacheDir demLevel
 
         // a buffer around the DEM MBR so we don't end up outside of the array
         // when we calculate the heights
-        let safetyBuffer = 5
+        let safetyBuffer = 50
 
         let mergedArrayBounds =
             Rect.asMinMax
@@ -109,15 +109,15 @@ let fetchWaterBodiesDataSources
                 waterBodies
 
         // construct water bodies outline data source and add it to the sources
-        let waterBodiesOutlines =
-            waterBodies
-            |> outlineWaterBodies waterBodiesHeightsArray
-            |> Seq.toList
+        // let waterBodiesOutlines =
+        //     waterBodies
+        //     |> outlineWaterBodies waterBodiesHeightsArray
+        //     |> Seq.toList
 
-        let dataSources =
-            dataSources.WithDataSource
-                WaterBodiesOutlinesDataSourceKey
-                waterBodiesOutlines
+        // let dataSources =
+        //     dataSources.WithDataSource
+        //         WaterBodiesOutlinesDataSourceKey
+        //         waterBodiesOutlines
 
         dataSources |> Ok
     | _ -> dataSources |> Ok

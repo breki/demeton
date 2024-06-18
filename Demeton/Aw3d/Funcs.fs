@@ -201,9 +201,12 @@ let readAw3dTile cacheDir (tileId: DemTileId) : HeightsArray =
 
     let pixelBytesSize = int samplesPerPixel * (int bitsPerSample / 8)
 
-    let mutable heightsWrittenCount = 0
-
     for row in 0 .. height - 1 do
+        // since the coordinate system of the DEM heights array is flipped
+        // vertically compared to the bitmap coordinate system, when reading
+        // the scanlines, we must put them in the array in reverse order
+        let mutable heightsArrayValueIndex = (height - row - 1) * width
+
         let success = tiff.ReadScanline(buffer, row)
 
         if not success then
@@ -219,8 +222,8 @@ let readAw3dTile cacheDir (tileId: DemTileId) : HeightsArray =
             // read little-endian int16 value from pixelData
             let height = BitConverter.ToInt16(buffer, pixelStart)
 
-            heightsArray.[heightsWrittenCount] <- height
-            heightsWrittenCount <- heightsWrittenCount + 1
+            heightsArray.[heightsArrayValueIndex] <- height
+            heightsArrayValueIndex <- heightsArrayValueIndex + 1
 
             pixelStart <- pixelStart + pixelBytesSize
 

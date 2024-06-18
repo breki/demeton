@@ -137,6 +137,7 @@ let tryColorNextWaterBody
 
 let colorWaterBodies (waterHeightsArray: HeightsArray) : WaterBody list =
     // MeasureProfiler.StartCollectingData()
+    Log.debug "Coloring water bodies..."
 
     let rec colorWaterBodiesRec color startingPoint waterBodies =
         match tryColorNextWaterBody color startingPoint waterHeightsArray with
@@ -157,6 +158,8 @@ let colorWaterBodies (waterHeightsArray: HeightsArray) : WaterBody list =
         | None -> waterBodies
 
     let result = colorWaterBodiesRec 2s (0, 0) List.empty |> List.rev
+
+    Log.debug "Detected %d water bodies" result.Length
 
     // MeasureProfiler.StopCollectingData()
     // MeasureProfiler.SaveData()

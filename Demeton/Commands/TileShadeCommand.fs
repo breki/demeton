@@ -12,8 +12,6 @@ open Demeton.Projections.Common
 open Demeton.Projections.PROJParsing
 open Demeton.Aw3d.Types
 open Demeton.Aw3d.Funcs
-open Demeton.WorldCover.Types
-open Demeton.WorldCover.Fetch
 open Demeton.Shaders
 open Demeton.Shaders.Types
 open Demeton.Shaders.WaterBodies.DataSources
@@ -349,9 +347,7 @@ let createShaderFunction shaderFunctionName =
         worldCoverWaterBodiesOutlineShader
             WaterBodiesHeightsArrayDataSourceKey
             WaterBodiesOutlinesDataSourceKey
-    | _ ->
-        failwithf
-            $"Unknown shader function name: %s{shaderFunctionName}"
+    | _ -> failwithf $"Unknown shader function name: %s{shaderFunctionName}"
 
 
 
@@ -511,17 +507,17 @@ let run (options: Options) : Result<unit, string> =
             CompositingFuncIdAlphaDarken
         )
 
-    let waterBodiesStep = Pipeline.Common.CustomShading StepNameWaterBodies
+    let waterBodiesStep = CustomShading StepNameWaterBodies
 
     let hillAndWaterStep =
-        Pipeline.Common.Compositing(
-            hillshadingStep,
-            waterBodiesStep,
-            Demeton.Shaders.Pipeline.Common.CompositingFuncIdOver
-        )
+        Compositing(hillshadingStep, waterBodiesStep, CompositingFuncIdOver)
 
     let rootShadingStep =
-        Compositing(solidBackgroundStep, hillAndWaterStep, CompositingFuncIdOver)
+        Compositing(
+            solidBackgroundStep,
+            hillAndWaterStep,
+            CompositingFuncIdOver
+        )
 
     match createProjection options with
     | Ok mapProjection ->

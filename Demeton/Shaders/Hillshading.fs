@@ -89,7 +89,7 @@ let shadeRaster
     dataSourceKey
     (pixelHillshader: PixelHillshader)
     : RasterShader =
-    fun dataSources srtmLevel tileRect imageData forward inverse ->
+    fun dataSources srtmLevel tileRect imageData _ inverse ->
         let heightsArray =
             dataSources.FetchDataSource dataSourceKey :?> HeightsArray
 
@@ -153,7 +153,9 @@ let shadeRaster
                         imageData
                         tileWidth
                         (x - tileRect.MinX)
-                        (y - tileRect.MinY)
+                        // we flip the Y coordinate since DEM heights array
+                        // is flipped vertically compared to the bitmap
+                        (tileRect.MaxY - y - 1)
                         pixelValue
 
                 | None -> ()

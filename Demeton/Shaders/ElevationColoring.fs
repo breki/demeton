@@ -173,7 +173,9 @@ let shadeRaster dataSourceKey (colorScale: ColorScale) : RasterShader =
                     imageData
                     tileWidth
                     (x - tileRect.MinX)
-                    (y - tileRect.MinY)
+                    // we flip the Y coordinate since DEM heights array
+                    // is flipped vertically compared to the bitmap
+                    (tileRect.MaxY - y - 1)
                     pixelValue
 
         Parallel.For(tileRect.MinY, tileRect.MaxY, processRasterLine) |> ignore

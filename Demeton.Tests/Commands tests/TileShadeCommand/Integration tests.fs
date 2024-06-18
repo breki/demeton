@@ -14,12 +14,12 @@ let ``run command`` () =
     let options: TileShadeCommand.Options =
         { TileWidth = 800
           TileHeight = 600
-          TileCenter = (7.712309, 46.671148)
+          TileCenter = (7.17, 46)
           PixelSize = None
           MapScale = Some 500000
           Dpi = TileShadeCommand.DefaultDpi
           IgorHillshadingIntensity = 1.
-          SlopeShadingIntensity = 0.
+          SlopeShadingIntensity = 1.
           SunAzimuth = IgorHillshader.DefaultSunAzimuth |> degToRad
           SunAltitude = 80. |> degToRad
           WaterBodiesColor = "#49C8FF" |> Png.Rgba8Bit.parseColorHexValue
@@ -30,5 +30,3 @@ let ``run command`` () =
     let result = TileShadeCommand.run options
 
     test <@ result |> isOk @>
-
-// .\Demeton.Console.exe tile-shade 10000 10000 7.712309 46.671148 --map-scale 300000

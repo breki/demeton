@@ -218,13 +218,6 @@ let readWorldCoverTiffFile
 
     // for each TIFF tile
     for tiffTileY in [ 0..tiffTileHeight..WorldCoverBitmapSize ] do
-        // Y coordinate (row) of this TIFF tile in the grid of TIFF tiles
-        let tileGridRow = tiffTileY / tiffTileHeight
-
-        // minimum/corner Y cell coordinate of the TIFF tile in the WorldCover
-        // grid of cells
-        let tileMinY = tileGridRow * tiffTileHeight
-
         for tiffTileX in [ 0..tiffTileWidth..WorldCoverBitmapSize ] do
             /// 0-based byte offset in buffer at which to begin storing read
             /// and decoded bytes
@@ -282,7 +275,9 @@ let readWorldCoverTiffFile
 
                 // coordinates of the pixel within the heights array
                 let heightsArrayX = tileMinX + tiffTileLocalX
-                let heightsArrayY = tileMinY + tiffTileLocalY
+                // we flip the Y coordinate since DEM heights array
+                // is flipped vertically compared to the bitmap
+                let heightsArrayY = WorldCoverBitmapSize - (tiffTileY + tiffTileLocalY) - 1
 
                 // index of the pixel within the heights array
                 let index = heightsArrayY * WorldCoverBitmapSize + heightsArrayX
