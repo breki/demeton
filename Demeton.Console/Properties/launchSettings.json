@@ -2,7 +2,7 @@
   "profiles": {
     "Demeton.Console": {
       "commandName": "Project",
-      "commandLineArgs": "shade 13.49437,46.159668,14.236633,46.543914 --map-scale 1000000 --tile-size 5000 --local-cache-dir D:\\src\\demeton\\samples\\cache --proj \"+proj=lcc +lat_1=40 +lat_2=50\""
+      "commandLineArgs": "tile-shade 800 600 7.17 46.10 --map-scale 500000 --water-color #000000"
     }
   }
 }

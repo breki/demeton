@@ -80,19 +80,14 @@ let fetchWaterBodiesDataSources
     (dataSources: ShadingDataSources)
     =
     let waterBodiesHeightsArrayResult =
-        fetchWorldCoverHeightsArray
-            mapProjection
-            cacheDir
-            level
-            coverageArea
+        fetchWorldCoverHeightsArray mapProjection cacheDir level coverageArea
 
     // if we actually got the water bodies heights array, we can calculate
     // the derived data sources from it
     match waterBodiesHeightsArrayResult with
     | Ok(Some waterBodiesHeightsArray) ->
         let waterBodiesHeightsArray =
-            waterBodiesHeightsArray
-            |> convertWorldCoverRasterToWaterMonochrome
+            waterBodiesHeightsArray |> convertWorldCoverRasterToWaterMonochrome
         // |> simplifyRaster 100
 
         let dataSources =
@@ -131,6 +126,7 @@ let ``Render hillshading with WorldCover water bodies`` () =
         ()
     else
         let cacheDir = "cache"
+        let waterColor = Rgba8Bit.parseColorHexValue "#49C8FF"
 
         let shadingDataSourcesFetchers =
             [| fun level coverageArea dataSources ->
@@ -147,7 +143,7 @@ let ``Render hillshading with WorldCover water bodies`` () =
         let generateTile =
             ShadeCommand.generateShadedRasterTile
                 shadingDataSourcesFetchers
-                Demeton.Commands.TileShadeCommand.createShaderFunction
+                (TileShadeCommand.createShaderFunction waterColor)
 
         let saveTile =
             ShadeCommand.saveShadedRasterTile

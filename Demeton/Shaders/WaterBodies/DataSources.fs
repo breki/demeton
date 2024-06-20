@@ -8,7 +8,6 @@ open Demeton.WorldCover.Types
 open Demeton.WorldCover.Funcs
 open Demeton.WorldCover.Fetch
 open Demeton.WorldCover.WaterBodiesColoring
-open Demeton.WorldCover.WaterBodiesOutlining
 open Raster
 
 [<Literal>]
@@ -21,7 +20,12 @@ let WaterBodiesColoredListDataSourceKey = "waterBodiesColoredList"
 let WaterBodiesOutlinesDataSourceKey = "waterBodiesOutlines"
 
 // todo 2: we need tests for readWorldCoverTiffFile
-let fetchWorldCoverHeightsArray (mapProjection: MapProjection) cacheDir demLevel (coverageArea: LonLatBounds) =
+let fetchWorldCoverHeightsArray
+    (mapProjection: MapProjection)
+    cacheDir
+    demLevel
+    (coverageArea: LonLatBounds)
+    =
     let coveragePoints =
         [ (coverageArea.MinLon, coverageArea.MinLat)
           (coverageArea.MaxLon, coverageArea.MaxLat) ]
@@ -80,19 +84,14 @@ let fetchWaterBodiesDataSources
     (dataSources: ShadingDataSources)
     =
     let waterBodiesHeightsArrayResult =
-        fetchWorldCoverHeightsArray
-            mapProjection
-            cacheDir
-            level
-            coverageArea
+        fetchWorldCoverHeightsArray mapProjection cacheDir level coverageArea
 
     // if we actually got the water bodies heights array, we can calculate
     // the derived data sources from it
     match waterBodiesHeightsArrayResult with
     | Ok(Some waterBodiesHeightsArray) ->
         let waterBodiesHeightsArray =
-            waterBodiesHeightsArray
-            |> convertWorldCoverRasterToWaterMonochrome
+            waterBodiesHeightsArray |> convertWorldCoverRasterToWaterMonochrome
         // |> simplifyRaster 100
 
         let dataSources =

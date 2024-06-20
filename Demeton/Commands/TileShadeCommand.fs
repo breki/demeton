@@ -337,12 +337,13 @@ let WaterBodiesColoredListDataSourceKey = "waterBodiesColoredList"
 [<Literal>]
 let WaterBodiesOutlinesDataSourceKey = "waterBodiesOutlines"
 
-let createShaderFunction shaderFunctionName =
+let createShaderFunction waterColor shaderFunctionName =
     match shaderFunctionName with
     | StepNameWaterBodies ->
         worldCoverWaterBodiesShader
             WaterBodiesHeightsArrayDataSourceKey
             WaterBodiesColoredListDataSourceKey
+            waterColor
     | StepNameWaterBodiesOutline ->
         worldCoverWaterBodiesOutlineShader
             WaterBodiesHeightsArrayDataSourceKey
@@ -534,7 +535,7 @@ let run (options: Options) : Result<unit, string> =
                            "aw3d"
                            (Ok dataSources)
                    fetchWaterBodiesDataSources mapProjection cacheDir |]
-                createShaderFunction
+                (createShaderFunction options.WaterBodiesColor)
                 srtmLevel
                 tileRect
                 rootShadingStep

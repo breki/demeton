@@ -42,6 +42,7 @@ let shouldShowWaterBody waterBody =
 let worldCoverWaterBodiesShader
     waterBodiesHeightsArrayDataSourceKey
     waterBodiesColoredListDataSourceKey
+    waterColor
     : RasterShader =
     fun dataSources demLevel heightsArrayTargetArea imageData forward inverse ->
         let cellsPerDegree = cellsPerDegree WorldCoverTileSize demLevel
@@ -56,7 +57,6 @@ let worldCoverWaterBodiesShader
 
         let targetAreaWidth = heightsArrayTargetArea.Width
 
-        let waterColor = Rgba8Bit.parseColorHexValue "#49C8FF"
         let ignoredWaterColor = Rgba8Bit.parseColorHexValue "#FF96D1"
         let errorWaterColor = Rgba8Bit.parseColorHexValue "#FF4800"
 
@@ -152,7 +152,9 @@ let worldCoverWaterBodiesOutlineShader
 
                             // we flip the Y coordinate since DEM heights array
                             // is flipped vertically compared to the bitmap
-                            let imageY = heightsArrayTargetArea.MaxY - (tileY |> Math.Round |> int)
+                            let imageY =
+                                heightsArrayTargetArea.MaxY
+                                - (tileY |> Math.Round |> int)
 
                             // ... and within the tile image,
                             // render a black pixel at the projected point
