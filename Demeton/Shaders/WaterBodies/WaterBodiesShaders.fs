@@ -39,10 +39,25 @@ let shouldShowWaterBody waterBody =
 /// Returns a raster shader that accepts a WorldCover-originated heights array
 /// and renders water bodies in blue and everything else in transparent.
 /// </summary>
+/// <param name="waterBodiesHeightsArrayDataSourceKey">
+/// The key of the data source that contains the water bodies heights array.
+/// </param>
+/// <param name="waterBodiesColoredListDataSourceKey">
+/// The key of the data source that contains the water bodies colored list.
+/// </param>
+/// <param name="waterColor">
+/// The color to use for rendering water bodies.
+/// </param>
+/// <param name="debugMode">
+/// Whether to render ignored or error water body pixels in their separate
+/// colors. If false, ignored and error water body pixels will be rendered
+/// as transparent, like the rest of the non-water body pixels.
+/// </param>
 let worldCoverWaterBodiesShader
     waterBodiesHeightsArrayDataSourceKey
     waterBodiesColoredListDataSourceKey
     waterColor
+    debugMode
     : RasterShader =
     fun dataSources demLevel heightsArrayTargetArea imageData forward inverse ->
         let cellsPerDegree = cellsPerDegree WorldCoverTileSize demLevel
@@ -73,15 +88,17 @@ let worldCoverWaterBodiesShader
                     match rasterValue with
                     | None -> noWaterColor
                     | Some 0s -> noWaterColor
-                    | Some 1s -> errorWaterColor
+                    | Some 1s when debugMode -> errorWaterColor
                     | Some waterBodyColor ->
                         let waterBody =
                             waterBodiesColoredList.[int waterBodyColor - 2]
 
                         if shouldShowWaterBody waterBody then
                             waterColor
-                        else
+                        elif debugMode then
                             ignoredWaterColor
+                        else
+                            noWaterColor
 
                 Rgba8Bit.setPixelAt
                     imageData

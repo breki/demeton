@@ -337,13 +337,14 @@ let WaterBodiesColoredListDataSourceKey = "waterBodiesColoredList"
 [<Literal>]
 let WaterBodiesOutlinesDataSourceKey = "waterBodiesOutlines"
 
-let createShaderFunction waterColor shaderFunctionName =
+let createShaderFunction waterColor debugMode shaderFunctionName =
     match shaderFunctionName with
     | StepNameWaterBodies ->
         worldCoverWaterBodiesShader
             WaterBodiesHeightsArrayDataSourceKey
             WaterBodiesColoredListDataSourceKey
             waterColor
+            debugMode
     | StepNameWaterBodiesOutline ->
         worldCoverWaterBodiesOutlineShader
             WaterBodiesHeightsArrayDataSourceKey
@@ -524,6 +525,8 @@ let run (options: Options) : Result<unit, string> =
     | Ok mapProjection ->
         match calculateGeoAreaMbr options mapProjection with
         | Ok coverageArea ->
+            let waterBodiesDebugMode = false
+
             ShadeCommand.generateShadedRasterTile
                 [| fun level coverageArea dataSources ->
                        fetchAw3dHeightsArray
@@ -535,7 +538,7 @@ let run (options: Options) : Result<unit, string> =
                            "aw3d"
                            (Ok dataSources)
                    fetchWaterBodiesDataSources mapProjection cacheDir |]
-                (createShaderFunction options.WaterBodiesColor)
+                (createShaderFunction options.WaterBodiesColor waterBodiesDebugMode)
                 srtmLevel
                 tileRect
                 rootShadingStep

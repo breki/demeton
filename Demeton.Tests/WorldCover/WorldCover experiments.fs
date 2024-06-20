@@ -140,10 +140,12 @@ let ``Render hillshading with WorldCover water bodies`` () =
                        (Ok dataSources)
                fetchWaterBodiesDataSources mapProjection cacheDir |]
 
+        let waterBodiesDebugMode = true
+
         let generateTile =
             ShadeCommand.generateShadedRasterTile
                 shadingDataSourcesFetchers
-                (TileShadeCommand.createShaderFunction waterColor)
+                (TileShadeCommand.createShaderFunction waterColor waterBodiesDebugMode)
 
         let saveTile =
             ShadeCommand.saveShadedRasterTile
