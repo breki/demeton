@@ -15,6 +15,7 @@ let ``Projection is created`` () =
           PixelSize = None
           MapScale = Some 250000
           Dpi = 245
+          LambertHillshadingIntensity = 1.
           IgorHillshadingIntensity = 1.
           SlopeShadingIntensity = 1.
           SunAzimuth = IgorHillshader.DefaultSunAzimuth |> degToRad

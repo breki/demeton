@@ -75,9 +75,8 @@ let calculateSlopeAndAspect p q : SlopeAndAspect =
     //let azimuth1 = Math.Asin (-q / surfaceInclination)
     //let azimuth2 = Math.Acos (-p / surfaceInclination)
 
-    // Math.PI / 2 is needed so the north facing slopes have an aspect
-    // of 0 degrees.
-    let aspect = Math.Atan2(q, p) - Math.PI / 2.
+    let aspect =
+        normalizeAngle ((Math.PI * 3./2.) - Math.Atan2(q, p)) (Math.PI * 2.)
 
     (slope, aspect)
 

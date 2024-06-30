@@ -18,6 +18,7 @@ let ``run command`` () =
           PixelSize = None
           MapScale = Some 500000
           Dpi = TileShadeCommand.DefaultDpi
+          LambertHillshadingIntensity = 1.
           IgorHillshadingIntensity = 1.
           SlopeShadingIntensity = 1.
           SunAzimuth = IgorHillshader.DefaultSunAzimuth |> degToRad

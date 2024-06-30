@@ -57,7 +57,7 @@ let shadePixel parameters : Hillshading.PixelHillshader =
                 |> max 0.0
                 |> min 1.0 // Ensure positive values
 
-            let darkness = 1. - darkness
+            let darkness = (1. - darkness) * parameters.Intensity
 
             let alpha = Hillshading.colorComponentRatioToByte darkness
 

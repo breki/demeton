@@ -29,6 +29,7 @@ type Options =
       PixelSize: float option
       MapScale: float option
       Dpi: float
+      LambertHillshadingIntensity: float
       IgorHillshadingIntensity: float
       SlopeShadingIntensity: float
       // In radians
@@ -60,6 +61,9 @@ let MapScaleParameter = "map-scale"
 
 [<Literal>]
 let DpiParameter = "dpi"
+
+[<Literal>]
+let LambertHillshadingIntensityParameter = "lambert-hillshading-intensity"
 
 [<Literal>]
 let IgorHillshadingIntensityParameter = "igor-hillshading-intensity"
@@ -142,6 +146,13 @@ let supportedParameters: CommandParameter[] =
        |> Option.defaultValue DefaultDpi
        |> Option.toPar
 
+       Option.build LambertHillshadingIntensityParameter
+       |> Option.desc
+           "The intensity of the Lambert hillshading (a non-negative float value, default is 1.0)."
+       |> Option.asNonNegativeFloat
+       |> Option.defaultValue 1.
+       |> Option.toPar
+
        Option.build IgorHillshadingIntensityParameter
        |> Option.desc
            "The intensity of the Igor hillshading (a non-negative float value, default is 1.0)."
@@ -205,6 +216,7 @@ let fillOptions parsedParameters =
           PixelSize = None
           MapScale = None
           Dpi = DefaultDpi
+          LambertHillshadingIntensity = 1.
           IgorHillshadingIntensity = 1.
           SlopeShadingIntensity = 1.
           SunAzimuth = IgorHillshader.DefaultSunAzimuth |> degToRad
@@ -246,6 +258,10 @@ let fillOptions parsedParameters =
                 MapScale = Some(value :?> float) }
         | ParsedOption { Name = DpiParameter; Value = value } ->
             { options with Dpi = value :?> float }
+        | ParsedOption { Name = LambertHillshadingIntensityParameter
+                         Value = value } ->
+            { options with
+                LambertHillshadingIntensity = value :?> float }
         | ParsedOption { Name = IgorHillshadingIntensityParameter
                          Value = value } ->
             { options with
@@ -492,7 +508,7 @@ let run (options: Options) : Result<unit, string> =
             { SunAzimuth = options.SunAzimuth
               SunAltitude = options.SunAltitude
               ShadingColor = 0u
-              Intensity = options.IgorHillshadingIntensity
+              Intensity = options.LambertHillshadingIntensity
               DataSourceKey = "aw3d" }
 
     let slopeShadingStep =
@@ -502,17 +518,24 @@ let run (options: Options) : Result<unit, string> =
               Intensity = options.SlopeShadingIntensity
               DataSourceKey = "aw3d" }
 
-    let hillshadingStep =
+    let hillshadingStep1 =
         Compositing(
             lambertHillshadingStep,
             slopeShadingStep,
             CompositingFuncIdAlphaDarken
         )
 
+    let hillshadingStep2 =
+        Compositing(
+            hillshadingStep1,
+            igorHillshadingStep,
+            CompositingFuncIdAlphaDarken
+        )
+
     let waterBodiesStep = CustomShading StepNameWaterBodies
 
     let hillAndWaterStep =
-        Compositing(hillshadingStep, waterBodiesStep, CompositingFuncIdOver)
+        Compositing(hillshadingStep2, waterBodiesStep, CompositingFuncIdOver)
 
     let rootShadingStep =
         Compositing(
@@ -538,7 +561,9 @@ let run (options: Options) : Result<unit, string> =
                            "aw3d"
                            (Ok dataSources)
                    fetchWaterBodiesDataSources mapProjection cacheDir |]
-                (createShaderFunction options.WaterBodiesColor waterBodiesDebugMode)
+                (createShaderFunction
+                    options.WaterBodiesColor
+                    waterBodiesDebugMode)
                 srtmLevel
                 tileRect
                 rootShadingStep
