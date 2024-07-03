@@ -71,3 +71,18 @@ type Rect =
 /// Raw image data represented as a byte array.
 /// </summary>
 type RawImageData = byte[]
+
+/// <summary>
+/// Returns a rectangle that was inflated by the specified size (in pixels)
+/// on each side.
+/// </summary>
+let inflate size rect =
+    let minX = rect.MinX - size
+    let minY = rect.MinY - size
+    let width = rect.Width + 2 * size
+    let height = rect.Height + 2 * size
+
+    { MinX = minX
+      MinY = minY
+      Width = width
+      Height = height }

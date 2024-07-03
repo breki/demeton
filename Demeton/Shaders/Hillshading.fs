@@ -88,11 +88,11 @@ let shadeRaster
     dataSourceKey
     (pixelHillshader: PixelHillshader)
     : RasterShader =
-    fun dataSources srtmLevel tileRect imageData _ inverse ->
+    fun dataSources srtmLevel bitmapRect imageData _ inverse ->
         let heightsArray =
             dataSources.FetchDataSource dataSourceKey :?> HeightsArray
 
-        let tileWidth = tileRect.Width
+        let bitmapWidth = bitmapRect.Width
         let cellsPerDegree = cellsPerDegree 3600 srtmLevel
 
         let inline lonLatOf x y = inverse (float x) (float y)
@@ -125,7 +125,7 @@ let shadeRaster
         /// the pixel value which is then written to the image data.
         /// </details>
         let processRasterLine y =
-            for x in tileRect.MinX .. (tileRect.MaxX - 1) do
+            for x in bitmapRect.MinX .. (bitmapRect.MaxX - 1) do
                 let neighborCoords =
                     [| lonLatOf (x - 1) (y - 1)
                        lonLatOf x (y - 1)
@@ -150,13 +150,13 @@ let shadeRaster
 
                     Rgba8Bit.setPixelAt
                         imageData
-                        tileWidth
-                        (x - tileRect.MinX)
+                        bitmapWidth
+                        (x - bitmapRect.MinX)
                         // we flip the Y coordinate since DEM heights array
                         // is flipped vertically compared to the bitmap
-                        (tileRect.MaxY - y - 1)
+                        (bitmapRect.MaxY - y - 1)
                         pixelValue
 
                 | None -> ()
 
-        Parallel.For(tileRect.MinY, tileRect.MaxY, processRasterLine) |> ignore
+        Parallel.For(bitmapRect.MinY, bitmapRect.MaxY, processRasterLine) |> ignore

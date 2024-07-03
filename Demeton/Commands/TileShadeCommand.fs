@@ -22,12 +22,15 @@ open Png.Types
 open Raster
 open Demeton.Shaders.Pipeline.Common
 
+type MapScaleOrPixelSize =
+    | MapScaleOf of float
+    | PixelSizeOf of float
+
 type Options =
     { TileWidth: int
       TileHeight: int
       TileCenter: LonLat
-      PixelSize: float option
-      MapScale: float option
+      MapScale: MapScaleOrPixelSize option
       Dpi: float
       LambertHillshadingIntensity: float
       IgorHillshadingIntensity: float
@@ -203,7 +206,7 @@ let supportedParameters: CommandParameter[] =
        |> Option.toPar
 
        Option.build OutputFileNameParameter
-       |> Option.desc "The name of the output file (default it 'tile.png')."
+       |> Option.desc "The name of the output file (default is 'tile.png')."
        |> Option.asFileName
        |> Option.defaultValue DefaultOutputFileName
        |> Option.toPar |]
@@ -213,7 +216,6 @@ let fillOptions parsedParameters =
         { TileWidth = 100
           TileHeight = 100
           TileCenter = (0., 0.)
-          PixelSize = None
           MapScale = None
           Dpi = DefaultDpi
           LambertHillshadingIntensity = 1.
@@ -251,11 +253,11 @@ let fillOptions parsedParameters =
         | ParsedOption { Name = PixelSizeParameter
                          Value = value } ->
             { options with
-                PixelSize = Some(value :?> float) }
+                MapScale = Some(value :?> float |> PixelSizeOf) }
         | ParsedOption { Name = MapScaleParameter
                          Value = value } ->
             { options with
-                MapScale = Some(value :?> float) }
+                MapScale = Some(value :?> float |> MapScaleOf) }
         | ParsedOption { Name = DpiParameter; Value = value } ->
             { options with Dpi = value :?> float }
         | ParsedOption { Name = LambertHillshadingIntensityParameter
@@ -299,197 +301,11 @@ let fillOptions parsedParameters =
     let filledOptions =
         parsedParameters |> List.fold processParameter defaultOptions
 
-    let filledOptions =
-        match filledOptions.PixelSize, filledOptions.MapScale with
-        | Some _, Some _ ->
-            invalidOp "Cannot specify both pixel size and map scale."
-        | None, None ->
-            { filledOptions with
-                PixelSize = Some 20. }
-        | _ -> filledOptions
-
     filledOptions
 
-let createProjection options =
-    let mapScaleValue =
-        match options.MapScale with
-        | Some mapScale -> mapScale
-        | None ->
-            raise (
-                NotImplementedException(
-                    "Pixel size support not implemented yet"
-                )
-            )
-
-    let mapScale: MapScale =
-        { MapScale = mapScaleValue
-          Dpi = options.Dpi }
-
-    let centerLon, centerLat = options.TileCenter
-
-    // https://desktop.arcgis.com/en/arcmap/latest/map/projections/lambert-conformal-conic.htm
-    let projectionParameters: LambertConformalConic.Parameters =
-        { X0 = 0
-          Y0 = 0
-          Lon0 = centerLon
-          Lat0 = centerLat
-          // todo 50: we set standard parallels to be the same as the center, for now
-          Lat1 = centerLat
-          Lat2 = centerLat
-          K0 = 1.
-          Ellipsoid = WGS84 }
-
-    Factory.createMapProjection
-        (LambertConformalConic projectionParameters)
-        mapScale
 
 
-[<Literal>]
-let WaterBodiesHeightsArrayDataSourceKey = "waterBodiesRaster"
-
-[<Literal>]
-let WaterBodiesColoredListDataSourceKey = "waterBodiesColoredList"
-
-[<Literal>]
-let WaterBodiesOutlinesDataSourceKey = "waterBodiesOutlines"
-
-let createShaderFunction waterColor debugMode shaderFunctionName =
-    match shaderFunctionName with
-    | StepNameWaterBodies ->
-        worldCoverWaterBodiesShader
-            WaterBodiesHeightsArrayDataSourceKey
-            WaterBodiesColoredListDataSourceKey
-            waterColor
-            debugMode
-    | StepNameWaterBodiesOutline ->
-        worldCoverWaterBodiesOutlineShader
-            WaterBodiesHeightsArrayDataSourceKey
-            WaterBodiesOutlinesDataSourceKey
-    | _ -> failwithf $"Unknown shader function name: %s{shaderFunctionName}"
-
-
-
-let calculateGeoAreaMbr options projection =
-    let tileBoundingPoints: (int * int)[] =
-        [| (-1, -1); (1, -1); (1, 1); (-1, 1) |]
-
-    let halfWidth = options.TileWidth / 2
-    let halfHeight = options.TileHeight / 2
-
-    let tileBoundingGeoPoints =
-        tileBoundingPoints
-        |> Array.map (fun (x, y) ->
-            let x = x * halfWidth
-            let y = y * halfHeight
-
-            projection.Invert x y)
-        |> Array.choose id
-        |> Array.map (fun (lon, lat) -> (radToDeg lon, radToDeg lat))
-
-    if
-        tileBoundingGeoPoints |> Array.length = (tileBoundingPoints
-                                                 |> Array.length)
-    then
-        Demeton.Geometry.Bounds.mbrOf tileBoundingGeoPoints
-        |> lonLatBoundsFromBounds
-        |> Ok
-    else
-        Result.Error "Some of the tile bounding points could not be projected."
-
-
-let fetchAw3dHeightsArray mapProjection cacheDir demLevel coverageArea =
-    let coveragePoints =
-        [ (coverageArea.MinLon, coverageArea.MinLat)
-          (coverageArea.MaxLon, coverageArea.MaxLat) ]
-
-    let tileDownloadingResult = ensureAw3dTiles cacheDir coverageArea
-
-    match tileDownloadingResult with
-    | Ok tilesIds ->
-        let tilesHeightsArrays =
-            tilesIds |> Seq.map (readAw3dTile cacheDir) |> Seq.toList
-
-        // calculate mergedArrayBounds for the given area
-        let projectedCoveragePoints =
-            coveragePoints
-            |> List.map (fun (lon, lat) ->
-                mapProjection.Proj (lon |> degToRad) (lat |> degToRad))
-            |> List.choose id
-
-        let deprojectedCoveragePoints =
-            projectedCoveragePoints
-            |> List.map (fun (x, y) -> mapProjection.Invert x y)
-            |> List.choose id
-
-        let cellsPerDegree = Aw3dTileSize
-
-        // now convert lon, lat to DEM coordinates
-        let coveragePointsInDemCoords =
-            deprojectedCoveragePoints
-            |> List.map (fun (lon, lat) ->
-                let cellX = lon |> radToDeg |> longitudeToCellX cellsPerDegree
-                let cellY = lat |> radToDeg |> latitudeToCellY cellsPerDegree
-                (cellX, cellY))
-
-        let demMbr = Demeton.Geometry.Bounds.mbrOf coveragePointsInDemCoords
-
-        // a buffer around the DEM MBR so we don't end up outside of the array
-        // when we calculate the heights
-        let safetyBuffer = 5
-
-        let mergedArrayBounds =
-            Rect.asMinMax
-                ((demMbr.MinX |> floor |> int) - safetyBuffer)
-                ((demMbr.MinY |> floor |> int) - safetyBuffer)
-                ((demMbr.MaxX |> ceil |> int) + safetyBuffer)
-                ((demMbr.MaxY |> ceil |> int) + safetyBuffer)
-
-        merge mergedArrayBounds tilesHeightsArrays |> Result.Ok
-    | Error message -> Result.Error message
-
-
-let saveTileFile
-    (ensureDirectoryExists: DirectoryExistsEnsurer)
-    (openFileToWrite: FileWriter)
-    (writePngToStream: File.PngStreamWriter)
-    (tileRect: Rect)
-    outputDir
-    outputFileName
-    imageData
-    =
-    ensureDirectoryExists outputDir |> ignore
-
-    let tilePngFileName = outputDir |> Pth.combine outputFileName
-
-    openFileToWrite tilePngFileName
-    |> Result.map (fun stream ->
-        let ihdr: IhdrData =
-            { Width = tileRect.Width
-              Height = tileRect.Height
-              BitDepth = PngBitDepth.BitDepth8
-              ColorType = PngColorType.RgbAlpha
-              InterlaceMethod = PngInterlaceMethod.NoInterlace }
-
-        stream |> writePngToStream ihdr imageData |> closeStream
-
-        Log.info $"Saved the tile to %s{tilePngFileName}"
-
-        tilePngFileName)
-    |> Result.mapError fileSysErrorMessage
-
-
-let run (options: Options) : Result<unit, string> =
-    let cacheDir = options.LocalCacheDir
-    let srtmLevel: DemLevel = { Value = 0 }
-
-    // the center of the raster rect should represent the center specified in
-    // the options
-    let tileRect =
-        { MinX = -options.TileWidth / 2
-          MinY = -options.TileHeight / 2
-          Width = options.TileWidth
-          Height = options.TileHeight }
-
+let constructShadingPipeline options =
     let solidBackgroundStepParameters: SolidBackground.Parameters =
         { BackgroundColor = Rgba8Bit.parseColorHexValue "#FFFFFF" }
 
@@ -544,9 +360,228 @@ let run (options: Options) : Result<unit, string> =
             CompositingFuncIdOver
         )
 
+    rootShadingStep
+
+let createProjection options =
+    let mapScaleValue =
+        match options.MapScale with
+        | Some(MapScaleOf mapScale) -> mapScale
+        | Some(PixelSizeOf pixelSize) ->
+            (pixelSize * options.Dpi) / MetersPerInch
+        | None ->
+            raise (
+                NotImplementedException(
+                    "Pixel size support not implemented yet"
+                )
+            )
+
+    Log.info $"Using map scale of 1 : %f{Math.Round(mapScaleValue)}"
+
+    let mapScale: MapScale =
+        { MapScale = mapScaleValue
+          Dpi = options.Dpi }
+
+    let centerLon, centerLat = options.TileCenter
+
+    // https://desktop.arcgis.com/en/arcmap/latest/map/projections/lambert-conformal-conic.htm
+    let projectionParameters: LambertConformalConic.Parameters =
+        { X0 = 0
+          Y0 = 0
+          Lon0 = centerLon
+          Lat0 = centerLat
+          // todo 50: we set standard parallels to be the same as the center, for now
+          Lat1 = centerLat
+          Lat2 = centerLat
+          K0 = 1.
+          Ellipsoid = WGS84 }
+
+    Factory.createMapProjection
+        (LambertConformalConic projectionParameters)
+        mapScale
+
+
+[<Literal>]
+let WaterBodiesHeightsArrayDataSourceKey = "waterBodiesRaster"
+
+[<Literal>]
+let WaterBodiesColoredListDataSourceKey = "waterBodiesColoredList"
+
+[<Literal>]
+let WaterBodiesOutlinesDataSourceKey = "waterBodiesOutlines"
+
+let createShaderFunction waterColor debugMode shaderFunctionName =
+    match shaderFunctionName with
+    | StepNameWaterBodies ->
+        worldCoverWaterBodiesShader
+            WaterBodiesHeightsArrayDataSourceKey
+            WaterBodiesColoredListDataSourceKey
+            waterColor
+            debugMode
+    | StepNameWaterBodiesOutline ->
+        worldCoverWaterBodiesOutlineShader
+            WaterBodiesHeightsArrayDataSourceKey
+            WaterBodiesOutlinesDataSourceKey
+    | _ -> failwithf $"Unknown shader function name: %s{shaderFunctionName}"
+
+
+/// <summary>
+/// Calculates the geographic minimum bounding rectangle for the given
+/// output bitmap size and the map projection used.
+/// </summary>
+/// <remarks>
+/// The function calculates the MBR by de-projecting the four edges of the
+/// bitmap to geographic coordinates and then calculating the MBR of those
+/// geographic points.
+/// </remarks>
+/// <param name="bitmapRect">The rectangle representing the output bitmap.</param>
+/// <param name="projection">The map projection used.</param>
+let calculateGeoAreaMbr (bitmapRect: Rect) projection =
+    let centerX = bitmapRect.MinX + bitmapRect.Width / 2
+    let centerY = bitmapRect.MinY + bitmapRect.Height / 2
+
+    let tileBoundingPoints: (int * int)[] =
+        [| (bitmapRect.MinX, bitmapRect.MinY)
+           (centerX, bitmapRect.MinY)
+           (bitmapRect.MaxX, bitmapRect.MinY)
+           (bitmapRect.MaxX, centerY)
+           (bitmapRect.MaxX, bitmapRect.MaxY)
+           (centerX, bitmapRect.MaxY)
+           (bitmapRect.MinX, bitmapRect.MaxY)
+           (bitmapRect.MinX, centerY) |]
+
+    let tileBoundingGeoPoints =
+        tileBoundingPoints
+        |> Array.map (fun (x, y) -> projection.Invert x y)
+        |> Array.choose id
+        |> Array.map (fun (lon, lat) -> (radToDeg lon, radToDeg lat))
+
+    if
+        tileBoundingGeoPoints |> Array.length = (tileBoundingPoints
+                                                 |> Array.length)
+    then
+        Demeton.Geometry.Bounds.mbrOf tileBoundingGeoPoints
+        |> lonLatBoundsFromBounds
+        |> Ok
+    else
+        Result.Error "Some of the tile bounding points could not be projected."
+
+
+let fetchAw3dHeightsArray mapProjection cacheDir demLevel coverageArea =
+    let coveragePoints =
+        [ (coverageArea.MinLon, coverageArea.MinLat)
+          (coverageArea.MaxLon, coverageArea.MinLat)
+          (coverageArea.MinLon, coverageArea.MaxLat)
+          (coverageArea.MaxLon, coverageArea.MaxLat) ]
+
+    let tileDownloadingResult = ensureAw3dTiles cacheDir coverageArea
+
+    match tileDownloadingResult with
+    | Ok tilesIds ->
+        let tilesHeightsArrays =
+            tilesIds |> Seq.map (readAw3dTile cacheDir) |> Seq.toList
+
+        // calculate mergedArrayBounds for the given area
+        let projectedCoveragePoints =
+            coveragePoints
+            |> List.map (fun (lon, lat) ->
+                mapProjection.Proj (lon |> degToRad) (lat |> degToRad))
+            |> List.choose id
+
+        let deprojectedCoveragePoints =
+            projectedCoveragePoints
+            |> List.map (fun (x, y) -> mapProjection.Invert x y)
+            |> List.choose id
+
+        let cellsPerDegree = Aw3dTileSize
+
+        // now convert lon, lat to DEM coordinates
+        let coveragePointsInDemCoords =
+            deprojectedCoveragePoints
+            |> List.map (fun (lon, lat) ->
+                let cellX = lon |> radToDeg |> longitudeToCellX cellsPerDegree
+                let cellY = lat |> radToDeg |> latitudeToCellY cellsPerDegree
+                (cellX, cellY))
+
+        let demMbr = Demeton.Geometry.Bounds.mbrOf coveragePointsInDemCoords
+
+        let mergedArrayBounds =
+            Rect.asMinMax
+                (demMbr.MinX |> floor |> int)
+                (demMbr.MinY |> floor |> int)
+                (demMbr.MaxX |> ceil |> int)
+                (demMbr.MaxY |> ceil |> int)
+
+        // A buffer around the DEM MBR so we don't end up outside of the array
+        // when we calculate the heights for hillshading.
+        // Because of map projection issues, we (currently) take around 10% of
+        // the larger side of the merged array bounds.
+        // NOTE(!!) that this is only a temporary solution - those 10% could
+        // exceed the actual downloaded DEM tiles area and we would end up with
+        // holes in the data. So buffered area should be calculated earlier in
+        // the process and then just provided to fetchAw3dHeightsArray() to
+        // fetch a bigger area (without the buffer calculation here).
+        let safetyBuffer =
+            Math.Max (mergedArrayBounds.Width, mergedArrayBounds.Height)
+            |> float
+            |> (*) 0.1
+            |> int
+        let mergedArrayBounds = mergedArrayBounds |> inflate safetyBuffer
+
+        merge mergedArrayBounds tilesHeightsArrays |> Result.Ok
+    | Error message -> Result.Error message
+
+
+let saveTileFile
+    (ensureDirectoryExists: DirectoryExistsEnsurer)
+    (openFileToWrite: FileWriter)
+    (writePngToStream: File.PngStreamWriter)
+    (tileRect: Rect)
+    outputDir
+    outputFileName
+    imageData
+    =
+    ensureDirectoryExists outputDir |> ignore
+
+    let tilePngFileName = outputDir |> Pth.combine outputFileName
+
+    openFileToWrite tilePngFileName
+    |> Result.map (fun stream ->
+        let ihdr: IhdrData =
+            { Width = tileRect.Width
+              Height = tileRect.Height
+              BitDepth = PngBitDepth.BitDepth8
+              ColorType = PngColorType.RgbAlpha
+              InterlaceMethod = PngInterlaceMethod.NoInterlace }
+
+        stream |> writePngToStream ihdr imageData |> closeStream
+
+        Log.info $"Saved the tile to %s{tilePngFileName}"
+
+        tilePngFileName)
+    |> Result.mapError fileSysErrorMessage
+
+
+let run (options: Options) : Result<unit, string> =
+    let cacheDir = options.LocalCacheDir
+    let srtmLevel: DemLevel = { Value = 0 }
+
+    let rootShadingStep = constructShadingPipeline options
+
+    // the center of the bitmap rect should represent the center specified in
+    // the options
+    let bitmapRect =
+        { MinX = -options.TileWidth / 2
+          MinY = -options.TileHeight / 2
+          Width = options.TileWidth
+          Height = options.TileHeight }
+
+    // inflate the bitmap rect by one pixel on each side so it is safe for
+    // various hillshading neighbor calculations
+    let bitmapRectSafe = bitmapRect |> inflate 1
+
     match createProjection options with
     | Ok mapProjection ->
-        match calculateGeoAreaMbr options mapProjection with
+        match calculateGeoAreaMbr bitmapRect mapProjection with
         | Ok coverageArea ->
             let waterBodiesDebugMode = false
 
@@ -565,7 +600,7 @@ let run (options: Options) : Result<unit, string> =
                     options.WaterBodiesColor
                     waterBodiesDebugMode)
                 srtmLevel
-                tileRect
+                bitmapRect
                 rootShadingStep
                 mapProjection
             |> Result.bind (fun imageData ->
@@ -577,7 +612,7 @@ let run (options: Options) : Result<unit, string> =
                         ensureDirectoryExists
                         openFileToWrite
                         File.savePngToStream
-                        tileRect
+                        bitmapRect
                         options.OutputDir
                         options.OutputFileName
                         imageData
