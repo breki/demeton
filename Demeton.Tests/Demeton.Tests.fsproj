@@ -114,6 +114,9 @@
         <Compile Include="Commands tests\TileShadeCommand\Calculating geo area needed.fs"/>
         <Compile Include="Commands tests\TileShadeCommand\Integration tests.fs"/>
         <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs"/>
+        <Compile Include="Commands tests\DemWithWaterBodiesCommand\DemWithWaterBodiesCommand.fs"/>
+        <Compile Include="Commands tests\DemWithWaterBodiesCommand\Command line parsing.fs"/>
+        <Compile Include="Commands tests\DemWithWaterBodiesCommand\Integration tests.fs"/>
         <Compile Include="Acceptance tests\Generating hillshading rasters.fs"/>
         <Compile Include="FParsec exploratory tests.fs"/>
         <Compile Include="Benchmarks\PngFilterBenchmarks.fs"/>
