@@ -217,7 +217,7 @@ let readAw3dTile cacheDir (tileId: DemTileId) : HeightsArray =
         let mutable pixelStart = 0
 
         for col in 0 .. width - 1 do
-            // todo 10: do we already have a function for this?
+            // todo sometime 10: do we already have a function for this?
 
             // read little-endian int16 value from pixelData
             let height = BitConverter.ToInt16(buffer, pixelStart)

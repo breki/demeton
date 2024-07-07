@@ -19,7 +19,7 @@ let WaterBodiesColoredListDataSourceKey = "waterBodiesColoredList"
 [<Literal>]
 let WaterBodiesOutlinesDataSourceKey = "waterBodiesOutlines"
 
-// todo 2: we need tests for readWorldCoverTiffFile
+// todo sometime 2: we need tests for readWorldCoverTiffFile
 let fetchWorldCoverHeightsArray
     (mapProjection: MapProjection)
     cacheDir

@@ -121,7 +121,7 @@ let darken: CompositingFunc =
 
                     let outAlpha = ratioToByte outDarknessRatio
 
-                    // todo 5: use source RGB value instead of always black
+                    // todo sometime 5: use source RGB value instead of always black
                     let outPixel = Rgba8Bit.rgbaColor 0uy 0uy 0uy outAlpha
 
                     Rgba8Bit.setPixelAt dest imageWidth x y outPixel

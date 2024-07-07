@@ -389,7 +389,7 @@ let createProjection options =
           Y0 = 0
           Lon0 = centerLon
           Lat0 = centerLat
-          // todo 50: we set standard parallels to be the same as the center, for now
+          // todo sometime 50: we set standard parallels to be the same as the center, for now
           Lat1 = centerLat
           Lat2 = centerLat
           K0 = 1.

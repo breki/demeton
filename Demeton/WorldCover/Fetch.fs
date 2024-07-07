@@ -265,7 +265,7 @@ let readWorldCoverTiffFile
             // but in future we should provide direct support for byte arrays
             // (since WorldCover uses byte arrays).
 
-            // todo 100: not exactly optimal way to copy from one array to another
+            // todo sometime 100: not exactly optimal way to copy from one array to another
             for i in 0 .. tiffTileBufferSize - 1 do
                 let value = tiffTileBuffer.[i]
 

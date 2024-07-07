@@ -2,7 +2,7 @@
 
 module Demeton.Tests.todo
 
-// todo 100: update shading docs now that we have added an array of fetchers
+// todo sometime 100: update shading docs now that we have added an array of fetchers
 
-// todo 100: implement support for variable-resolution height arrays, not just
+// todo sometime 100: implement support for variable-resolution height arrays, not just
 //   SRTM3 ones
