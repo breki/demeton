@@ -5,12 +5,12 @@ open Swensen.Unquote
 open TestHelp
 
 
-// todo 0: implement parameters parsing tests
 
 [<Fact>]
 [<Trait("Category", "acceptance")>]
 let ``run command`` () =
-    // todo 10: start implementing the acceptance test
+    // todo 30: continue augmenting the acceptance test as we progress with the
+    // command implementation
     let options: Demeton.Commands.DemWithWaterBodiesCommand.Options =
         { TileId =
             { Lon = { Value = 45 }

@@ -95,5 +95,16 @@ let fillOptions parsedParameters =
 
     parsedParameters |> List.fold processParameter defaultOptions
 
+// todo 0: implement shortcut function for fetching the AW3D DEM
+let fetchAw3dTile (tileId: DemTileCoords) (localCacheDir: string) : Result<HeightsArray, string> =
+    Result.Ok(HeightsArray(0, 0, 0, 0, HeightsArrayInitializer1D(fun _ -> DemHeightNone)))
 
-let run (options: Options) : Result<unit, string> = Result.Ok()
+// todo 5: implement shortcut function for fetching the WorldCover tile
+let fetchWorldCoverTile (tileId: DemTileCoords) (localCacheDir: string) : Result<HeightsArray, string> =
+    Result.Ok(HeightsArray(0, 0, 0, 0, HeightsArrayInitializer1D(fun _ -> DemHeightNone)))
+
+let run (options: Options) : Result<unit, string> =
+    fetchAw3dTile options.TileId options.LocalCacheDir
+    |> Result.bind (fun aw3dTile ->
+        fetchWorldCoverTile options.TileId options.LocalCacheDir
+        |> Result.bind (fun worldCoverTile -> Result.Ok()))
