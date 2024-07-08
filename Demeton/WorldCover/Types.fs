@@ -22,6 +22,9 @@ let WorldCoverTileSize = 12000
 let WorldCoverTilesInBatch = 3
 
 [<Literal>]
+let WorldCoverDegreesPerFile = WorldCoverTilesInBatch
+
+[<Literal>]
 let WorldCoverCellsPerDegree = WorldCoverTileSize
 
 [<Literal>]

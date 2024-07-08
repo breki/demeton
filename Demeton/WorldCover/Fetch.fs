@@ -1,5 +1,6 @@
 ﻿module Demeton.WorldCover.Fetch
 
+open System
 open System.IO
 open Demeton.Dem.Types
 open Demeton.Dem.Funcs
@@ -63,25 +64,29 @@ let listAllAvailableFiles
 /// Each file covers a 3x3 degree area.
 /// </summary>
 let boundsToWorldCoverFiles (bounds: LonLatBounds) : DemTileId seq =
-    let degreesPerTile = 3
-
     let minTileX =
-        (bounds.MinLon / float degreesPerTile) |> floor |> int |> (*) 3
+        (bounds.MinLon / float WorldCoverDegreesPerFile)
+        |> floor
+        |> int
+        |> (*) WorldCoverDegreesPerFile
 
     let minTileY =
-        (bounds.MinLat / float degreesPerTile) |> floor |> int |> (*) 3
+        (bounds.MinLat / float WorldCoverDegreesPerFile)
+        |> floor
+        |> int
+        |> (*) WorldCoverDegreesPerFile
 
     let maxTileX =
-        ((bounds.MaxLon / float degreesPerTile) |> ceil |> int) - 1
-        |> (*) degreesPerTile
+        ((bounds.MaxLon / float WorldCoverDegreesPerFile) |> ceil |> int) - 1
+        |> (*) WorldCoverDegreesPerFile
 
     let maxTileY =
-        ((bounds.MaxLat / float degreesPerTile) |> ceil |> int) - 1
-        |> (*) degreesPerTile
+        ((bounds.MaxLat / float WorldCoverDegreesPerFile) |> ceil |> int) - 1
+        |> (*) WorldCoverDegreesPerFile
 
     seq {
-        for tileY in [ minTileY..degreesPerTile..maxTileY ] do
-            for tileX in [ minTileX..degreesPerTile..maxTileX ] do
+        for tileY in [ minTileY..WorldCoverDegreesPerFile..maxTileY ] do
+            for tileX in [ minTileX..WorldCoverDegreesPerFile..maxTileX ] do
                 yield demTileXYId tileX tileY
     }
 
@@ -104,6 +109,22 @@ let worldCoverTileDownloadUrl (tileId: DemTileId) : string =
 let worldCoverTileCachedTifFileName cacheDir (tileId: DemTileId) =
     Path.Combine(cacheDir, WorldCoverDirName, $"{tileId.FormatLat2Lon3}.tif")
 
+
+/// <summary>
+/// Calculates the tile ID of the WorldCover file that covers the specified
+/// one-degree DEM tile.
+/// </summary>
+let containingWorldCoverFileTileId (singleDegreeTileId: DemTileId) : DemTileId =
+    match singleDegreeTileId.Level with
+    | Level0 ->
+        let worldCoverTileX =
+            singleDegreeTileId.TileX / WorldCoverDegreesPerFile * WorldCoverDegreesPerFile
+
+        let worldCoverTileY =
+            singleDegreeTileId.TileY / WorldCoverDegreesPerFile * WorldCoverDegreesPerFile
+
+        demTileXYId worldCoverTileX worldCoverTileY
+    | HigherLevel -> raise <| InvalidOperationException "Higher-level DEM tiles are not supported."
 
 
 /// <summary>
@@ -277,7 +298,8 @@ let readWorldCoverTiffFile
                 let heightsArrayX = tileMinX + tiffTileLocalX
                 // we flip the Y coordinate since DEM heights array
                 // is flipped vertically compared to the bitmap
-                let heightsArrayY = WorldCoverBitmapSize - (tiffTileY + tiffTileLocalY) - 1
+                let heightsArrayY =
+                    WorldCoverBitmapSize - (tiffTileY + tiffTileLocalY) - 1
 
                 // index of the pixel within the heights array
                 let index = heightsArrayY * WorldCoverBitmapSize + heightsArrayX

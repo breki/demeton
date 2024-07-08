@@ -2,13 +2,10 @@
 
 open CommandLine.Common
 open Demeton.Commands
-open Demeton.Projections.Common
-open Demeton.Projections.PROJParsing
-open Demeton.Shaders.Pipeline.Common
+open Demeton.Dem.Funcs
 
 open Xunit
 open Swensen.Unquote
-open TestHelp
 
 
 let parseArgs args =
@@ -29,8 +26,4 @@ let ``Can parse tile ID`` () =
     let result = parseArgs [ "N45E026" ]
     let options = getOptions result
 
-    test
-        <@
-            options.TileId = { Lon = { Value = 26 }
-                               Lat = { Value = 45 } }
-        @>
+    test <@ options.TileId = demTileXYId 26 45 @>

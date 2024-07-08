@@ -6,10 +6,13 @@ open CommandLine
 open CommandLine.Common
 open Demeton.Dem.Types
 open Demeton.Dem.Funcs
+open Demeton.Aw3d.Types
 open Demeton.Aw3d.Funcs
+open Demeton.WorldCover.Types
+open Demeton.WorldCover.Fetch
 
 type Options =
-    { TileId: DemTileCoords
+    { TileId: DemTileId
       DemResolution: int
       LocalCacheDir: string
       OutputDir: string }
@@ -35,7 +38,7 @@ let DefaultOutputDir = "output"
 let parseTileId value : OptionValueParsingResult =
     try
         let demTileCoords = parseHgtTileName value
-        OkValue demTileCoords
+        OkValue(demTileXYId demTileCoords.Lon.Value demTileCoords.Lat.Value)
     with :? InvalidOperationException as ex ->
         InvalidValue ex.Message
 
@@ -67,9 +70,7 @@ let supportedParameters: CommandParameter[] =
 
 let fillOptions parsedParameters =
     let defaultOptions =
-        { TileId =
-            { Lon = { Value = 0 }
-              Lat = { Value = 0 } }
+        { TileId = demTileXYId 0 0
           DemResolution = 30
           LocalCacheDir = DefaultLocalCacheDir
           OutputDir = DefaultOutputDir }
@@ -79,7 +80,7 @@ let fillOptions parsedParameters =
         | ParsedArg { Name = TileIdParameter
                       Value = value } ->
             { options with
-                TileId = value :?> DemTileCoords }
+                TileId = value :?> DemTileId }
         | ParsedOption { Name = DemResolutionParameter
                          Value = value } ->
             { options with
@@ -96,10 +97,7 @@ let fillOptions parsedParameters =
 
     parsedParameters |> List.fold processParameter defaultOptions
 
-// todo 0: implement shortcut function for fetching the AW3D DEM
-let fetchAw3dTile (tileId: DemTileCoords) (localCacheDir: string) : Result<HeightsArray, string> =
-    let fullTileId = demTileXYId tileId.Lon.Value tileId.Lat.Value
-
+let fetchAw3dTile (tileId: DemTileId) (localCacheDir: string) : Result<HeightsArray, string> =
     ensureAw3dTile
         localCacheDir
         FileSys.fileExists
@@ -107,13 +105,14 @@ let fetchAw3dTile (tileId: DemTileCoords) (localCacheDir: string) : Result<Heigh
         FileSys.readZipFile
         FileSys.copyStreamToFile
         FileSys.deleteFile
-        fullTileId
-    |> Result.bind (fun _ -> (readAw3dTile localCacheDir fullTileId) |> Result.Ok)
+        tileId
+    |> Result.bind (fun _ -> (readAw3dTile localCacheDir tileId) |> Result.Ok)
 
 
-// todo 5: implement shortcut function for fetching the WorldCover tile
-let fetchWorldCoverTile (tileId: DemTileCoords) (localCacheDir: string) : Result<HeightsArray, string> =
-    Result.Ok(HeightsArray(0, 0, 0, 0, HeightsArrayInitializer1D(fun _ -> DemHeightNone)))
+let fetchWorldCoverTile (tileId: DemTileId) (localCacheDir: string) : Result<HeightsArray, string> =
+    let containingTileId = containingWorldCoverFileTileId tileId
+    ensureWorldCoverFile localCacheDir FileSys.fileExists FileSys.downloadFile containingTileId
+    |> Result.bind (fun _ -> (readWorldCoverTiffFile localCacheDir containingTileId) |> Result.Ok)
 
 let run (options: Options) : Result<unit, string> =
     fetchAw3dTile options.TileId options.LocalCacheDir
