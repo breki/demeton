@@ -6,6 +6,7 @@ open CommandLine
 open CommandLine.Common
 open Demeton.Dem.Types
 open Demeton.Dem.Funcs
+open Demeton.Aw3d.Funcs
 
 type Options =
     { TileId: DemTileCoords
@@ -97,7 +98,18 @@ let fillOptions parsedParameters =
 
 // todo 0: implement shortcut function for fetching the AW3D DEM
 let fetchAw3dTile (tileId: DemTileCoords) (localCacheDir: string) : Result<HeightsArray, string> =
-    Result.Ok(HeightsArray(0, 0, 0, 0, HeightsArrayInitializer1D(fun _ -> DemHeightNone)))
+    let fullTileId = demTileXYId tileId.Lon.Value tileId.Lat.Value
+
+    ensureAw3dTile
+        localCacheDir
+        FileSys.fileExists
+        FileSys.downloadFile
+        FileSys.readZipFile
+        FileSys.copyStreamToFile
+        FileSys.deleteFile
+        fullTileId
+    |> Result.bind (fun _ -> (readAw3dTile localCacheDir fullTileId) |> Result.Ok)
+
 
 // todo 5: implement shortcut function for fetching the WorldCover tile
 let fetchWorldCoverTile (tileId: DemTileCoords) (localCacheDir: string) : Result<HeightsArray, string> =
