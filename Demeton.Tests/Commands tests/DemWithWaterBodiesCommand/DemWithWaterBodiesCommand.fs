@@ -10,6 +10,8 @@ open Demeton.Aw3d.Types
 open Demeton.Aw3d.Funcs
 open Demeton.WorldCover.Types
 open Demeton.WorldCover.Fetch
+open Demeton.WorldCover.Funcs
+open Demeton.WorldCover.WaterBodiesColoring
 
 type Options =
     { TileId: DemTileId
@@ -114,8 +116,40 @@ let fetchWorldCoverTile (tileId: DemTileId) (localCacheDir: string) : Result<Hei
     ensureWorldCoverFile localCacheDir FileSys.fileExists FileSys.downloadFile containingTileId
     |> Result.bind (fun _ -> (readWorldCoverTiffFile localCacheDir containingTileId) |> Result.Ok)
 
+
+// todo 8: we probably need a special downsampling function since a) we need
+//   to be able to specify the downsampled width, height and b) we do not calculate
+//   averages of heights, we instead only look if there is a water body in the
+//   downsampled area or not
+let downsampleHeightsArrayWithFloatFactor (downsamplingFactor: float) (originalArray: HeightsArray)  : HeightsArray =
+    let originalWidth = originalArray.Width
+    let originalHeight = originalArray.Height
+    let newWidth = int (float originalWidth / factor)
+    let newHeight = int (float originalHeight / factor)
+    let downsampledArray = Array2D.zeroCreate<float> newHeight newWidth
+
+    for y in 0 .. newHeight - 1 do
+        for x in 0 .. newWidth - 1 do
+            let origX = float x * factor
+            let origY = float y * factor
+            downsampledArray.[y, x] <- bilinearInterpolate origX origY originalArray
+
+    downsampledArray
+
+// todo 3: this takes a long time since we're working on the original,
+//   high-resolution data. Maybe we should downsample the heights array to the
+//   final resolution first?
+let identifyAndSimplifyWaterBodies worldCoverHeightsArray =
+    worldCoverHeightsArray
+    |> convertWorldCoverRasterToWaterMonochrome
+    |> colorWaterBodies
+
+
 let run (options: Options) : Result<unit, string> =
     fetchAw3dTile options.TileId options.LocalCacheDir
     |> Result.bind (fun aw3dTile ->
         fetchWorldCoverTile options.TileId options.LocalCacheDir
-        |> Result.bind (fun worldCoverTile -> Result.Ok()))
+        |> Result.bind (
+            fun worldCoverTile ->
+                identifyAndSimplifyWaterBodies worldCoverTile |> ignore
+                Result.Ok()))
