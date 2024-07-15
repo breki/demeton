@@ -10,6 +10,7 @@ open FileSys
 open Newtonsoft.Json
 open Newtonsoft.Json.Linq
 open BitMiracle.LibTiff.Classic
+open Raster
 
 /// <summary>
 /// Construct the file name for the cached WorldCover geoJSON file.
@@ -118,13 +119,17 @@ let containingWorldCoverFileTileId (singleDegreeTileId: DemTileId) : DemTileId =
     match singleDegreeTileId.Level with
     | Level0 ->
         let worldCoverTileX =
-            singleDegreeTileId.TileX / WorldCoverDegreesPerFile * WorldCoverDegreesPerFile
+            singleDegreeTileId.TileX / WorldCoverDegreesPerFile
+            * WorldCoverDegreesPerFile
 
         let worldCoverTileY =
-            singleDegreeTileId.TileY / WorldCoverDegreesPerFile * WorldCoverDegreesPerFile
+            singleDegreeTileId.TileY / WorldCoverDegreesPerFile
+            * WorldCoverDegreesPerFile
 
         demTileXYId worldCoverTileX worldCoverTileY
-    | HigherLevel -> raise <| InvalidOperationException "Higher-level DEM tiles are not supported."
+    | HigherLevel ->
+        raise
+        <| InvalidOperationException "Higher-level DEM tiles are not supported."
 
 
 /// <summary>
@@ -182,6 +187,54 @@ let ensureWorldCoverFiles
     | [] -> Result.Ok availableFilesNeeded
     | _ -> Result.Error(String.concat "\n" filesErrors)
 
+let copyTiffTileToWorldCoverRaster
+    (worldCoverData: DemHeight[])
+    (tiffTileBuffer: byte[])
+    tiffTileWidth
+    tileMinX
+    tiffTileY
+    : unit =
+    let tiffTileBufferSize = tiffTileBuffer.Length
+
+    // local coordinates of the pixel within the TIFF tile
+    let mutable tiffTileLocalX = 0
+    let mutable tiffTileLocalY = 0
+    // coordinates of the pixel within the heights array
+    let mutable heightsArrayX = tileMinX
+    // we flip the Y coordinate since DEM heights array
+    // is flipped vertically compared to the bitmap
+    let mutable heightsArrayY = WorldCoverBitmapSize - tiffTileY - 1
+    // index of the pixel within the heights array
+    let mutable destIndex = heightsArrayY * WorldCoverBitmapSize + heightsArrayX
+
+    for i in 0 .. tiffTileBufferSize - 1 do
+        // copy the pixel to the heights array only if it fits within
+        // the array (some TIFF tiles may be partially outside the
+        // requested area)
+        if
+            heightsArrayX >= 0
+            && heightsArrayY >= 0
+            && heightsArrayX < WorldCoverBitmapSize
+            && heightsArrayY < WorldCoverBitmapSize
+        then
+            let value = tiffTileBuffer.[i]
+            worldCoverData.[destIndex] <- int16 value
+
+        if tiffTileLocalX + 1 < tiffTileWidth then
+            tiffTileLocalX <- tiffTileLocalX + 1
+            heightsArrayX <- heightsArrayX + 1
+        else
+            tiffTileLocalX <- 0
+            tiffTileLocalY <- tiffTileLocalY + 1
+            heightsArrayX <- tileMinX
+            heightsArrayY <- heightsArrayY - 1
+            destIndex <- heightsArrayY * WorldCoverBitmapSize + heightsArrayX
+
+
+
+// todo 2: redesign this function so it can accept optional box to limit the
+//    resulting heights array to a smaller area and thus avoid unnecessary
+//    loading of the whole TIFF file
 
 /// <summary>
 /// Reads a WorldCover TIFF file and returns the heights array for it.
@@ -193,6 +246,7 @@ let ensureWorldCoverFiles
 /// </remarks>
 let readWorldCoverTiffFile
     cacheDir
+    (cropBounds: Rect option)
     (worldCoverTileId: DemTileId)
     : HeightsArray =
     let worldCoverTiffFileName =
@@ -237,84 +291,6 @@ let readWorldCoverTiffFile
     let tiffTileBufferSize = tiff.TileSize()
     let tiffTileBuffer = Array.zeroCreate<byte> tiffTileBufferSize
 
-    // for each TIFF tile
-    for tiffTileY in [ 0..tiffTileHeight..WorldCoverBitmapSize ] do
-        for tiffTileX in [ 0..tiffTileWidth..WorldCoverBitmapSize ] do
-            /// 0-based byte offset in buffer at which to begin storing read
-            /// and decoded bytes
-            let offset = 0
-            /// z-coordinate of the pixel within a tile to be read and decoded
-            let tileZ = 0
-            /// The zero-based index of the sample plane. The plane parameter is
-            /// used only if data are organized in separate planes
-            /// (PLANARCONFIG = SEPARATE). In other cases the value is ignored.
-            let plane = int16 0
-
-            // The tile to read and decode is selected by the (x, y, z, plane)
-            // coordinates (i.e. ReadTile returns the data for the tile
-            // containing the specified coordinates).
-
-            // The tile does not start at tiffTileX, tiffTileY, so we need to
-            // calculate its actual starting coordinates and adjust
-            // that in our calculations when copying to the worldCoverData array.
-
-            let bytesInTile =
-                tiff.ReadTile(
-                    tiffTileBuffer,
-                    offset,
-                    tiffTileX,
-                    tiffTileY,
-                    tileZ,
-                    plane
-                )
-
-            if bytesInTile = -1 then
-                failwith "Could not read tile."
-
-            // X coordinate (column) of this TIFF tile in the grid of TIFF tiles
-            let tileGridColumn = tiffTileX / tiffTileWidth
-
-            // minimum/corner X cell coordinate of the TIFF tile in the WorldCover
-            // grid of cells
-            let tileMinX = tileGridColumn * tiffTileWidth
-
-            // Copy the contents of the tile buffer into the worldCoverData
-            // array. This way we fill the heights array by the contents of each
-            // TIFF tile, one by one, until we have the whole heights array
-            // filed.
-            // Note that we use int16 heights array here because of simplicity,
-            // but in future we should provide direct support for byte arrays
-            // (since WorldCover uses byte arrays).
-
-            // todo sometime 100: not exactly optimal way to copy from one array to another
-            for i in 0 .. tiffTileBufferSize - 1 do
-                let value = tiffTileBuffer.[i]
-
-                // local coordinates of the pixel within the TIFF tile
-                let tiffTileLocalX = i % tiffTileWidth
-                let tiffTileLocalY = i / tiffTileWidth
-
-                // coordinates of the pixel within the heights array
-                let heightsArrayX = tileMinX + tiffTileLocalX
-                // we flip the Y coordinate since DEM heights array
-                // is flipped vertically compared to the bitmap
-                let heightsArrayY =
-                    WorldCoverBitmapSize - (tiffTileY + tiffTileLocalY) - 1
-
-                // index of the pixel within the heights array
-                let index = heightsArrayY * WorldCoverBitmapSize + heightsArrayX
-
-                // copy the pixel to the heights array only if it fits within
-                // the array (some TIFF tiles may be partially outside the
-                // requested area)
-                if
-                    heightsArrayX >= 0
-                    && heightsArrayY >= 0
-                    && heightsArrayX < WorldCoverBitmapSize
-                    && heightsArrayY < WorldCoverBitmapSize
-                then
-                    worldCoverData.[index] <- int16 value
-
     let cellMinX, cellMinY =
         tileMinCell
             WorldCoverTileSize
@@ -322,10 +298,104 @@ let readWorldCoverTiffFile
               TileX = worldCoverTileId.TileX
               TileY = worldCoverTileId.TileY }
 
-    HeightsArray(
-        cellMinX,
-        cellMinY,
-        WorldCoverBitmapSize,
-        WorldCoverBitmapSize,
-        HeightsArrayDirectImport worldCoverData
-    )
+    // for each TIFF tile
+    for tiffTileY in [ 0..tiffTileHeight..WorldCoverBitmapSize ] do
+        for tiffTileX in [ 0..tiffTileWidth..WorldCoverBitmapSize ] do
+            // todo 1: determine whether the tile is within the crop bounds
+            //    and skip it if it is not
+
+            let loadTile =
+                if cropBounds.IsSome then
+                    // flip around Y-axis because TIFF Y-axis is opposite
+                    // from DEM one's
+                    let tiffTileDemMaxY = (WorldCoverBitmapSize - 1) - tiffTileY
+                    let tiffTileDemMinY = tiffTileDemMaxY - tiffTileHeight + 1
+
+                    // calculate TIFF tile's geometric bounds
+                    let tiffTileBounds =
+                        { MinX = tiffTileX + cellMinX
+                          MinY = tiffTileDemMinY + cellMinY
+                          Width = tiffTileWidth
+                          Height = tiffTileHeight }
+
+                    doRectsIntersect tiffTileBounds cropBounds.Value
+                else
+                    true
+
+            if loadTile then
+                /// 0-based byte offset in buffer at which to begin storing read
+                /// and decoded bytes
+                let offset = 0
+                /// z-coordinate of the pixel within a tile to be read and decoded
+                let tileZ = 0
+                /// The zero-based index of the sample plane. The plane parameter is
+                /// used only if data are organized in separate planes
+                /// (PLANARCONFIG = SEPARATE). In other cases the value is ignored.
+                let plane = int16 0
+
+                // The tile to read and decode is selected by the (x, y, z, plane)
+                // coordinates (i.e. ReadTile returns the data for the tile
+                // containing the specified coordinates).
+
+                // The tile does not start at tiffTileX, tiffTileY, so we need to
+                // calculate its actual starting coordinates and adjust
+                // that in our calculations when copying to the worldCoverData array.
+
+                // Log.debug $"Reading TIFF tile {tiffTileX}/{tiffTileY}..."
+
+                let bytesInTile =
+                    tiff.ReadTile(
+                        tiffTileBuffer,
+                        offset,
+                        tiffTileX,
+                        tiffTileY,
+                        tileZ,
+                        plane
+                    )
+
+                if bytesInTile = -1 then
+                    failwith "Could not read tile."
+
+                // X coordinate (column) of this TIFF tile in the grid of TIFF tiles
+                let tileGridColumn = tiffTileX / tiffTileWidth
+
+                // minimum/corner X cell coordinate of the TIFF tile in the WorldCover
+                // grid of cells
+                let tileMinX = tileGridColumn * tiffTileWidth
+
+                // Copy the contents of the tile buffer into the worldCoverData
+                // array. This way we fill the heights array by the contents of each
+                // TIFF tile, one by one, until we have the whole heights array
+                // filed.
+                // Note that we use int16 heights array here because of simplicity,
+                // but in future we should provide direct support for byte arrays
+                // (since WorldCover uses byte arrays).
+
+                // todo sometime 100: not exactly optimal way to copy from one array to another
+                copyTiffTileToWorldCoverRaster
+                    worldCoverData
+                    tiffTileBuffer
+                    tiffTileWidth
+                    tileMinX
+                    tiffTileY
+            else
+                ()
+
+    let raster =
+        HeightsArray(
+            cellMinX,
+            cellMinY,
+            WorldCoverBitmapSize,
+            WorldCoverBitmapSize,
+            HeightsArrayDirectImport worldCoverData
+        )
+
+    // todo 3: remove after debugging
+    let analysis = analyzeHeightsArray raster
+
+    if cropBounds.IsSome then
+        let x = raster |> extract cropBounds.Value
+        let analysis = analyzeHeightsArray x
+        x
+    else
+        raster

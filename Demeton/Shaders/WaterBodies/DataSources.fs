@@ -35,7 +35,9 @@ let fetchWorldCoverHeightsArray
     match fileDownloadingResult with
     | Ok tilesIds ->
         let filesHeightsArrays =
-            tilesIds |> Seq.map (readWorldCoverTiffFile cacheDir) |> Seq.toList
+            tilesIds
+            |> Seq.map (readWorldCoverTiffFile cacheDir None)
+            |> Seq.toList
 
         // calculate mergedArrayBounds for the given area
         let projectedCoveragePoints =

@@ -86,3 +86,15 @@ let inflate size rect =
       MinY = minY
       Width = width
       Height = height }
+
+
+/// <summary>
+/// Determines if two rectangles intersect.
+/// </summary>
+/// <param name="rect1">The first rectangle to check for intersection.</param>
+/// <param name="rect2">The second rectangle to check for intersection.</param>
+/// <returns>True if the rectangles intersect, otherwise false.</returns>
+let doRectsIntersect (rect1: Rect) (rect2: Rect) =
+    let xIntersect = rect1.MinX <= rect2.MaxX && rect1.MaxX >= rect2.MinX
+    let yIntersect = rect1.MinY <= rect2.MaxY && rect1.MaxY >= rect2.MinY
+    xIntersect && yIntersect

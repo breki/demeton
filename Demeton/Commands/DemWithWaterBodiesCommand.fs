@@ -12,6 +12,8 @@ open Demeton.WorldCover.Types
 open Demeton.WorldCover.Fetch
 open Demeton.WorldCover.Funcs
 open Demeton.WorldCover.WaterBodiesColoring
+open Raster
+
 
 type Options =
     { TileId: DemTileId
@@ -51,7 +53,8 @@ let supportedParameters: CommandParameter[] =
        |> Arg.toPar
 
        Option.build DemResolutionParameter
-       |> Option.desc "The DEM resolution (in meters) of the resulting DEM tile cell (default is 30 meters)."
+       |> Option.desc
+           "The DEM resolution (in meters) of the resulting DEM tile cell (default is 30 meters)."
        |> Option.asPositiveInt
        |> Option.defaultValue 30
        |> Option.toPar
@@ -99,7 +102,10 @@ let fillOptions parsedParameters =
 
     parsedParameters |> List.fold processParameter defaultOptions
 
-let fetchAw3dTile (tileId: DemTileId) (localCacheDir: string) : Result<HeightsArray, string> =
+let fetchAw3dTile
+    (tileId: DemTileId)
+    (localCacheDir: string)
+    : Result<HeightsArray, string> =
     ensureAw3dTile
         localCacheDir
         FileSys.fileExists
@@ -111,45 +117,77 @@ let fetchAw3dTile (tileId: DemTileId) (localCacheDir: string) : Result<HeightsAr
     |> Result.bind (fun _ -> (readAw3dTile localCacheDir tileId) |> Result.Ok)
 
 
-let fetchWorldCoverTile (tileId: DemTileId) (localCacheDir: string) : Result<HeightsArray, string> =
+
+
+// todo 50: in order to properly identify the water bodies, we need to
+//  work with the area that is larger than just that one 1x1 degree tile
+let fetchWorldCoverTile
+    (tileId: DemTileId)
+    (localCacheDir: string)
+    : Result<HeightsArray, string> =
     let containingTileId = containingWorldCoverFileTileId tileId
-    ensureWorldCoverFile localCacheDir FileSys.fileExists FileSys.downloadFile containingTileId
-    |> Result.bind (fun _ -> (readWorldCoverTiffFile localCacheDir containingTileId) |> Result.Ok)
+
+    // todo 0: calculate the rectangle that covers the tileId
+    let tileMinX, tileMinY = tileMinCell WorldCoverCellsPerDegree tileId
+
+    let tile1by1Rect =
+        { MinX = tileMinX
+          MinY = tileMinY
+          Width = WorldCoverCellsPerDegree
+          Height = WorldCoverCellsPerDegree }
+
+    ensureWorldCoverFile
+        localCacheDir
+        FileSys.fileExists
+        FileSys.downloadFile
+        containingTileId
+    |> Result.bind (fun _ ->
+        (readWorldCoverTiffFile
+            localCacheDir
+            (Some tile1by1Rect)
+            containingTileId)
+        |> Result.Ok)
+    |> Result.bind Result.Ok
 
 
-// todo 8: we probably need a special downsampling function since a) we need
-//   to be able to specify the downsampled width, height and b) we do not calculate
-//   averages of heights, we instead only look if there is a water body in the
-//   downsampled area or not
-let downsampleHeightsArrayWithFloatFactor (downsamplingFactor: float) (originalArray: HeightsArray)  : HeightsArray =
-    let originalWidth = originalArray.Width
-    let originalHeight = originalArray.Height
-    let newWidth = int (float originalWidth / factor)
-    let newHeight = int (float originalHeight / factor)
-    let downsampledArray = Array2D.zeroCreate<float> newHeight newWidth
 
-    for y in 0 .. newHeight - 1 do
-        for x in 0 .. newWidth - 1 do
-            let origX = float x * factor
-            let origY = float y * factor
-            downsampledArray.[y, x] <- bilinearInterpolate origX origY originalArray
-
-    downsampledArray
-
-// todo 3: this takes a long time since we're working on the original,
-//   high-resolution data. Maybe we should downsample the heights array to the
-//   final resolution first?
-let identifyAndSimplifyWaterBodies worldCoverHeightsArray =
+let identifyAndSimplifyWaterBodies
+    demResolutionParameter
     worldCoverHeightsArray
-    |> convertWorldCoverRasterToWaterMonochrome
-    |> colorWaterBodies
+    =
+    // first calculate how many pixels per degree will the final DEM have
+    let finalDemPixelsPerDegree =
+        float demResolutionParameter / 90. * (float Aw3dTileSize)
+
+    // now, based on that value calculate the downsampling factor needed to
+    // reduce WorldCover's 12000 degrees per degree to the final resolution
+    let downsamplingFactor =
+        finalDemPixelsPerDegree / (float WorldCoverCellsPerDegree)
+
+    let worldCoverHighResolution =
+        worldCoverHeightsArray |> convertWorldCoverRasterToWaterMonochrome
+
+    // todo 3: remove after debugging
+    let analysis = analyzeHeightsArray worldCoverHighResolution
+
+    let worldCoverTargetResolution =
+        worldCoverHighResolution
+        |> downsampleWaterBodiesHeightsArray downsamplingFactor
+
+    // todo 3: remove after debugging
+    let analysis = analyzeHeightsArray worldCoverTargetResolution
+
+    worldCoverTargetResolution |> colorWaterBodies
 
 
 let run (options: Options) : Result<unit, string> =
     fetchAw3dTile options.TileId options.LocalCacheDir
     |> Result.bind (fun aw3dTile ->
         fetchWorldCoverTile options.TileId options.LocalCacheDir
-        |> Result.bind (
-            fun worldCoverTile ->
-                identifyAndSimplifyWaterBodies worldCoverTile |> ignore
-                Result.Ok()))
+        |> Result.bind (fun worldCoverTile ->
+            identifyAndSimplifyWaterBodies
+                options.DemResolution
+                worldCoverTile
+            |> ignore
+
+            Result.Ok()))

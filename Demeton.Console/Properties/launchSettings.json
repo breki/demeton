@@ -2,7 +2,7 @@
   "profiles": {
     "Demeton.Console": {
       "commandName": "Project",
-      "commandLineArgs": "tile-shade 800 600 7.17 46.10 --map-scale 500000 --water-color #000000"
+      "commandLineArgs": "dem-with-water-bodies N45E005"
     }
   }
 }

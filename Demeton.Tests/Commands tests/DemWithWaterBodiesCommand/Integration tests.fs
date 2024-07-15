@@ -14,7 +14,7 @@ let ``run command`` () =
     // todo 30: continue augmenting the acceptance test as we progress with the
     // command implementation
     let options: Demeton.Commands.DemWithWaterBodiesCommand.Options =
-        { TileId = demTileXYId 45 7
+        { TileId = demTileXYId 7 45
           DemResolution = 30
           LocalCacheDir = "cache"
           OutputDir = "output" }

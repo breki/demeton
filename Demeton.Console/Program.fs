@@ -69,6 +69,17 @@ let runTileShadeCommand parsedParameters =
         Console.Error.WriteLine message
         CommandFailed
 
+let runDemWithWaterBodiesCommand parsedParameters =
+    let options = DemWithWaterBodiesCommand.fillOptions parsedParameters
+
+    let results = DemWithWaterBodiesCommand.run options
+
+    match results with
+    | Ok _ -> CommandExecuted
+    | Error message ->
+        Console.Error.WriteLine message
+        CommandFailed
+
 let supportedCommands: Command[] =
     [| { Name = "import"
          ShortDescription = "imports SRTM tiles into the local cache"
@@ -96,7 +107,13 @@ let supportedCommands: Command[] =
          Description =
            "Generates a shaded raster image tile using a special workflow."
          Parameters = TileShadeCommand.supportedParameters
-         Runner = runTileShadeCommand } |]
+         Runner = runTileShadeCommand }
+       { Name = "dem-with-water-bodies"
+         ShortDescription = "generates DEM with water bodies data"
+         Description =
+           "Generates a SRTM-like HGT file containing DEM and water bodies data."
+         Parameters = DemWithWaterBodiesCommand.supportedParameters
+         Runner = runDemWithWaterBodiesCommand } |]
 
 let helpCommand =
     { Name = "help"

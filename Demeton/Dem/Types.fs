@@ -134,6 +134,7 @@ type HeightsArray
 #endif
 
         let index = y * width + x
+
         this.Cells.[index]
 
 

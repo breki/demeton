@@ -499,3 +499,11 @@ let sumCells9 (x: DemCellX) (y: DemCellY) (heightsArray: HeightsArray) =
         |> Array.sumBy (fun i -> heightsArray.Cells[startingIndex + i])
 
     sum, heightsArray.Cells[startingIndex + rasterWidth + 1]
+
+/// <summary>
+/// Construct a dictionary of all values present in the heights array, with the
+/// value as the key and the number of occurrences as the value.
+/// </summary>
+let analyzeHeightsArray (heightsArray: HeightsArray) =
+    let values = heightsArray.Cells |> Array.groupBy id
+    values |> Array.map (fun (k, v) -> k, v.Length) |> Map.ofArray
