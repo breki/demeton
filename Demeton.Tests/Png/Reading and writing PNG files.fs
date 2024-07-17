@@ -120,15 +120,18 @@ let ``Deserializing serialized IHDR chunk data results in the original IHDR data
     deserialized = ihdrData
 
 
-type TestImageData = int * int * int
+type TestImageData = ScanlineBitDepthMode * int * int
 
+// todo 5: add sub-byte modes once they are implemented
 type TestImageDataGenerator =
     static member TestImageData() =
-        let bytesPerPixel = Gen.elements [| 1; 2; 3; 4 |]
+        let scanlineBitDepthMode =
+            Gen.elements [| ByteMode 1; ByteMode 2; ByteMode 3; ByteMode 4 |]
+
         let imageWidth = Gen.choose (0, 50)
         let imageHeight = Gen.choose (0, 50)
 
-        Gen.zip3 bytesPerPixel imageWidth imageHeight
+        Gen.zip3 scanlineBitDepthMode imageWidth imageHeight
         |> Gen.map (fun (bpp, w, h) -> TestImageData(bpp, w, h))
         |> Arb.fromGen
 
@@ -146,23 +149,31 @@ let ``Deserializing serialized IDAT chunk data results in the original image dat
     (testImageData: TestImageData)
     =
 
-    let bytesPerPixel, imageWidth, imageHeight = testImageData
-    let bpp = bytesPerPixel * 8
+    let scanlineBitDepthMode, imageWidth, imageHeight = testImageData
+
+    let bpp =
+        match scanlineBitDepthMode with
+        | ByteMode bytes -> bytes * 8
+        | SubByteMode bits -> bits
 
     let rnd = Random()
 
-    let rawImageData =
-        Array.init (imageWidth * imageHeight * bytesPerPixel) (fun _ ->
-            byte (rnd.Next 256))
+    match scanlineBitDepthMode with
+    | ByteMode bytesPerPixel ->
+        let rawImageData =
+            Array.init (imageWidth * imageHeight * bytesPerPixel) (fun _ ->
+                byte (rnd.Next 256))
 
-    let deserialized =
-        deserializeIdatChunkData
-            bpp
-            imageWidth
-            imageHeight
-            (serializeIdatChunkData imageWidth imageHeight bpp rawImageData)
+        let deserialized =
+            deserializeIdatChunkData
+                bpp
+                imageWidth
+                imageHeight
+                (serializeIdatChunkData imageWidth imageHeight bpp rawImageData)
 
-    deserialized = rawImageData
+        deserialized = rawImageData
+    | SubByteMode _ ->
+        raise <| InvalidOperationException("Unsupported bit depth mode")
 
 
 [<Fact>]
