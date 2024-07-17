@@ -10,11 +10,11 @@
 module Png.Types
 
 /// <summary>
-/// A single-byte integer giving the number of bits per sample or per palette 
+/// A single-byte integer giving the number of bits per sample or per palette
 /// index (not per pixel).
 /// </summary>
-type PngBitDepth = 
-    BitDepth1 = 1uy 
+type PngBitDepth =
+    | BitDepth1 = 1uy
     | BitDepth2 = 2uy
     | BitDepth4 = 4uy
     | BitDepth8 = 8uy
@@ -24,43 +24,43 @@ type PngBitDepth =
 /// A single-byte integer that defines the PNG image type.
 /// </summary>
 type PngColorType =
-    Grayscale = 0uy
+    | Grayscale = 0uy
     | Rgb = 2uy
     | Indexed = 3uy
     | GrayscaleAlpha = 4uy
     | RgbAlpha = 6uy
 
 /// <summary>
-/// A single-byte integer that indicates the method used to compress the image 
+/// A single-byte integer that indicates the method used to compress the image
 /// data.
 /// </summary>
-type PngCompressionMethod = 
-    DeflateInflate = 0uy
+type PngCompressionMethod =
+    | DeflateInflate = 0uy
 
 /// <summary>
-/// A single-byte integer that indicates the preprocessing method applied to the 
+/// A single-byte integer that indicates the preprocessing method applied to the
 /// image data before compression.
 /// </summary>
-type PngFilterMethod = 
-    AdaptiveFiltering = 0uy
+type PngFilterMethod =
+    | AdaptiveFiltering = 0uy
 
 /// <summary>
-/// Defines the type of PNG adaptive filtering operation performed for a 
+/// Defines the type of PNG adaptive filtering operation performed for a
 /// specific image row (scanline).
 /// </summary>
-type FilterType = 
-    FilterNone = 0uy
+type FilterType =
+    | FilterNone = 0uy
     | FilterSub = 1uy
     | FilterUp = 2uy
     | FilterAverage = 3uy
     | FilterPaeth = 4uy
 
 /// <summary>
-/// A single-byte integer that indicates the transmission order of the image 
+/// A single-byte integer that indicates the transmission order of the image
 /// data.
 /// </summary>
 type PngInterlaceMethod =
-    NoInterlace = 0uy
+    | NoInterlace = 0uy
     | Adam7Interlace = 1uy
 
 /// <summary>
@@ -68,20 +68,23 @@ type PngInterlaceMethod =
 /// the chunk.
 /// </summary>
 [<Struct>]
-type ChunkType = 
+type ChunkType =
     val TypeName: string
-    new (typeName: string) = 
-        { 
-            TypeName = 
-                if typeName.Length <> 4 
-                    then invalidArg "typeName" "PNG chunk type must be 4 characters long."
-                else typeName
-        }
+
+    new(typeName: string) =
+        { TypeName =
+            if typeName.Length <> 4 then
+                invalidArg
+                    "typeName"
+                    "PNG chunk type must be 4 characters long."
+            else
+                typeName }
 
 /// <summary>
 /// The record type containing IHDR (image header) chunk data.
 /// </summary>
-type IhdrData = {
+type IhdrData =
+    {
         /// <summary>
         /// Image width in pixels.
         /// </summary>
@@ -102,21 +105,23 @@ type IhdrData = {
         /// Indicates the transmission order of the image data.
         /// </summary>
         InterlaceMethod: PngInterlaceMethod
-    } with
+    }
 
     /// <summary>
-    /// Calculates the number of bits per pixel needed for this instance of 
-    /// IHDR data. It currently only supports 8-bit and 16-bit grayscale images
-    /// because we use these to encode SRTM tiles. For all other image types
-    /// it throws an exception.
+    /// Calculates the number of bits per pixel needed for this instance of
+    /// IHDR data.
     /// </summary>
-    member this.BitsPerPixel = 
+    /// <remarks>
+    /// Not all combinations of color type and bit depth are currently
+    /// supported. If you need a new combination, please implement it.
+    /// </remarks>
+    member this.BitsPerPixel =
         match (this.ColorType, this.BitDepth) with
-        | (PngColorType.Grayscale, PngBitDepth.BitDepth8) -> 8
-        | (PngColorType.Grayscale, PngBitDepth.BitDepth16) -> 16
-        | (PngColorType.RgbAlpha, PngBitDepth.BitDepth8) -> 8 * 4
-        | (_, _) -> 
-            invalidOp "This PNG type is currently not supported."
+        | PngColorType.Grayscale, PngBitDepth.BitDepth1 -> 1
+        | PngColorType.Grayscale, PngBitDepth.BitDepth8 -> 8
+        | PngColorType.Grayscale, PngBitDepth.BitDepth16 -> 16
+        | PngColorType.RgbAlpha, PngBitDepth.BitDepth8 -> 8 * 4
+        | _, _ -> invalidOp "This PNG type is currently not supported."
 
 /// <summary>
 /// A byte array representing a sequence of filtered scanlines of the image.

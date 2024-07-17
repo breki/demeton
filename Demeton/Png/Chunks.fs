@@ -70,7 +70,7 @@ let readIhdrChunk (stream: Stream) : IhdrData =
     let chunkType, chunkTypeAndDataBytes = readChunk stream
 
     if chunkType <> ChunkType("IHDR") then
-        invalidOp (sprintf "Expected IHDR chunk, but got %A" chunkType)
+        invalidOp $"Expected IHDR chunk, but got %A{chunkType}"
     else
         deserializeIhdrChunkData chunkTypeAndDataBytes
 
@@ -150,7 +150,33 @@ let serializeIdatChunkData
 
     compressionStream.ToArray()
 
-
+/// <summary>
+/// Deserialize the IDAT chunk data from a PNG image, decompressing it and
+/// unfiltering the scanlines to produce raw image data.
+/// </summary>
+/// <param name="bpp">Bits per pixel, indicating the color depth of the image.
+/// </param>
+/// <param name="imageWidth">The width of the image in pixels.</param>
+/// <param name="imageHeight">The height of the image in pixels.</param>
+/// <param name="chunkData">The compressed byte array containing the IDAT chunk
+/// data.</param>
+/// <returns>
+/// A <see cref="RawImageData"/> instance containing the decompressed and
+/// unfiltered image data, ready for further processing or display.
+/// </returns>
+/// <remarks>
+/// This function first decompresses the IDAT chunk data using the Inflate
+/// algorithm. After decompression, it checks the integrity of the decompressed
+/// data by verifying that the length of the data matches the expected size
+/// based on the image dimensions and color depth. It then proceeds to unfilter
+/// the scanlines, reversing the PNG filter algorithms to restore the original
+/// image data.
+/// </remarks>
+/// <exception cref="System.InvalidOperationException">
+/// Throws an InvalidOperationException if the decompressed data length does not
+/// match the expected size, indicating potential corruption or an incorrect
+/// bpp value.
+/// </exception>
 let deserializeIdatChunkData
     bpp
     imageWidth
@@ -160,7 +186,7 @@ let deserializeIdatChunkData
     use chunkDataStream = new MemoryStream()
 
     chunkDataStream
-    // skips the first 4 bytes as there represent the chunk type
+    // skips the first 4 bytes as they represent the chunk type
     |> decompress (chunkData |> Array.skip 4)
 
     let decompressedData = chunkDataStream.ToArray()

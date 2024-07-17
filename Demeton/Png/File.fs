@@ -27,10 +27,10 @@ let savePngToStream: PngStreamWriter =
 
 
 /// <summary>
-/// Decodes a PNG image from a stream.
+/// Decode a PNG image from a stream.
 /// </summary>
 /// <param name="stream">The stream containing the PNG image.</param>
-/// <returns>The same stream.</returns>
+/// <returns>A tuple of IHDR data and raw image data.</returns>
 let loadPngFromStream (stream: Stream) : IhdrData * RawImageData =
 
     stream |> readSignature |> ignore
@@ -50,4 +50,4 @@ let loadPngFromStream (stream: Stream) : IhdrData * RawImageData =
                 chunkData
 
         (ihdr, imageData)
-    | x -> invalidOp (sprintf "Expected IDAT PNG chunk, but got %s." x)
+    | x -> invalidOp $"Expected IDAT PNG chunk, but got %s{x}."

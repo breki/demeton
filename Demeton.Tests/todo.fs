@@ -2,7 +2,8 @@
 
 module Demeton.Tests.todo
 
-// todo 2: analyze the performance of the new command using dotTrace, try to improve it
+// todo 0: implement support for 1 bit per pixel grayscale PNGs and
+// generate write water bodies 1x1 tiles files using it
 
 // todo sometime 100: update shading docs now that we have added an array of fetchers
 

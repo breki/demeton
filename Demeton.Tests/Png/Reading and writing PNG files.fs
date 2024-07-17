@@ -274,6 +274,49 @@ let ``Can decode 16-bit grayscale image generated from a SRTM tile`` () =
 
 
 [<Fact>]
+let ``Can generate and read a valid 1-bit grayscale PNG`` () =
+    let imageWidth = 500
+    let imageHeight = 500
+
+    let ihdr =
+        { Width = imageWidth
+          Height = imageHeight
+          BitDepth = PngBitDepth.BitDepth1
+          ColorType = PngColorType.Grayscale
+          InterlaceMethod = PngInterlaceMethod.NoInterlace }
+
+    let rnd = Random(123)
+
+    let initializer =
+        Grayscale1Bit.ImageDataInitializer2D(fun _ _ -> rnd.Next(2) = 1)
+
+    let imageData =
+        Grayscale1Bit.createImageData imageWidth imageHeight initializer
+
+    let imageFileName = Path.GetFullPath("test-grayscale-1.png")
+    printfn $"Saving test image to %s{imageFileName}"
+
+    use stream = File.OpenWrite(imageFileName)
+
+    stream |> savePngToStream ihdr imageData |> ignore
+
+    stream.Close()
+
+    use readStream = File.OpenRead(imageFileName)
+
+    let _, _ = readStream |> loadPngFromStream
+
+    // Skipping this check on Linux since the 16-bit grayscale PNGs require a
+    // version of libgdiplus that is more recent than the one that is available
+    // on Ubuntu 18.04. See https://github.com/mono/libgdiplus/issues/522 for
+    // more info.
+    if not (isLinux ()) then
+        use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
+        test <@ bitmap.Width = imageWidth @>
+        test <@ bitmap.Height = imageHeight @>
+
+
+[<Fact>]
 [<Trait("Category", "slow")>]
 let ``Can generate and read a valid 8-bit RGBA PNG`` () =
     let imageWidth = 500
