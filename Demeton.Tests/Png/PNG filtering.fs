@@ -66,8 +66,14 @@ type ScanlinesGenerator =
     static member ScanlinesPair() =
         // a generator for bits-per-pixel value
         let bytesPerPixel =
-            // todo 2: add SubByteMode in tests
-            Gen.elements [| ByteMode 1; ByteMode 2; ByteMode 3; ByteMode 4 |]
+            Gen.elements
+                [| SubByteMode 1
+                   SubByteMode 2
+                   SubByteMode 4
+                   ByteMode 1
+                   ByteMode 2
+                   ByteMode 3
+                   ByteMode 4 |]
 
         // note that the scanline length must be divisible with 3 and 4
         // (as we use 3 and 4 as bytes-per-pixel values in this generator)
@@ -109,29 +115,32 @@ let filterScanlineUsingFilterType
     let filteredScanline = Array.zeroCreate (scanline.Length + 1)
     filteredScanline.[0] <- filterTypeByte
 
+    let leftOffset =
+        match scanlineBitDepthMode with
+        | ByteMode bytesPP -> bytesPP
+        // for sub-byte mode, we always work on the whole (single) byte
+        | SubByteMode _ -> 1
+
     for scanlineIndex in 0 .. (scanline.Length - 1) do
         let raw = scanline.[scanlineIndex]
 
-        match scanlineBitDepthMode with
-        | ByteMode bytesPP ->
-            let mutable left = 0uy
-            let mutable up = 0uy
-            let mutable upLeft = 0uy
+        let mutable left = 0uy
+        let mutable up = 0uy
+        let mutable upLeft = 0uy
 
-            if scanlineIndex >= bytesPP then
-                left <- scanline.[scanlineIndex - bytesPP]
+        if scanlineIndex >= leftOffset then
+            left <- scanline.[scanlineIndex - leftOffset]
 
-            if prevScanline.Length > 0 then
-                up <- prevScanline.[scanlineIndex]
+        if prevScanline.Length > 0 then
+            up <- prevScanline.[scanlineIndex]
 
-                if scanlineIndex >= bytesPP then
-                    upLeft <- prevScanline.[scanlineIndex - bytesPP]
+            if scanlineIndex >= leftOffset then
+                upLeft <- prevScanline.[scanlineIndex - leftOffset]
 
-            let filteredScanlineIndex = scanlineIndex + 1
+        let filteredScanlineIndex = scanlineIndex + 1
 
-            filteredScanline.[filteredScanlineIndex] <-
-                filterTypeFunc raw left up upLeft
-        | SubByteMode _ -> invalidOp "Unsupported bit depth mode"
+        filteredScanline.[filteredScanlineIndex] <-
+            filterTypeFunc raw left up upLeft
 
     filteredScanline
 

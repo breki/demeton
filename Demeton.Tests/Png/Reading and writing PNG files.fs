@@ -122,17 +122,24 @@ let ``Deserializing serialized IHDR chunk data results in the original IHDR data
 
 type TestImageData = ScanlineBitDepthMode * int * int
 
-// todo 5: add sub-byte modes once they are implemented
 type TestImageDataGenerator =
     static member TestImageData() =
         let scanlineBitDepthMode =
-            Gen.elements [| ByteMode 1; ByteMode 2; ByteMode 3; ByteMode 4 |]
+            Gen.elements
+                [| SubByteMode 1
+                   SubByteMode 2
+                   SubByteMode 4
+                   ByteMode 1
+                   ByteMode 2
+                   ByteMode 3
+                   ByteMode 4 |]
 
         let imageWidth = Gen.choose (0, 50)
-        let imageHeight = Gen.choose (0, 50)
+        let imageHeight = Gen.choose (0, 20)
 
         Gen.zip3 scanlineBitDepthMode imageWidth imageHeight
-        |> Gen.map (fun (bpp, w, h) -> TestImageData(bpp, w, h))
+        |> Gen.map (fun (scanlineBitDepthMode, w, h) ->
+            TestImageData(scanlineBitDepthMode, w, h))
         |> Arb.fromGen
 
 
@@ -156,24 +163,20 @@ let ``Deserializing serialized IDAT chunk data results in the original image dat
         | ByteMode bytes -> bytes * 8
         | SubByteMode bits -> bits
 
+    let _, scanlineLength = Filters.scanlineLength imageWidth bpp
+
     let rnd = Random()
 
-    match scanlineBitDepthMode with
-    | ByteMode bytesPerPixel ->
-        let rawImageData =
-            Array.init (imageWidth * imageHeight * bytesPerPixel) (fun _ ->
-                byte (rnd.Next 256))
+    let rawImageData =
+        Array.init (scanlineLength * imageHeight) (fun _ -> byte (rnd.Next 256))
 
-        let deserialized =
-            deserializeIdatChunkData
-                bpp
-                imageWidth
-                imageHeight
-                (serializeIdatChunkData imageWidth imageHeight bpp rawImageData)
+    let serialized =
+        serializeIdatChunkData imageWidth imageHeight bpp rawImageData
 
-        deserialized = rawImageData
-    | SubByteMode _ ->
-        raise <| InvalidOperationException("Unsupported bit depth mode")
+    let deserialized =
+        deserializeIdatChunkData bpp imageWidth imageHeight serialized
+
+    deserialized = rawImageData
 
 
 [<Fact>]
@@ -185,6 +188,44 @@ let ``Can serialize IEND chunk into a byte array`` () =
                                            byte 'N'
                                            byte 'D' |]
         @>
+
+[<Fact>]
+let ``Can generate and read a valid 1-bit grayscale PNG`` () =
+    let imageWidth = 100
+    let imageHeight = 80
+
+    let ihdr =
+        { Width = imageWidth
+          Height = imageHeight
+          BitDepth = PngBitDepth.BitDepth1
+          ColorType = PngColorType.Grayscale
+          InterlaceMethod = PngInterlaceMethod.NoInterlace }
+
+    let rnd = Random(123)
+
+    let initializer =
+        Grayscale1Bit.ImageDataInitializer2D(fun _ _ -> rnd.Next(2) = 1)
+
+    let imageData =
+        Grayscale1Bit.createImageData imageWidth imageHeight initializer
+
+    let imageFileName = Path.GetFullPath("test-grayscale-1.png")
+    printfn $"Saving test image to %s{imageFileName}"
+
+    use stream = File.OpenWrite(imageFileName)
+
+    stream |> savePngToStream ihdr imageData |> ignore
+
+    stream.Close()
+
+    use readStream = File.OpenRead(imageFileName)
+
+    let _, _ = readStream |> loadPngFromStream
+
+    use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
+    test <@ bitmap.Width = imageWidth @>
+    test <@ bitmap.Height = imageHeight @>
+
 
 
 [<Fact>]
@@ -282,50 +323,6 @@ let ``Can decode 16-bit grayscale image generated from a SRTM tile`` () =
     test <@ imageDataRead.Length = (3600 * 3600 * 2) @>
 
     printfn "%d DONE." clock.ElapsedMilliseconds
-
-
-// todo 1: this test should work
-[<Fact(Skip = "in the process of implementing sub-byte scanline mode support")>]
-let ``Can generate and read a valid 1-bit grayscale PNG`` () =
-    let imageWidth = 500
-    let imageHeight = 500
-
-    let ihdr =
-        { Width = imageWidth
-          Height = imageHeight
-          BitDepth = PngBitDepth.BitDepth1
-          ColorType = PngColorType.Grayscale
-          InterlaceMethod = PngInterlaceMethod.NoInterlace }
-
-    let rnd = Random(123)
-
-    let initializer =
-        Grayscale1Bit.ImageDataInitializer2D(fun _ _ -> rnd.Next(2) = 1)
-
-    let imageData =
-        Grayscale1Bit.createImageData imageWidth imageHeight initializer
-
-    let imageFileName = Path.GetFullPath("test-grayscale-1.png")
-    printfn $"Saving test image to %s{imageFileName}"
-
-    use stream = File.OpenWrite(imageFileName)
-
-    stream |> savePngToStream ihdr imageData |> ignore
-
-    stream.Close()
-
-    use readStream = File.OpenRead(imageFileName)
-
-    let _, _ = readStream |> loadPngFromStream
-
-    // Skipping this check on Linux since the 16-bit grayscale PNGs require a
-    // version of libgdiplus that is more recent than the one that is available
-    // on Ubuntu 18.04. See https://github.com/mono/libgdiplus/issues/522 for
-    // more info.
-    if not (isLinux ()) then
-        use bitmap = System.Drawing.Bitmap.FromFile(imageFileName)
-        test <@ bitmap.Width = imageWidth @>
-        test <@ bitmap.Height = imageHeight @>
 
 
 [<Fact>]

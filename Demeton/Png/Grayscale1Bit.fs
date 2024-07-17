@@ -35,7 +35,9 @@ let createImageData
 
                 bitIndex <- bitIndex - 1
 
-                if bitIndex < 0 then
+                if x = imageWidth - 1 then
+                    byteIndex <- byteIndex + 1
+                else if bitIndex < 0 then
                     bitIndex <- 7
                     byteIndex <- byteIndex + 1
 
