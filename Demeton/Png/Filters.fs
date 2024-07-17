@@ -9,23 +9,27 @@ open Png.Types
 open System
 open System.Threading.Tasks
 
+
 /// <summary>
-/// Calculates the bytes per pixel number based on the specified bit depth
-/// value.
+/// Calculates the length of a scanline in bytes based on the image width and
+/// the bit depth.
 /// </summary>
 /// <remarks>
-/// Note that the method currently does not support bit depths less than 8 and
-/// throws an exception if such a value is provided.
+/// Note that currently not all the bit depths are supported.
+/// If you need a new bit depth, please implement it.
 /// </remarks>
-let bytesPerPixel bpp =
-    let bytes = bpp / 8
-    let bitRemainder = bpp % 8
+/// <param name="imageWidth">Image width</param>
+/// <param name="bpp">Bit depth (bits per pixel).</param>
+/// <returns>The length of a scanline in bytes.</returns>
+let scanlineLength imageWidth bpp =
+    match bpp with
+    | 1 -> SubByteMode 1, (imageWidth + 7) / 8
+    | 8 -> ByteMode 1, imageWidth
+    | 16 -> ByteMode 2, imageWidth * 2
+    | 24 -> ByteMode 3, imageWidth * 3
+    | 32 -> ByteMode 4, imageWidth * 4
+    | _ -> invalidOp "Unsupported bits per pixel value."
 
-    match (bytes, bitRemainder) with
-    | _, 0 -> bytes
-    | 0, _ ->
-        invalidOp "Bit depths less than 8 bits are currently not supported."
-    | _, _ -> invalidOp "Invalid bpp (bits-per-pixel) value."
 
 /// <summary>
 /// Calculates Paeth predictor value. Used by Paeth filter type.
@@ -87,7 +91,7 @@ let inline filterTypePaeth raw (left: byte) (up: byte) (upLeft: byte) =
 /// Returns a Span of a scanline specified by its index (row number).
 /// </summary>
 let scanlineFromImageData imageData scanlineLength index : Span<byte> =
-    new Span<byte>(imageData, index * scanlineLength, scanlineLength)
+    Span<byte>(imageData, index * scanlineLength, scanlineLength)
 
 /// <summary>
 /// Adds filter type mark (the first byte of the filtered scanline) to each of
@@ -120,7 +124,7 @@ let filteredScanlineWithMinSumOfAbsDiffs
 
     let filterTypesCount = 5
     let mutable minIndex = -1
-    let mutable minValueSoFar = System.Int32.MaxValue
+    let mutable minValueSoFar = Int32.MaxValue
 
     for i in 0 .. (filterTypesCount - 1) do
         let minValueOfFilter = sumsOfAbsDiffs.[i]
@@ -129,13 +133,13 @@ let filteredScanlineWithMinSumOfAbsDiffs
             minIndex <- i
             minValueSoFar <- minValueOfFilter
         else
-            ignore ()
+            ()
 
     filteredScanlinesBuffer.[minIndex]
 
 let filterFirstScanline
     imageData
-    (bytesPP: int)
+    (scanlineBitDepthMode: ScanlineBitDepthMode)
     scanlineLength
     (filteredScanlinesBuffer: FilteredScanline[])
     =
@@ -148,13 +152,8 @@ let filterFirstScanline
 
     // For None and Up, simply copy the original scanline bytes unfiltered.
     // This works for Up because there is no "up" scanline.
-    scanline.CopyTo(
-        new Span<byte>(filteredScanlinesBuffer.[0], 1, scanlineLength)
-    )
-
-    scanline.CopyTo(
-        new Span<byte>(filteredScanlinesBuffer.[2], 1, scanlineLength)
-    )
+    scanline.CopyTo(Span<byte>(filteredScanlinesBuffer.[0], 1, scanlineLength))
+    scanline.CopyTo(Span<byte>(filteredScanlinesBuffer.[2], 1, scanlineLength))
 
     // Also calculate the min sum of absolute diffs for those two filters
     sumsOfAbsDiffs.[0] <- filteredScanlinesBuffer.[0] |> Array.sumBy int
@@ -163,25 +162,28 @@ let filterFirstScanline
     for scanlineByteIndex in 0 .. (scanline.Length - 1) do
         let raw = scanline.[scanlineByteIndex]
 
-        let mutable left = 0uy
+        match scanlineBitDepthMode with
+        | ByteMode bytesPP ->
+            let mutable left = 0uy
 
-        if scanlineByteIndex >= bytesPP then
-            left <- scanline.[scanlineByteIndex - bytesPP]
+            if scanlineByteIndex >= bytesPP then
+                left <- scanline.[scanlineByteIndex - bytesPP]
 
-        let filteredScanlineIndex = scanlineByteIndex + 1
-        let mutable filteredValue = 0uy
+            let filteredScanlineIndex = scanlineByteIndex + 1
+            let mutable filteredValue = 0uy
 
-        filteredValue <- filterTypeSub raw left 0 0
-        filteredScanlinesBuffer.[1].[filteredScanlineIndex] <- filteredValue
-        sumsOfAbsDiffs.[1] <- sumsOfAbsDiffs.[1] + int filteredValue
+            filteredValue <- filterTypeSub raw left 0 0
+            filteredScanlinesBuffer.[1].[filteredScanlineIndex] <- filteredValue
+            sumsOfAbsDiffs.[1] <- sumsOfAbsDiffs.[1] + int filteredValue
 
-        filteredValue <- filterTypeAverageFirstLine raw left
-        filteredScanlinesBuffer.[3].[filteredScanlineIndex] <- filteredValue
-        sumsOfAbsDiffs.[3] <- sumsOfAbsDiffs.[3] + int filteredValue
+            filteredValue <- filterTypeAverageFirstLine raw left
+            filteredScanlinesBuffer.[3].[filteredScanlineIndex] <- filteredValue
+            sumsOfAbsDiffs.[3] <- sumsOfAbsDiffs.[3] + int filteredValue
 
-        filteredValue <- filterTypePaethFirstLine raw left
-        filteredScanlinesBuffer.[4].[filteredScanlineIndex] <- filteredValue
-        sumsOfAbsDiffs.[4] <- sumsOfAbsDiffs.[4] + int filteredValue
+            filteredValue <- filterTypePaethFirstLine raw left
+            filteredScanlinesBuffer.[4].[filteredScanlineIndex] <- filteredValue
+            sumsOfAbsDiffs.[4] <- sumsOfAbsDiffs.[4] + int filteredValue
+        | SubByteMode _ -> invalidOp "Unsupported scanline bit depth mode."
 
     filteredScanlineWithMinSumOfAbsDiffs filteredScanlinesBuffer sumsOfAbsDiffs
 
@@ -189,7 +191,7 @@ let filterFirstScanline
 let filterNonFirstScanline
     imageData
     scanlineIndex
-    (bytesPP: int)
+    (scanlineBitDepthMode: ScanlineBitDepthMode)
     scanlineLength
     (filteredScanlinesBuffer: FilteredScanline[])
     =
@@ -204,9 +206,7 @@ let filterNonFirstScanline
     let sumsOfAbsDiffs: int[] = Array.zeroCreate filterTypesCount
 
     // For None, simply copy the original scanline bytes unfiltered.
-    scanline.CopyTo(
-        new Span<byte>(filteredScanlinesBuffer.[0], 1, scanlineLength)
-    )
+    scanline.CopyTo(Span<byte>(filteredScanlinesBuffer.[0], 1, scanlineLength))
 
     // Also calculate the min sum of absolute diffs for None filter type.
     sumsOfAbsDiffs.[0] <- filteredScanlinesBuffer.[0] |> Array.sumBy int
@@ -214,32 +214,35 @@ let filterNonFirstScanline
     for scanlineByteIndex in 0 .. (scanline.Length - 1) do
         let raw = scanline.[scanlineByteIndex]
 
-        let mutable left = 0uy
-        let up = prevScanline.[scanlineByteIndex]
-        let mutable upLeft = 0uy
+        match scanlineBitDepthMode with
+        | ByteMode bytesPP ->
+            let mutable left = 0uy
+            let up = prevScanline.[scanlineByteIndex]
+            let mutable upLeft = 0uy
 
-        if scanlineByteIndex >= bytesPP then
-            left <- scanline.[scanlineByteIndex - bytesPP]
-            upLeft <- prevScanline.[scanlineByteIndex - bytesPP]
+            if scanlineByteIndex >= bytesPP then
+                left <- scanline.[scanlineByteIndex - bytesPP]
+                upLeft <- prevScanline.[scanlineByteIndex - bytesPP]
 
-        let filteredScanlineIndex = scanlineByteIndex + 1
-        let mutable filteredValue = 0uy
+            let filteredScanlineIndex = scanlineByteIndex + 1
+            let mutable filteredValue = 0uy
 
-        filteredValue <- filterTypeSub raw left 0 0
-        filteredScanlinesBuffer.[1].[filteredScanlineIndex] <- filteredValue
-        sumsOfAbsDiffs.[1] <- sumsOfAbsDiffs.[1] + int filteredValue
+            filteredValue <- filterTypeSub raw left 0 0
+            filteredScanlinesBuffer.[1].[filteredScanlineIndex] <- filteredValue
+            sumsOfAbsDiffs.[1] <- sumsOfAbsDiffs.[1] + int filteredValue
 
-        filteredValue <- filterTypeUp raw left up upLeft
-        filteredScanlinesBuffer.[2].[filteredScanlineIndex] <- filteredValue
-        sumsOfAbsDiffs.[2] <- sumsOfAbsDiffs.[2] + int filteredValue
+            filteredValue <- filterTypeUp raw left up upLeft
+            filteredScanlinesBuffer.[2].[filteredScanlineIndex] <- filteredValue
+            sumsOfAbsDiffs.[2] <- sumsOfAbsDiffs.[2] + int filteredValue
 
-        filteredValue <- filterTypeAverage raw left up upLeft
-        filteredScanlinesBuffer.[3].[filteredScanlineIndex] <- filteredValue
-        sumsOfAbsDiffs.[3] <- sumsOfAbsDiffs.[3] + int filteredValue
+            filteredValue <- filterTypeAverage raw left up upLeft
+            filteredScanlinesBuffer.[3].[filteredScanlineIndex] <- filteredValue
+            sumsOfAbsDiffs.[3] <- sumsOfAbsDiffs.[3] + int filteredValue
 
-        filteredValue <- filterTypePaeth raw left up upLeft
-        filteredScanlinesBuffer.[4].[filteredScanlineIndex] <- filteredValue
-        sumsOfAbsDiffs.[4] <- sumsOfAbsDiffs.[4] + int filteredValue
+            filteredValue <- filterTypePaeth raw left up upLeft
+            filteredScanlinesBuffer.[4].[filteredScanlineIndex] <- filteredValue
+            sumsOfAbsDiffs.[4] <- sumsOfAbsDiffs.[4] + int filteredValue
+        | SubByteMode _ -> invalidOp "Unsupported scanline bit depth mode."
 
     filteredScanlineWithMinSumOfAbsDiffs filteredScanlinesBuffer sumsOfAbsDiffs
 
@@ -259,8 +262,7 @@ let filterScanlines
     (imageData: RawImageData)
     : FilteredImageData =
 
-    let bytesPP = bytesPerPixel bpp
-    let scanlineLength = imageWidth * bytesPP
+    let scanlineBitDepthMode, scanlineLength = scanlineLength imageWidth bpp
     let filteredScanlineLength = scanlineLength + 1
 
     let filteredImageData: FilteredImageData =
@@ -272,14 +274,14 @@ let filterScanlines
             | 0 ->
                 filterFirstScanline
                     imageData
-                    bytesPP
+                    scanlineBitDepthMode
                     scanlineLength
                     filteredScanlinesBuffer
             | _ ->
                 filterNonFirstScanline
                     imageData
                     scanlineIndex
-                    bytesPP
+                    scanlineBitDepthMode
                     scanlineLength
                     filteredScanlinesBuffer
 
@@ -301,7 +303,6 @@ let filterScanlines
         filterScanline scanlineIndex filteredScanlinesBuffer
         filteredScanlinesBuffer
 
-    Parallel.For(0, imageHeight, forInit, forBody, (fun _ -> ignore ()))
-    |> ignore
+    Parallel.For(0, imageHeight, forInit, forBody, (fun _ -> ())) |> ignore
 
     filteredImageData

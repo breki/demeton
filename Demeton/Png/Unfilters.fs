@@ -1,5 +1,6 @@
 ﻿module Png.Unfilters
 
+open Png.Types
 open Raster
 open Png.Filters
 
@@ -15,34 +16,37 @@ let inline unfilterScanlineNone (filtered: Span<byte>) (scanline: Span<byte>) =
 /// PNG filter method.
 /// </summary>
 let unfilterScanlineSub
-    bytesPP
+    (scanlineBitDepthMode: ScanlineBitDepthMode)
     (filtered: Span<byte>)
     (scanline: Span<byte>)
     : unit =
     let scanlineLength = scanline.Length
 
-    // how many pixels are there in the scanline?
-    let pixelCount = scanlineLength / bytesPP
-    let pixelCountMinus1 = pixelCount - 1
+    match scanlineBitDepthMode with
+    | ScanlineBitDepthMode.ByteMode bytesPP ->
+        // how many pixels are there in the scanline?
+        let pixelCount = scanlineLength / bytesPP
+        let pixelCountMinus1 = pixelCount - 1
 
-    // for each byte in pixel
-    for pixelByteOffset in 0 .. (bytesPP - 1) do
-        // keep track of the left neighbor value
-        let mutable leftValue = filtered.[pixelByteOffset]
+        // for each byte in pixel
+        for pixelByteOffset in 0 .. (bytesPP - 1) do
+            // keep track of the left neighbor value
+            let mutable leftValue = filtered.[pixelByteOffset]
 
-        // for the first (leftmost) pixel, we cannot subtract the value
-        // since there is no left neighbor, so we just copy the value from
-        // the filtered scanline
-        scanline.[pixelByteOffset] <- leftValue
+            // for the first (leftmost) pixel, we cannot subtract the value
+            // since there is no left neighbor, so we just copy the value from
+            // the filtered scanline
+            scanline.[pixelByteOffset] <- leftValue
 
-        // for the rest of the pixels
-        for i in 1..pixelCountMinus1 do
-            // calculate its index in the scanline
-            let byteIndex = pixelByteOffset + i * bytesPP
+            // for the rest of the pixels
+            for i in 1..pixelCountMinus1 do
+                // calculate its index in the scanline
+                let byteIndex = pixelByteOffset + i * bytesPP
 
-            let value = leftValue + filtered.[byteIndex]
-            scanline.[byteIndex] <- value
-            leftValue <- value
+                let value = leftValue + filtered.[byteIndex]
+                scanline.[byteIndex] <- value
+                leftValue <- value
+    | SubByteMode _ -> invalidOp "Unsupported bit depth mode for Sub filter"
 
 
 /// <summary>
@@ -69,7 +73,7 @@ let unfilterScanlineUp
 /// "Average" PNG filter method.
 /// </summary>
 let unfilterScanlineAverage
-    bytesPP
+    (scanlineBitDepthMode: ScanlineBitDepthMode)
     (prevScanline: Span<byte>)
     (filtered: Span<byte>)
     (scanline: Span<byte>)
@@ -77,31 +81,34 @@ let unfilterScanlineAverage
 
     let scanlineLength = filtered.Length
 
-    // how many pixels are there in the scanline?
-    let pixelCount = scanlineLength / bytesPP
-    let pixelCountMinus1 = pixelCount - 1
+    match scanlineBitDepthMode with
+    | ScanlineBitDepthMode.ByteMode bytesPP ->
+        // how many pixels are there in the scanline?
+        let pixelCount = scanlineLength / bytesPP
+        let pixelCountMinus1 = pixelCount - 1
 
-    // for each byte in pixel
-    for pixelByteOffset in 0 .. (bytesPP - 1) do
+        // for each byte in pixel
+        for pixelByteOffset in 0 .. (bytesPP - 1) do
 
-        // keep track of the left (previous) neighbor value
-        let mutable left = 0
+            // keep track of the left (previous) neighbor value
+            let mutable left = 0
 
-        // for each pixel
-        for i in 0..pixelCountMinus1 do
-            // calculate its index in the scanline
-            let byteIndex = pixelByteOffset + i * bytesPP
+            // for each pixel
+            for i in 0..pixelCountMinus1 do
+                // calculate its index in the scanline
+                let byteIndex = pixelByteOffset + i * bytesPP
 
-            let currentValue = filtered.[byteIndex]
+                let currentValue = filtered.[byteIndex]
 
-            let up =
-                match prevScanline.Length with
-                | 0 -> 0
-                | _ -> int prevScanline.[byteIndex]
+                let up =
+                    match prevScanline.Length with
+                    | 0 -> 0
+                    | _ -> int prevScanline.[byteIndex]
 
-            let unfilteredValue = currentValue + byte ((left + up) / 2)
-            left <- int unfilteredValue
-            scanline.[byteIndex] <- unfilteredValue
+                let unfilteredValue = currentValue + byte ((left + up) / 2)
+                left <- int unfilteredValue
+                scanline.[byteIndex] <- unfilteredValue
+    | SubByteMode _ -> invalidOp "Unsupported bit depth mode for Average filter"
 
 
 /// <summary>
@@ -109,7 +116,7 @@ let unfilterScanlineAverage
 /// "Paeth" PNG filter method.
 /// </summary>
 let unfilterScanlinePaeth
-    bytesPP
+    (scanlineBitDepthMode: ScanlineBitDepthMode)
     (prevScanline: Span<byte>)
     (filtered: Span<byte>)
     (scanline: Span<byte>)
@@ -117,43 +124,46 @@ let unfilterScanlinePaeth
 
     let scanlineLength = filtered.Length
 
-    // how many pixels are there in the scanline?
-    let pixelCount = scanlineLength / bytesPP
-    let pixelCountMinus1 = pixelCount - 1
+    match scanlineBitDepthMode with
+    | ByteMode bytesPP ->
+        // how many pixels are there in the scanline?
+        let pixelCount = scanlineLength / bytesPP
+        let pixelCountMinus1 = pixelCount - 1
 
-    // for each byte in pixel
-    for pixelByteOffset in 0 .. (bytesPP - 1) do
+        // for each byte in pixel
+        for pixelByteOffset in 0 .. (bytesPP - 1) do
 
-        // keep track of the left (previous) neighbor value
-        let mutable left = 0
+            // keep track of the left (previous) neighbor value
+            let mutable left = 0
 
-        // for each pixel
-        for i in 0..pixelCountMinus1 do
-            // calculate its index in the scanline
-            let byteIndex = pixelByteOffset + i * bytesPP
+            // for each pixel
+            for i in 0..pixelCountMinus1 do
+                // calculate its index in the scanline
+                let byteIndex = pixelByteOffset + i * bytesPP
 
-            let currentValue = filtered.[byteIndex]
+                let currentValue = filtered.[byteIndex]
 
-            let up =
-                match prevScanline.Length with
-                | 0 -> 0
-                | _ -> int prevScanline.[byteIndex]
+                let up =
+                    match prevScanline.Length with
+                    | 0 -> 0
+                    | _ -> int prevScanline.[byteIndex]
 
-            let upLeft =
-                match (i, prevScanline.Length) with
-                | 0, _ -> 0
-                | _, 0 -> 0
-                | _, _ -> int prevScanline.[byteIndex - bytesPP]
+                let upLeft =
+                    match (i, prevScanline.Length) with
+                    | 0, _ -> 0
+                    | _, 0 -> 0
+                    | _, _ -> int prevScanline.[byteIndex - bytesPP]
 
-            let unfilteredValue =
-                currentValue + byte (paethPredictor left up upLeft)
+                let unfilteredValue =
+                    currentValue + byte (paethPredictor left up upLeft)
 
-            left <- int unfilteredValue
-            scanline.[byteIndex] <- unfilteredValue
+                left <- int unfilteredValue
+                scanline.[byteIndex] <- unfilteredValue
+    | SubByteMode _ -> invalidOp "Unsupported bit depth mode for Paeth filter"
 
 
 let unfilterScanline
-    bytesPP
+    (scanlineBitDepthMode: ScanlineBitDepthMode)
     filterType
     (prevScanline: Span<byte>)
     (filteredScanline: Span<byte>)
@@ -162,11 +172,25 @@ let unfilterScanline
 
     match filterType with
     | 0 -> unfilterScanlineNone filteredScanline scanline
-    | 1 -> unfilterScanlineSub bytesPP filteredScanline scanline
-    | 2 -> unfilterScanlineUp bytesPP prevScanline filteredScanline scanline
+    | 1 -> unfilterScanlineSub scanlineBitDepthMode filteredScanline scanline
+    | 2 ->
+        unfilterScanlineUp
+            scanlineBitDepthMode
+            prevScanline
+            filteredScanline
+            scanline
     | 3 ->
-        unfilterScanlineAverage bytesPP prevScanline filteredScanline scanline
-    | 4 -> unfilterScanlinePaeth bytesPP prevScanline filteredScanline scanline
+        unfilterScanlineAverage
+            scanlineBitDepthMode
+            prevScanline
+            filteredScanline
+            scanline
+    | 4 ->
+        unfilterScanlinePaeth
+            scanlineBitDepthMode
+            prevScanline
+            filteredScanline
+            scanline
     | _ -> invalidOp (sprintf "Unsupported PNG filter type %d" filterType)
 
 
@@ -177,8 +201,7 @@ let unfilterScanlines
     (filteredImageData: byte[])
     : RawImageData =
 
-    let bytesPP = bytesPerPixel bpp
-    let scanlineLength = imageWidth * bytesPP
+    let scanlineBitDepthMode, scanlineLength = scanlineLength imageWidth bpp
 
     let imageData: RawImageData =
         Array.zeroCreate (scanlineLength * imageHeight)
@@ -206,7 +229,7 @@ let unfilterScanlines
             )
 
         unfilterScanline
-            bytesPP
+            scanlineBitDepthMode
             filterType
             prevScanline
             filteredScanline

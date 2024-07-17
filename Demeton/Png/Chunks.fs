@@ -191,8 +191,8 @@ let deserializeIdatChunkData
 
     let decompressedData = chunkDataStream.ToArray()
 
-    let bytesPP = bytesPerPixel bpp
-    let filteredScanlineLength = imageWidth * bytesPP + 1
+    let scanlineBitDepthMode, scanlineLength = scanlineLength imageWidth bpp
+    let filteredScanlineLength = scanlineLength + 1
     let scanlinesModulo = decompressedData.Length % filteredScanlineLength
 
     if scanlinesModulo <> 0 then

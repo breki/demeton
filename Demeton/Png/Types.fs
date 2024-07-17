@@ -132,3 +132,8 @@ type FilteredImageData = byte[]
 /// A filtered row of pixels within an image, represented as a byte array.
 /// </summary>
 type FilteredScanline = byte[]
+
+
+type ScanlineBitDepthMode =
+    | SubByteMode of int
+    | ByteMode of int
