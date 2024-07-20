@@ -15,21 +15,21 @@ open FileSys
 let boundsToAw3dTiles (bounds: LonLatBounds) : DemTileId seq =
     let minTileX =
         bounds.MinLon
-        |> longitudeToCellX Aw3dTileSize
+        |> longitudeToCellX (float Aw3dTileSize)
         |> cellXToTileX Aw3dTileSize
         |> floor
         |> int
 
     let minTileY =
         bounds.MinLat
-        |> latitudeToCellY Aw3dTileSize
+        |> latitudeToCellY (float Aw3dTileSize)
         |> cellYToTileY Aw3dTileSize
         |> floor
         |> int
 
     let maxTileX =
         (bounds.MaxLon
-         |> longitudeToCellX Aw3dTileSize
+         |> longitudeToCellX (float Aw3dTileSize)
          |> cellXToTileX Aw3dTileSize
          |> ceil
          |> int)
@@ -37,7 +37,7 @@ let boundsToAw3dTiles (bounds: LonLatBounds) : DemTileId seq =
 
     let maxTileY =
         (bounds.MaxLat
-         |> latitudeToCellY Aw3dTileSize
+         |> latitudeToCellY (float Aw3dTileSize)
          |> cellYToTileY Aw3dTileSize
          |> ceil
          |> int)

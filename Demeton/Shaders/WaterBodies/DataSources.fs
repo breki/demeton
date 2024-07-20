@@ -57,8 +57,8 @@ let fetchWorldCoverHeightsArray
         let coveragePointsInDemCoords =
             deprojectedCoveragePoints
             |> List.map (fun (lon, lat) ->
-                let cellX = lon |> radToDeg |> longitudeToCellX cellsPerDegree
-                let cellY = lat |> radToDeg |> latitudeToCellY cellsPerDegree
+                let cellX = lon |> radToDeg |> longitudeToCellX (float cellsPerDegree)
+                let cellY = lat |> radToDeg |> latitudeToCellY (float cellsPerDegree)
                 (cellX, cellY))
 
         let demMbr = Demeton.Geometry.Bounds.mbrOf coveragePointsInDemCoords

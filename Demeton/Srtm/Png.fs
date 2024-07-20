@@ -2,7 +2,6 @@
 
 open Demeton.Dem.Types
 open Raster
-open Png
 open Png.Types
 open Png.File
 open Demeton.Dem.Funcs
@@ -38,29 +37,6 @@ let inline uint16ValueToDemHeight (value: uint16) : DemHeight =
     else
         DemHeight(int16 value - ZeroHeight)
 
-/// <summary>
-/// Converts the <see cref="HeightsArray" /> into 16-bit grayscale image data.
-/// </summary>
-/// <param name="heightMappingFunc">
-/// A function that maps DemHeight values to 16-bit unsigned integers.
-/// </param>
-/// <param name="heightsArray">
-/// A <see cref="HeightsArray" /> that holds heights data to be converted.
-/// </param>
-/// <returns>Image data.</returns>
-let heightsArrayToImageData
-    (heightMappingFunc: DemHeight -> uint16)
-    (heightsArray: HeightsArray)
-    : RawImageData =
-
-    let inline initializer index =
-        heightsArray.Cells.[index] |> heightMappingFunc
-
-    Grayscale16Bit.createImageData
-        heightsArray.Width
-        heightsArray.Height
-        (Grayscale16Bit.ImageDataInitializer1D initializer)
-
 
 /// <summary>
 /// Encodes the <see cref="HeightsArray" /> containing SRTM tile data into
@@ -78,7 +54,10 @@ let encodeSrtmHeightsArrayToPng
     (outputStream: Stream)
     : Stream =
 
-    let imageData = heightsArrayToImageData demHeightToUInt16Value heightsArray
+    let imageData =
+        heightsArrayToGrayscale16BitImageData
+            demHeightToUInt16Value
+            heightsArray
 
     let ihdr =
         { Width = heightsArray.Width
@@ -147,11 +126,11 @@ let writeSrtmTileToLocalCache
 
 let decodeSrtmTileFromPngFile (readFile: FileReader) : DemPngTileReader =
     fun tileId pngFileName ->
-        Log.info "Loading PNG SRTM tile '%s'..." pngFileName
+        Log.info $"Loading PNG SRTM tile '%s{pngFileName}'..."
 
         let validateImageSize ihdr =
             match (ihdr.Width, ihdr.Height) with
-            | 3600, 3600 -> Ok ihdr
+            | SrtmTileSize, SrtmTileSize -> Ok ihdr
             | _, _ ->
                 Error
                     "The image size of this PNG does not correspond to the SRTM tile."
@@ -164,7 +143,7 @@ let decodeSrtmTileFromPngFile (readFile: FileReader) : DemPngTileReader =
                     "The color type of this PNG does not correspond to the SRTM tile."
 
         let generateHeightsArray ihdr (imageData: RawImageData) =
-            let minX, minY = tileMinCell 3600 tileId
+            let minX, minY = tileMinCell SrtmTileSize tileId
 
             let srtmTileInitialize (cells: DemHeight[]) =
                 let mutable byteIndex = 0
@@ -181,8 +160,8 @@ let decodeSrtmTileFromPngFile (readFile: FileReader) : DemPngTileReader =
                 HeightsArray(
                     minX,
                     minY,
-                    3600,
-                    3600,
+                    SrtmTileSize,
+                    SrtmTileSize,
                     HeightsArrayCustomInitializer srtmTileInitialize
                 )
             )
@@ -249,7 +228,7 @@ let convertZippedHgtTileToPng
 
             memoryStream.Seek(0L, SeekOrigin.Begin) |> ignore
 
-            createSrtmTileFromStream 3600 tileId memoryStream |> Ok
+            createSrtmTileFromStream SrtmTileSize tileId memoryStream |> Ok
 
         match
             readHgtFileFromStream tileId zippedHgtFileName readHgtFileStream

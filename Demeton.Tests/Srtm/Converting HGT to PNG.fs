@@ -60,7 +60,8 @@ let ``Can convert HeightsArray to 16-bit grayscale`` () =
     let originalHeightAtSampleCell = heightsArray.heightAt sampleCell
 
     let imageData =
-        heightsArray |> heightsArrayToImageData demHeightToUInt16Value
+        heightsArray
+        |> heightsArrayToGrayscale16BitImageData demHeightToUInt16Value
 
     test <@ Array.length imageData = arrayWidth * arrayHeight * 2 @>
 

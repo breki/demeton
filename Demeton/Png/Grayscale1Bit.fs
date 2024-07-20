@@ -3,7 +3,9 @@ module Png.Grayscale1Bit
 
 open Raster
 
-type ImageDataInitializer = ImageDataInitializer2D of (int -> int -> bool)
+type ImageDataInitializer =
+    | ImageDataInitializer1D of (int -> bool)
+    | ImageDataInitializer2D of (int -> int -> bool)
 
 /// <summary>
 /// Create a 1-bit grayscale raw image data array using the specified
@@ -40,6 +42,30 @@ let createImageData
                 else if bitIndex < 0 then
                     bitIndex <- 7
                     byteIndex <- byteIndex + 1
+
+    | ImageDataInitializer1D initializer1D ->
+        let totalPixelsCount = imageWidth * imageHeight
+
+        let mutable pixelIndex = 0
+        let mutable byteIndex = 0
+        let mutable bitMask = 1uy <<< 7
+
+        while pixelIndex < totalPixelsCount do
+            let pixelValue = initializer1D pixelIndex
+
+            if pixelValue then
+                imageData.[byteIndex] <-
+                    imageData.[byteIndex] ||| bitMask
+
+            pixelIndex <- pixelIndex + 1
+            bitMask <- bitMask >>> 1
+
+            if pixelIndex % imageWidth = 0 then
+                byteIndex <- byteIndex + 1
+                bitMask <- 1uy <<< 7
+            elif bitMask = 0uy then
+                bitMask <- 1uy <<< 7
+                byteIndex <- byteIndex + 1
 
     imageData
 

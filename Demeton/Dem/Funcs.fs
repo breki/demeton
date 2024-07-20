@@ -3,6 +3,8 @@
 open System
 open Demeton.Dem.Types
 open Demeton.Geometry.Common
+open Png
+open Raster
 
 
 let inline private levelFactorFloat (level: DemLevel) =
@@ -58,13 +60,13 @@ let inline cellsPerDegree tileSize (level: DemLevel) =
 /// <summary>
 /// Converts longitude value (in degrees) to DEM cell X coordinate.
 /// </summary>
-let inline longitudeToCellX cellsPerDegree (lon: LongitudeDegrees) =
+let inline longitudeToCellX cellsPerDegree lon =
     lon * cellsPerDegree
 
 /// <summary>
 /// Converts latitude value (in degrees) to DEM cell Y coordinate.
 /// </summary>
-let inline latitudeToCellY cellsPerDegree (lat: LatitudeDegrees) =
+let inline latitudeToCellY cellsPerDegree lat =
     lat * cellsPerDegree
 
 /// <summary>
@@ -80,8 +82,7 @@ let inline latitudeToCellY cellsPerDegree (lat: LatitudeDegrees) =
 /// </returns>
 let inline cellXToLongitude
     cellsPerDegree
-    (cellX: DemCellFractionalX)
-    : LongitudeDegrees =
+    (cellX: DemCellFractionalX) =
     cellX / cellsPerDegree
 
 /// <summary>
@@ -97,8 +98,7 @@ let inline cellXToLongitude
 /// </returns>
 let inline cellYToLatitude
     cellsPerDegree
-    (cellY: DemCellFractionalY)
-    : LatitudeDegrees =
+    (cellY: DemCellFractionalY) =
     cellY / cellsPerDegree
 
 let inline demTileId level (tileX: DemTileX) (tileY: DemTileY) =
@@ -320,9 +320,9 @@ let inline heightFromBytes firstByte secondByte =
     | _ -> height
 
 
-let mbrOfHeightsArrays (heightsArrays: HeightsArray seq) : Raster.Rect =
+let mbrOfHeightsArrays (heightsArrays: HeightsArray seq) : Rect =
     match heightsArrays |> Seq.isEmpty with
-    | true -> Raster.Rect.Empty
+    | true -> Rect.Empty
     | false ->
         let minX = (heightsArrays |> Seq.minBy (_.MinX)).MinX
         let minY = (heightsArrays |> Seq.minBy (_.MinY)).MinY
@@ -351,7 +351,7 @@ let mbrOfHeightsArrays (heightsArrays: HeightsArray seq) : Raster.Rect =
 /// </param>
 /// <param name="heightArrays">A list of heights arrays to be merged</param>
 let merge
-    (mergedArrayBounds: Raster.Rect)
+    (mergedArrayBounds: Rect)
     (heightArrays: HeightsArray list)
     : HeightsArray option =
 
@@ -388,10 +388,7 @@ let merge
 /// the bounds of the given array, the missing values are filled with
 /// Int16.MinValue.
 /// </summary>
-let extract
-    (extractBounds: Raster.Rect)
-    (heightArray: HeightsArray)
-    : HeightsArray =
+let extract (extractBounds: Rect) (heightArray: HeightsArray) : HeightsArray =
 
     let getValue (x, y) : DemHeight =
         if
@@ -507,3 +504,52 @@ let sumCells9 (x: DemCellX) (y: DemCellY) (heightsArray: HeightsArray) =
 let analyzeHeightsArray (heightsArray: HeightsArray) =
     let values = heightsArray.Cells |> Array.groupBy id
     values |> Array.map (fun (k, v) -> k, v.Length) |> Map.ofArray
+
+
+/// <summary>
+/// Converts the <see cref="HeightsArray" /> into 1-bit grayscale image data.
+/// </summary>
+/// <param name="heightMappingFunc">
+/// A function that maps DemHeight values to 1-bit unsigned integers.
+/// </param>
+/// <param name="heightsArray">
+/// A <see cref="HeightsArray" /> that holds heights data to be converted.
+/// </param>
+/// <returns>Image data.</returns>
+let heightsArrayToGrayscale1BitImageData
+    (heightMappingFunc: DemHeight -> bool)
+    (heightsArray: HeightsArray)
+    : RawImageData =
+
+    let inline initializer index =
+        heightsArray.Cells.[index] |> heightMappingFunc
+
+    Grayscale1Bit.createImageData
+        heightsArray.Width
+        heightsArray.Height
+        (Grayscale1Bit.ImageDataInitializer1D initializer)
+
+
+
+/// <summary>
+/// Converts the <see cref="HeightsArray" /> into 16-bit grayscale image data.
+/// </summary>
+/// <param name="heightMappingFunc">
+/// A function that maps DemHeight values to 16-bit unsigned integers.
+/// </param>
+/// <param name="heightsArray">
+/// A <see cref="HeightsArray" /> that holds heights data to be converted.
+/// </param>
+/// <returns>Image data.</returns>
+let heightsArrayToGrayscale16BitImageData
+    (heightMappingFunc: DemHeight -> uint16)
+    (heightsArray: HeightsArray)
+    : RawImageData =
+
+    let inline initializer index =
+        heightsArray.Cells.[index] |> heightMappingFunc
+
+    Grayscale16Bit.createImageData
+        heightsArray.Width
+        heightsArray.Height
+        (Grayscale16Bit.ImageDataInitializer1D initializer)

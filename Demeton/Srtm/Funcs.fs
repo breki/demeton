@@ -8,6 +8,9 @@ open FileSys
 open System
 open System.IO
 
+[<Literal>]
+let SrtmTileSize = 3600
+
 /// <summary>
 /// Reads HeightsArray data from a SRTM HGT-encoded stream.
 /// </summary>

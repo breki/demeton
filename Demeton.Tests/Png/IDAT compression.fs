@@ -57,7 +57,10 @@ let ``Determining the compression rate`` () =
         "%d Encoding heights into a raw image data..."
         clock.ElapsedMilliseconds
 
-    let imageData = heightsArrayToImageData demHeightToUInt16Value heightsArray
+    let imageData =
+        heightsArrayToGrayscale16BitImageData
+            demHeightToUInt16Value
+            heightsArray
 
     printfn
         "%d Filtering and compressing the image data into PNG IDAT chunk..."

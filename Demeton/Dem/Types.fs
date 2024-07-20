@@ -43,6 +43,7 @@ type HeightCell =
 
 type HeightsArrayInitializer =
     | EmptyHeightsArray
+    | ZeroHeightsArray
     | HeightsArrayDirectImport of DemHeight[]
     | HeightsArrayInitializer1D of (int -> DemHeight)
     | HeightsArrayInitializer2D of (DemGlobalCellCoords -> DemHeight)
@@ -80,6 +81,7 @@ type HeightsArray
         match initializer with
         | EmptyHeightsArray ->
             Array.init<DemHeight> arraySize (fun _ -> DemHeightNone)
+        | ZeroHeightsArray -> Array.zeroCreate<DemHeight> arraySize
         | HeightsArrayDirectImport arrayToImport ->
             if arrayToImport.Length <> arraySize then
                 invalidOp "The imported heights array is of incompatible size."
