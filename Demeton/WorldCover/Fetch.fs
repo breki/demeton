@@ -232,10 +232,6 @@ let copyTiffTileToWorldCoverRaster
 
 
 
-// todo 2: redesign this function so it can accept optional box to limit the
-//    resulting heights array to a smaller area and thus avoid unnecessary
-//    loading of the whole TIFF file
-
 /// <summary>
 /// Reads a WorldCover TIFF file and returns the heights array for it.
 /// </summary>
@@ -301,8 +297,8 @@ let readWorldCoverTiffFile
     // for each TIFF tile
     for tiffTileY in [ 0..tiffTileHeight..WorldCoverBitmapSize ] do
         for tiffTileX in [ 0..tiffTileWidth..WorldCoverBitmapSize ] do
-            // todo 1: determine whether the tile is within the crop bounds
-            //    and skip it if it is not
+            // determine whether the tile is within the crop bounds
+            // and skip it if it is not
 
             let loadTile =
                 if cropBounds.IsSome then
@@ -389,9 +385,6 @@ let readWorldCoverTiffFile
             WorldCoverBitmapSize,
             HeightsArrayDirectImport worldCoverData
         )
-
-    // todo 3: remove after debugging
-    let analysis = analyzeHeightsArray raster
 
     if cropBounds.IsSome then
         let x = raster |> extract cropBounds.Value

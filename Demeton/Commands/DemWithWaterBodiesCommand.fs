@@ -127,7 +127,7 @@ let fetchWorldCoverTile
     : Result<HeightsArray, string> =
     let containingTileId = containingWorldCoverFileTileId tileId
 
-    // todo 0: calculate the rectangle that covers the tileId
+    // calculate the rectangle that covers the tileId
     let tileMinX, tileMinY = tileMinCell WorldCoverCellsPerDegree tileId
 
     let tile1by1Rect =
@@ -167,15 +167,9 @@ let identifyAndSimplifyWaterBodies
     let worldCoverHighResolution =
         worldCoverHeightsArray |> convertWorldCoverRasterToWaterMonochrome
 
-    // todo 3: remove after debugging
-    let analysis = analyzeHeightsArray worldCoverHighResolution
-
     let worldCoverTargetResolution =
         worldCoverHighResolution
         |> downsampleWaterBodiesHeightsArray downsamplingFactor
-
-    // todo 3: remove after debugging
-    let analysis = analyzeHeightsArray worldCoverTargetResolution
 
     worldCoverTargetResolution |> colorWaterBodies
 

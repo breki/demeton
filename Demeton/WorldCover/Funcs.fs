@@ -18,13 +18,10 @@ let convertWorldCoverRasterToWaterMonochrome
         | 80s -> 1s
         | _ -> 0s
 
-    // todo 3: remove after debugging
-    let analysis = analyzeHeightsArray heightsArray
-
     heightsArray |> mapRasterValues waterToMonochrome
 
 
-// todo 0: we need to implement a better downsampling algorithm, this one is not
+// todo 30: we need to implement a better downsampling algorithm, this one is not
 //   working well for large downsampling factors.
 //   Possible solutions:
 //       1. lower the threshold (although the maxWeightedSum is already quite low
@@ -51,8 +48,6 @@ let downsampleWaterBodiesHeightsArray
             downsampledHeight,
             EmptyHeightsArray
         )
-
-    // todo 3: remove after debugging
 
     let maxWeightedSum = ref 0.0
 
@@ -90,19 +85,6 @@ let downsampleWaterBodiesHeightsArray
             // Set the new pixel value based on the weighted average
             let weightRatio =
                 if totalWeight > 0.0 then weightedSum / totalWeight else 0.0
-
-            // todo 3: remove after debugging
-            if weightRatio > 0 then
-                let a = 1
-                ()
-
-            if weightRatio > 0.1 then
-                let a = 1
-                ()
-
-            if weightRatio > 0.2 then
-                let a = 1
-                ()
 
             let downsampledValue = if weightRatio > 0.5 then 1s else 0s
 
