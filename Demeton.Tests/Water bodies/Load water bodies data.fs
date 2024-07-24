@@ -20,13 +20,15 @@ open Swensen.Unquote
 open Demeton.WorldCover.Types
 open Demeton.Dem.Funcs
 open FileSys
-
+open Demeton.WorldCover.Fetch
 
 type WaterBodiesTile = HeightsArray
 
 [<Literal>]
 let WaterBodiesTileSize = WorldCoverTileSize
 
+[<Literal>]
+let WaterBodiesCacheSubdirName = "WaterBodies"
 
 
 /// <summary>
@@ -64,10 +66,13 @@ let encodeWaterBodiesHeightsArrayToPng
     outputStream |> Png.File.savePngToStream ihdr imageData
 
 
-let decodeWaterBodiesTileFromPng tileId stream =
+let decodeWaterBodiesTileFromPng tileSize tileId stream =
     let validateImageSize (ihdr: IhdrData) =
-        match (ihdr.Width, ihdr.Height) with
-        | WaterBodiesTileSize, WaterBodiesTileSize -> Ok ihdr
+        match ihdr.Width, ihdr.Height with
+        | tileWidth, tileHeight when
+            tileWidth = tileSize && tileHeight = tileSize
+            ->
+            Ok ihdr
         | _, _ ->
             Error
                 "The image size of this PNG does not correspond to the water bodies tile."
@@ -87,7 +92,7 @@ let decodeWaterBodiesTileFromPng tileId stream =
                 "The bit depth of this PNG does not correspond to the water bodies tile."
 
     let generateHeightsArray (ihdr: IhdrData) (imageData: RawImageData) =
-        let minX, minY = tileMinCell WaterBodiesTileSize tileId
+        let minX, minY = tileMinCell tileSize tileId
 
         let waterBodiesTileInitialize (cells: DemHeight[]) =
             let totalPixelsCount = ihdr.Width * ihdr.Height
@@ -115,8 +120,8 @@ let decodeWaterBodiesTileFromPng tileId stream =
             HeightsArray(
                 minX,
                 minY,
-                WaterBodiesTileSize,
-                WaterBodiesTileSize,
+                tileSize,
+                tileSize,
                 HeightsArrayCustomInitializer waterBodiesTileInitialize
             )
         )
@@ -137,46 +142,79 @@ let decodeWaterBodiesTileFromPng tileId stream =
 
 let loadWaterBodiesTile
     (fileExists: FileExistsChecker)
+    (ensureDirectoryExists: DirectoryExistsEnsurer)
+    (openFileToRead: FileReader)
+    (openFileToWrite: FileWriter)
+    decodeWaterBodiesTileFromPng
+    downloadFile
     cacheDir
+    (availableWorldCoverTiles: Set<DemTileId>)
     (tileId: DemTileId)
     : WaterBodiesTile option =
-    // todo 10: implement this function
-    let cachedFileName =
-        Path.Combine(cacheDir, $"WaterBodies-%s{toTileName tileId}.png")
-
-    if fileExists cachedFileName then
-        // todo 5: implement reading of water bodies PNG tile
-        HeightsArray(
-            0,
-            0,
-            WaterBodiesTileSize,
-            WaterBodiesTileSize,
-            EmptyHeightsArray
+    let cachedPngFileName =
+        Path.Combine(
+            cacheDir,
+            WaterBodiesCacheSubdirName,
+            $"WaterBodies-%s{toTileName tileId}.png"
         )
-        |> Some
+
+    let cachedNoneFileName = Path.ChangeExtension(cachedPngFileName, "none")
+
+    if fileExists cachedPngFileName then
+        match openFileToRead cachedPngFileName with
+        | Ok stream ->
+            decodeWaterBodiesTileFromPng WaterBodiesTileSize tileId stream
+            |> Some
+        | Error error -> Error error |> raise error.Exception
+    else if fileExists cachedNoneFileName then
+        None
     else
-        NotImplementedException() |> raise
+        // todo 10: construct PNG from WorldCover tile
+        let containingWorldCoverTileId = containingWorldCoverFileTileId tileId
+
+        if
+            (availableWorldCoverTiles |> Set.contains containingWorldCoverTileId)
+        then
+            Should.reportNotImplemented "Load world cover tile"
+        else
+            match ensureDirectoryExists cacheDir with
+            | Ok _ -> ()
+            | Error error -> Error error |> raise error.Exception
+
+            // Create a 'none' file and return None
+            match openFileToWrite cachedNoneFileName with
+            | Ok stream ->
+                stream |> closeStream
+                None
+            | Error error -> Error error |> raise error.Exception
 
 
 
 [<Literal>]
-let cacheDir = "cache"
+let CacheDir = "cache"
 
+let someWorldCoverTiles = set []
+
+/// <summary>
+/// Tests that the water bodies heights array can be encoded into PNG via
+/// a stream and then decoded back to the heights array.
+/// </summary>
 [<Fact>]
 let ``Water bodies heights array can be encoded into PNG and back`` () =
+    let tileSize = 100
     let tileId = demTileXYId 7 45
-    let minX = longitudeToCellX WaterBodiesTileSize 7
-    let minY = latitudeToCellY WaterBodiesTileSize 45
+    let minX = longitudeToCellX tileSize 7
+    let minY = latitudeToCellY tileSize 45
 
-    let rnd = Random(Seed=123)
+    let rnd = Random(Seed = 123)
 
     let waterBodiesData =
         HeightsArray(
             minX,
             minY,
-            WaterBodiesTileSize,
-            WaterBodiesTileSize,
-            HeightsArrayInitializer1D (fun _ -> rnd.Next(0, 2) |> int16)
+            tileSize,
+            tileSize,
+            HeightsArrayInitializer1D(fun _ -> rnd.Next(0, 2) |> int16)
         )
 
     let stream =
@@ -184,7 +222,7 @@ let ``Water bodies heights array can be encoded into PNG and back`` () =
 
     stream.Seek(0L, SeekOrigin.Begin) |> ignore
 
-    let decodingResult = decodeWaterBodiesTileFromPng tileId stream
+    let decodingResult = decodeWaterBodiesTileFromPng tileSize tileId stream
 
     match decodingResult with
     | Ok decodedWaterBodiesData ->
@@ -192,17 +230,14 @@ let ``Water bodies heights array can be encoded into PNG and back`` () =
         test <@ decodedWaterBodiesData.MinY = waterBodiesData.MinY @>
         test <@ decodedWaterBodiesData.Width = waterBodiesData.Width @>
         test <@ decodedWaterBodiesData.Height = waterBodiesData.Height @>
-        test <@ decodedWaterBodiesData.Cells.Length = waterBodiesData.Cells.Length @>
 
-        // sample random cells and compare them
-        Array.zeroCreate 1000
-        |> Array.map (fun _ -> rnd.Next(0, decodedWaterBodiesData.Cells.Length))
-        |> Array.iter (fun i ->
-            test <@ decodedWaterBodiesData.Cells[i] = waterBodiesData.Cells[i] @>)
+        test
+            <@
+                decodedWaterBodiesData.Cells.Length = waterBodiesData.Cells.Length
+            @>
+
+        test <@ decodedWaterBodiesData.Cells = waterBodiesData.Cells @>
     | Error error -> failwith error
-
-
-
 
 
 // todo 30: implement this test
@@ -217,10 +252,81 @@ let ``Returns None if the tile is not covered by the underlying WorldCover tiles
 [<Fact>]
 let ``If water bodies PNG tile is already in cache, return that one`` () =
     let fileExists fileName =
-        test <@ fileName = @"cache\WaterBodies-N45E007.png" @>
+        test <@ fileName = @"cache\WaterBodies\WaterBodies-N45E007.png" @>
         true
 
+    let openFileToRead fileName =
+        test <@ fileName = @"cache\WaterBodies\WaterBodies-N45E007.png" @>
+        Ok(new MemoryStream() :> Stream)
+
+    let decodeWaterBodiesTileFromPng tileSize tileId stream =
+        test <@ tileSize = WaterBodiesTileSize @>
+        HeightsArray(0, 0, 1, 1, HeightsArrayInitializer1D(fun _ -> 0s))
+
     let waterBodiesTile =
-        loadWaterBodiesTile fileExists cacheDir (demTileXYId 7 45)
+        loadWaterBodiesTile
+            fileExists
+            Should.notBeCalled
+            openFileToRead
+            Should.notBeCalled
+            decodeWaterBodiesTileFromPng
+            Should.notBeCalled2
+            CacheDir
+            someWorldCoverTiles
+            (demTileXYId 7 45)
 
     test <@ waterBodiesTile.IsSome @>
+
+[<Fact>]
+let ``If water bodies 'none' file is in cache, return None for the tile`` () =
+    let fileExists fileName =
+        match fileName with
+        | @"cache\WaterBodies\WaterBodies-N45E007.none" -> true
+        | _ -> false
+
+    let waterBodiesTile =
+        loadWaterBodiesTile
+            fileExists
+            Should.notBeCalled
+            Should.notBeCalled
+            Should.notBeCalled
+            Should.notBeCalled2
+            Should.notBeCalled2
+            CacheDir
+            someWorldCoverTiles
+            (demTileXYId 7 45)
+
+    test <@ waterBodiesTile.IsNone @>
+
+[<Fact>]
+let ``If 1x1 tile has no corresponding WorldCover tile, make 'none' file and return None``
+    ()
+    =
+    let fileExists fileName = false
+
+    let ensureDirExists dirName = Ok dirName
+
+    let openFileToRead fileName =
+        raise <| AssertionFailedException("Should not be called.")
+
+    let openFileToWrite fileName =
+        test <@ fileName = @"cache\WaterBodies\WaterBodies-N45E007.none" @>
+
+        new MemoryStream() :> Stream |> Ok
+
+    let downloadFile (url: string) fileName =
+        Should.fail "Unexpected file download"
+
+    let waterBodiesTile =
+        loadWaterBodiesTile
+            fileExists
+            ensureDirExists
+            openFileToRead
+            openFileToWrite
+            Should.notBeCalled2
+            downloadFile
+            CacheDir
+            someWorldCoverTiles
+            (demTileXYId 7 45)
+
+    test <@ waterBodiesTile.IsNone @>

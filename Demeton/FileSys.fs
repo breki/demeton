@@ -1,5 +1,5 @@
 ﻿/// <summary>
-/// kContains functions for working with files and directories
+/// Contains functions for working with files and directories
 /// in a functional way.
 /// </summary>
 module FileSys

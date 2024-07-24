@@ -51,7 +51,7 @@ let ``Saves the tile into the cache directory`` () =
             cacheDir
             ensureCacheDirectoryExists
             writeAsPngFile
-            _noCall
+            Should.notBeCalled
             tile
             (Some heights)
 

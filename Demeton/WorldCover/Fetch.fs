@@ -41,7 +41,7 @@ let ensureGeoJsonFile
 /// geoJSON file.
 /// </summary>
 let listAllAvailableFiles
-    (openFileToRead: FileWriter)
+    (openFileToRead: FileReader)
     (geoJsonFile: string)
     : DemTileId seq =
     match openFileToRead geoJsonFile with

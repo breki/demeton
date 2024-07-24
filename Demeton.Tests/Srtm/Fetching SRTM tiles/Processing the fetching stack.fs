@@ -37,11 +37,11 @@ let ``Calling processNextCommand on an empty command stack returns the same stat
         |> processNextCommand
             localCacheDir
             srtmDir
-            _noCall
-            _noCall
-            _noCall2
-            _noCall2
-            _noCall2
+            Should.notBeCalled
+            Should.notBeCalled
+            Should.notBeCalled2
+            Should.notBeCalled2
+            Should.notBeCalled2
 
     test <@ resultingState = initialState @>
 
@@ -56,10 +56,10 @@ let ``When a tile does not exist, puts None in the tiles stack`` () =
             localCacheDir
             srtmDir
             (fun _ -> NotExists)
-            _noCall
-            _noCall2
-            _noCall2
-            _noCall2
+            Should.notBeCalled
+            Should.notBeCalled2
+            Should.notBeCalled2
+            Should.notBeCalled2
 
     test <@ resultingState = (initialCommands, None :: initialStackedTiles) @>
 
@@ -81,9 +81,9 @@ let ``When a tile is cached, reads it and puts it into the tiles stack`` () =
             srtmDir
             (fun _ -> Cached)
             (expectReadingOfTile tile)
-            _noCall
-            _noCall2
-            _noCall2
+            Should.notBeCalled
+            Should.notBeCalled2
+            Should.notBeCalled2
 
     test
         <@
@@ -107,9 +107,9 @@ let ``If reading of a cache tile fails, put error indicator into the stack``
             srtmDir
             (fun _ -> Cached)
             readingOfTileFails
-            _noCall
-            _noCall2
-            _noCall2
+            Should.notBeCalled
+            Should.notBeCalled2
+            Should.notBeCalled2
 
     test
         <@
@@ -128,10 +128,10 @@ let ``When a level 0 tile is not cached, puts ConvertTileFromHgt command`` () =
             localCacheDir
             srtmDir
             (fun _ -> NotCached)
-            _noCall
-            _noCall2
-            _noCall2
-            _noCall2
+            Should.notBeCalled
+            Should.notBeCalled2
+            Should.notBeCalled2
+            Should.notBeCalled2
 
     test
         <@
@@ -152,10 +152,10 @@ let ``When a level > 0 tile is not cached, fills the command stack with children
             localCacheDir
             srtmDir
             (fun _ -> NotCached)
-            _noCall
-            _noCall2
-            _noCall2
-            _noCall2
+            Should.notBeCalled
+            Should.notBeCalled2
+            Should.notBeCalled2
+            Should.notBeCalled2
 
     let childTiles =
         [| (8, 16); (9, 16); (8, 17); (9, 17) |]
@@ -192,11 +192,11 @@ let ``When convert from HGT command is received`` () =
         |> processNextCommand
             localCacheDir
             srtmDir
-            _noCall
-            _noCall2
+            Should.notBeCalled
+            Should.notBeCalled2
             convertProducesSomeTile
-            _noCall2
-            _noCall2
+            Should.notBeCalled2
+            Should.notBeCalled2
 
     test
         <@
@@ -221,11 +221,11 @@ let ``Convert to PNG can fail`` () =
         |> processNextCommand
             localCacheDir
             srtmDir
-            _noCall
-            _noCall2
+            Should.notBeCalled
+            Should.notBeCalled2
             convertThatFails
-            _noCall2
-            _noCall2
+            Should.notBeCalled2
+            Should.notBeCalled2
 
     let expectedResultingState =
         (Failure errorMessage :: initialCommands, initialStackedTiles)
@@ -264,9 +264,9 @@ let ``When create from lower tiles command is received and create returns tile``
         |> processNextCommand
             localCacheDir
             srtmDir
-            _noCall
-            _noCall2
-            _noCall
+            Should.notBeCalled
+            Should.notBeCalled2
+            Should.notBeCalled
             constructParentTileReturnsSomeTile
             writeTileToCache
 
@@ -311,9 +311,9 @@ let ``When create from lower tiles command is received and create returns None``
         |> processNextCommand
             localCacheDir
             srtmDir
-            _noCall
-            _noCall2
-            _noCall
+            Should.notBeCalled
+            Should.notBeCalled2
+            Should.notBeCalled
             constructParentTileReturnsNone
             writeTileToCache
 
@@ -345,8 +345,8 @@ let ``Testing the tail recursion`` () =
             (fun _ -> Cached)
             (fun _ _ -> Ok someTileHeights)
             (fun _ _ _ -> Ok someTileHeights)
-            _noCall2
-            _noCall2
+            Should.notBeCalled2
+            Should.notBeCalled2
             initialState
 
     // there should be no more commands in the stack
@@ -390,10 +390,10 @@ let ``Command stack processor should stop on failure and return the error`` () =
             localCacheDir
             srtmDir
             (fun _ -> NotCached)
-            _noCall2
+            Should.notBeCalled2
             (convertFailsOnSomeCall 4)
-            _noCall2
-            _noCall2
+            Should.notBeCalled2
+            Should.notBeCalled2
             initialState
 
     // there should be an error indicator next in the command stack

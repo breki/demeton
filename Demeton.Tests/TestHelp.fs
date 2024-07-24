@@ -4,15 +4,11 @@ open System
 open System.Reflection
 open System.Runtime.InteropServices
 
-let isLinux() = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) 
+let isLinux () =
+    RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
 
 let fail errorMessage =
     raise (Xunit.Sdk.XunitException errorMessage)
-
-let _noCall _ = invalidOp "bug: should not be called"
-let _noCall2 _ _ = invalidOp "bug: should not be called"
-let _noCall3 _ _ _ = invalidOp "bug: should not be called"
-let _noCall4 _ _ _ _ = invalidOp "bug: should not be called"
 
 let isOk result =
     match result with
@@ -31,7 +27,7 @@ let isOkValue expectedOkValue result =
 let resultValue result =
     match result with
     | Ok x -> x
-    | Error msg -> 
+    | Error msg ->
         invalidOp (sprintf "The result indicates an error: '%s'." msg)
 
 let isError (result: Result<'T, 'TError>) =
@@ -44,26 +40,30 @@ let isErrorData (errorData: 'TError) (result: Result<'T, 'TError>) =
     | Ok _ -> false
     | Error actualErrorData -> actualErrorData = errorData
 
-let inline (=~=) (x: float) (y: float) = abs (x-y) <  1.E-10
-    
+let inline (=~=) (x: float) (y: float) = abs (x - y) < 1.E-10
+
 type ApproxMeasure =
-    Decimals of int
+    | Decimals of int
     | Percentage of float
 
-let isApproxEqualTo 
-    (controlValue: float) (measure: ApproxMeasure) (actualValue: float) =
+let isApproxEqualTo
+    (controlValue: float)
+    (measure: ApproxMeasure)
+    (actualValue: float)
+    =
     match measure with
-    | Decimals decimals -> 
-        Math.Round(controlValue, decimals) 
-            = Math.Round(actualValue, decimals)
+    | Decimals decimals ->
+        Math.Round(controlValue, decimals) = Math.Round(actualValue, decimals)
     | Percentage percentage ->
         let percentageValue = controlValue * percentage / 100.
         Math.Abs(actualValue - controlValue) < percentageValue
 
 /// <summary>
-/// Opens a stream for a specified sample resource file. 
+/// Opens a stream for a specified sample resource file.
 /// </summary>
 let sampleFileStream sampleFileName =
     let assembly = Assembly.GetExecutingAssembly()
-    assembly.GetManifestResourceStream
-        ("Demeton.Tests.samples." + sampleFileName)
+
+    assembly.GetManifestResourceStream(
+        "Demeton.Tests.samples." + sampleFileName
+    )

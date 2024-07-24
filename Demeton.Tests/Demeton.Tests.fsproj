@@ -19,6 +19,7 @@
 
     <ItemGroup>
         <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true"/>
+        <Compile Include="Should.fs" />
         <Compile Include="TestLog.fs"/>
         <Compile Include="TestHelp.fs"/>
         <Compile Include="BetterFsCheckRunner.fs"/>
