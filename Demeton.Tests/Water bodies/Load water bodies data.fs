@@ -1,13 +1,5 @@
 ﻿module Tests.Water_bodies.Load_water_bodies_data
 
-// todo 10: a new water bodies loaded function that for a given 1x1 tile ID
-//   first checks whether there is already a PNG file (or a 'none' file).
-//   If there is, it should load it and return it as heights array.
-//   If there is not, it should load the WorldCover tile, convert it into
-//   water bodies heights array, chop it up into 1x1 tiles and save them as PNG
-//   files. Then it should load the PNG file and return it as heights array.
-
-
 
 open System
 open System.IO
@@ -139,14 +131,24 @@ let decodeWaterBodiesTileFromPng tileSize tileId stream =
     | Ok _ -> generateHeightsArray ihdr imageData
     | Error errors -> Error(errors |> String.concat " ")
 
-
+/// <summary>
+/// Loads the water bodies tile from the cache or downloads it from the web.
+/// </summary>
+/// <remarks>
+/// For a given 1x1 tile ID the function first checks whether there is already
+/// a PNG file (or a 'none' file). If there is, it should load it and return
+/// it as heights array. If there is not, it should load the WorldCover tile,
+/// convert it into water bodies heights array, chop it up into 1x1 tiles and
+/// save them as PNG files. Then it should load the PNG file and return it as
+/// heights array.
+/// </remarks>
 let loadWaterBodiesTile
     (fileExists: FileExistsChecker)
     (ensureDirectoryExists: DirectoryExistsEnsurer)
     (openFileToRead: FileReader)
     (openFileToWrite: FileWriter)
     decodeWaterBodiesTileFromPng
-    downloadFile
+    unpackWaterBodiesPngTilesFromWorldCoverTiff
     cacheDir
     (availableWorldCoverTiles: Set<DemTileId>)
     (tileId: DemTileId)
@@ -160,34 +162,45 @@ let loadWaterBodiesTile
 
     let cachedNoneFileName = Path.ChangeExtension(cachedPngFileName, "none")
 
-    if fileExists cachedPngFileName then
-        match openFileToRead cachedPngFileName with
-        | Ok stream ->
-            decodeWaterBodiesTileFromPng WaterBodiesTileSize tileId stream
-            |> Some
-        | Error error -> Error error |> raise error.Exception
-    else if fileExists cachedNoneFileName then
-        None
-    else
-        // todo 10: construct PNG from WorldCover tile
-        let containingWorldCoverTileId = containingWorldCoverFileTileId tileId
-
-        if
-            (availableWorldCoverTiles |> Set.contains containingWorldCoverTileId)
-        then
-            Should.reportNotImplemented "Load world cover tile"
-        else
-            match ensureDirectoryExists cacheDir with
-            | Ok _ -> ()
-            | Error error -> Error error |> raise error.Exception
-
-            // Create a 'none' file and return None
-            match openFileToWrite cachedNoneFileName with
+    // We implement the main body of work as a nested recursive function
+    // since we need to call it again after we download the WorldCover tile
+    // and chop it up into water bodies tiles.
+    let rec loadCachedTileOrDownloadFromWeb () =
+        if fileExists cachedPngFileName then
+            match openFileToRead cachedPngFileName with
             | Ok stream ->
-                stream |> closeStream
-                None
+                decodeWaterBodiesTileFromPng WaterBodiesTileSize tileId stream
+                |> Some
             | Error error -> Error error |> raise error.Exception
+        else if fileExists cachedNoneFileName then
+            None
+        else
+            let containingWorldCoverTileId =
+                containingWorldCoverFileTileId tileId
 
+            if
+                (availableWorldCoverTiles
+                 |> Set.contains containingWorldCoverTileId)
+            then
+                // todo 5: implement unpackWaterBodiesPngTilesFromWorldCoverTiff
+                unpackWaterBodiesPngTilesFromWorldCoverTiff
+                    cacheDir
+                    containingWorldCoverTileId
+
+                loadCachedTileOrDownloadFromWeb ()
+            else
+                match ensureDirectoryExists cacheDir with
+                | Ok _ -> ()
+                | Error error -> Error error |> raise error.Exception
+
+                // Create a 'none' file and return None
+                match openFileToWrite cachedNoneFileName with
+                | Ok stream ->
+                    stream |> closeStream
+                    None
+                | Error error -> Error error |> raise error.Exception
+
+    loadCachedTileOrDownloadFromWeb ()
 
 
 [<Literal>]
@@ -248,7 +261,6 @@ let ``Returns None if the tile is not covered by the underlying WorldCover tiles
     test <@ true @>
 
 
-// todo 10: continue with the test
 [<Fact>]
 let ``If water bodies PNG tile is already in cache, return that one`` () =
     let fileExists fileName =
@@ -314,7 +326,7 @@ let ``If 1x1 tile has no corresponding WorldCover tile, make 'none' file and ret
 
         new MemoryStream() :> Stream |> Ok
 
-    let downloadFile (url: string) fileName =
+    let unpackWaterBodiesPngTilesFromWorldCoverTiff (url: string) fileName =
         Should.fail "Unexpected file download"
 
     let waterBodiesTile =
@@ -324,9 +336,48 @@ let ``If 1x1 tile has no corresponding WorldCover tile, make 'none' file and ret
             openFileToRead
             openFileToWrite
             Should.notBeCalled2
-            downloadFile
+            unpackWaterBodiesPngTilesFromWorldCoverTiff
             CacheDir
             someWorldCoverTiles
             (demTileXYId 7 45)
 
     test <@ waterBodiesTile.IsNone @>
+
+
+[<Fact>]
+let ``Construct water bodies PNG tile from downloaded WorldCover TIFF tile``
+    ()
+    =
+    let mutable tileCreated = false
+
+    let fileExists fileName = tileCreated
+
+    let ensureDirExists dirName = Ok dirName
+
+    let openFileToRead fileName =
+        test <@ fileName = @"cache\WaterBodies\WaterBodies-N45E007.png" @>
+        Ok(new MemoryStream() :> Stream)
+
+    let decodeWaterBodiesTileFromPng tileSize tileId stream =
+        test <@ tileSize = WaterBodiesTileSize @>
+        HeightsArray(0, 0, 1, 1, HeightsArrayInitializer1D(fun _ -> 0s))
+
+    let unpackWaterBodiesPngTilesFromWorldCoverTiff (url: string) fileName =
+        tileCreated <- true
+
+    let tileId = demTileXYId 7 45
+    let containingWorldCoverTileId = demTileXYId 6 45
+
+    let waterBodiesTile =
+        loadWaterBodiesTile
+            fileExists
+            Should.notBeCalled
+            openFileToRead
+            Should.notBeCalled
+            decodeWaterBodiesTileFromPng
+            unpackWaterBodiesPngTilesFromWorldCoverTiff
+            CacheDir
+            (Set.ofSeq [ containingWorldCoverTileId ])
+            tileId
+
+    test <@ waterBodiesTile.IsSome @>
