@@ -13,6 +13,7 @@ open Demeton.WorldCover.Types
 open Demeton.Dem.Funcs
 open FileSys
 open Demeton.WorldCover.Fetch
+open Demeton.WorldCover.Funcs
 
 type WaterBodiesTile = HeightsArray
 
@@ -130,6 +131,33 @@ let decodeWaterBodiesTileFromPng tileSize tileId stream =
     match validationResult with
     | Ok _ -> generateHeightsArray ihdr imageData
     | Error errors -> Error(errors |> String.concat " ")
+
+
+let unpackWaterBodiesPngTilesFromWorldCoverTiff
+    fileExists
+    downloadFile
+    readWorldCoverTiffFile
+    cacheDir
+    worldCoverTileId
+    =
+    ensureWorldCoverFile cacheDir fileExists downloadFile worldCoverTileId
+    |> ignore
+
+    let worldCover3by3HeightsArray =
+        readWorldCoverTiffFile cacheDir None worldCoverTileId
+
+    // convert the WorldCover tile into water bodies tile
+    let waterBodies3by3HeightsArray =
+        worldCover3by3HeightsArray |> convertWorldCoverRasterToWaterMonochrome
+
+    // todo 3: chop up the WorldCover tile into 9 1x1 water bodies tiles
+
+    // let extract (extractBounds: Rect) (heightArray: HeightsArray) : HeightsArray =
+
+
+    // todo 6: and save them as PNG files
+    ()
+
 
 /// <summary>
 /// Loads the water bodies tile from the cache or downloads it from the web.
@@ -381,3 +409,55 @@ let ``Construct water bodies PNG tile from downloaded WorldCover TIFF tile``
             tileId
 
     test <@ waterBodiesTile.IsSome @>
+
+
+[<Fact>]
+let ``Downloads the WorldCover TIFF tile from the web`` () =
+    let mutable fileDownloaded = false
+
+    let fileExists _ = false
+
+    let downloadFile _ _ =
+        fileDownloaded <- true
+        "some-file.tif"
+
+    let readWorldCoverTiffFile cacheDir _ worldCoverTileId =
+        HeightsArray(
+            0,
+            0,
+            WorldCoverBitmapSize,
+            WorldCoverBitmapSize,
+            ZeroHeightsArray
+        )
+
+    unpackWaterBodiesPngTilesFromWorldCoverTiff
+        fileExists
+        downloadFile
+        readWorldCoverTiffFile
+        CacheDir
+        (demTileXYId 6 45)
+
+    test <@ fileDownloaded @>
+
+
+[<Fact>]
+let ``Unpacks TIFF heights array into 9 1x1 water bodies PNG tiles`` () =
+    let fileExists _ = true
+
+    let readWorldCoverTiffFile cacheDir _ worldCoverTileId =
+        HeightsArray(
+            0,
+            0,
+            WorldCoverBitmapSize,
+            WorldCoverBitmapSize,
+            ZeroHeightsArray
+        )
+
+    unpackWaterBodiesPngTilesFromWorldCoverTiff
+        fileExists
+        Should.notBeCalled2
+        readWorldCoverTiffFile
+        CacheDir
+        (demTileXYId 6 45)
+
+// todo 2: continue with the test
