@@ -124,7 +124,7 @@ let fetchAw3dTile
 let fetchWorldCoverTile
     (tileId: DemTileId)
     (localCacheDir: string)
-    : Result<HeightsArray, string> =
+    : HeightsArray =
     let containingTileId = containingWorldCoverFileTileId tileId
 
     // calculate the rectangle that covers the tileId
@@ -141,14 +141,13 @@ let fetchWorldCoverTile
         FileSys.fileExists
         FileSys.downloadFile
         containingTileId
-    |> Result.bind (fun _ ->
-        (readWorldCoverTiffFile
-            localCacheDir
-            (Some tile1by1Rect)
-            containingTileId)
-        |> Result.Ok)
-    |> Result.bind Result.Ok
+    |> ignore
 
+
+    readWorldCoverTiffFile
+        localCacheDir
+        (Some tile1by1Rect)
+        containingTileId
 
 
 let identifyAndSimplifyWaterBodies
@@ -176,12 +175,8 @@ let identifyAndSimplifyWaterBodies
 
 let run (options: Options) : Result<unit, string> =
     fetchAw3dTile options.TileId options.LocalCacheDir
-    |> Result.bind (fun aw3dTile ->
+    |> Result.map (fun aw3dTile ->
         fetchWorldCoverTile options.TileId options.LocalCacheDir
-        |> Result.bind (fun worldCoverTile ->
-            identifyAndSimplifyWaterBodies
-                options.DemResolution
-                worldCoverTile
-            |> ignore
+        |> identifyAndSimplifyWaterBodies options.DemResolution
+        |> ignore)
 
-            Result.Ok()))

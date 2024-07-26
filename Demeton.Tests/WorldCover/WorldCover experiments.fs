@@ -85,7 +85,7 @@ let fetchWaterBodiesDataSources
     // if we actually got the water bodies heights array, we can calculate
     // the derived data sources from it
     match waterBodiesHeightsArrayResult with
-    | Ok(Some waterBodiesHeightsArray) ->
+    | Some waterBodiesHeightsArray ->
         let waterBodiesHeightsArray =
             waterBodiesHeightsArray |> convertWorldCoverRasterToWaterMonochrome
         // |> simplifyRaster 100

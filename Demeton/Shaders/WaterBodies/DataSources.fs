@@ -30,52 +30,51 @@ let fetchWorldCoverHeightsArray
         [ (coverageArea.MinLon, coverageArea.MinLat)
           (coverageArea.MaxLon, coverageArea.MaxLat) ]
 
-    let fileDownloadingResult = ensureWorldCoverFiles cacheDir coverageArea
+    let tilesIds =
+        ensureWorldCoverFiles cacheDir coverageArea
+        |> Seq.map (fun (tileId, _) -> tileId)
 
-    match fileDownloadingResult with
-    | Ok tilesIds ->
-        let filesHeightsArrays =
-            tilesIds
-            |> Seq.map (readWorldCoverTiffFile cacheDir None)
-            |> Seq.toList
+    let filesHeightsArrays =
+        tilesIds
+        |> Seq.map (readWorldCoverTiffFile cacheDir None)
+        |> Seq.toList
 
-        // calculate mergedArrayBounds for the given area
-        let projectedCoveragePoints =
-            coveragePoints
-            |> List.map (fun (lon, lat) ->
-                mapProjection.Proj (lon |> degToRad) (lat |> degToRad))
-            |> List.choose id
+    // calculate mergedArrayBounds for the given area
+    let projectedCoveragePoints =
+        coveragePoints
+        |> List.map (fun (lon, lat) ->
+            mapProjection.Proj (lon |> degToRad) (lat |> degToRad))
+        |> List.choose id
 
-        let deprojectedCoveragePoints =
-            projectedCoveragePoints
-            |> List.map (fun (x, y) -> mapProjection.Invert x y)
-            |> List.choose id
+    let deprojectedCoveragePoints =
+        projectedCoveragePoints
+        |> List.map (fun (x, y) -> mapProjection.Invert x y)
+        |> List.choose id
 
-        let cellsPerDegree = WorldCoverTileSize
+    let cellsPerDegree = WorldCoverTileSize
 
-        // now convert lon, lat to DEM coordinates
-        let coveragePointsInDemCoords =
-            deprojectedCoveragePoints
-            |> List.map (fun (lon, lat) ->
-                let cellX = lon |> radToDeg |> longitudeToCellX (float cellsPerDegree)
-                let cellY = lat |> radToDeg |> latitudeToCellY (float cellsPerDegree)
-                (cellX, cellY))
+    // now convert lon, lat to DEM coordinates
+    let coveragePointsInDemCoords =
+        deprojectedCoveragePoints
+        |> List.map (fun (lon, lat) ->
+            let cellX = lon |> radToDeg |> longitudeToCellX (float cellsPerDegree)
+            let cellY = lat |> radToDeg |> latitudeToCellY (float cellsPerDegree)
+            (cellX, cellY))
 
-        let demMbr = Demeton.Geometry.Bounds.mbrOf coveragePointsInDemCoords
+    let demMbr = Demeton.Geometry.Bounds.mbrOf coveragePointsInDemCoords
 
-        // a buffer around the DEM MBR so we don't end up outside of the array
-        // when we calculate the heights
-        let safetyBuffer = 50
+    // a buffer around the DEM MBR so we don't end up outside of the array
+    // when we calculate the heights
+    let safetyBuffer = 50
 
-        let mergedArrayBounds =
-            Rect.asMinMax
-                ((demMbr.MinX |> floor |> int) - safetyBuffer)
-                ((demMbr.MinY |> floor |> int) - safetyBuffer)
-                ((demMbr.MaxX |> ceil |> int) + safetyBuffer)
-                ((demMbr.MaxY |> ceil |> int) + safetyBuffer)
+    let mergedArrayBounds =
+        Rect.asMinMax
+            ((demMbr.MinX |> floor |> int) - safetyBuffer)
+            ((demMbr.MinY |> floor |> int) - safetyBuffer)
+            ((demMbr.MaxX |> ceil |> int) + safetyBuffer)
+            ((demMbr.MaxY |> ceil |> int) + safetyBuffer)
 
-        merge mergedArrayBounds filesHeightsArrays |> Result.Ok
-    | Error message -> Result.Error message
+    merge mergedArrayBounds filesHeightsArrays
 
 
 let fetchWaterBodiesDataSources
@@ -85,13 +84,13 @@ let fetchWaterBodiesDataSources
     coverageArea
     (dataSources: ShadingDataSources)
     =
-    let waterBodiesHeightsArrayResult =
+    let waterBodiesHeightsArrayMaybe =
         fetchWorldCoverHeightsArray mapProjection cacheDir level coverageArea
 
     // if we actually got the water bodies heights array, we can calculate
     // the derived data sources from it
-    match waterBodiesHeightsArrayResult with
-    | Ok(Some waterBodiesHeightsArray) ->
+    match waterBodiesHeightsArrayMaybe with
+    | Some waterBodiesHeightsArray ->
         let waterBodiesHeightsArray =
             waterBodiesHeightsArray |> convertWorldCoverRasterToWaterMonochrome
         // |> simplifyRaster 100

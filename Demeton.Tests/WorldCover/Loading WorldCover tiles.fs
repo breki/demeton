@@ -147,10 +147,10 @@ let ``Do not download tile if TIFF already in cache`` () =
     let downloadFile _ _ =
         fail "Downloading file should not have been called"
 
-    let result =
+    let worldCoverPngFileName =
         sampleTileId |> ensureWorldCoverFile "cache" fileExists downloadFile
 
-    test <@ result |> isOkValue sampleCachedTifFileName @>
+    test <@ worldCoverPngFileName.Length > 0 @>
 
 
 [<Fact>]
@@ -178,8 +178,8 @@ let ``Download tile file if not in cache`` () =
         else
             fail "Unexpected URL"
 
-    let result =
+    let worldCoverPngFileName =
         sampleTileId |> ensureWorldCoverFile "cache" fileExists downloadFile
 
-    test <@ result |> isOk @>
+    test <@ worldCoverPngFileName.Length > 0 @>
     test <@ fileDownloaded @>

@@ -181,7 +181,7 @@ let closeStream (stream: Stream) = stream.Close()
 /// Downloads a file from the specified URL and saves it to the specified
 /// path on the disk.
 /// </summary>
-let downloadFile (url: string) (destinationPath: string) =
+let downloadFile (url: string) (destinationPath: string): string =
     Log.debug $"Downloading file from %s{url} to %s{destinationPath}..."
 
     let httpClient = new HttpClient()

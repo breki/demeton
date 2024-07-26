@@ -136,11 +136,11 @@ let containingWorldCoverFileTileId (singleDegreeTileId: DemTileId) : DemTileId =
 /// Ensures the specified AW3D tile TIFF file is available in the cache
 /// directory, downloading it if necessary.
 /// </summary>
-let ensureWorldCoverFile cacheDir fileExists downloadFile tileId =
+let ensureWorldCoverFile cacheDir fileExists downloadFile tileId: FileName =
     let cachedTifFileName = worldCoverTileCachedTifFileName cacheDir tileId
 
     if fileExists cachedTifFileName then
-        Ok cachedTifFileName
+        cachedTifFileName
     else
         // download the tile
         let tileUrl = tileId |> worldCoverTileDownloadUrl
@@ -148,14 +148,14 @@ let ensureWorldCoverFile cacheDir fileExists downloadFile tileId =
         Log.debug
             $"Downloading WorldCover tile {tileId.FormatLat2Lon3} from {tileUrl}..."
 
-        downloadFile tileUrl cachedTifFileName |> Ok
+        downloadFile tileUrl cachedTifFileName
 
 
 
 let ensureWorldCoverFiles
     cacheDir
     (bounds: LonLatBounds)
-    : Result<DemTileId list, string> =
+    : (DemTileId * FileName) list =
     Log.info "Ensuring all needed WorldCover files are there..."
 
     let geoJsonFile = ensureGeoJsonFile cacheDir fileExists downloadFile
@@ -170,22 +170,10 @@ let ensureWorldCoverFiles
             allAvailableFiles
             |> Seq.exists (fun availableTileId -> availableTileId = tileId))
 
-    let filesResults =
-        availableFilesNeeded
-        |> List.map (fun tileId ->
-            tileId,
-            ensureWorldCoverFile cacheDir fileExists downloadFile tileId)
-
-    let filesErrors =
-        filesResults
-        |> List.choose (fun (_, result) ->
-            match result with
-            | Ok _ -> None
-            | Error message -> Some message)
-
-    match filesErrors with
-    | [] -> Result.Ok availableFilesNeeded
-    | _ -> Result.Error(String.concat "\n" filesErrors)
+    availableFilesNeeded
+    |> List.map (fun tileId ->
+        tileId,
+        ensureWorldCoverFile cacheDir fileExists downloadFile tileId)
 
 let copyTiffTileToWorldCoverRaster
     (worldCoverData: DemHeight[])
