@@ -16,14 +16,8 @@ open Demeton.WaterBodies
 open Raster
 open LibExt
 
-type WaterBodiesTile = HeightsArray
 
-[<Literal>]
-let WaterBodiesTileSize = WorldCoverTileSize
-
-[<Literal>]
-let WaterBodiesCacheSubdirName = "WaterBodies"
-
+// todo 5: move production functions to their rightful place
 
 let unpackWaterBodiesTilesFromWorldCoverTile worldCoverTileId heightsArray =
     let waterBodiesHeightsArray3by3 =
@@ -42,8 +36,8 @@ let unpackWaterBodiesTilesFromWorldCoverTile worldCoverTileId heightsArray =
         let waterBodiesTileRect: Rect =
             { MinX = minX
               MinY = minY
-              Width = WaterBodiesTileSize
-              Height = WaterBodiesTileSize }
+              Width = WorldCoverTileSize
+              Height = WorldCoverTileSize }
 
         (tileId, extract waterBodiesTileRect waterBodiesHeightsArray3by3))
 
@@ -105,7 +99,7 @@ let loadWaterBodiesTileFromCache
         | CachedNoneFile _ -> CachedTileLoaded None
         | CachedPng(tileId, cachedPngFileName) ->
             cachedPngFileName
-            |> decodeWaterBodiesTileFromPngFile WaterBodiesTileSize tileId
+            |> decodeWaterBodiesTileFromPngFile WorldCoverTileSize tileId
             |> function
                 | Ok heightsArray -> CachedTileLoaded(Some heightsArray)
                 | Error error -> raise (InvalidOperationException error)

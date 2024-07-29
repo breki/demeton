@@ -76,7 +76,7 @@ let loadWaterBodiesTile
         if fileExists cachedPngFileName then
             match openFileToRead cachedPngFileName with
             | Ok stream ->
-                decodeWaterBodiesTileFromPng WaterBodiesTileSize tileId stream
+                decodeWaterBodiesTileFromPng WorldCoverTileSize tileId stream
                 |> Some
             | Error error -> Error error |> raise error.Exception
         else if fileExists cachedNoneFileName then
@@ -178,7 +178,7 @@ let ``If water bodies PNG tile is already in cache, return that one`` () =
         Ok(new MemoryStream() :> Stream)
 
     let decodeWaterBodiesTileFromPng tileSize tileId stream =
-        test <@ tileSize = WaterBodiesTileSize @>
+        test <@ tileSize = WorldCoverTileSize @>
         HeightsArray(0, 0, 1, 1, HeightsArrayInitializer1D(fun _ -> 0s))
 
     let waterBodiesTile =
@@ -265,7 +265,7 @@ let ``Construct water bodies PNG tile from downloaded WorldCover TIFF tile``
         Ok(new MemoryStream() :> Stream)
 
     let decodeWaterBodiesTileFromPng tileSize tileId stream =
-        test <@ tileSize = WaterBodiesTileSize @>
+        test <@ tileSize = WorldCoverTileSize @>
         HeightsArray(0, 0, 1, 1, HeightsArrayInitializer1D(fun _ -> 0s))
 
     let unpackWaterBodiesPngTilesFromWorldCoverTiff (url: string) fileName =

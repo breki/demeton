@@ -8,13 +8,9 @@ open Png.Types
 open Raster
 open Demeton.Dem.Funcs
 open FileSys
-open Demeton.WorldCover.Types
 
 
-type WaterBodiesTile = HeightsArray
-
-[<Literal>]
-let WaterBodiesTileSize = WorldCoverTileSize
+type WaterBodiesHeightsArray = HeightsArray
 
 [<Literal>]
 let WaterBodiesCacheSubdirName = "WaterBodies"
@@ -31,7 +27,7 @@ let WaterBodiesCacheSubdirName = "WaterBodies"
 /// </param>
 /// <returns>This same instance of the output stream.</returns>
 let encodeWaterBodiesHeightsArrayToPng
-    (heightsArray: HeightsArray)
+    (heightsArray: WaterBodiesHeightsArray)
     (outputStream: Stream)
     : Stream =
 
@@ -54,7 +50,11 @@ let encodeWaterBodiesHeightsArrayToPng
     outputStream |> Png.File.savePngToStream ihdr imageData
 
 
-let decodeWaterBodiesTileFromPngStream tileSize tileId stream =
+let decodeWaterBodiesTileFromPngStream
+    tileSize
+    tileId
+    stream
+    : Result<WaterBodiesHeightsArray, string> =
     let validateImageSize (ihdr: IhdrData) =
         match ihdr.Width, ihdr.Height with
         | tileWidth, tileHeight when
@@ -105,7 +105,7 @@ let decodeWaterBodiesTileFromPngStream tileSize tileId stream =
                     byteIndex <- byteIndex + 1
 
         Ok(
-            HeightsArray(
+            WaterBodiesHeightsArray(
                 minX,
                 minY,
                 tileSize,
@@ -128,10 +128,13 @@ let decodeWaterBodiesTileFromPngStream tileSize tileId stream =
     | Error errors -> Error(errors |> String.concat " ")
 
 
-let decodeWaterBodiesTileFromPngFile tileSize tileId fileName =
+let decodeWaterBodiesTileFromPngFile
+    tileSize
+    tileId
+    fileName
+    : Result<WaterBodiesHeightsArray, string> =
     openFileToRead fileName
     |> function
         | Ok stream ->
-            stream
-            |> decodeWaterBodiesTileFromPngStream WaterBodiesTileSize tileId
+            stream |> decodeWaterBodiesTileFromPngStream tileSize tileId
         | Error error -> Error error.Exception.Message
