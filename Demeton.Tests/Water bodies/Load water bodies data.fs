@@ -15,7 +15,7 @@ open Demeton.Dem.Funcs
 open FileSys
 open Demeton.WorldCover.Fetch
 open Demeton.WorldCover.Funcs
-open Demeton.WaterBodies
+open Demeton.WaterBodies.Png
 
 
 let unpackWaterBodiesPngTilesFromWorldCoverTiff
@@ -59,7 +59,7 @@ let loadWaterBodiesTile
     cacheDir
     (availableWorldCoverTiles: Set<DemTileId>)
     (tileId: DemTileId)
-    : WaterBodiesTile option =
+    : WaterBodiesHeightsArray option =
     let cachedPngFileName =
         Path.Combine(
             cacheDir,

@@ -9,8 +9,8 @@ open Demeton.Projections.Common
 open Demeton.Shaders.Types
 open Demeton.Dem.Funcs
 open Demeton.WorldCover.Types
-open Demeton.WorldCover.WaterBodiesColoring
-open Demeton.WorldCover.WaterBodiesOutlining
+open Demeton.WorldCover.Coloring
+open Demeton.WorldCover.Outlining
 open Png
 open Raster
 
@@ -93,12 +93,9 @@ let worldCoverWaterBodiesShader
                         let waterBody =
                             waterBodiesColoredList.[int waterBodyColor - 2]
 
-                        if shouldShowWaterBody waterBody then
-                            waterColor
-                        elif debugMode then
-                            ignoredWaterColor
-                        else
-                            noWaterColor
+                        if shouldShowWaterBody waterBody then waterColor
+                        elif debugMode then ignoredWaterColor
+                        else noWaterColor
 
                 Rgba8Bit.setPixelAt
                     imageData

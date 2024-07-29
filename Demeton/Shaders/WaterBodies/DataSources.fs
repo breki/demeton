@@ -7,7 +7,7 @@ open Demeton.Shaders.Types
 open Demeton.WorldCover.Types
 open Demeton.WorldCover.Funcs
 open Demeton.WorldCover.Fetch
-open Demeton.WorldCover.WaterBodiesColoring
+open Demeton.WorldCover.Coloring
 open Raster
 
 [<Literal>]
@@ -35,9 +35,7 @@ let fetchWorldCoverHeightsArray
         |> Seq.map (fun (tileId, _) -> tileId)
 
     let filesHeightsArrays =
-        tilesIds
-        |> Seq.map (readWorldCoverTiffFile cacheDir None)
-        |> Seq.toList
+        tilesIds |> Seq.map (readWorldCoverTiffFile cacheDir None) |> Seq.toList
 
     // calculate mergedArrayBounds for the given area
     let projectedCoveragePoints =
@@ -57,8 +55,12 @@ let fetchWorldCoverHeightsArray
     let coveragePointsInDemCoords =
         deprojectedCoveragePoints
         |> List.map (fun (lon, lat) ->
-            let cellX = lon |> radToDeg |> longitudeToCellX (float cellsPerDegree)
-            let cellY = lat |> radToDeg |> latitudeToCellY (float cellsPerDegree)
+            let cellX =
+                lon |> radToDeg |> longitudeToCellX (float cellsPerDegree)
+
+            let cellY =
+                lat |> radToDeg |> latitudeToCellY (float cellsPerDegree)
+
             (cellX, cellY))
 
     let demMbr = Demeton.Geometry.Bounds.mbrOf coveragePointsInDemCoords

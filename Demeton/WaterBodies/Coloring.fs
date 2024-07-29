@@ -1,4 +1,4 @@
-﻿module Demeton.WorldCover.WaterBodiesColoring
+﻿module Demeton.WorldCover.Coloring
 
 open System
 open Demeton.Dem.Types

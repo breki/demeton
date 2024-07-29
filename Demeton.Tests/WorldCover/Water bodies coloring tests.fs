@@ -1,7 +1,7 @@
 ﻿module Tests.WorldCover.Water_bodies_coloring_tests
 
-open Demeton.WorldCover.WaterBodiesColoring
-open Demeton.WorldCover.WaterBodiesOutlining
+open Demeton.WorldCover.Coloring
+open Demeton.WorldCover.Outlining
 
 open Tests.Dem.HeightArraysScenes
 

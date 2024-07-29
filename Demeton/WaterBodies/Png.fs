@@ -1,4 +1,4 @@
-﻿module Demeton.WaterBodies
+﻿module Demeton.WaterBodies.Png
 
 
 open System

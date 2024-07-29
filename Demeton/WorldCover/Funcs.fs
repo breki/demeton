@@ -2,6 +2,7 @@
 
 open Demeton.Dem.Types
 open Demeton.Dem.Funcs
+open Demeton.WaterBodies.Png
 
 
 /// <summary>
@@ -10,8 +11,8 @@ open Demeton.Dem.Funcs
 /// </summary>
 /// <param name="heightsArray"></param>
 let convertWorldCoverRasterToWaterMonochrome
-    (heightsArray: HeightsArray)
-    : HeightsArray =
+    heightsArray
+    : WaterBodiesHeightsArray =
     let waterToMonochrome value =
         match value with
         // 80 represents water
@@ -33,15 +34,15 @@ let convertWorldCoverRasterToWaterMonochrome
 /// </summary>
 let downsampleWaterBodiesHeightsArray
     (factor: float)
-    (heightsArray: HeightsArray)
-    : HeightsArray =
+    (heightsArray: WaterBodiesHeightsArray)
+    : WaterBodiesHeightsArray =
     let downsampledMinX = int (float heightsArray.MinX * factor)
     let downsampledMinY = int (float heightsArray.MinY * factor)
     let downsampledWidth = int (float heightsArray.Width * factor)
     let downsampledHeight = int (float heightsArray.Height * factor)
 
     let downsampledHeightsArray =
-        HeightsArray(
+        WaterBodiesHeightsArray(
             downsampledMinX,
             downsampledMinY,
             downsampledWidth,

@@ -11,7 +11,7 @@ open Demeton.Aw3d.Funcs
 open Demeton.WorldCover.Types
 open Demeton.WorldCover.Fetch
 open Demeton.WorldCover.Funcs
-open Demeton.WorldCover.WaterBodiesColoring
+open Demeton.WorldCover.Coloring
 open Raster
 
 
@@ -144,10 +144,7 @@ let fetchWorldCoverTile
     |> ignore
 
 
-    readWorldCoverTiffFile
-        localCacheDir
-        (Some tile1by1Rect)
-        containingTileId
+    readWorldCoverTiffFile localCacheDir (Some tile1by1Rect) containingTileId
 
 
 let identifyAndSimplifyWaterBodies
@@ -179,4 +176,3 @@ let run (options: Options) : Result<unit, string> =
         fetchWorldCoverTile options.TileId options.LocalCacheDir
         |> identifyAndSimplifyWaterBodies options.DemResolution
         |> ignore)
-

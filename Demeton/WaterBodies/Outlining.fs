@@ -1,9 +1,9 @@
-﻿module Demeton.WorldCover.WaterBodiesOutlining
+﻿module Demeton.WorldCover.Outlining
 
 open System
 open Demeton.Dem.Types
 open Raster
-open Demeton.WorldCover.WaterBodiesColoring
+open Demeton.WorldCover.Coloring
 
 type WaterBodyOutline =
     { Raster: HeightsArray

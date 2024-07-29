@@ -11,8 +11,8 @@ open Demeton.Projections.PROJParsing
 open Demeton.Shaders
 open Demeton.Shaders.Types
 open Demeton.WorldCover.Funcs
-open Demeton.WorldCover.WaterBodiesColoring
-open Demeton.WorldCover.WaterBodiesOutlining
+open Demeton.WorldCover.Coloring
+open Demeton.WorldCover.Outlining
 open Demeton.Shaders.WaterBodies.DataSources
 open Demeton.Shaders.WaterBodies.WaterBodiesShaders
 open Png
@@ -145,7 +145,9 @@ let ``Render hillshading with WorldCover water bodies`` () =
         let generateTile =
             ShadeCommand.generateShadedRasterTile
                 shadingDataSourcesFetchers
-                (TileShadeCommand.createShaderFunction waterColor waterBodiesDebugMode)
+                (TileShadeCommand.createShaderFunction
+                    waterColor
+                    waterBodiesDebugMode)
 
         let saveTile =
             ShadeCommand.saveShadedRasterTile
