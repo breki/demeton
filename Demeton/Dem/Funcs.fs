@@ -60,14 +60,12 @@ let inline cellsPerDegree tileSize (level: DemLevel) =
 /// <summary>
 /// Converts longitude value (in degrees) to DEM cell X coordinate.
 /// </summary>
-let inline longitudeToCellX cellsPerDegree lon =
-    lon * cellsPerDegree
+let inline longitudeToCellX cellsPerDegree lon = lon * cellsPerDegree
 
 /// <summary>
 /// Converts latitude value (in degrees) to DEM cell Y coordinate.
 /// </summary>
-let inline latitudeToCellY cellsPerDegree lat =
-    lat * cellsPerDegree
+let inline latitudeToCellY cellsPerDegree lat = lat * cellsPerDegree
 
 /// <summary>
 /// Converts cell X coordinates to longitude (in degrees).
@@ -80,9 +78,7 @@ let inline latitudeToCellY cellsPerDegree lat =
 /// <returns>
 /// The longitude (in degrees) corresponding to the cell X coordinate.
 /// </returns>
-let inline cellXToLongitude
-    cellsPerDegree
-    (cellX: DemCellFractionalX) =
+let inline cellXToLongitude cellsPerDegree (cellX: DemCellFractionalX) =
     cellX / cellsPerDegree
 
 /// <summary>
@@ -96,9 +92,7 @@ let inline cellXToLongitude
 /// <returns>
 /// The latitude (in degrees) corresponding to the cell Y coordinate.
 /// </returns>
-let inline cellYToLatitude
-    cellsPerDegree
-    (cellY: DemCellFractionalY) =
+let inline cellYToLatitude cellsPerDegree (cellY: DemCellFractionalY) =
     cellY / cellsPerDegree
 
 let inline demTileId level (tileX: DemTileX) (tileY: DemTileY) =

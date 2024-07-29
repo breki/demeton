@@ -1,5 +1,8 @@
 ﻿module Tests.Water_bodies.Load_water_bodies_data
 
+// todo 20: remove this module once we're sure we are not going to use any code
+// from it
+
 
 open System
 open System.IO
@@ -32,12 +35,6 @@ let unpackWaterBodiesPngTilesFromWorldCoverTiff
     let waterBodies3by3HeightsArray =
         worldCover3by3HeightsArray |> convertWorldCoverRasterToWaterMonochrome
 
-    // todo 3: chop up the WorldCover tile into 9 1x1 water bodies tiles
-
-    // let extract (extractBounds: Rect) (heightArray: HeightsArray) : HeightsArray =
-
-
-    // todo 6: and save them as PNG files
     ()
 
 
@@ -92,7 +89,6 @@ let loadWaterBodiesTile
                 (availableWorldCoverTiles
                  |> Set.contains containingWorldCoverTileId)
             then
-                // todo 5: implement unpackWaterBodiesPngTilesFromWorldCoverTiff
                 unpackWaterBodiesPngTilesFromWorldCoverTiff
                     cacheDir
                     containingWorldCoverTileId
@@ -164,7 +160,6 @@ let ``Water bodies heights array can be encoded into PNG and back`` () =
     | Error error -> failwith error
 
 
-// todo 30: implement this test
 [<Fact>]
 let ``Returns None if the tile is not covered by the underlying WorldCover tileset``
     ()
@@ -344,5 +339,3 @@ let ``Unpacks TIFF heights array into 9 1x1 water bodies PNG tiles`` () =
         readWorldCoverTiffFile
         CacheDir
         (demTileXYId 6 45)
-
-// todo 2: continue with the test

@@ -204,7 +204,9 @@ let ``Can generate and read a valid 1-bit grayscale PNG`` () =
     let rnd = Random(123)
 
     let initializer =
-        Grayscale1Bit.ImageDataInitializer2D(fun _ _ -> rnd.Next(2) = 1)
+        // Grayscale1Bit.ImageDataInitializer2D(fun _ _ -> rnd.Next(2) = 1)
+        Grayscale1Bit.ImageDataInitializer1D(fun _ -> rnd.Next(2) = 1)
+    // Grayscale1Bit.ImageDataInitializer1D(fun i -> i % 2 = 0)
 
     let imageData =
         Grayscale1Bit.createImageData imageWidth imageHeight initializer

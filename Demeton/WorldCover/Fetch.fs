@@ -136,7 +136,7 @@ let containingWorldCoverFileTileId (singleDegreeTileId: DemTileId) : DemTileId =
 /// Ensures the specified AW3D tile TIFF file is available in the cache
 /// directory, downloading it if necessary.
 /// </summary>
-let ensureWorldCoverFile cacheDir fileExists downloadFile tileId: FileName =
+let ensureWorldCoverFile cacheDir fileExists downloadFile tileId : FileName =
     let cachedTifFileName = worldCoverTileCachedTifFileName cacheDir tileId
 
     if fileExists cachedTifFileName then
@@ -172,8 +172,7 @@ let ensureWorldCoverFiles
 
     availableFilesNeeded
     |> List.map (fun tileId ->
-        tileId,
-        ensureWorldCoverFile cacheDir fileExists downloadFile tileId)
+        tileId, ensureWorldCoverFile cacheDir fileExists downloadFile tileId)
 
 let copyTiffTileToWorldCoverRaster
     (worldCoverData: DemHeight[])
@@ -211,6 +210,7 @@ let copyTiffTileToWorldCoverRaster
         if tiffTileLocalX + 1 < tiffTileWidth then
             tiffTileLocalX <- tiffTileLocalX + 1
             heightsArrayX <- heightsArrayX + 1
+            destIndex <- destIndex + 1
         else
             tiffTileLocalX <- 0
             tiffTileLocalY <- tiffTileLocalY + 1
@@ -375,8 +375,6 @@ let readWorldCoverTiffFile
         )
 
     if cropBounds.IsSome then
-        let x = raster |> extract cropBounds.Value
-        let analysis = analyzeHeightsArray x
-        x
+        raster |> extract cropBounds.Value
     else
         raster

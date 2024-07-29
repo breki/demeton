@@ -145,9 +145,11 @@ let extractWaterBodiesTileFromWorldCoverTileIfNeeded cacheDir cachedLoadResult =
                 downloadFile
                 containingWorldCoverTileId
 
-        let tilesArray =
+        let worldCoverHeightsArray =
             readWorldCoverTiffFile cacheDir None containingWorldCoverTileId
-            |> convertWorldCoverRasterToWaterMonochrome
+
+        let tilesArray =
+            worldCoverHeightsArray
             |> unpackWaterBodiesTilesFromWorldCoverTile
                 containingWorldCoverTileId
 
@@ -161,14 +163,14 @@ let extractWaterBodiesTileFromWorldCoverTileIfNeeded cacheDir cachedLoadResult =
             let cachedPngFileName =
                 cachedWaterBodiesPngFileName cacheDir tileId
 
-            match FileSys.openFileToWrite cachedPngFileName with
+            match openFileToWrite cachedPngFileName with
             | Ok stream ->
                 stream
                 |> encodeWaterBodiesHeightsArrayToPng heightsArray
                 |> ignore
             | Error error -> raise error.Exception)
 
-        // todo 0:use the correct water bodies tile from the array and return it
+        // use the correct water bodies tile from the array and return it
         tilesArray
         |> Array2DExt.toSeq
         |> Seq.filter (fun (tileId, _) -> tileId = waterBodiesTileId)
