@@ -1,7 +1,7 @@
 ﻿module Demeton.Tests.Commands_tests.DemWithWaterBodiesCommand.Downsampling_water_bodies
 
 
-open Demeton.WorldCover.Funcs
+open Demeton.WaterBodies.Funcs
 open Xunit
 open Swensen.Unquote
 

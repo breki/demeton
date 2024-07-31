@@ -547,3 +547,58 @@ let heightsArrayToGrayscale16BitImageData
         heightsArray.Width
         heightsArray.Height
         (Grayscale16Bit.ImageDataInitializer1D initializer)
+
+let downsampleHeightsArray
+    (factor: float)
+    (heightsArray: HeightsArray)
+    : HeightsArray =
+    let downsampledMinX = int (float heightsArray.MinX * factor)
+    let downsampledMinY = int (float heightsArray.MinY * factor)
+    let downsampledWidth = int (float heightsArray.Width * factor)
+    let downsampledHeight = int (float heightsArray.Height * factor)
+
+    let downsampledHeightsArray =
+        HeightsArray(
+            downsampledMinX,
+            downsampledMinY,
+            downsampledWidth,
+            downsampledHeight,
+            EmptyHeightsArray
+        )
+
+    for y in 0 .. downsampledHeight - 1 do
+        for x in 0 .. downsampledWidth - 1 do
+            // Calculate the exact original coordinates this new pixel maps to
+            let origStartX = (float x / factor)
+            let origEndX = min (float (x + 1) / factor) (float (heightsArray.Width - 1))
+            let origStartY = (float y / factor)
+            let origEndY = min (float (y + 1) / factor) (float (heightsArray.Height - 1))
+
+            let mutable weightedSum = 0.0
+            let mutable totalWeight = 0.0
+
+            // Iterate through the original pixels that overlap with the new pixel
+            for oy in int origStartY .. int origEndY do
+                for ox in int origStartX .. int origEndX do
+                    // Calculate the overlap area (weight) for each original pixel
+                    let left = max origStartX (float ox)
+                    let right = min origEndX (float ox + 1.0)
+                    let top = max origStartY (float oy)
+                    let bottom = min origEndY (float oy + 1.0)
+
+                    let weight = (right - left) * (bottom - top)
+
+                    let height = heightsArray.heightAtLocal (ox, oy)
+
+                    weightedSum <- weightedSum + (float height) * weight
+
+                    totalWeight <- totalWeight + weight
+
+            // Set the new pixel value based on the weighted average
+            if totalWeight > 0.0 then
+                let downsampledValue =
+                    Math.Round(weightedSum / totalWeight) |> int16
+
+                downsampledHeightsArray.setHeightAtLocal (x, y) downsampledValue
+
+    downsampledHeightsArray

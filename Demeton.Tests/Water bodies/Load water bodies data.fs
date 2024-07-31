@@ -15,6 +15,7 @@ open Demeton.Dem.Funcs
 open FileSys
 open Demeton.WorldCover.Fetch
 open Demeton.WorldCover.Funcs
+open Demeton.WaterBodies.Types
 open Demeton.WaterBodies.Png
 
 

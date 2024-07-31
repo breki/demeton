@@ -8,13 +8,15 @@ open Demeton.Dem.Types
 open Demeton.Dem.Funcs
 open Demeton.Aw3d.Types
 open Demeton.Aw3d.Funcs
+open Demeton.WaterBodies.Funcs
 open Demeton.WorldCover.Types
 open Demeton.WorldCover.Fetch
 open Demeton.WorldCover.Funcs
 open Demeton.WorldCover.Coloring
 open Demeton.WorldCover.WaterBodiesFetch
 open Raster
-
+open FileSys
+open System.IO
 
 type Options =
     { TileId: DemTileId
@@ -118,6 +120,10 @@ let fetchAw3dTile
     |> Result.bind (fun _ -> (readAw3dTile localCacheDir tileId) |> Result.Ok)
 
 
+let downsampleAw3dTile demResolutionParameter heightsArray =
+    let downsamplingFactor = float demResolutionParameter / 90.
+
+    heightsArray |> downsampleHeightsArray downsamplingFactor
 
 
 // todo 50: in order to properly identify the water bodies, we need to
@@ -148,6 +154,18 @@ let fetchWorldCoverTile
     readWorldCoverTiffFile localCacheDir (Some tile1by1Rect) containingTileId
 
 
+let downsampleWaterBodiesHeightsArray demResolutionParameter heightsArray =
+    // first calculate how many pixels per degree will the final DEM have
+    let finalDemPixelsPerDegree =
+        float demResolutionParameter / 90. * (float Aw3dTileSize)
+
+    // now, based on that value calculate the downsampling factor needed to
+    // reduce WorldCover's 12000 degrees per degree to the final resolution
+    let downsamplingFactor =
+        finalDemPixelsPerDegree / (float WorldCoverCellsPerDegree)
+
+    heightsArray |> downsampleWaterBodiesHeightsArray downsamplingFactor
+
 let identifyAndSimplifyWaterBodies
     demResolutionParameter
     worldCoverHeightsArray
@@ -171,6 +189,51 @@ let identifyAndSimplifyWaterBodies
     worldCoverTargetResolution |> colorWaterBodies
 
 
+let mergeDemWithWaterBodies
+    (waterBodiesHeightsArray: HeightsArray)
+    (demHeightsArray: HeightsArray)
+    : HeightsArray =
+    if
+        waterBodiesHeightsArray.Width <> demHeightsArray.Width
+        || waterBodiesHeightsArray.Height <> demHeightsArray.Height
+    then
+        invalidArg
+            "waterBodiesHeightsArray"
+            (sprintf
+                "The water bodies array (%d,%d) must have the same dimensions as the DEM array (%d,%d)."
+                waterBodiesHeightsArray.Width
+                waterBodiesHeightsArray.Height
+                demHeightsArray.Width
+                demHeightsArray.Height)
+
+    for index in 0 .. waterBodiesHeightsArray.Cells.Length - 1 do
+        if waterBodiesHeightsArray.Cells.[index] = 1s then
+            demHeightsArray.Cells.[index] <- Int16.MinValue
+
+    demHeightsArray
+
+
+let writeHeightsArrayToHgtFile
+    (fileName: FileName)
+    (heightsArray: HeightsArray)
+    : FileName =
+    Log.debug "Writing the DEM tile to %s..." fileName
+
+    fileName |> Pth.directory |> FileSys.ensureDirectoryExists |> ignore
+
+    FileSys.openFileToWrite (fileName)
+    |> function
+        | Ok stream ->
+            use stream = stream
+
+            for height in heightsArray.Cells do
+                stream |> Bnry.writeBigEndianInt16 height |> ignore
+
+            stream.Close()
+
+            fileName
+        | Error error -> raise error.Exception
+
 let run (options: Options) : Result<unit, string> =
     fetchAw3dTile options.TileId options.LocalCacheDir
     |> Result.map (fun aw3dTile ->
@@ -182,25 +245,45 @@ let run (options: Options) : Result<unit, string> =
             |> listAllAvailableFiles FileSys.openFileToRead
             |> Set.ofSeq
 
-        let result =
-            loadWaterBodiesTileFromCache
-                options.LocalCacheDir
-                availableWorldCoverTiles
-                options.TileId
-            |> makeNoneFileIfNeeded options.LocalCacheDir
-            |> extractWaterBodiesTileFromWorldCoverTileIfNeeded
-                options.LocalCacheDir
+        let downsampledAw3dTile =
+            aw3dTile |> downsampleAw3dTile options.DemResolution
 
-        // todo 10: continue with the command - simplify water bodies
-        //   and then merge it with the DEM and save it as DEM tile
+        loadWaterBodiesTileFromCache
+            options.LocalCacheDir
+            availableWorldCoverTiles
+            options.TileId
+        |> makeNoneFileIfNeeded options.LocalCacheDir
+        |> extractWaterBodiesTileFromWorldCoverTileIfNeeded
+            options.LocalCacheDir
+        |> function
+            | CachedTileLoaded tileHeightsArray ->
+                // todo 20: simplify water bodies
+
+                tileHeightsArray
+                |> Option.map (fun tileHeightsArray ->
+                    let downsampledWaterBodiesTile =
+                        tileHeightsArray
+                        |> downsampleWaterBodiesHeightsArray
+                            options.DemResolution
+
+                    let hgtFileName =
+                        downsampledAw3dTile
+                        |> mergeDemWithWaterBodies downsampledWaterBodiesTile
+                        |> writeHeightsArrayToHgtFile (
+                            Path.Combine(
+                                options.OutputDir,
+                                toTileName options.TileId + ".hgt"
+                            )
+                        )
+
+                    hgtFileName)
+            | TileNeedsToBeDownloaded _ ->
+                invalidOp "Bug: this should never happen"
+            | TileDoesNotExistInWorldCover _ ->
+                NotImplementedException(
+                    "The case when there is no WorldCover tile"
+                )
+                |> raise
+        |> ignore
 
         ())
-// match result with
-// | CachedTileLoaded heightsArray ->
-//     test <@ heightsArray |> Option.isSome @>
-// | _ -> Should.fail "Unexpected result"
-//
-//
-// fetchWorldCoverTile options.TileId options.LocalCacheDir
-// |> identifyAndSimplifyWaterBodies options.DemResolution
-// |> ignore)

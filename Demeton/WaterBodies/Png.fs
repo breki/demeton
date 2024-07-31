@@ -7,13 +7,9 @@ open Demeton.Dem.Types
 open Png.Types
 open Raster
 open Demeton.Dem.Funcs
+open Demeton.WaterBodies.Types
 open FileSys
 
-
-type WaterBodiesHeightsArray = HeightsArray
-
-[<Literal>]
-let WaterBodiesCacheSubdirName = "WaterBodies"
 
 /// <summary>
 /// Encodes the <see cref="HeightsArray" /> containing water bodies tile data into

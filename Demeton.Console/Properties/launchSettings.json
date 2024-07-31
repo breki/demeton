@@ -2,7 +2,7 @@
   "profiles": {
     "Demeton.Console": {
       "commandName": "Project",
-      "commandLineArgs": "dem-with-water-bodies N45E005"
+      "commandLineArgs": "dem-with-water-bodies N46E006"
     }
   }
 }

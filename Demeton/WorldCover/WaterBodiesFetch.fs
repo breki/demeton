@@ -8,6 +8,7 @@ open Demeton.Dem.Funcs
 open Demeton.WorldCover.Types
 open Demeton.WorldCover.Funcs
 open Demeton.WorldCover.Fetch
+open Demeton.WaterBodies.Types
 open Demeton.WaterBodies.Png
 open Raster
 open FileSys
