@@ -1,6 +1,8 @@
 ﻿[<RequireQualifiedAccess>]
 module Demeton.Console.Wiring
 
+open System
+open BitMiracle.LibTiff.Classic
 open Demeton.Dem.Types
 open Demeton.Dem.Funcs
 open Demeton.Srtm.Downsampling
@@ -54,3 +56,25 @@ let fetchSrtmHeights srtmDir localCacheDir srtmLevel lonLatBounds =
     let tileReader = fetchSrtmTile srtmDir localCacheDir
     let srtmTilesNeeded = boundsToTiles 3600 srtmLevel lonLatBounds
     fetchDemHeights tileReader srtmTilesNeeded
+
+
+
+
+type DisableErrorHandler() =
+    inherit TiffErrorHandler()
+
+    override this.WarningHandler
+        (tif: Tiff, method: string, format: string, [<ParamArray>] args: obj[]) =
+        // do nothing, ie, do not write warnings to console
+        ()
+
+    override this.WarningHandlerExt
+        (
+            tif: Tiff,
+            clientData: obj,
+            method: string,
+            format: string,
+            [<ParamArray>] args: obj[]
+        ) =
+        // do nothing, ie, do not write warnings to console
+        ()

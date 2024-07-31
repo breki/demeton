@@ -137,7 +137,7 @@ let ``Do not download tile if TIFF already in cache`` () =
     let sampleTileId = demTileXYId 46 6
 
     let sampleCachedTifFileName =
-        worldCoverTileCachedTifFileName cacheDir sampleTileId
+        worldCoverTileCachedTiffFileName cacheDir sampleTileId
 
     let fileExists =
         function
@@ -159,7 +159,7 @@ let ``Download tile file if not in cache`` () =
     let sampleTileId = demTileXYId 6 -46
 
     let expectedCachedTiffFileName =
-        worldCoverTileCachedTifFileName cacheDir sampleTileId
+        worldCoverTileCachedTiffFileName cacheDir sampleTileId
 
     let fileExists _ = false
 

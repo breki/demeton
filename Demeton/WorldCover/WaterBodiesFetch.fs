@@ -16,6 +16,10 @@ let unpackWaterBodiesTilesFromWorldCoverTile
     worldCoverTileId
     (heightsArray: HeightsArray)
     =
+    Log.debug
+        "Unpacking WorldCover TIFF tile %s into 3x3 water bodies tiles..."
+        (toTileName worldCoverTileId)
+
     let waterBodiesHeightsArray3by3 =
         heightsArray |> convertWorldCoverRasterToWaterMonochrome
 
@@ -26,6 +30,8 @@ let unpackWaterBodiesTilesFromWorldCoverTile
             demTileXYId
                 (worldCoverTileId.TileX + x)
                 (worldCoverTileId.TileY + y)
+
+        Log.debug "Extracting water bodies tile %s..." (toTileName tileId)
 
         let minX, minY = tileMinCell WorldCoverTileSize tileId
 
@@ -94,6 +100,11 @@ let loadWaterBodiesTileFromCache
     |> function
         | CachedNoneFile _ -> CachedTileLoaded None
         | CachedPng(tileId, cachedPngFileName) ->
+            Log.debug
+                "Loading water bodies tile %s from '%s'..."
+                (toTileName tileId)
+                cachedPngFileName
+
             cachedPngFileName
             |> decodeWaterBodiesTileFromPngFile WorldCoverTileSize tileId
             |> function
@@ -152,6 +163,11 @@ let extractWaterBodiesTileFromWorldCoverTileIfNeeded cacheDir cachedLoadResult =
         |> Array2D.iter (fun (tileId, heightsArray) ->
             let cachedPngFileName =
                 cachedWaterBodiesPngFileName cacheDir tileId
+
+            Log.debug
+                "Writing water bodies tile %s to '%s'..."
+                (toTileName tileId)
+                cachedPngFileName
 
             match openFileToWrite cachedPngFileName with
             | Ok stream ->

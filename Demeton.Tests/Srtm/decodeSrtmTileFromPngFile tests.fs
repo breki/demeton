@@ -2,7 +2,6 @@
 
 open Demeton.Dem.Funcs
 open Demeton.Srtm
-open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 open Png
 open Png.Types
@@ -30,7 +29,10 @@ let ``Can decode a valid PNG-encoded SRTM tile`` () =
         | false -> ()
 
         printfn "Preparing new instance of %s..." pngFilename
-        use pngTempFileStream = File.OpenWrite(pngFilename)
+
+        use pngTempFileStream =
+            File.Open(pngFilename, FileMode.Create, FileAccess.Write)
+
         resourceStream.CopyTo(pngTempFileStream)
         pngTempFileStream.Close()
 
@@ -74,7 +76,7 @@ let ``Throws an exception if PNG image size is not of a SRTM tile`` () =
         let imageData =
             Grayscale16Bit.createImageData imageWidth imageHeight initializer
 
-        use stream = File.OpenWrite(imageFileName)
+        use stream = File.Open(imageFileName, FileMode.Create, FileAccess.Write)
 
         stream |> savePngToStream ihdr imageData |> ignore
 

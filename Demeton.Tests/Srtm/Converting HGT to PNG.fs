@@ -91,7 +91,9 @@ let ``Can convert a HGT file into PNG image`` () =
     printfn "%d Encoding heights into the PNG..." clock.ElapsedMilliseconds
 
     let pngFileName = Path.GetFullPath(srtmTileId + "-test.png")
-    use pngWriteStream = File.OpenWrite(pngFileName)
+
+    use pngWriteStream =
+        File.Open(pngFileName, FileMode.Create, FileAccess.Write)
 
     printfn "%d Writing image to %s ..." clock.ElapsedMilliseconds pngFileName
 

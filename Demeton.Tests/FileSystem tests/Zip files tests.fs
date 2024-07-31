@@ -8,7 +8,10 @@ open Xunit
 
 let copySampleResourceFileToDisk resourceFileName diskFileName =
     use resourceStream = sampleFileStream resourceFileName
-    use zipOutputFileStream = File.OpenWrite diskFileName
+
+    use zipOutputFileStream =
+        File.Open(diskFileName, FileMode.Create, FileAccess.Write)
+
     resourceStream.CopyTo(zipOutputFileStream)
     zipOutputFileStream.Close()
     diskFileName

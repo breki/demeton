@@ -205,8 +205,8 @@ let ``Can generate and read a valid 1-bit grayscale PNG`` () =
 
     let initializer =
         // Grayscale1Bit.ImageDataInitializer2D(fun _ _ -> rnd.Next(2) = 1)
-        Grayscale1Bit.ImageDataInitializer1D(fun _ -> rnd.Next(2) = 1)
-    // Grayscale1Bit.ImageDataInitializer1D(fun i -> i % 2 = 0)
+        // Grayscale1Bit.ImageDataInitializer1D(fun _ -> rnd.Next(2) = 1)
+        Grayscale1Bit.ImageDataInitializer1D(fun i -> i % 2 = 0)
 
     let imageData =
         Grayscale1Bit.createImageData imageWidth imageHeight initializer
@@ -214,7 +214,7 @@ let ``Can generate and read a valid 1-bit grayscale PNG`` () =
     let imageFileName = Path.GetFullPath("test-grayscale-1.png")
     printfn $"Saving test image to %s{imageFileName}"
 
-    use stream = File.OpenWrite(imageFileName)
+    use stream = File.Open(imageFileName, FileMode.Create)
 
     stream |> savePngToStream ihdr imageData |> ignore
 
@@ -250,7 +250,7 @@ let ``Can generate and read a valid 8-bit grayscale PNG`` () =
     let imageFileName = Path.GetFullPath("test-grayscale-8.png")
     printfn "Saving test image to %s" imageFileName
 
-    use stream = File.OpenWrite(imageFileName)
+    use stream = File.Open(imageFileName, FileMode.Create, FileAccess.Write)
 
     stream |> savePngToStream ihdr imageData |> ignore
 
@@ -289,7 +289,7 @@ let ``Can generate and read a valid 16-bit grayscale PNG`` () =
     let imageFileName = Path.GetFullPath("test-grayscale-16.png")
     printfn "Saving test image to %s" imageFileName
 
-    use stream = File.OpenWrite(imageFileName)
+    use stream = File.Open(imageFileName, FileMode.Create, FileAccess.Write)
 
     stream |> savePngToStream ihdr imageData |> ignore
 
@@ -372,7 +372,7 @@ let ``Can generate and read a valid 8-bit RGBA PNG`` () =
     let imageFileName = Path.GetFullPath("test-rgba-8.png")
     printfn "Saving test image to %s" imageFileName
 
-    use stream = File.OpenWrite(imageFileName)
+    use stream = File.Open(imageFileName, FileMode.Create, FileAccess.Write)
 
     stream |> savePngToStream ihdr imageData |> ignore
 

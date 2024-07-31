@@ -12,6 +12,7 @@ open Demeton.WorldCover.Types
 open Demeton.WorldCover.Fetch
 open Demeton.WorldCover.Funcs
 open Demeton.WorldCover.Coloring
+open Demeton.WorldCover.WaterBodiesFetch
 open Raster
 
 
@@ -173,6 +174,33 @@ let identifyAndSimplifyWaterBodies
 let run (options: Options) : Result<unit, string> =
     fetchAw3dTile options.TileId options.LocalCacheDir
     |> Result.map (fun aw3dTile ->
-        fetchWorldCoverTile options.TileId options.LocalCacheDir
-        |> identifyAndSimplifyWaterBodies options.DemResolution
-        |> ignore)
+        let availableWorldCoverTiles =
+            ensureGeoJsonFile
+                options.LocalCacheDir
+                FileSys.fileExists
+                FileSys.downloadFile
+            |> listAllAvailableFiles FileSys.openFileToRead
+            |> Set.ofSeq
+
+        let result =
+            loadWaterBodiesTileFromCache
+                options.LocalCacheDir
+                availableWorldCoverTiles
+                options.TileId
+            |> makeNoneFileIfNeeded options.LocalCacheDir
+            |> extractWaterBodiesTileFromWorldCoverTileIfNeeded
+                options.LocalCacheDir
+
+        // todo 10: continue with the command - simplify water bodies
+        //   and then merge it with the DEM and save it as DEM tile
+
+        ())
+// match result with
+// | CachedTileLoaded heightsArray ->
+//     test <@ heightsArray |> Option.isSome @>
+// | _ -> Should.fail "Unexpected result"
+//
+//
+// fetchWorldCoverTile options.TileId options.LocalCacheDir
+// |> identifyAndSimplifyWaterBodies options.DemResolution
+// |> ignore)

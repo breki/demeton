@@ -117,7 +117,8 @@ let openFileToRead: FileReader =
 let openFileToWrite: FileWriter =
     fun fileName ->
         try
-            File.OpenWrite(fileName) :> Stream |> Ok
+            File.Open(fileName, FileMode.Create, FileAccess.Write) :> Stream
+            |> Ok
         with ex ->
             match mapFileSysException ex with
             | Some error -> Error error
@@ -181,7 +182,7 @@ let closeStream (stream: Stream) = stream.Close()
 /// Downloads a file from the specified URL and saves it to the specified
 /// path on the disk.
 /// </summary>
-let downloadFile (url: string) (destinationPath: string): string =
+let downloadFile (url: string) (destinationPath: string) : string =
     Log.debug $"Downloading file from %s{url} to %s{destinationPath}..."
 
     let httpClient = new HttpClient()

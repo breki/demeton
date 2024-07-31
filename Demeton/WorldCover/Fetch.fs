@@ -107,7 +107,7 @@ let worldCoverTileDownloadUrl (tileId: DemTileId) : string =
 /// <summary>
 /// Returns the path to the cached TIFF file for the given AW3D tile.
 /// </summary>
-let worldCoverTileCachedTifFileName cacheDir (tileId: DemTileId) =
+let worldCoverTileCachedTiffFileName cacheDir (tileId: DemTileId) =
     Path.Combine(cacheDir, WorldCoverDirName, $"{tileId.FormatLat2Lon3}.tif")
 
 
@@ -137,10 +137,10 @@ let containingWorldCoverFileTileId (singleDegreeTileId: DemTileId) : DemTileId =
 /// directory, downloading it if necessary.
 /// </summary>
 let ensureWorldCoverFile cacheDir fileExists downloadFile tileId : FileName =
-    let cachedTifFileName = worldCoverTileCachedTifFileName cacheDir tileId
+    let cachedTiffFileName = worldCoverTileCachedTiffFileName cacheDir tileId
 
-    if fileExists cachedTifFileName then
-        cachedTifFileName
+    if fileExists cachedTiffFileName then
+        cachedTiffFileName
     else
         // download the tile
         let tileUrl = tileId |> worldCoverTileDownloadUrl
@@ -148,7 +148,7 @@ let ensureWorldCoverFile cacheDir fileExists downloadFile tileId : FileName =
         Log.debug
             $"Downloading WorldCover tile {tileId.FormatLat2Lon3} from {tileUrl}..."
 
-        downloadFile tileUrl cachedTifFileName
+        downloadFile tileUrl cachedTiffFileName
 
 
 
@@ -233,8 +233,11 @@ let readWorldCoverTiffFile
     (cropBounds: Rect option)
     (worldCoverTileId: DemTileId)
     : HeightsArray =
+
     let worldCoverTiffFileName =
-        worldCoverTileCachedTifFileName cacheDir worldCoverTileId
+        worldCoverTileCachedTiffFileName cacheDir worldCoverTileId
+
+    Log.debug $"Reading WorldCover TIFF file %s{worldCoverTiffFileName}..."
 
     use tiff = Tiff.Open(worldCoverTiffFileName, "r")
 

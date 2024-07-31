@@ -1,4 +1,5 @@
-﻿open CommandLine
+﻿open BitMiracle.LibTiff.Classic
+open CommandLine
 open CommandLine.Common
 open Demeton.Commands
 open Demeton.Console
@@ -135,6 +136,9 @@ let main args =
         "Demeton by Igor Brejc (https://github.com/breki/demeton)"
 
     Console.Out.WriteLine ""
+
+    // Disable TIFF library logging
+    Tiff.SetErrorHandler(Wiring.DisableErrorHandler()) |> ignore
 
     let commandResult =
         Shell.parseAndExecuteCommandLine
