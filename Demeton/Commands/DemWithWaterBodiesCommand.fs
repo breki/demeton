@@ -2,8 +2,10 @@
 module Demeton.Commands.DemWithWaterBodiesCommand
 
 open System
+open System.IO
 open CommandLine
 open CommandLine.Common
+open Demeton.Dem
 open Demeton.Dem.Types
 open Demeton.Dem.Funcs
 open Demeton.Aw3d.Types
@@ -15,8 +17,6 @@ open Demeton.WorldCover.Funcs
 open Demeton.WorldCover.Coloring
 open Demeton.WorldCover.WaterBodiesFetch
 open Raster
-open FileSys
-open System.IO
 
 type Options =
     { TileId: DemTileId
@@ -219,34 +219,44 @@ let encodeWaterBodiesInfoIntoDem
         let height = demHeightsArray.Cells.[index]
         let waterBody = waterBodiesHeightsArray.Cells.[index]
 
-        demHeightsArray.Cells.[index] <- (height - Math.Abs(height % 2s)) + waterBody
+        demHeightsArray.Cells.[index] <-
+            (height - Math.Abs(height % 2s)) + waterBody
 
     demHeightsArray
 
 
-let writeHeightsArrayToHgtFile
-    (fileName: FileName)
-    (heightsArray: HeightsArray)
-    : FileName =
-    Log.debug "Writing the DEM tile to %s..." fileName
+let extendHeightsArrayWithAdditionalRowAndColumn (heightsArray: HeightsArray) =
+    let oldWidth = heightsArray.Width
+    let newWidth = oldWidth + 1
+    let newHeight = heightsArray.Height + 1
 
-    fileName |> Pth.directory |> FileSys.ensureDirectoryExists |> ignore
+    let extendedCells = Array.zeroCreate (newWidth * newHeight)
 
-    FileSys.openFileToWrite (fileName)
-    |> function
-        | Ok stream ->
-            use stream = stream
+    let mutable destIndex = 0
 
-            for height in heightsArray.Cells do
-                stream |> Bnry.writeBigEndianInt16 height |> ignore
+    for sourceIndex in 0 .. heightsArray.Cells.Length - 1 do
+        extendedCells[destIndex] <- heightsArray.Cells.[sourceIndex]
 
-            stream.Close()
+        if (sourceIndex + 1) % oldWidth = 0 then
+            // fill the final column with the "missing value" marker
+            extendedCells.[destIndex + 1] <- Int16.MinValue
+            destIndex <- destIndex + 2
+        else
+            destIndex <- destIndex + 1
 
-            fileName
-        | Error error -> raise error.Exception
+    // fill the final row with the "missing value" marker
+    while destIndex < extendedCells.Length do
+        extendedCells.[destIndex] <- Int16.MinValue
+        destIndex <- destIndex + 1
 
-// todo 5: generate additional row and column in HGT file so it is compatible
-//   with SRTM
+    HeightsArray(
+        heightsArray.MinX,
+        heightsArray.MinY,
+        newWidth,
+        newHeight,
+        HeightsArrayDirectImport extendedCells
+    )
+
 let run (options: Options) : Result<unit, string> =
     fetchAw3dTile options.TileId options.LocalCacheDir
     |> Result.map (fun aw3dTile ->
@@ -281,8 +291,13 @@ let run (options: Options) : Result<unit, string> =
 
                     let hgtFileName =
                         downsampledAw3dTile
-                        |> encodeWaterBodiesInfoIntoDem downsampledWaterBodiesTile
-                        |> writeHeightsArrayToHgtFile (
+                        |> encodeWaterBodiesInfoIntoDem
+                            downsampledWaterBodiesTile
+                        // extend the heights array with one additional
+                        //  row and column so it is compatible with the original
+                        //  SRTM HGT files
+                        |> extendHeightsArrayWithAdditionalRowAndColumn
+                        |> Hgt.writeHeightsArrayToFile (
                             Path.Combine(
                                 options.OutputDir,
                                 toTileName options.TileId + ".hgt"

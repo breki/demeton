@@ -116,6 +116,7 @@
         <Compile Include="Commands tests\TileShadeCommand\Integration tests.fs"/>
         <Compile Include="Commands tests\ImportSrtmTilesCommand tests.fs"/>
         <Compile Include="Commands tests\DemWithWaterBodiesCommand\Downsampling water bodies.fs"/>
+        <Compile Include="Commands tests\DemWithWaterBodiesCommand\Dealing with DEM.fs"/>
         <Compile Include="Commands tests\DemWithWaterBodiesCommand\Command line parsing.fs"/>
         <Compile Include="Commands tests\DemWithWaterBodiesCommand\Integration tests.fs"/>
         <Compile Include="Acceptance tests\Generating hillshading rasters.fs"/>

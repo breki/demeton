@@ -6,6 +6,7 @@ open System.IO
 open Demeton.Dem.Types
 open Demeton.Dem.Funcs
 open Demeton.IOTypes
+open FileSys
 
 /// <summary>
 /// Reads HeightsArray data from a HGT-encoded stream.
@@ -80,3 +81,26 @@ let createDemTileFromStream tileSize tileId stream =
         tileSize,
         HeightsArrayDirectImport srtmHeights
     )
+
+
+
+let writeHeightsArrayToFile
+    (fileName: FileName)
+    (heightsArray: HeightsArray)
+    : FileName =
+    Log.debug "Writing the DEM tile to %s..." fileName
+
+    fileName |> Pth.directory |> ensureDirectoryExists |> ignore
+
+    openFileToWrite fileName
+    |> function
+        | Ok stream ->
+            use stream = stream
+
+            for height in heightsArray.Cells do
+                stream |> Bnry.writeBigEndianInt16 height |> ignore
+
+            stream.Close()
+
+            fileName
+        | Error error -> raise error.Exception
