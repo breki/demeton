@@ -3,14 +3,7 @@
 open Demeton.Dem.Types
 open Demeton.WaterBodies.Types
 
-// todo 30: we need to implement a better downsampling algorithm, this one is not
-//   working well for large downsampling factors.
-//   Possible solutions:
-//       1. lower the threshold (although the maxWeightedSum is already quite low
-//          right now, just 10%)
-//       2. downsample in multiple passes - 2 by 2 until we reach the final step.
-//          For example, if the factor is 10, we would do it 2 * 2 * 2.5
-/// <summary>
+8/// <summary>
 /// Downsample the water bodies heights array by the given factor.
 /// </summary>
 let downsampleWaterBodiesHeightsArray

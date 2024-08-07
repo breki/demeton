@@ -19,7 +19,7 @@
 
     <ItemGroup>
         <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true"/>
-        <Compile Include="Should.fs" />
+        <Compile Include="Should.fs"/>
         <Compile Include="TestLog.fs"/>
         <Compile Include="TestHelp.fs"/>
         <Compile Include="BetterFsCheckRunner.fs"/>
@@ -145,8 +145,7 @@
         <Compile Include="WorldCover\Water bodies coloring tests.fs"/>
         <Compile Include="WorldCover\WorldCover experiments.fs"/>
         <Compile Include="todo.fs"/>
-        <Compile Include="Water bodies\Load water bodies data.fs" />
-        <Compile Include="Water bodies\Load water bodies data - new try.fs" />
+        <Compile Include="Water bodies\Load water bodies data - new try.fs"/>
     </ItemGroup>
 
     <ItemGroup>
