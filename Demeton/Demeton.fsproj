@@ -61,6 +61,7 @@
         <Compile Include="IOTypes.fs"/>
         <Compile Include="Dem\Types.fs"/>
         <Compile Include="Dem\Funcs.fs"/>
+        <Compile Include="Dem\Hgt.fs"/>
         <Compile Include="Srtm\Funcs.fs"/>
         <Compile Include="Srtm\Png.fs"/>
         <Compile Include="Srtm\Downsampling.fs"/>

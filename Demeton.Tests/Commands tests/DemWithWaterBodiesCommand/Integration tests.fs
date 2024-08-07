@@ -10,7 +10,7 @@ open Swensen.Unquote
 open TestHelp
 
 [<Fact>]
-let ``Merging DEM with water bodies`` () =
+let ``Encoding water bodies info into DEM`` () =
     let testWidth = 3
     let testHeight = 3
 
@@ -39,7 +39,7 @@ let ``Merging DEM with water bodies`` () =
         )
 
     let merged =
-        dem |> DemWithWaterBodiesCommand.mergeDemWithWaterBodies waterBodies
+        dem |> DemWithWaterBodiesCommand.encodeWaterBodiesInfoIntoDem waterBodies
 
     let wb = Int16.MinValue
 

@@ -1,5 +1,6 @@
 ﻿module Tests.Srtm.``Reading SRTM HGT files``
 
+open Demeton.Dem
 open Demeton.Dem.Types
 open Demeton.Dem.Funcs
 open Demeton.Srtm.Funcs
@@ -11,6 +12,8 @@ open FsUnit
 open Xunit
 open Swensen.Unquote
 open TestHelp
+
+// todo 3: move this to Hgt test module
 
 [<Fact>]
 let ``Can read SRTM heights`` () =
@@ -36,7 +39,7 @@ let ``Can read SRTM heights`` () =
                1uy |]
         )
 
-    let heights = readSrtmHeightsFromStream 2 stream
+    let heights = Hgt.readFromStream 2 stream
 
     heights |> should equal [| 2560s; 0s; 2561s; 1s |]
 
@@ -45,7 +48,7 @@ let ``Can read null SRTM heights`` () =
     use stream =
         new MemoryStream([| 0x80uy; 0uy; 10uy; 0uy; 10uy; 0uy; 0uy; 0uy |])
 
-    let heights = readSrtmHeightsFromStream 1 stream
+    let heights = Hgt.readFromStream 1 stream
 
     heights |> should equal [| DemHeightNone |]
 
@@ -56,7 +59,7 @@ let ``Can handle negative SRTM heights`` () =
             [| 255uy; 0b10011100uy; 10uy; 0uy; 10uy; 0uy; 0uy; 0uy |]
         )
 
-    let heights = readSrtmHeightsFromStream 1 stream
+    let heights = Hgt.readFromStream 1 stream
 
     heights |> should equal [| -100s |]
 

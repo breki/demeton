@@ -189,10 +189,16 @@ let identifyAndSimplifyWaterBodies
     worldCoverTargetResolution |> colorWaterBodies
 
 
-// todo 1: instead of putting Int16.MinValue for water bodies, use the LSB
-//   (0 - no water body, 1  - water body) - test the behavior for negative values, too
-
-let mergeDemWithWaterBodies
+/// <summary>
+/// Encodes the water bodies information into the DEM heights array.
+/// </summary>
+/// <remarks>
+/// It uses the LSB of the height to encode the water bodies information.
+/// If the bit is set to 1, the cell represents a water. If it is set to 0,
+/// the cell represents a land. This also means that all the odd-value heights
+/// are rounded to the even number (e.g. 1 -> 0, 3 -> 2, 5 -> 4, etc.).
+/// </remarks>
+let encodeWaterBodiesInfoIntoDem
     (waterBodiesHeightsArray: HeightsArray)
     (demHeightsArray: HeightsArray)
     : HeightsArray =
@@ -213,7 +219,6 @@ let mergeDemWithWaterBodies
         let height = demHeightsArray.Cells.[index]
         let waterBody = waterBodiesHeightsArray.Cells.[index]
 
-        let zz = height % 2s
         demHeightsArray.Cells.[index] <- (height - Math.Abs(height % 2s)) + waterBody
 
     demHeightsArray
@@ -276,7 +281,7 @@ let run (options: Options) : Result<unit, string> =
 
                     let hgtFileName =
                         downsampledAw3dTile
-                        |> mergeDemWithWaterBodies downsampledWaterBodiesTile
+                        |> encodeWaterBodiesInfoIntoDem downsampledWaterBodiesTile
                         |> writeHeightsArrayToHgtFile (
                             Path.Combine(
                                 options.OutputDir,
