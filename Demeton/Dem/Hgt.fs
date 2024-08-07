@@ -60,3 +60,23 @@ let readFromStream tileSize (stream: Stream) : DemHeight[] =
         heightsReadCount <- heightsReadCount + 1
 
     heightsArray
+
+
+
+
+/// <summary>
+/// Reads the <see cref="HeightsArray"/> of a SRTM tile from
+/// a HGT file stream.
+/// </summary>
+let createDemTileFromStream tileSize tileId stream =
+    let srtmHeights = readFromStream tileSize stream
+
+    let cellMinX, cellMinY = tileMinCell tileSize tileId
+
+    HeightsArray(
+        cellMinX,
+        cellMinY,
+        tileSize,
+        tileSize,
+        HeightsArrayDirectImport srtmHeights
+    )

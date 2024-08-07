@@ -1,9 +1,9 @@
 ﻿module Tests.Srtm.``Converting HGT to PNG``
 
+open Demeton.Dem
 open Demeton.Dem.Types
 open Demeton.Dem.Funcs
 open Demeton.Srtm
-open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 open Png.File
 
@@ -86,7 +86,7 @@ let ``Can convert a HGT file into PNG image`` () =
 
     printfn "Reading the heights array..."
 
-    let heightsArray = createSrtmTileFromStream 3600 tileId hgtStream
+    let heightsArray = Hgt.createDemTileFromStream 3600 tileId hgtStream
 
     printfn "%d Encoding heights into the PNG..." clock.ElapsedMilliseconds
 

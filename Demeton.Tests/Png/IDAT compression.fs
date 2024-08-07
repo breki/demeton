@@ -1,8 +1,8 @@
 ﻿module Demeton.Tests.``IDAT compression``
 
+open Demeton.Dem
 open Png.Chunks
 open Demeton.Dem.Funcs
-open Demeton.Srtm.Funcs
 open Demeton.Srtm.Png
 
 open System.IO
@@ -49,9 +49,9 @@ let ``Determining the compression rate`` () =
     let clock = System.Diagnostics.Stopwatch()
     clock.Start()
 
-    printfn ("Reading the heights array...")
+    printfn "Reading the heights array..."
 
-    let heightsArray = createSrtmTileFromStream 3600 tileId hgtStream
+    let heightsArray = Hgt.createDemTileFromStream 3600 tileId hgtStream
 
     printfn
         "%d Encoding heights into a raw image data..."

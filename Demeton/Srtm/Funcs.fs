@@ -1,6 +1,5 @@
 ﻿module Demeton.Srtm.Funcs
 
-open Demeton.Dem
 open Demeton.Dem.Types
 open Demeton.Dem.Funcs
 
@@ -8,24 +7,6 @@ open FileSys
 
 [<Literal>]
 let SrtmTileSize = 3600
-
-
-/// <summary>
-/// Reads the <see cref="HeightsArray"/> of a SRTM tile from
-/// a HGT file stream.
-/// </summary>
-let createSrtmTileFromStream tileSize tileId stream =
-    let srtmHeights = Hgt.readFromStream tileSize stream
-
-    let cellMinX, cellMinY = tileMinCell tileSize tileId
-
-    HeightsArray(
-        cellMinX,
-        cellMinY,
-        tileSize,
-        tileSize,
-        HeightsArrayDirectImport srtmHeights
-    )
 
 let toZippedSrtmTileFileName (srtmDir: string) (tileCoords: DemTileCoords) =
     let tileId = demTileXYId tileCoords.Lon.Value tileCoords.Lat.Value

@@ -1,9 +1,8 @@
-﻿module Tests.Srtm.``Reading SRTM HGT files``
+﻿module Tests.Dem.``Reading SRTM HGT files``
 
 open Demeton.Dem
 open Demeton.Dem.Types
 open Demeton.Dem.Funcs
-open Demeton.Srtm.Funcs
 
 open System
 open System.IO
@@ -12,8 +11,6 @@ open FsUnit
 open Xunit
 open Swensen.Unquote
 open TestHelp
-
-// todo 3: move this to Hgt test module
 
 [<Fact>]
 let ``Can read SRTM heights`` () =
@@ -101,7 +98,7 @@ let ``Can create heights array from SRTM heights sequence`` () =
 
     use stream = new MemoryStream(byteArray)
 
-    let tile = createSrtmTileFromStream tileSize (demTileId 0 16 45) stream
+    let tile = Hgt.createDemTileFromStream tileSize (demTileId 0 16 45) stream
 
     test <@ tile.Width = tileSize @>
     test <@ tile.Height = tileSize @>
@@ -120,6 +117,6 @@ let ``Can read HGT file`` () =
 
     test <@ stream <> null @>
 
-    let heights = createSrtmTileFromStream 3600 tileId stream
+    let heights = Hgt.createDemTileFromStream 3600 tileId stream
     test <@ heights.Width = 3600 @>
     test <@ heights.Height = 3600 @>

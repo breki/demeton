@@ -1,5 +1,6 @@
 ﻿module Demeton.Srtm.Png
 
+open Demeton.Dem
 open Demeton.Dem.Types
 open Raster
 open Png.Types
@@ -228,7 +229,7 @@ let convertZippedHgtTileToPng
 
             memoryStream.Seek(0L, SeekOrigin.Begin) |> ignore
 
-            createSrtmTileFromStream SrtmTileSize tileId memoryStream |> Ok
+            Hgt.createDemTileFromStream SrtmTileSize tileId memoryStream |> Ok
 
         match
             readHgtFileFromStream tileId zippedHgtFileName readHgtFileStream
