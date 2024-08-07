@@ -189,6 +189,9 @@ let identifyAndSimplifyWaterBodies
     worldCoverTargetResolution |> colorWaterBodies
 
 
+// todo 1: instead of putting Int16.MinValue for water bodies, use the LSB
+//   (0 - no water body, 1  - water body) - test the behavior for negative values, too
+
 let mergeDemWithWaterBodies
     (waterBodiesHeightsArray: HeightsArray)
     (demHeightsArray: HeightsArray)
@@ -207,8 +210,11 @@ let mergeDemWithWaterBodies
                 demHeightsArray.Height)
 
     for index in 0 .. waterBodiesHeightsArray.Cells.Length - 1 do
-        if waterBodiesHeightsArray.Cells.[index] = 1s then
-            demHeightsArray.Cells.[index] <- Int16.MinValue
+        let height = demHeightsArray.Cells.[index]
+        let waterBody = waterBodiesHeightsArray.Cells.[index]
+
+        let zz = height % 2s
+        demHeightsArray.Cells.[index] <- (height - Math.Abs(height % 2s)) + waterBody
 
     demHeightsArray
 
@@ -234,6 +240,8 @@ let writeHeightsArrayToHgtFile
             fileName
         | Error error -> raise error.Exception
 
+// todo 5: generate additional row and column in HGT file so it is compatible
+//   with SRTM
 let run (options: Options) : Result<unit, string> =
     fetchAw3dTile options.TileId options.LocalCacheDir
     |> Result.map (fun aw3dTile ->

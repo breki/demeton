@@ -3,7 +3,7 @@
 open Demeton.Dem.Types
 open Demeton.WaterBodies.Types
 
-8/// <summary>
+/// <summary>
 /// Downsample the water bodies heights array by the given factor.
 /// </summary>
 let downsampleWaterBodiesHeightsArray
