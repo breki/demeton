@@ -20,7 +20,7 @@ open Raster
 
 type Options =
     { TileId: DemTileId
-      DemResolution: int
+      HgtSize: int
       LocalCacheDir: string
       OutputDir: string }
 
@@ -28,7 +28,7 @@ type Options =
 let TileIdParameter = "tile-id"
 
 [<Literal>]
-let DemResolutionParameter = "dem-resolution"
+let HgtSizeParameter = "hgt-size"
 
 [<Literal>]
 let LocalCacheDirParameter = "local-cache-dir"
@@ -55,11 +55,11 @@ let supportedParameters: CommandParameter[] =
        |> Arg.parser parseTileId
        |> Arg.toPar
 
-       Option.build DemResolutionParameter
+       Option.build HgtSizeParameter
        |> Option.desc
-           "The DEM resolution (in meters) of the resulting DEM tile cell (default is 30 meters)."
+           "The width/height of the resulting SRTM HGT tile (default is 3600)."
        |> Option.asPositiveInt
-       |> Option.defaultValue 30
+       |> Option.defaultValue 3600
        |> Option.toPar
 
        Option.build LocalCacheDirParameter
@@ -79,7 +79,7 @@ let supportedParameters: CommandParameter[] =
 let fillOptions parsedParameters =
     let defaultOptions =
         { TileId = demTileXYId 0 0
-          DemResolution = 30
+          HgtSize = 3600
           LocalCacheDir = DefaultLocalCacheDir
           OutputDir = DefaultOutputDir }
 
@@ -89,10 +89,9 @@ let fillOptions parsedParameters =
                       Value = value } ->
             { options with
                 TileId = value :?> DemTileId }
-        | ParsedOption { Name = DemResolutionParameter
+        | ParsedOption { Name = HgtSizeParameter
                          Value = value } ->
-            { options with
-                DemResolution = value :?> int }
+            { options with HgtSize = value :?> int }
         | ParsedOption { Name = LocalCacheDirParameter
                          Value = value } ->
             { options with
@@ -120,8 +119,8 @@ let fetchAw3dTile
     |> Result.bind (fun _ -> (readAw3dTile localCacheDir tileId) |> Result.Ok)
 
 
-let downsampleAw3dTile demResolutionParameter heightsArray =
-    let downsamplingFactor = float demResolutionParameter / 90.
+let downsampleAw3dTile finalTileSize heightsArray =
+    let downsamplingFactor = float finalTileSize / float Aw3dTileSize
 
     heightsArray |> downsampleHeightsArray downsamplingFactor
 
@@ -154,37 +153,19 @@ let fetchWorldCoverTile
     readWorldCoverTiffFile localCacheDir (Some tile1by1Rect) containingTileId
 
 
-let downsampleWaterBodiesHeightsArray demResolutionParameter heightsArray =
-    // first calculate how many pixels per degree will the final DEM have
-    let finalDemPixelsPerDegree =
-        float demResolutionParameter / 90. * (float Aw3dTileSize)
-
-    // now, based on that value calculate the downsampling factor needed to
-    // reduce WorldCover's 12000 degrees per degree to the final resolution
+let downsampleWaterBodiesHeightsArray finalTileSize heightsArray =
     let downsamplingFactor =
-        finalDemPixelsPerDegree / (float WorldCoverCellsPerDegree)
+        float finalTileSize / (float WorldCoverCellsPerDegree)
 
     heightsArray |> downsampleWaterBodiesHeightsArray downsamplingFactor
 
-let identifyAndSimplifyWaterBodies
-    demResolutionParameter
-    worldCoverHeightsArray
-    =
-    // first calculate how many pixels per degree will the final DEM have
-    let finalDemPixelsPerDegree =
-        float demResolutionParameter / 90. * (float Aw3dTileSize)
-
-    // now, based on that value calculate the downsampling factor needed to
-    // reduce WorldCover's 12000 degrees per degree to the final resolution
-    let downsamplingFactor =
-        finalDemPixelsPerDegree / (float WorldCoverCellsPerDegree)
-
+let identifyAndSimplifyWaterBodies finalTileSize worldCoverHeightsArray =
     let worldCoverHighResolution =
         worldCoverHeightsArray |> convertWorldCoverRasterToWaterMonochrome
 
     let worldCoverTargetResolution =
         worldCoverHighResolution
-        |> downsampleWaterBodiesHeightsArray downsamplingFactor
+        |> downsampleWaterBodiesHeightsArray finalTileSize
 
     worldCoverTargetResolution |> colorWaterBodies
 
@@ -269,7 +250,7 @@ let run (options: Options) : Result<unit, string> =
             |> Set.ofSeq
 
         let downsampledAw3dTile =
-            aw3dTile |> downsampleAw3dTile options.DemResolution
+            aw3dTile |> downsampleAw3dTile options.HgtSize
 
         loadWaterBodiesTileFromCache
             options.LocalCacheDir
@@ -286,8 +267,7 @@ let run (options: Options) : Result<unit, string> =
                 |> Option.map (fun tileHeightsArray ->
                     let downsampledWaterBodiesTile =
                         tileHeightsArray
-                        |> downsampleWaterBodiesHeightsArray
-                            options.DemResolution
+                        |> downsampleWaterBodiesHeightsArray options.HgtSize
 
                     let hgtFileName =
                         downsampledAw3dTile

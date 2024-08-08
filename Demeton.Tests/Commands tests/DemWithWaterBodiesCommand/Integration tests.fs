@@ -13,7 +13,7 @@ open TestHelp
 let ``run command`` () =
     let options: DemWithWaterBodiesCommand.Options =
         { TileId = demTileXYId 7 45
-          DemResolution = 30
+          HgtSize = 1201
           LocalCacheDir = "cache"
           OutputDir = "output" }
 
