@@ -6,8 +6,6 @@ module Demeton.Tests.todo
 //   instead of downloading AW3D and WorldCover tiles and generating the whole
 //   thing from scratch
 
-// todo 8: TileShadeCommand should have hgt-size parameter
-
 // todo 9: the HGT files should be stored under the hgt-size-named subdirectories
 
 // todo sometime 100: update shading docs now that we have added an array of fetchers

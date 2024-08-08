@@ -15,6 +15,7 @@ let ``run command`` () =
         { TileWidth = 800
           TileHeight = 600
           TileCenter = (7.17, 46)
+          HgtSize = 1200
           MapScale = Some (TileShadeCommand.MapScaleOf 600000)
           Dpi = TileShadeCommand.DefaultDpi
           LambertHillshadingIntensity = 1.

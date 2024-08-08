@@ -12,6 +12,7 @@ let ``Projection is created`` () =
         { TileWidth = 100
           TileHeight = 200
           TileCenter = (10, 20)
+          HgtSize = 1200
           MapScale = Some (TileShadeCommand.MapScaleOf 250000)
           Dpi = 245
           LambertHillshadingIntensity = 1.

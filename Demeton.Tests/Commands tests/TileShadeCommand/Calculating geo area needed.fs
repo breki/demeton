@@ -13,6 +13,7 @@ let constructOptions mapScale: TileShadeCommand.Options =
         { TileWidth = 800
           TileHeight = 600
           TileCenter = (4, 46)
+          HgtSize = 1200
           MapScale = Some(TileShadeCommand.MapScaleOf mapScale)
           Dpi = 245
           LambertHillshadingIntensity = 1.

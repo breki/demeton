@@ -30,6 +30,7 @@ type Options =
     { TileWidth: int
       TileHeight: int
       TileCenter: LonLat
+      HgtSize: int
       MapScale: MapScaleOrPixelSize option
       Dpi: float
       LambertHillshadingIntensity: float
@@ -55,6 +56,9 @@ let CenterLongitudeParameter = "center-longitude"
 
 [<Literal>]
 let CenterLatitudeParameter = "center-latitude"
+
+[<Literal>]
+let HgtSizeParameter = "hgt-size"
 
 [<Literal>]
 let PixelSizeParameter = "pixel-size"
@@ -131,6 +135,13 @@ let supportedParameters: CommandParameter[] =
        |> Arg.desc "The latitude of the center of the tile."
        |> Arg.asFloatWithMin -90
        |> Arg.toPar
+
+       Option.build HgtSizeParameter
+       |> Option.desc
+           "The width/height of the SRTM HGT tiles that will be generated during processing (default is 3600)."
+       |> Option.asPositiveInt
+       |> Option.defaultValue 3600
+       |> Option.toPar
 
        Option.build PixelSizeParameter
        |> Option.desc "The size of the pixel (in meters)."
@@ -216,6 +227,7 @@ let fillOptions parsedParameters =
         { TileWidth = 100
           TileHeight = 100
           TileCenter = (0., 0.)
+          HgtSize = 3600
           MapScale = None
           Dpi = DefaultDpi
           LambertHillshadingIntensity = 1.
@@ -250,6 +262,9 @@ let fillOptions parsedParameters =
 
             { options with
                 TileCenter = (options.TileCenter |> fst, lat) }
+        | ParsedOption { Name = HgtSizeParameter
+                         Value = value } ->
+            { options with HgtSize = value :?> int }
         | ParsedOption { Name = PixelSizeParameter
                          Value = value } ->
             { options with
