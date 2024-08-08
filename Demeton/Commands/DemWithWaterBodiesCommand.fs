@@ -21,8 +21,7 @@ open Raster
 type Options =
     { TileId: DemTileId
       HgtSize: int
-      LocalCacheDir: string
-      OutputDir: string }
+      LocalCacheDir: string}
 
 [<Literal>]
 let TileIdParameter = "tile-id"
@@ -34,13 +33,7 @@ let HgtSizeParameter = "hgt-size"
 let LocalCacheDirParameter = "local-cache-dir"
 
 [<Literal>]
-let OutputDirParameter = "output-dir"
-
-[<Literal>]
 let DefaultLocalCacheDir = "cache"
-
-[<Literal>]
-let DefaultOutputDir = "output"
 
 let parseTileId value : OptionValueParsingResult =
     try
@@ -67,21 +60,13 @@ let supportedParameters: CommandParameter[] =
            "The path to the local DEM cache directory. The directory will be created if it does not exist yet."
        |> Option.asDirectory
        |> Option.defaultValue DefaultLocalCacheDir
-       |> Option.toPar
-
-       Option.build OutputDirParameter
-       |> Option.desc
-           "The path to the directory where the raster files will be generated. The directory will be created if it does not exist yet."
-       |> Option.asDirectory
-       |> Option.defaultValue DefaultOutputDir
        |> Option.toPar |]
 
 let fillOptions parsedParameters =
     let defaultOptions =
         { TileId = demTileXYId 0 0
           HgtSize = 3600
-          LocalCacheDir = DefaultLocalCacheDir
-          OutputDir = DefaultOutputDir }
+          LocalCacheDir = DefaultLocalCacheDir }
 
     let processParameter options parameter =
         match parameter with
@@ -96,10 +81,6 @@ let fillOptions parsedParameters =
                          Value = value } ->
             { options with
                 LocalCacheDir = value :?> string }
-        | ParsedOption { Name = OutputDirParameter
-                         Value = value } ->
-            { options with
-                OutputDir = value :?> string }
         | _ -> invalidOp "Unrecognized parameter."
 
     parsedParameters |> List.fold processParameter defaultOptions
@@ -238,27 +219,21 @@ let extendHeightsArrayWithAdditionalRowAndColumn (heightsArray: HeightsArray) =
         HeightsArrayDirectImport extendedCells
     )
 
-let run (options: Options) : Result<unit, string> =
-    fetchAw3dTile options.TileId options.LocalCacheDir
+// todo 3: if the HGT already exists, just read it
+
+let ensureHgtFile cacheDir hgtSize tileId : HeightsArray option =
+    fetchAw3dTile tileId cacheDir
     |> Result.map (fun aw3dTile ->
         let availableWorldCoverTiles =
-            ensureGeoJsonFile
-                options.LocalCacheDir
-                FileSys.fileExists
-                FileSys.downloadFile
+            ensureGeoJsonFile cacheDir FileSys.fileExists FileSys.downloadFile
             |> listAllAvailableFiles FileSys.openFileToRead
             |> Set.ofSeq
 
-        let downsampledAw3dTile =
-            aw3dTile |> downsampleAw3dTile options.HgtSize
+        let downsampledAw3dTile = aw3dTile |> downsampleAw3dTile hgtSize
 
-        loadWaterBodiesTileFromCache
-            options.LocalCacheDir
-            availableWorldCoverTiles
-            options.TileId
-        |> makeNoneFileIfNeeded options.LocalCacheDir
-        |> extractWaterBodiesTileFromWorldCoverTileIfNeeded
-            options.LocalCacheDir
+        loadWaterBodiesTileFromCache cacheDir availableWorldCoverTiles tileId
+        |> makeNoneFileIfNeeded cacheDir
+        |> extractWaterBodiesTileFromWorldCoverTileIfNeeded cacheDir
         |> function
             | CachedTileLoaded tileHeightsArray ->
                 // todo 20: simplify water bodies
@@ -267,9 +242,9 @@ let run (options: Options) : Result<unit, string> =
                 |> Option.map (fun tileHeightsArray ->
                     let downsampledWaterBodiesTile =
                         tileHeightsArray
-                        |> downsampleWaterBodiesHeightsArray options.HgtSize
+                        |> downsampleWaterBodiesHeightsArray hgtSize
 
-                    let hgtFileName =
+                    let demWaterBodiesTile =
                         downsampledAw3dTile
                         |> encodeWaterBodiesInfoIntoDem
                             downsampledWaterBodiesTile
@@ -277,14 +252,18 @@ let run (options: Options) : Result<unit, string> =
                         //  row and column so it is compatible with the original
                         //  SRTM HGT files
                         |> extendHeightsArrayWithAdditionalRowAndColumn
-                        |> Hgt.writeHeightsArrayToFile (
-                            Path.Combine(
-                                options.OutputDir,
-                                toTileName options.TileId + ".hgt"
-                            )
-                        )
 
-                    hgtFileName)
+                    demWaterBodiesTile
+                    |> Hgt.writeHeightsArrayToFile (
+                        Path.Combine
+                            (cacheDir,
+                             "AW3D-WaterBodies",
+                             hgtSize.ToString(),
+                             toTileName tileId + ".hgt"))
+                    |> ignore
+
+                    demWaterBodiesTile
+                )
             | TileNeedsToBeDownloaded _ ->
                 invalidOp "Bug: this should never happen"
             | TileDoesNotExistInWorldCover _ ->
@@ -292,6 +271,13 @@ let run (options: Options) : Result<unit, string> =
                     "The case when there is no WorldCover tile"
                 )
                 |> raise
-        |> ignore
+        )
+    |> function
+    | Ok heightsArray -> heightsArray
+    | Error errorMessage ->
+        invalidOp errorMessage
 
-        ())
+
+let run (options: Options) : Result<unit, string> =
+    ensureHgtFile options.LocalCacheDir options.HgtSize options.TileId |> ignore
+    Ok()

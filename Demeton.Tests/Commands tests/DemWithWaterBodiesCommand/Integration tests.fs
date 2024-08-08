@@ -14,7 +14,6 @@ let ``run command`` () =
     let options: DemWithWaterBodiesCommand.Options =
         { TileId = demTileXYId 7 45
           HgtSize = 1201
-          LocalCacheDir = "cache"
-          OutputDir = "output" }
+          LocalCacheDir = "cache" }
 
     test <@ DemWithWaterBodiesCommand.run options |> isOk @>
