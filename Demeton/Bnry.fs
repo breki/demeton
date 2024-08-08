@@ -77,19 +77,19 @@ let readBytes bufferLength length (stream: Stream) : byte[] =
 /// <returns>The same instance of the stream.</returns>
 let writeBigEndianInt32 (value: int) (stream: Stream) : Stream =
     stream
-    |> writeByte ((byte) (value >>> 24))
-    |> writeByte ((byte) (value >>> 16))
-    |> writeByte ((byte) (value >>> 8))
-    |> writeByte ((byte) value)
+    |> writeByte (byte (value >>> 24))
+    |> writeByte (byte (value >>> 16))
+    |> writeByte (byte (value >>> 8))
+    |> writeByte (byte value)
 
 /// <summary>
 /// Reads a big-endian encoded 32-bit signed integer from the stream.
 /// </summary>
 let readBigEndianInt32 (stream: Stream) : int =
-    (((int) (readByte stream)) <<< 24)
-    ||| (((int) (readByte stream)) <<< 16)
-    ||| (((int) (readByte stream)) <<< 8)
-    ||| (((int) (readByte stream)))
+    ((int (readByte stream)) <<< 24)
+    ||| ((int (readByte stream)) <<< 16)
+    ||| ((int (readByte stream)) <<< 8)
+    ||| (int (readByte stream))
 
 /// <summary>
 /// Writes the specified 32-bit unsigned integer value to a stream using the big
@@ -102,21 +102,19 @@ let readBigEndianInt32 (stream: Stream) : int =
 /// <returns>The same instance of the stream.</returns>
 let writeBigEndianUInt32 (value: uint32) (stream: Stream) : Stream =
     stream
-    |> writeByte ((byte) (value >>> 24))
-    |> writeByte ((byte) (value >>> 16))
-    |> writeByte ((byte) (value >>> 8))
-    |> writeByte ((byte) value)
+    |> writeByte (byte (value >>> 24))
+    |> writeByte (byte (value >>> 16))
+    |> writeByte (byte (value >>> 8))
+    |> writeByte (byte value)
 
 /// <summary>
 /// Reads a big-endian encoded 32-bit unsigned integer from the stream.
 /// </summary>
 let readBigEndianUInt32 (stream: Stream) : uint32 =
-    (((uint32) (readByte stream)) <<< 24)
-    ||| (((uint32) (readByte stream)) <<< 16)
-    ||| (((uint32) (readByte stream)) <<< 8)
-    ||| (((uint32) (readByte stream)))
+    ((uint32 (readByte stream)) <<< 24)
+    ||| ((uint32 (readByte stream)) <<< 16)
+    ||| ((uint32 (readByte stream)) <<< 8)
+    ||| (uint32 (readByte stream))
 
 let writeBigEndianInt16 (value: int16) (stream: Stream) : Stream =
-    stream
-    |> writeByte ((byte) (value >>> 8))
-    |> writeByte ((byte) value)
+    stream |> writeByte (byte (value >>> 8)) |> writeByte (byte value)

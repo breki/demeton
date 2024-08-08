@@ -39,7 +39,7 @@ let ``Interpolating heights from neighboring cells``
         | Some height -> height
         | None -> DemHeightNone
 
-    let (optionalHeights, xint, yint) = heights
+    let optionalHeights, xint, yint = heights
 
     let nonoptionalHeights = optionalHeights |> Array.map fromOptionalHeight
     let anyMissingHeights = optionalHeights |> Array.exists Option.isNone

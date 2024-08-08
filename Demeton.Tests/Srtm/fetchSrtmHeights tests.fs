@@ -18,7 +18,7 @@ let ``Returns None if there are no tiles to fetch`` () =
 let ``Returns HeightArray when at least one tile was found`` () =
     let tilesToUse = [ demTileId 0 1 1 ]
 
-    let (minX, minY) = tileMinCell tileSize tilesToUse.[0]
+    let minX, minY = tileMinCell tileSize tilesToUse.[0]
 
     let returnSomeHeightArray _ =
         HeightsArray(

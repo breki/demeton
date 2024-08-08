@@ -39,7 +39,7 @@ let childrenTilesNeededForDownsampling
     (tile: DemTileId)
     =
 
-    let (childTileX0, childTileY0, childCols, childRows) =
+    let childTileX0, childTileY0, childCols, childRows =
         match downsamplingMethod with
         | Average ->
             let childTileX0 = tile.TileX * 2
@@ -86,7 +86,7 @@ let downsampleAverage
              + (height4 |> int))
             4
     else
-        let (sum, nonMissingHeightsCount) =
+        let sum, nonMissingHeightsCount =
             [| height1; height2; height3; height4 |]
             |> Array.fold
                 (fun (sumSoFar, usedHeights) height ->
@@ -110,7 +110,7 @@ let downsampleTileHeightsArray
     tile
     (heightsArray: HeightsArray)
     : HeightsArray =
-    let (tileMinX, tileMinY) = tile |> tileMinCell tileSize
+    let tileMinX, tileMinY = tile |> tileMinCell tileSize
 
     match downsamplingMethod with
     | Average ->
@@ -141,7 +141,7 @@ let lowerLevelHeightsArrayNeededForDownsampling
     childrenHeightsArrays
     =
 
-    let (tileMinX, tileMinY) = tile |> tileMinCell tileSize
+    let tileMinX, tileMinY = tile |> tileMinCell tileSize
 
     // The size of the buffer (in number of cells) around the direct children
     // of the tile. This buffer is needed for certain downsampling methods

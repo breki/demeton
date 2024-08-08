@@ -513,8 +513,12 @@ let fetchAw3dHeightsArray mapProjection cacheDir demLevel coverageArea =
         let coveragePointsInDemCoords =
             deprojectedCoveragePoints
             |> List.map (fun (lon, lat) ->
-                let cellX = lon |> radToDeg |> longitudeToCellX (float cellsPerDegree)
-                let cellY = lat |> radToDeg |> latitudeToCellY (float cellsPerDegree)
+                let cellX =
+                    lon |> radToDeg |> longitudeToCellX (float cellsPerDegree)
+
+                let cellY =
+                    lat |> radToDeg |> latitudeToCellY (float cellsPerDegree)
+
                 (cellX, cellY))
 
         let demMbr = Demeton.Geometry.Bounds.mbrOf coveragePointsInDemCoords
@@ -536,10 +540,11 @@ let fetchAw3dHeightsArray mapProjection cacheDir demLevel coverageArea =
         // the process and then just provided to fetchAw3dHeightsArray() to
         // fetch a bigger area (without the buffer calculation here).
         let safetyBuffer =
-            Math.Max (mergedArrayBounds.Width, mergedArrayBounds.Height)
+            Math.Max(mergedArrayBounds.Width, mergedArrayBounds.Height)
             |> float
             |> (*) 0.1
             |> int
+
         let mergedArrayBounds = mergedArrayBounds |> inflate safetyBuffer
 
         merge mergedArrayBounds tilesHeightsArrays |> Result.Ok
@@ -575,6 +580,29 @@ let saveTileFile
         tilePngFileName)
     |> Result.mapError fileSysErrorMessage
 
+// todo 5: we have to provide a new function that fetches the
+//    combined data source from the HGT files
+let fetchDemWithWaterBodies demTileSize mapProjection cacheDir level coverageArea =
+    Log.info "Ensuring all needed DEM tiles are there..."
+
+    let coveragePoints =
+        [ (coverageArea.MinLon, coverageArea.MinLat)
+          (coverageArea.MaxLon, coverageArea.MinLat)
+          (coverageArea.MinLon, coverageArea.MaxLat)
+          (coverageArea.MaxLon, coverageArea.MaxLat) ]
+
+    Log.info
+        "Geo area needed: minLon: %f, minLat: %f, maxLon: %f, maxLat: %f"
+        coverageArea.MinLon
+        coverageArea.MinLat
+        coverageArea.MaxLon
+        coverageArea.MaxLat
+
+    let tilesNeeded =
+        coverageArea |> boundsToTiles demTileSize DemLevel.Level0 |> Seq.toList
+
+    NotImplementedException "fetchDemWithWaterBodies" |> raise
+
 
 let run (options: Options) : Result<unit, string> =
     let cacheDir = options.LocalCacheDir
@@ -602,15 +630,17 @@ let run (options: Options) : Result<unit, string> =
 
             ShadeCommand.generateShadedRasterTile
                 [| fun level coverageArea dataSources ->
-                       fetchAw3dHeightsArray
+                       fetchDemWithWaterBodies
+                           options.HgtSize
                            mapProjection
                            cacheDir
                            level
                            coverageArea
                        |> heightsArrayResultToShadingDataSource
-                           "aw3d"
-                           (Ok dataSources)
-                   fetchWaterBodiesDataSources mapProjection cacheDir |]
+                           "aw3d-water-bodies"
+                           (Ok dataSources) |]
+                // todo 10: a new water bodies shader function that works on the
+                //   combined data source
                 (createShaderFunction
                     options.WaterBodiesColor
                     waterBodiesDebugMode)

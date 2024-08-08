@@ -13,7 +13,7 @@ let runImportCommand parsedParameters =
     let tilesCords =
         boundsToTiles
             3600
-            (Demeton.Dem.Types.DemLevel.fromInt 0)
+            Demeton.Dem.Types.DemLevel.Level0
             (Option.get options.Bounds)
         |> Seq.toArray
 

@@ -5,34 +5,37 @@ open Text
 open System
 
 type private PathDataRenderer() =
-    let stringBuilder = buildString()
-    
-    let lastChar(): char = stringBuilder.[stringBuilder.Length - 1]
-    
-    member this.nextInstruction (instructionChar: char) =
-        stringBuilder
-        |> appendChar instructionChar
-        |> ignore
-        
-    member this.addNumber (number: float) =
+    let stringBuilder = buildString ()
+
+    let lastChar () : char =
+        stringBuilder.[stringBuilder.Length - 1]
+
+    member this.nextInstruction(instructionChar: char) =
+        stringBuilder |> appendChar instructionChar |> ignore
+
+    member this.addNumber(number: float) =
         let numberStr =
-            number.ToString
-                ("0.##", System.Globalization.CultureInfo.InvariantCulture)
-            
+            number.ToString(
+                "0.##",
+                System.Globalization.CultureInfo.InvariantCulture
+            )
+
         match lastChar, number with
-        | (_, _) when Char.IsLetter (lastChar()) || number < 0. ->
+        | _, _ when Char.IsLetter(lastChar ()) || number < 0. ->
             stringBuilder |> append numberStr
-        | _ ->
-            stringBuilder |> appendChar ' ' |> append numberStr
+        | _ -> stringBuilder |> appendChar ' ' |> append numberStr
         |> ignore
-        
+
     override this.ToString() = stringBuilder.ToString()
 
-let private beginNextInstruction instructionChar (pathDataRenderer: PathDataRenderer) =
+let private beginNextInstruction
+    instructionChar
+    (pathDataRenderer: PathDataRenderer)
+    =
     pathDataRenderer.nextInstruction instructionChar
     pathDataRenderer
 
-let private addNumber number (pathDataRenderer: PathDataRenderer) = 
+let private addNumber number (pathDataRenderer: PathDataRenderer) =
     pathDataRenderer.addNumber number
     pathDataRenderer
 
@@ -48,8 +51,8 @@ let private renderCurveToParameters renderer (curveTo: CurveToParameters) =
 let private renderCurveTo instructionChar curves renderer =
     curves
     |> List.fold
-           renderCurveToParameters
-           (renderer |> beginNextInstruction instructionChar)
+        renderCurveToParameters
+        (renderer |> beginNextInstruction instructionChar)
 
 let private renderEllipticalArc renderer (ellipticalArc: EllipticalArc) =
     renderer
@@ -57,54 +60,52 @@ let private renderEllipticalArc renderer (ellipticalArc: EllipticalArc) =
     |> addNumber ellipticalArc.Ry
     |> addNumber ellipticalArc.XAxisRotation
     |> addNumber (
-            match ellipticalArc.Arc with
-            | LargeArc -> 1.
-            | SmallArc -> 0.)
+        match ellipticalArc.Arc with
+        | LargeArc -> 1.
+        | SmallArc -> 0.
+    )
     |> addNumber (
-            match ellipticalArc.Sweep with
-            | PositiveAngle -> 1.
-            | NegativeAngle -> 0.)
+        match ellipticalArc.Sweep with
+        | PositiveAngle -> 1.
+        | NegativeAngle -> 0.
+    )
     |> addPoint ellipticalArc.Point
 
 let private renderEllipticalArcs instructionChar arcs renderer =
     arcs
     |> List.fold
-           renderEllipticalArc
-           (renderer |> beginNextInstruction instructionChar)
+        renderEllipticalArc
+        (renderer |> beginNextInstruction instructionChar)
 
 let private renderCoords instructionChar coords renderer =
     coords
     |> List.fold
-           (fun renderer coord -> renderer |> addNumber coord)
-           (renderer |> beginNextInstruction instructionChar)
+        (fun renderer coord -> renderer |> addNumber coord)
+        (renderer |> beginNextInstruction instructionChar)
 
 let private renderPoints instructionChar points renderer =
     points
     |> List.fold
-           (fun renderer point -> renderer |> addPoint point)
-           (renderer |> beginNextInstruction instructionChar)
+        (fun renderer point -> renderer |> addPoint point)
+        (renderer |> beginNextInstruction instructionChar)
 
 let private renderQuadraticCurve renderer (curve: QuadraticCurveToParameters) =
-    renderer
-    |> addPoint curve.StartControlPoint
-    |> addPoint curve.Point
+    renderer |> addPoint curve.StartControlPoint |> addPoint curve.Point
 
 let private renderQuadraticCurves instructionChar curves renderer =
     curves
     |> List.fold
-           renderQuadraticCurve
-           (renderer |> beginNextInstruction instructionChar)
+        renderQuadraticCurve
+        (renderer |> beginNextInstruction instructionChar)
 
 let private renderSmoothCurve renderer (curve: SmoothCurveToParameters) =
-    renderer
-    |> addPoint curve.EndControlPoint
-    |> addPoint curve.Point
+    renderer |> addPoint curve.EndControlPoint |> addPoint curve.Point
 
 let private renderSmoothCurves instructionChar curves renderer =
     curves
     |> List.fold
-           renderSmoothCurve
-           (renderer |> beginNextInstruction instructionChar)
+        renderSmoothCurve
+        (renderer |> beginNextInstruction instructionChar)
 
 let private renderPathInstruction renderer instruction =
     match instruction with
@@ -129,8 +130,7 @@ let private renderPathInstruction renderer instruction =
     | VertLineToRel coords -> renderer |> renderCoords 'v' coords
 
 let pathDataToString pathData =
-    let renderer = 
-        pathData
-        |> List.fold renderPathInstruction (PathDataRenderer())
-    
+    let renderer =
+        pathData |> List.fold renderPathInstruction (PathDataRenderer())
+
     renderer.ToString()

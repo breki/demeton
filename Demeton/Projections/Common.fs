@@ -166,7 +166,7 @@ let tsfnz e phi sinphi =
     tan (0.5 * (Math.PI / 2. - phi)) / con'
 
 let adjustLon lon =
-    if (abs (lon) < Math.PI) then
+    if (abs lon < Math.PI) then
         lon
     else
         lon - ((sign lon |> float) * Math.PI * 2.)

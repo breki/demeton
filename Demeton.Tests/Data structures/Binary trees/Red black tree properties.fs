@@ -4,46 +4,57 @@ open DataStructures
 open Tests.``Data structures``.``Binary trees``.``Binary search tree testbed``
 
 let rootIsBlack (state: TreeTestCurrent<RedBlackTree.Tree<'T>>) =
-    if state.Tree |> RedBlackTree.isBlack then state |> Ok
-    else (state, "Root node should be black") |> Error
+    if state.Tree |> RedBlackTree.isBlack then
+        state |> Ok
+    else
+        (state, "Root node should be black") |> Error
 
 let redNodesDoNotHaveRedChildren
-    (state: TreeTestCurrent<RedBlackTree.Tree<'T>>) =
+    (state: TreeTestCurrent<RedBlackTree.Tree<'T>>)
+    =
     let rec allNodesSatisfy (node: RedBlackTree.Tree<'T>) =
         match node with
         | RedBlackTree.None -> true
         | RedBlackTree.Node node ->
             match node.Color with
             | RedBlackTree.Black ->
-                (node.Left |> allNodesSatisfy) &&
-                    (node.Right |> allNodesSatisfy)
+                (node.Left |> allNodesSatisfy)
+                && (node.Right |> allNodesSatisfy)
             | RedBlackTree.Red ->
                 (node.Left |> RedBlackTree.isBlack)
                 && (node.Right |> RedBlackTree.isBlack)
                 && (node.Left |> allNodesSatisfy)
                 && (node.Right |> allNodesSatisfy)
-    
-    if state.Tree |> allNodesSatisfy then state |> Ok
-    else (state, "One or more red nodes has red children") |> Error
-    
+
+    if state.Tree |> allNodesSatisfy then
+        state |> Ok
+    else
+        (state, "One or more red nodes has red children") |> Error
+
 let rec countNumberOfBlacksInPath (tree: RedBlackTree.Tree<'T>) =
     match tree with
     | RedBlackTree.None -> (0, 0)
     | RedBlackTree.Node tree ->
-        let (leftMin, leftMax) = tree.Left |> countNumberOfBlacksInPath
-        let (rightMin, rightMax) = tree.Right |> countNumberOfBlacksInPath
+        let leftMin, leftMax = tree.Left |> countNumberOfBlacksInPath
+        let rightMin, rightMax = tree.Right |> countNumberOfBlacksInPath
+
         match tree.Color with
         | RedBlackTree.Red -> (min leftMin rightMin, max leftMax rightMax)
-        | RedBlackTree.Black -> (1 + min leftMin rightMin, 1 + max leftMax rightMax)
-    
+        | RedBlackTree.Black ->
+            (1 + min leftMin rightMin, 1 + max leftMax rightMax)
+
 let allPathsHaveSameNumberOfBlacks
-    (state: TreeTestCurrent<RedBlackTree.Tree<'T>>) =
+    (state: TreeTestCurrent<RedBlackTree.Tree<'T>>)
+    =
 
-    let (minBlacks, maxBlacks) = countNumberOfBlacksInPath state.Tree
-    if minBlacks = maxBlacks then state |> Ok
-    else (state,
-          sprintf
-              "Paths have different number of blacks (from %d to %d)"
-              minBlacks maxBlacks)
+    let minBlacks, maxBlacks = countNumberOfBlacksInPath state.Tree
+
+    if minBlacks = maxBlacks then
+        state |> Ok
+    else
+        (state,
+         sprintf
+             "Paths have different number of blacks (from %d to %d)"
+             minBlacks
+             maxBlacks)
         |> Error
-

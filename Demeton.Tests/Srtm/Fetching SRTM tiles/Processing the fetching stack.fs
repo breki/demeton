@@ -6,7 +6,6 @@ open Demeton.Srtm.Fetch
 
 open Xunit
 open Swensen.Unquote
-open TestHelp
 
 let localCacheDir = "somecache"
 let srtmDir = "somesrtm"
@@ -337,7 +336,7 @@ let ``Testing the tail recursion`` () =
             ([], [])
 
     // run the processing of the stack recursively
-    let (finalCommandStack, finalTilesStack) =
+    let finalCommandStack, finalTilesStack =
         processCommandStack
             localCacheDir
             srtmDir
@@ -385,7 +384,7 @@ let ``Command stack processor should stop on failure and return the error`` () =
         | false -> Ok someTileHeights
 
     //
-    let (finalCommandStack, _) =
+    let finalCommandStack, _ =
         processCommandStack
             localCacheDir
             srtmDir

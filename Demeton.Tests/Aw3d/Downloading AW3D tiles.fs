@@ -2,6 +2,7 @@
 
 open System.IO
 
+open Demeton.Dem.Types
 open Demeton.Geometry.Common
 open Demeton.Dem.Funcs
 open Demeton.Aw3d.Types
@@ -31,7 +32,10 @@ let ``Correctly calculates the AW3D tiles needed for a given boundary`` () =
           demTileXYId 8 47 ]
         |> Set.ofList
 
-    test <@ (boundsToAw3dTiles bounds |> Set.ofSeq) = expectedTiles @>
+    test
+        <@
+            (boundsToTiles Aw3dTileSize DemLevel.Level0 bounds |> Set.ofSeq) = expectedTiles
+        @>
 
 
 [<Theory>]

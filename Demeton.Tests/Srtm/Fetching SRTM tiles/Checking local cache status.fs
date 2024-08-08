@@ -55,7 +55,7 @@ let ``If PNG file of level 0 is not in the cache, it is marked as not existing``
     test
         <@
             determineLocalCacheTileStatus
-                (DemLevel.fromInt 0)
+                DemLevel.Level0
                 pngNotInCache
                 doNotCallMe = LocalCacheTileStatus.NotCached
         @>
@@ -65,7 +65,7 @@ let ``If PNG file of level 0 is in the cache, it is marked as cached`` () =
     test
         <@
             determineLocalCacheTileStatus
-                (DemLevel.fromInt 0)
+                DemLevel.Level0
                 pngInCache
                 doNotCallMe = LocalCacheTileStatus.Cached
         @>

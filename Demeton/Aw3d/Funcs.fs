@@ -9,45 +9,6 @@ open Demeton.Geometry.Common
 open Demeton.Dem.Funcs
 open FileSys
 
-/// <summary>
-/// Given a bounding box, returns a sequence of AW3D tiles that cover it.
-/// </summary>
-let boundsToAw3dTiles (bounds: LonLatBounds) : DemTileId seq =
-    let minTileX =
-        bounds.MinLon
-        |> longitudeToCellX (float Aw3dTileSize)
-        |> cellXToTileX Aw3dTileSize
-        |> floor
-        |> int
-
-    let minTileY =
-        bounds.MinLat
-        |> latitudeToCellY (float Aw3dTileSize)
-        |> cellYToTileY Aw3dTileSize
-        |> floor
-        |> int
-
-    let maxTileX =
-        (bounds.MaxLon
-         |> longitudeToCellX (float Aw3dTileSize)
-         |> cellXToTileX Aw3dTileSize
-         |> ceil
-         |> int)
-        - 1
-
-    let maxTileY =
-        (bounds.MaxLat
-         |> latitudeToCellY (float Aw3dTileSize)
-         |> cellYToTileY Aw3dTileSize
-         |> ceil
-         |> int)
-        - 1
-
-    seq {
-        for tileY in [ minTileY..maxTileY ] do
-            for tileX in [ minTileX..maxTileX ] do
-                yield demTileXYId tileX tileY
-    }
 
 /// <summary>
 /// Returns the download URL for the given AW3D tile.
@@ -144,7 +105,8 @@ let ensureAw3dTiles
         bounds.MaxLon
         bounds.MaxLat
 
-    let aw3dTilesNeeded = bounds |> boundsToAw3dTiles |> Seq.toList
+    let aw3dTilesNeeded =
+        bounds |> boundsToTiles Aw3dTileSize DemLevel.Level0 |> Seq.toList
 
     let aw3dTileResults =
         aw3dTilesNeeded

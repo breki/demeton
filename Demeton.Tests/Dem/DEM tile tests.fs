@@ -213,7 +213,7 @@ let ``Tile coordinates properties`` (level, (lon, lat), tileSize) =
                   MaxLon = lonMin + 1.
                   MaxLat = latMin + 1. }
 
-            let tiles = tileBounds |> boundsToTiles tileSize level
+            let tiles = tileBounds |> boundsToTiles tileSize level |> Seq.toList
 
             match tiles with
             | [ tile ] ->

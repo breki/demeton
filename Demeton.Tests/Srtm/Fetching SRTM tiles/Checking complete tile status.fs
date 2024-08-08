@@ -20,7 +20,7 @@ let ``When level 0 tile neither exists in the cache nor in the store`` () =
     test
         <@
             decideSrtmTileStatus
-                (DemLevel.fromInt 0)
+                DemLevel.Level0
                 LocalCacheTileStatus.NotCached
                 tileIsNotInSrtmDir = NotExists
         @>
@@ -30,7 +30,7 @@ let ``When level 0 tile is not cached but it exists in SRTM dir`` () =
     test
         <@
             decideSrtmTileStatus
-                (DemLevel.fromInt 0)
+                DemLevel.Level0
                 LocalCacheTileStatus.NotCached
                 tileIsInSrtmDir = NotCached
         @>
@@ -40,7 +40,7 @@ let ``When level 0 tile exists in the local cache`` () =
     test
         <@
             decideSrtmTileStatus
-                (DemLevel.fromInt 0)
+                DemLevel.Level0
                 LocalCacheTileStatus.Cached
                 doNotCallMe = Cached
         @>

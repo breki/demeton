@@ -101,7 +101,7 @@ let inline demTileId level (tileX: DemTileX) (tileY: DemTileY) =
       TileY = tileY }
 
 let inline demTileXYId (tileX: DemTileX) (tileY: DemTileY) =
-    { Level = DemLevel.fromInt 0
+    { Level = DemLevel.Level0
       TileX = tileX
       TileY = tileY }
 
@@ -221,7 +221,7 @@ let parseTileName (tileName: DemTileName) : DemTileId =
     | _ ->
         let tileCoords = parseHgtTileName tileName
 
-        { Level = DemLevel.fromInt 0
+        { Level = DemLevel.Level0
           TileX = tileCoords.Lon.Value
           TileY = tileCoords.Lat.Value }
 
@@ -263,7 +263,7 @@ let boundsToTiles
     tileSize
     (level: DemLevel)
     (bounds: LonLatBounds)
-    : DemTileId list =
+    : DemTileId seq =
 
     let cellsPerDegree = cellsPerDegree tileSize level
 
@@ -298,12 +298,14 @@ let boundsToTiles
         - 1
 
 
-    [ for tileY in [ minTileY..maxTileY ] do
-          for tileX in [ minTileX..maxTileX ] do
-              yield
-                  { Level = level
-                    TileX = tileX
-                    TileY = tileY } ]
+    seq {
+        for tileY in [ minTileY..maxTileY ] do
+            for tileX in [ minTileX..maxTileX ] do
+                yield
+                    { Level = level
+                      TileX = tileX
+                      TileY = tileY }
+    }
 
 
 let inline heightFromBytes firstByte secondByte =
@@ -570,9 +572,14 @@ let downsampleHeightsArray
         for x in 0 .. downsampledWidth - 1 do
             // Calculate the exact original coordinates this new pixel maps to
             let origStartX = (float x / factor)
-            let origEndX = min (float (x + 1) / factor) (float (heightsArray.Width - 1))
+
+            let origEndX =
+                min (float (x + 1) / factor) (float (heightsArray.Width - 1))
+
             let origStartY = (float y / factor)
-            let origEndY = min (float (y + 1) / factor) (float (heightsArray.Height - 1))
+
+            let origEndY =
+                min (float (y + 1) / factor) (float (heightsArray.Height - 1))
 
             let mutable weightedSum = 0.0
             let mutable totalWeight = 0.0

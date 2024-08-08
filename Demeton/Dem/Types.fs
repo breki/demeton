@@ -180,6 +180,8 @@ let MaxDemLevel = 6
 type DemLevel =
     { Value: int }
 
+    static member Level0 = { Value = 0 }
+
     static member fromInt i =
         if i < 0 || i > MaxDemLevel then
             invalidArg "i" "DEM level is out of range"

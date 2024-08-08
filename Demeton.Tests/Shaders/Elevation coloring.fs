@@ -69,29 +69,29 @@ let ``Elevation coloring properties`` () =
 
     let returnsMaxColorWhenHeightIsAboveMaxMark heightMaybe =
         match heightMaybe with
-        | (Some height) when height > 1000. -> true
+        | Some height when height > 1000. -> true
         | _ -> false
         ==> let colorReturned =
                 scale |> ElevationColoring.colorOfHeight heightMaybe in
 
             colorReturned = color1000
-            |> Prop.classify (true) "Height above max mark"
+            |> Prop.classify true "Height above max mark"
             |> Prop.collect "Above"
 
     let returnsMinColorWhenHeightIsBelowMinMark heightMaybe =
         match heightMaybe with
-        | (Some height) when height < 700. -> true
+        | Some height when height < 700. -> true
         | _ -> false
         ==> let colorReturned =
                 scale |> ElevationColoring.colorOfHeight heightMaybe in
 
             colorReturned = color700
-            |> Prop.classify (true) "Height below min mark"
+            |> Prop.classify true "Height below min mark"
             |> Prop.collect "Below"
 
     let returnsExactMarkColorIfHeightIsExactlyOnMark heightMaybe =
         match heightMaybe with
-        | (Some height) when height = 700. || height = 1000. -> true
+        | Some height when height = 700. || height = 1000. -> true
         | _ -> false
         ==> lazy
             let colorReturned =
@@ -101,7 +101,7 @@ let ``Elevation coloring properties`` () =
 
             ((height = 700. && colorReturned = color700)
              || (height = 1000. && colorReturned = color1000))
-            |> Prop.classify (true) "Height exact on mark"
+            |> Prop.classify true "Height exact on mark"
             |> Prop.collect "Exact"
 
     let allProperties x =

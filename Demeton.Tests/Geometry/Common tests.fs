@@ -9,22 +9,21 @@ open FsCheck.Xunit
 open PropertiesHelp
 
 [<Fact>]
-let ``Splits coords into two lists``() =
-    test <@ 
-            [ 10.; 20.; 30.; 40. ] |> splitCoords = ([10.; 30.], [20.; 40.])
-         @>
+let ``Splits coords into two lists`` () =
+    test
+        <@ [ 10.; 20.; 30.; 40. ] |> splitCoords = ([ 10.; 30. ], [ 20.; 40. ]) @>
 
 [<Fact>]
-let ``Constructs a list of points from a coords list``() =
-    test <@ 
-            [ 10.; 20.; 30.; 40. ] |> floatsListToPoints 
-                = ([(10., 20.); (30., 40.)])
-         @>
+let ``Constructs a list of points from a coords list`` () =
+    test
+        <@
+            [ 10.; 20.; 30.; 40. ] |> floatsListToPoints = [ (10., 20.)
+                                                             (30., 40.) ]
+        @>
 
 [<Fact>]
-let ``Returns Ok if all points are inside the box``() =
-    let points = 
-        [(10., 20.); (11., 21.); (12., 22.)]
+let ``Returns Ok if all points are inside the box`` () =
+    let points = [ (10., 20.); (11., 21.); (12., 22.) ]
 
     test <@ areAllPointsInsideBox 5. 7. 50. 60. points @>
 
@@ -35,34 +34,42 @@ let ``Returns Ok if all points are inside the box``() =
 [<InlineData(15., -100.)>]
 [<InlineData(-100, 20.)>]
 let ``Returns an error if some points are outside of the box``
-    (offendingX, offendingY) =
-    let points = 
-        [(10., 20.); (11., 21.); (offendingX, offendingY); (12., 22.)]
+    (offendingX, offendingY)
+    =
+    let points =
+        [ (10., 20.); (11., 21.); (offendingX, offendingY); (12., 22.) ]
 
     test <@ not (areAllPointsInsideBox 5. 7. 50. 60. points) @>
 
 [<Property>]
-let ``Normalizes the angle``() =
+let ``Normalizes the angle`` () =
     let normalizer = 360.
 
-    let isPositive angle = 
+    let isPositive angle =
         normalizer |> normalizeAngle angle >= 0. |@ sprintf "isPositive"
-    let isBelowNormalizer angle = 
-        normalizer |> normalizeAngle angle < normalizer 
-        |@ sprintf "is below normalizer"
-    let isSameRemainderWhenPositive angle = 
-        angle >= 0. ==> lazy
-            angle % normalizer 
-                .=. (normalizer |> normalizeAngle angle) % normalizer 
-            |@ sprintf "is same remainder"
-    let distanceBetweenAngleAndItsNormalizedValueIsMultiplierOfNormalizer 
-        angle =
-            let distance = angle - (normalizer |> normalizeAngle angle)
-            distance % normalizer = 0. 
-            |@ sprintf "distance is multiplier of normalizer"
 
-    let props x = 
-        (isPositive x) .&. (isBelowNormalizer x) 
+    let isBelowNormalizer angle =
+        normalizer |> normalizeAngle angle < normalizer
+        |@ sprintf "is below normalizer"
+
+    let isSameRemainderWhenPositive angle =
+        angle >= 0.
+        ==> lazy
+            angle % normalizer
+            .=. (normalizer |> normalizeAngle angle) % normalizer
+            |@ sprintf "is same remainder"
+
+    let distanceBetweenAngleAndItsNormalizedValueIsMultiplierOfNormalizer
+        angle
+        =
+        let distance = angle - (normalizer |> normalizeAngle angle)
+
+        distance % normalizer = 0.
+        |@ sprintf "distance is multiplier of normalizer"
+
+    let props x =
+        (isPositive x)
+        .&. (isBelowNormalizer x)
         .&. (isSameRemainderWhenPositive x)
         .&. (distanceBetweenAngleAndItsNormalizedValueIsMultiplierOfNormalizer x)
 
@@ -74,38 +81,47 @@ let ``Normalizes the angle``() =
 [<InlineData(270., 90., 360., 180.)>]
 [<InlineData(91., 270., 360., 179.)>]
 [<InlineData(89., 270., 360., 179.)>]
-let ``Difference between angles - samples`` 
-    (angle1, angle2, normalizer, expectedDifference) =
-    test <@ differenceBetweenAngles angle1 angle2 normalizer 
-        = expectedDifference @>
+let ``Difference between angles - samples``
+    (angle1, angle2, normalizer, expectedDifference)
+    =
+    test
+        <@ differenceBetweenAngles angle1 angle2 normalizer = expectedDifference @>
 
 [<Fact>]
-let ``Difference between angles - properties``() =
+let ``Difference between angles - properties`` () =
     let normalizer = 360.
 
-    let isPositive (angle1, angle2) = 
+    let isPositive (angle1, angle2) =
         normalizer |> differenceBetweenAngles angle1 angle2 >= 0.
-    let isNeverMoreThanHalfOfNormalizer (angle1, angle2) = 
-        normalizer |> differenceBetweenAngles angle1 angle2 <= (normalizer / 2.)
-    let isCommutative (angle1, angle2) =
-        normalizer |> differenceBetweenAngles angle1 angle2
-            = (normalizer |> differenceBetweenAngles angle2 angle1)
 
-    let props x = 
-        (isPositive x) .&. (isNeverMoreThanHalfOfNormalizer x)
+    let isNeverMoreThanHalfOfNormalizer (angle1, angle2) =
+        normalizer |> differenceBetweenAngles angle1 angle2 <= (normalizer / 2.)
+
+    let isCommutative (angle1, angle2) =
+        normalizer |> differenceBetweenAngles angle1 angle2 = (normalizer
+                                                               |> differenceBetweenAngles
+                                                                   angle2
+                                                                   angle1)
+
+    let props x =
+        (isPositive x)
+        .&. (isNeverMoreThanHalfOfNormalizer x)
         .&. (isCommutative x)
 
     let genAngle1 = floatInRange -1000 1000
     let genAngle2 = floatInRange -1000 1000
 
-    let specs = 
+    let specs =
         Gen.map2 (fun x y -> x, y) genAngle1 genAngle2
-        |> Arb.fromGen |> Prop.forAll <| props
+        |> Arb.fromGen
+        |> Prop.forAll
+        <| props
+
     Check.QuickThrowOnFailure specs
 
     let differenceWithItselfIsZero angle =
         normalizer |> differenceBetweenAngles angle angle = 0.
 
-    floatInRange -1000 1000 |> Arb.fromGen 
-    |> Prop.forAll <| differenceWithItselfIsZero
+    floatInRange -1000 1000 |> Arb.fromGen |> Prop.forAll
+    <| differenceWithItselfIsZero
     |> Check.QuickThrowOnFailure

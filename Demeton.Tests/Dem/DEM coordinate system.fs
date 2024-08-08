@@ -14,7 +14,7 @@ open PropertiesHelp
 let longitudeAndCellXHaveSameCenter ((lon, _), tileSize: int) =
     match lon with
     | 0. ->
-        let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+        let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
         let cellX = longitudeToCellX cellsPerDegree lon
         cellX = 0
     | _ -> true
@@ -26,7 +26,7 @@ let longitudeAndCellXHaveSameCenter ((lon, _), tileSize: int) =
 let latitudeAndCellYHaveSameCenter ((_, lat), tileSize: int) =
     match lat with
     | 0. ->
-        let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+        let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
         let cellY = latitudeToCellY cellsPerDegree lat
         cellY = 0
     | _ -> true
@@ -37,7 +37,7 @@ let latitudeAndCellYHaveSameCenter ((_, lat), tileSize: int) =
 /// Negative longitude corresponds to negative cell X coordinate.
 /// </summary>
 let longitudeAndCellXHaveSameSign ((lon, _), tileSize: int) =
-    let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+    let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
     let cellX = longitudeToCellX cellsPerDegree lon
 
     Math.Sign cellX = Math.Sign lon
@@ -48,7 +48,7 @@ let longitudeAndCellXHaveSameSign ((lon, _), tileSize: int) =
 /// Negative latitude corresponds to negative cell Y coordinate.
 /// </summary>
 let latitudeAndCellYHaveSameSign ((_, lat), tileSize: int) =
-    let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+    let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
     let cellY = latitudeToCellY cellsPerDegree lat
 
     Math.Sign cellY = Math.Sign lat
@@ -59,7 +59,7 @@ let latitudeAndCellYHaveSameSign ((_, lat), tileSize: int) =
 /// is correct.
 /// </summary>
 let longitudeToCellXCalculationRoundtripIsCorrect ((lon, _), tileSize: int) =
-    let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+    let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
     let cellX = longitudeToCellX cellsPerDegree lon
     let calculatedLon = cellXToLongitude cellsPerDegree cellX
 
@@ -73,7 +73,7 @@ let longitudeToCellXCalculationRoundtripIsCorrect ((lon, _), tileSize: int) =
 /// is correct.
 /// </summary>
 let latitudeToCellYCalculationRoundtripIsCorrect ((_, lat), tileSize: int) =
-    let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+    let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
     let cellY = latitudeToCellY cellsPerDegree lat
     let calculatedLat = cellYToLatitude cellsPerDegree cellY
 
@@ -87,7 +87,7 @@ let latitudeToCellYCalculationRoundtripIsCorrect ((_, lat), tileSize: int) =
 let tileXAndCellXHaveSameCenter ((lon, _), tileSize: int) =
     match lon with
     | 0. ->
-        let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+        let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
         let cellX = longitudeToCellX cellsPerDegree lon
         let tileX = cellXToTileX tileSize cellX
         tileX = 0
@@ -100,7 +100,7 @@ let tileXAndCellXHaveSameCenter ((lon, _), tileSize: int) =
 let tileYAndCellYHaveSameCenter ((_, lat), tileSize: int) =
     match lat with
     | 0. ->
-        let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+        let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
         let cellY = latitudeToCellY cellsPerDegree lat
         let tileY = cellYToTileY tileSize cellY
         tileY = 0
@@ -111,7 +111,7 @@ let tileYAndCellYHaveSameCenter ((_, lat), tileSize: int) =
 /// The roundtrip calculation from tile X to cell X and back is correct.
 /// </summary>
 let tileXToCellXCalculationRoundtripIsCorrect ((lon, _), tileSize: int) =
-    let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+    let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
     let cellX = longitudeToCellX cellsPerDegree lon
     let tileX = cellXToTileX tileSize cellX
     let calculatedCellX = tileXToCellX tileSize tileX
@@ -124,7 +124,7 @@ let tileXToCellXCalculationRoundtripIsCorrect ((lon, _), tileSize: int) =
 /// The roundtrip calculation from tile Y to cell Y and back is correct.
 /// </summary>
 let tileYToCellYCalculationRoundtripIsCorrect ((_, lat), tileSize: int) =
-    let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+    let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
     let cellY = latitudeToCellY cellsPerDegree lat
     let tileY = cellYToTileY tileSize cellY
     let calculatedCellY = tileYToCellY tileSize tileY
@@ -137,7 +137,7 @@ let tileYToCellYCalculationRoundtripIsCorrect ((_, lat), tileSize: int) =
 /// DemTileCoords correspond to the floor value of the original longitude and latitude.
 /// </summary>
 let demTileCoordsCorrespondToFloorOfOriginalLonLat ((lon, lat), tileSize: int) =
-    let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+    let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
     let cellX = longitudeToCellX cellsPerDegree lon
     let cellY = latitudeToCellY cellsPerDegree lat
     let tileX = cellXToTileX tileSize cellX
@@ -161,7 +161,7 @@ let demTileCoordsCorrespondToFloorOfOriginalLonLat ((lon, lat), tileSize: int) =
 /// tileMinCell is southwestern corner of the tile.
 /// </summary>
 let tileMinCellIsSouthwesternCorner ((lon, lat), tileSize: int) =
-    let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+    let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
     let cellX = longitudeToCellX cellsPerDegree lon
     let cellY = latitudeToCellY cellsPerDegree lat
     let tileX = cellXToTileX tileSize cellX
@@ -185,7 +185,7 @@ let tileMinCellIsSouthwesternCorner ((lon, lat), tileSize: int) =
 /// Point always fits inside the tile.
 /// </summary>
 let pointAlwaysFitsInsideTheTile ((lon, lat), tileSize: int) =
-    let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+    let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
     let cellX = longitudeToCellX cellsPerDegree lon
     let cellY = latitudeToCellY cellsPerDegree lat
     let tileX = cellXToTileX tileSize cellX
@@ -208,9 +208,9 @@ let pointAlwaysFitsInsideTheTile ((lon, lat), tileSize: int) =
 
 /// <summary>
 /// Tile name is as expected.
-/// </summary
+/// </summary>
 let tileNameIsAsExpected ((lon, lat), tileSize: int) =
-    let cellsPerDegree = cellsPerDegree tileSize (DemLevel.fromInt 0)
+    let cellsPerDegree = cellsPerDegree tileSize DemLevel.Level0
     let cellX = longitudeToCellX cellsPerDegree lon
     let cellY = latitudeToCellY cellsPerDegree lat
     let tileX = cellXToTileX tileSize cellX

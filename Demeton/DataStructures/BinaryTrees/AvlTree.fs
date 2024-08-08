@@ -25,30 +25,33 @@ type Tree<'TNode> =
 /// - 'TItem is the type of the item (value) each tree node holds.
 /// - 'TKey is the type of the sortable key of the item used to place the item
 ///    in the appropriate location in the tree.
-type TreeFuncs<'TNode, 'TItem, 'TKey when 'TKey:comparison> = {
-    /// A function that returns the item of a given node.
-    NodeItem: 'TNode -> 'TItem
-    /// A function that returns the key of a given item.
-    ItemKey: 'TItem -> 'TKey
-    /// A function that returns the left subtree of a given node. 
-    Left: 'TNode -> Tree<'TNode>
-    /// A function that returns the right subtree of a given node. 
-    Right: 'TNode -> Tree<'TNode>
-    /// A function that returns the height of a given (sub)tree. 
-    Height: Tree<'TNode> -> int
-    /// A function that creates an instance of a node with the specified item
-    /// and left and right subtrees. 
-    CreateNode: 'TItem -> Tree<'TNode> -> Tree<'TNode> -> Tree<'TNode>
-}
+type TreeFuncs<'TNode, 'TItem, 'TKey when 'TKey: comparison> =
+    {
+        /// A function that returns the item of a given node.
+        NodeItem: 'TNode -> 'TItem
+        /// A function that returns the key of a given item.
+        ItemKey: 'TItem -> 'TKey
+        /// A function that returns the left subtree of a given node.
+        Left: 'TNode -> Tree<'TNode>
+        /// A function that returns the right subtree of a given node.
+        Right: 'TNode -> Tree<'TNode>
+        /// A function that returns the height of a given (sub)tree.
+        Height: Tree<'TNode> -> int
+        /// A function that creates an instance of a node with the specified item
+        /// and left and right subtrees.
+        CreateNode: 'TItem -> Tree<'TNode> -> Tree<'TNode> -> Tree<'TNode>
+    }
 
 /// Returns the balance factor of a given subtree. The balance factor is
 /// calculated as the height difference of between left and right subtrees.
 let balanceFactor
-    (treeFuncs: TreeFuncs<'TNode, 'TItem, 'TKey>) (tree: Tree<'TNode>) =
+    (treeFuncs: TreeFuncs<'TNode, 'TItem, 'TKey>)
+    (tree: Tree<'TNode>)
+    =
     match tree with
-    | Node node -> 
+    | Node node ->
         (node |> treeFuncs.Left |> treeFuncs.Height)
-         - (node |> treeFuncs.Right |> treeFuncs.Height)
+        - (node |> treeFuncs.Right |> treeFuncs.Height)
     | None -> 0
 
 /// Indicates whether the given balance factor is very left heavy.
@@ -62,36 +65,38 @@ let isVeryRightHeavy balanceFactor = balanceFactor <= -2
 
 /// Returns true if the provided tree position represents a node or false if it
 /// is None.
-let isNode = function
+let isNode =
+    function
     | Node _ -> true
     | None -> false
 
 /// Serializes the tree into a string using the DOT language.
 let treeToDot
-    (treeFuncs: TreeFuncs<'TNode, 'TItem, 'TKey>) (tree: Tree<'TNode>) =
-    let nodeAttributes = function
-        | Node node ->
-            sprintf "label=%A" (treeFuncs.NodeItem node)
+    (treeFuncs: TreeFuncs<'TNode, 'TItem, 'TKey>)
+    (tree: Tree<'TNode>)
+    =
+    let nodeAttributes =
+        function
+        | Node node -> sprintf "label=%A" (treeFuncs.NodeItem node)
         | None -> ""
-       
+
     let left treeFuncs tree =
         match tree with
         | Node node -> node |> treeFuncs.Left
         | _ -> invalidOp "the tree is not a node"
-       
+
     let right treeFuncs tree =
         match tree with
         | Node node -> node |> treeFuncs.Right
         | _ -> invalidOp "the tree is not a node"
-       
-    tree
-    |> treeToDot
-           isNode nodeAttributes (left treeFuncs) (right treeFuncs)
+
+    tree |> treeToDot isNode nodeAttributes (left treeFuncs) (right treeFuncs)
 
 let private itemToString (treeFuncs: TreeFuncs<'TNode, 'TItem, 'TKey>) =
     function
     | Node node ->
-        sprintf "%A (%d)"
+        sprintf
+            "%A (%d)"
             (treeFuncs.NodeItem node)
             (node |> Node |> balanceFactor treeFuncs)
     | None -> ""
@@ -99,9 +104,8 @@ let private itemToString (treeFuncs: TreeFuncs<'TNode, 'TItem, 'TKey>) =
 /// Renders the tree using ASCII graphics.
 let treeToAscii treeFuncs tree =
     let itemToString = itemToString treeFuncs
-    
-    tree
-    |> treeToAscii treeFuncs.Height None isNode itemToString
+
+    tree |> treeToAscii treeFuncs.Height None isNode itemToString
 
 /// Contains internal implementation for inserting and removing of items from
 /// the tree.
@@ -109,7 +113,10 @@ let treeToAscii treeFuncs tree =
 module private Node =
     /// Creates a copy of the node with a different left child.
     let updateLeft
-        (treeFuncs: TreeFuncs<'TNode, 'TTItem, 'TKey>) leftNode node =
+        (treeFuncs: TreeFuncs<'TNode, 'TTItem, 'TKey>)
+        leftNode
+        node
+        =
         treeFuncs.CreateNode
             (treeFuncs.NodeItem node)
             leftNode
@@ -121,13 +128,14 @@ module private Node =
             (treeFuncs.NodeItem node)
             (treeFuncs.Left node)
             rightNode
-        
-    /// Determines whether the tree contains the specified item. 
+
+    /// Determines whether the tree contains the specified item.
     let rec contains treeFuncs item node =
         let itemKey = item |> treeFuncs.ItemKey
         let nodeKey = node |> treeFuncs.NodeItem |> treeFuncs.ItemKey
-        
-        if item = (node |> treeFuncs.NodeItem) then true
+
+        if item = (node |> treeFuncs.NodeItem) then
+            true
         elif itemKey < nodeKey then
             match (treeFuncs.Left node) with
             | Node left -> left |> contains treeFuncs item
@@ -137,14 +145,14 @@ module private Node =
             | Node right -> right |> contains treeFuncs item
             | None -> false
 
-    /// Returns a left-rotated version of a given subtree. 
-    let rotateLeft treeFuncs (tree: Tree<'TNode>): Tree<'TNode> =
-//        log (sprintf "rotateLeft - before: %s" (node |> treeToAscii))
-        
+    /// Returns a left-rotated version of a given subtree.
+    let rotateLeft treeFuncs (tree: Tree<'TNode>) : Tree<'TNode> =
+        //        log (sprintf "rotateLeft - before: %s" (node |> treeToAscii))
+
         match tree with
         | Node node ->
             let right = treeFuncs.Right node
-            
+
             match right with
             | Node rightNode ->
                 let left = treeFuncs.Left node
@@ -154,19 +162,19 @@ module private Node =
                 let ri = treeFuncs.NodeItem rightNode
                 let left' = treeFuncs.CreateNode item left rl
                 let rotated = treeFuncs.CreateNode ri left' rr
-    //            log (sprintf "rotateLeft - after: %s" (rotated |> treeToAscii))
+                //            log (sprintf "rotateLeft - after: %s" (rotated |> treeToAscii))
                 rotated
             | _ -> tree
         | tree -> tree
 
-    /// Returns a right-rotated version of a given subtree. 
-    let rotateRight treeFuncs (tree: Tree<'TNode>): Tree<'TNode> =
-//        log (sprintf "rotateRight - before: %s" (node |> treeToAscii))
-        
+    /// Returns a right-rotated version of a given subtree.
+    let rotateRight treeFuncs (tree: Tree<'TNode>) : Tree<'TNode> =
+        //        log (sprintf "rotateRight - before: %s" (node |> treeToAscii))
+
         match tree with
         | Node node ->
             let left = treeFuncs.Left node
-            
+
             match left with
             | Node leftNode ->
                 let right = treeFuncs.Right node
@@ -174,67 +182,80 @@ module private Node =
                 let ll = treeFuncs.Left leftNode
                 let lr = treeFuncs.Right leftNode
                 let li = treeFuncs.NodeItem leftNode
-                
+
                 let right' = treeFuncs.CreateNode item lr right
                 let rotated = treeFuncs.CreateNode li ll right'
-//            log (sprintf "rotateRight - after: %s" (rotated |> treeToAscii))
-                rotated            
+                //            log (sprintf "rotateRight - after: %s" (rotated |> treeToAscii))
+                rotated
             | _ -> tree
         | tree -> tree
-    
-    /// Returns a double-left-rotated version of a given subtree. 
-    let doubleRotateLeft treeFuncs (tree: Tree<'TNode>): Tree<'TNode> =
-//        log (sprintf "doubleRotateLeft - before: %s" (node |> treeToAscii))
-        
+
+    /// Returns a double-left-rotated version of a given subtree.
+    let doubleRotateLeft treeFuncs (tree: Tree<'TNode>) : Tree<'TNode> =
+        //        log (sprintf "doubleRotateLeft - before: %s" (node |> treeToAscii))
+
         match tree with
         | Node node ->
             let right': Tree<'TNode> =
                 node |> treeFuncs.Right |> rotateRight treeFuncs
+
             let node' = node |> updateRight treeFuncs right'
             let rotated = node' |> rotateLeft treeFuncs
-//            log (sprintf "doubleRotateLeft - after: %s" (rotated |> treeToAscii))
+            //            log (sprintf "doubleRotateLeft - after: %s" (rotated |> treeToAscii))
             rotated
         | node -> node
-        
-    /// Returns a double-right-rotated version of a given subtree. 
-    let doubleRotateRight treeFuncs (tree: Tree<'TNode>): Tree<'TNode> =
-//        log (sprintf "doubleRotateRight - before: %s" (node |> treeToAscii))
-        
+
+    /// Returns a double-right-rotated version of a given subtree.
+    let doubleRotateRight treeFuncs (tree: Tree<'TNode>) : Tree<'TNode> =
+        //        log (sprintf "doubleRotateRight - before: %s" (node |> treeToAscii))
+
         match tree with
         | Node node ->
-            let left' =
-                node |> treeFuncs.Left |> rotateLeft treeFuncs
+            let left' = node |> treeFuncs.Left |> rotateLeft treeFuncs
             let node' = node |> updateLeft treeFuncs left'
             let rotated = node' |> rotateRight treeFuncs
-//            log (sprintf "doubleRotateRight - after: %s" (rotated |> treeToAscii))
+            //            log (sprintf "doubleRotateRight - after: %s" (rotated |> treeToAscii))
             rotated
-        | node -> node        
-    
-    /// Returns a balanced version of a given subtree. 
-    let balance treeFuncs (tree: Tree<'TNode>): Tree<'TNode>  =
-//        log (sprintf "balance %A" (node |> nodeItem))
-        
+        | node -> node
+
+    /// Returns a balanced version of a given subtree.
+    let balance treeFuncs (tree: Tree<'TNode>) : Tree<'TNode> =
+        //        log (sprintf "balance %A" (node |> nodeItem))
+
         let nodeBalanceFactor = tree |> balanceFactor treeFuncs
+
         match tree with
         | Node n when nodeBalanceFactor |> isVeryLeftHeavy ->
-            if n |> treeFuncs.Left |> balanceFactor treeFuncs
-               |> isRightHeavy |> not then
+            if
+                n
+                |> treeFuncs.Left
+                |> balanceFactor treeFuncs
+                |> isRightHeavy
+                |> not
+            then
                 tree |> rotateRight treeFuncs
             else
                 tree |> doubleRotateRight treeFuncs
         | Node n when nodeBalanceFactor |> isVeryRightHeavy ->
-            if n |> treeFuncs.Right |> balanceFactor treeFuncs
-               |> isLeftHeavy |> not then
-                tree |> rotateLeft treeFuncs 
+            if
+                n
+                |> treeFuncs.Right
+                |> balanceFactor treeFuncs
+                |> isLeftHeavy
+                |> not
+            then
+                tree |> rotateLeft treeFuncs
             else
                 tree |> doubleRotateLeft treeFuncs
         | node -> node
-    
+
     /// Looks for the successor (the leftest descendant) node and returns its
     /// item and a replacement node (recursively).
-    let rec private removeSuccessor treeFuncs (node: 'TNode)
+    let rec private removeSuccessor
+        treeFuncs
+        (node: 'TNode)
         : 'TItem * Tree<'TNode> =
-//        log (sprintf "removeSuccessor %A" node.Item)
+        //        log (sprintf "removeSuccessor %A" node.Item)
 
         match node |> treeFuncs.Left with
         // if we found the successor node, save its item and give its right
@@ -243,49 +264,52 @@ module private Node =
         // if there are still some nodes to the left...
         | Node left ->
             // find the successor and the new left child
-            let (successorNodeItem, newLeftChild) =
+            let successorNodeItem, newLeftChild =
                 left |> removeSuccessor treeFuncs
+
             let node' =
-                node
-                |> updateLeft treeFuncs newLeftChild
-                |> balance treeFuncs
-            
+                node |> updateLeft treeFuncs newLeftChild |> balance treeFuncs
+
             (successorNodeItem, node')
-    
+
     /// Replaces (or, better put, creates a new node of) the successor node of
     /// the right child.
     let private replaceWithSuccessor treeFuncs (node: 'TNode) =
-//        log (sprintf "replaceWithSuccessor %A" node.Item)
+        //        log (sprintf "replaceWithSuccessor %A" node.Item)
 
         match node |> treeFuncs.Right with
         | None ->
             invalidOp
                 "bug: this function should not be called on a node without the right child"
-        | Node right -> 
-            let (successorNodeItem, newRightChild) =
+        | Node right ->
+            let successorNodeItem, newRightChild =
                 right |> removeSuccessor treeFuncs
+
             treeFuncs.CreateNode
                 successorNodeItem
                 (node |> treeFuncs.Left)
                 newRightChild
             |> balance treeFuncs
 
-        
+
     /// The result type of the tryRemove function.
     type TryRemoveResult<'TNode> =
         /// The item was found in the specific subtree.
         | Found of Tree<'TNode>
         /// The item was not found.
         | NotFound
-    
+
     /// Tries to remove an item from the subtree. If the item was not found,
     /// just returns NotFound result.
     let rec tryRemove
-        (treeFuncs: TreeFuncs<'TNode, 'TItem, 'TKey>) item node
+        (treeFuncs: TreeFuncs<'TNode, 'TItem, 'TKey>)
+        item
+        node
         : TryRemoveResult<'TNode> =
 
-        let tryRemoveFromRightSubtree() =
+        let tryRemoveFromRightSubtree () =
             let rightTree = node |> treeFuncs.Right
+
             match rightTree with
             | None -> NotFound
             | Node rightNode ->
@@ -296,14 +320,14 @@ module private Node =
                     |> balance treeFuncs
                     |> Found
                 | NotFound -> NotFound
-                
+
         let useUpdatedLeftNodeAndReturnFound newLeftNode =
             node
             |> updateLeft treeFuncs newLeftNode
             |> balance treeFuncs
             |> Found
-            
-//        log (sprintf "tryRemove item %A from %A" item (node |> Node |> treeToAscii))
+
+        //        log (sprintf "tryRemove item %A from %A" item (node |> Node |> treeToAscii))
 
         let itemKey = item |> treeFuncs.ItemKey
         let nodeKey = node |> treeFuncs.NodeItem |> treeFuncs.ItemKey
@@ -328,43 +352,48 @@ module private Node =
                 match leftTree with
                 | None -> NotFound
                 | Node leftNode -> tryRemove treeFuncs item leftNode
-                
+
             match leftTryRemoveResult with
             | NotFound ->
                 // and if not found in the left, try the right subtree
-                tryRemoveFromRightSubtree()
+                tryRemoveFromRightSubtree ()
             | Found newLeftNode -> useUpdatedLeftNodeAndReturnFound newLeftNode
         elif itemKey < nodeKey then
             match leftTree with
             | None -> NotFound
             | Node leftNode ->
                 match tryRemove treeFuncs item leftNode with
-                | Found newLeftNode -> useUpdatedLeftNodeAndReturnFound newLeftNode
+                | Found newLeftNode ->
+                    useUpdatedLeftNodeAndReturnFound newLeftNode
                 | NotFound -> NotFound
-        else tryRemoveFromRightSubtree()
-    
+        else
+            tryRemoveFromRightSubtree ()
+
     /// Removes an item from the subtree. If the item was not found,
     /// throws an exception.
     let rec remove
         (treeFuncs: TreeFuncs<'TNode, 'TItem, 'TKey>)
-        (item: 'TItem) (node: 'TNode) =
-        
+        (item: 'TItem)
+        (node: 'TNode)
+        =
+
         let removeFromRightSubtree () =
             let rightTree = node |> treeFuncs.Right
+
             match rightTree with
             | None -> None
             | Node rightNode ->
                 let right' = rightNode |> remove treeFuncs item
                 node |> updateRight treeFuncs right' |> balance treeFuncs
-        
-//        log (sprintf "remove item %A from %s" item (node |> Node |> treeToAscii))
+
+        //        log (sprintf "remove item %A from %s" item (node |> Node |> treeToAscii))
 
         let itemKey = item |> treeFuncs.ItemKey
         let nodeKey = node |> treeFuncs.NodeItem |> treeFuncs.ItemKey
-        
+
         let leftTree = node |> treeFuncs.Left
         let rightTree = node |> treeFuncs.Right
-        
+
         // if the item was found...
         if item = (node |> treeFuncs.NodeItem) then
             match leftTree, rightTree with
@@ -372,9 +401,7 @@ module private Node =
             | Node left, None -> Node left
             | None, Node right -> Node right
             | Node _, Node _ ->
-                node
-                |> replaceWithSuccessor treeFuncs
-                |> balance treeFuncs
+                node |> replaceWithSuccessor treeFuncs |> balance treeFuncs
         // if the item is not the same, but it has the same key...
         elif itemKey = nodeKey then
             // try to find the item first in the left subtree
@@ -382,14 +409,13 @@ module private Node =
                 match leftTree with
                 | None -> NotFound
                 | Node leftNode -> tryRemove treeFuncs item leftNode
+
             match leftTryRemoveResult with
             | NotFound ->
                 // and if not found in the left, use right subtree
-                removeFromRightSubtree()
+                removeFromRightSubtree ()
             | Found newLeftNode ->
-                node
-                |> updateLeft treeFuncs newLeftNode
-                |> balance treeFuncs                
+                node |> updateLeft treeFuncs newLeftNode |> balance treeFuncs
         elif itemKey < nodeKey then
             match leftTree with
             | None -> None
@@ -397,11 +423,11 @@ module private Node =
                 let left' = leftNode |> remove treeFuncs item
                 node |> updateLeft treeFuncs left' |> balance treeFuncs
         else
-            removeFromRightSubtree()
+            removeFromRightSubtree ()
 
 /// Inserts an item into the tree and returns a new version of the tree.
 let rec insert treeFuncs item (tree: Tree<'TNode>) =
-//    log (sprintf "insert %A under %A" item (tree |> itemToString))
+    //    log (sprintf "insert %A under %A" item (tree |> itemToString))
 
     match tree with
     | None -> treeFuncs.CreateNode item None None
@@ -411,54 +437,54 @@ let rec insert treeFuncs item (tree: Tree<'TNode>) =
 
         let node' =
             if itemKey < nodeKey then
-                let left' = 
-                    insert treeFuncs item (node |> treeFuncs.Left)
+                let left' = insert treeFuncs item (node |> treeFuncs.Left)
                 node |> Node.updateLeft treeFuncs left'
             else
-                let right' =
-                    insert treeFuncs item (node |> treeFuncs.Right)
+                let right' = insert treeFuncs item (node |> treeFuncs.Right)
                 node |> Node.updateRight treeFuncs right'
+
         Node.balance treeFuncs node'
-   
+
 /// Removes an item from the tree and returns a new version of the tree.
 /// If the item was not found, throws an exception.
 let remove treeFuncs item tree =
-//    log (sprintf "remove item %A" item)
+    //    log (sprintf "remove item %A" item)
 
     match tree with
     | None ->
-        KeyNotFoundException "The item was not found in the tree."
-        |> raise
+        KeyNotFoundException "The item was not found in the tree." |> raise
     | Node rootNode -> rootNode |> Node.remove treeFuncs item
 
 /// Tries to remove an item from the tree. If the item was found and removed,
 /// returns a new version of the tree. If the item was not found, returns the
 /// original tree.
 let tryRemove treeFuncs item tree =
-//    log (sprintf "tryRemove item %A" item)
+    //    log (sprintf "tryRemove item %A" item)
 
     match tree with
     | None -> None
     | Node rootNode ->
-        rootNode |> Node.tryRemove treeFuncs item
+        rootNode
+        |> Node.tryRemove treeFuncs item
         |> function
-        | Node.Found newTree -> newTree
-        | Node.NotFound -> tree
-        
-/// Indicates whether the given tree contains the specified item.         
+            | Node.Found newTree -> newTree
+            | Node.NotFound -> tree
+
+/// Indicates whether the given tree contains the specified item.
 let contains treeFuncs item tree =
     match tree with
     | None -> false
     | Node rootNode -> rootNode |> Node.contains treeFuncs item
-        
+
 /// Returns a sequence containing all of the items in the tree, sorted by
-/// item keys. 
+/// item keys.
 let rec items treeFuncs tree =
     match tree with
     | None -> seq []
     | Node node ->
         let leftItems = node |> treeFuncs.Left |> items treeFuncs
         let rightItems = node |> treeFuncs.Right |> items treeFuncs
+
         rightItems
         |> Seq.append [ node |> treeFuncs.NodeItem ]
         |> Seq.append leftItems

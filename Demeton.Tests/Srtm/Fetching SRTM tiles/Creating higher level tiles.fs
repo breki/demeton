@@ -49,6 +49,7 @@ let private tileFromBounds tileSize level minLon minLat maxLon maxLat =
               MinLat = minLat |> float
               MaxLon = maxLon |> float
               MaxLat = maxLat |> float }
+        |> Seq.toList
 
     match tiles with
     | [ tile ] -> tile

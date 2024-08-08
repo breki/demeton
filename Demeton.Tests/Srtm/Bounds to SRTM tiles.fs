@@ -28,7 +28,7 @@ let ``When bounds cover just a single tile inside 0,0 lon/lat, level 0`` () =
           MaxLon = 0.2
           MaxLat = 0.2 }
 
-    let tiles = boundsToTiles 3600 (DemLevel.fromInt 0) bounds
+    let tiles = boundsToTiles 3600 DemLevel.Level0 bounds
     tiles |> should equal [ demTileId 0 0 0 ]
 
 [<Fact>]
@@ -50,7 +50,7 @@ let ``When bounds cover just a single tile (case 2)`` () =
           MaxLon = 0.2
           MaxLat = -0.1 }
 
-    let tiles = boundsToTiles 3600 (DemLevel.fromInt 0) bounds
+    let tiles = boundsToTiles 3600 DemLevel.Level0 bounds
     tiles |> should equal [ demTileId 0 0 -1 ]
 
 [<Fact>]
@@ -61,7 +61,7 @@ let ``When bounds cover just a single tile (case 3)`` () =
           MaxLon = 10.2
           MaxLat = 20.2 }
 
-    let tiles = boundsToTiles 3600 (DemLevel.fromInt 0) bounds
+    let tiles = boundsToTiles 3600 DemLevel.Level0 bounds
     tiles |> should equal [ demTileId 0 10 20 ]
 
 [<Fact>]
@@ -72,7 +72,7 @@ let ``When bounds cover multiple tiles`` () =
           MaxLon = 11.2
           MaxLat = 21.2 }
 
-    let tiles = boundsToTiles 3600 (DemLevel.fromInt 0) bounds
+    let tiles = boundsToTiles 3600 DemLevel.Level0 bounds
 
     tiles
     |> should
