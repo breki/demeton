@@ -11,7 +11,7 @@ open FileSys
 /// <summary>
 /// Reads HeightsArray data from a HGT-encoded stream.
 /// </summary>
-let readFromStream tileSize (stream: Stream) : DemHeight[] =
+let readHeightsFromStream tileSize (stream: Stream) : DemHeight[] =
     let inline readNextHeightFromStream (streamReader: FunctionalStreamReader) =
         let firstByte = streamReader.currentByte ()
 
@@ -69,8 +69,8 @@ let readFromStream tileSize (stream: Stream) : DemHeight[] =
 /// Reads the <see cref="HeightsArray"/> of a SRTM tile from
 /// a HGT file stream.
 /// </summary>
-let createDemTileFromStream tileSize tileId stream =
-    let srtmHeights = readFromStream tileSize stream
+let readHeightsArrayFromStream tileSize tileId stream =
+    let srtmHeights = readHeightsFromStream tileSize stream
 
     let cellMinX, cellMinY = tileMinCell tileSize tileId
 

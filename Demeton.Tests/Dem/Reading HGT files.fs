@@ -36,7 +36,7 @@ let ``Can read SRTM heights`` () =
                1uy |]
         )
 
-    let heights = Hgt.readFromStream 2 stream
+    let heights = Hgt.readHeightsFromStream 2 stream
 
     heights |> should equal [| 2560s; 0s; 2561s; 1s |]
 
@@ -45,7 +45,7 @@ let ``Can read null SRTM heights`` () =
     use stream =
         new MemoryStream([| 0x80uy; 0uy; 10uy; 0uy; 10uy; 0uy; 0uy; 0uy |])
 
-    let heights = Hgt.readFromStream 1 stream
+    let heights = Hgt.readHeightsFromStream 1 stream
 
     heights |> should equal [| DemHeightNone |]
 
@@ -56,7 +56,7 @@ let ``Can handle negative SRTM heights`` () =
             [| 255uy; 0b10011100uy; 10uy; 0uy; 10uy; 0uy; 0uy; 0uy |]
         )
 
-    let heights = Hgt.readFromStream 1 stream
+    let heights = Hgt.readHeightsFromStream 1 stream
 
     heights |> should equal [| -100s |]
 
@@ -98,7 +98,7 @@ let ``Can create heights array from SRTM heights sequence`` () =
 
     use stream = new MemoryStream(byteArray)
 
-    let tile = Hgt.createDemTileFromStream tileSize (demTileId 0 16 45) stream
+    let tile = Hgt.readHeightsArrayFromStream tileSize (demTileId 0 16 45) stream
 
     test <@ tile.Width = tileSize @>
     test <@ tile.Height = tileSize @>
@@ -117,6 +117,6 @@ let ``Can read HGT file`` () =
 
     test <@ stream <> null @>
 
-    let heights = Hgt.createDemTileFromStream 3600 tileId stream
+    let heights = Hgt.readHeightsArrayFromStream 3600 tileId stream
     test <@ heights.Width = 3600 @>
     test <@ heights.Height = 3600 @>

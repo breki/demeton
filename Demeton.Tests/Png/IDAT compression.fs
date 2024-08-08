@@ -51,7 +51,7 @@ let ``Determining the compression rate`` () =
 
     printfn "Reading the heights array..."
 
-    let heightsArray = Hgt.createDemTileFromStream 3600 tileId hgtStream
+    let heightsArray = Hgt.readHeightsArrayFromStream 3600 tileId hgtStream
 
     printfn
         "%d Encoding heights into a raw image data..."

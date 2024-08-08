@@ -229,7 +229,7 @@ let convertZippedHgtTileToPng
 
             memoryStream.Seek(0L, SeekOrigin.Begin) |> ignore
 
-            Hgt.createDemTileFromStream SrtmTileSize tileId memoryStream |> Ok
+            Hgt.readHeightsArrayFromStream SrtmTileSize tileId memoryStream |> Ok
 
         match
             readHgtFileFromStream tileId zippedHgtFileName readHgtFileStream

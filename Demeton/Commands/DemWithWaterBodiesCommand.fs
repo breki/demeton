@@ -21,7 +21,7 @@ open Raster
 type Options =
     { TileId: DemTileId
       HgtSize: int
-      LocalCacheDir: string}
+      LocalCacheDir: string }
 
 [<Literal>]
 let TileIdParameter = "tile-id"
@@ -219,63 +219,77 @@ let extendHeightsArrayWithAdditionalRowAndColumn (heightsArray: HeightsArray) =
         HeightsArrayDirectImport extendedCells
     )
 
-// todo 3: if the HGT already exists, just read it
-
 let ensureHgtFile cacheDir hgtSize tileId : HeightsArray option =
-    fetchAw3dTile tileId cacheDir
-    |> Result.map (fun aw3dTile ->
-        let availableWorldCoverTiles =
-            ensureGeoJsonFile cacheDir FileSys.fileExists FileSys.downloadFile
-            |> listAllAvailableFiles FileSys.openFileToRead
-            |> Set.ofSeq
-
-        let downsampledAw3dTile = aw3dTile |> downsampleAw3dTile hgtSize
-
-        loadWaterBodiesTileFromCache cacheDir availableWorldCoverTiles tileId
-        |> makeNoneFileIfNeeded cacheDir
-        |> extractWaterBodiesTileFromWorldCoverTileIfNeeded cacheDir
-        |> function
-            | CachedTileLoaded tileHeightsArray ->
-                // todo 20: simplify water bodies
-
-                tileHeightsArray
-                |> Option.map (fun tileHeightsArray ->
-                    let downsampledWaterBodiesTile =
-                        tileHeightsArray
-                        |> downsampleWaterBodiesHeightsArray hgtSize
-
-                    let demWaterBodiesTile =
-                        downsampledAw3dTile
-                        |> encodeWaterBodiesInfoIntoDem
-                            downsampledWaterBodiesTile
-                        // extend the heights array with one additional
-                        //  row and column so it is compatible with the original
-                        //  SRTM HGT files
-                        |> extendHeightsArrayWithAdditionalRowAndColumn
-
-                    demWaterBodiesTile
-                    |> Hgt.writeHeightsArrayToFile (
-                        Path.Combine
-                            (cacheDir,
-                             "AW3D-WaterBodies",
-                             hgtSize.ToString(),
-                             toTileName tileId + ".hgt"))
-                    |> ignore
-
-                    demWaterBodiesTile
-                )
-            | TileNeedsToBeDownloaded _ ->
-                invalidOp "Bug: this should never happen"
-            | TileDoesNotExistInWorldCover _ ->
-                NotImplementedException(
-                    "The case when there is no WorldCover tile"
-                )
-                |> raise
+    let hgtFileName =
+        Path.Combine(
+            cacheDir,
+            "AW3D-WaterBodies",
+            hgtSize.ToString(),
+            toTileName tileId + ".hgt"
         )
-    |> function
-    | Ok heightsArray -> heightsArray
-    | Error errorMessage ->
-        invalidOp errorMessage
+
+    if FileSys.fileExists hgtFileName then
+        Log.info "The HGT file already exists at '%s'." hgtFileName
+
+        FileSys.openFileToRead hgtFileName
+        |> function
+            | Ok stream ->
+                use stream = stream
+                Some(Hgt.readHeightsArrayFromStream hgtSize tileId stream)
+            | Error error -> raise error.Exception
+    else
+        fetchAw3dTile tileId cacheDir
+        |> Result.map (fun aw3dTile ->
+            let availableWorldCoverTiles =
+                ensureGeoJsonFile
+                    cacheDir
+                    FileSys.fileExists
+                    FileSys.downloadFile
+                |> listAllAvailableFiles FileSys.openFileToRead
+                |> Set.ofSeq
+
+            let downsampledAw3dTile = aw3dTile |> downsampleAw3dTile hgtSize
+
+            loadWaterBodiesTileFromCache
+                cacheDir
+                availableWorldCoverTiles
+                tileId
+            |> makeNoneFileIfNeeded cacheDir
+            |> extractWaterBodiesTileFromWorldCoverTileIfNeeded cacheDir
+            |> function
+                | CachedTileLoaded tileHeightsArray ->
+                    // todo 20: simplify water bodies
+
+                    tileHeightsArray
+                    |> Option.map (fun tileHeightsArray ->
+                        let downsampledWaterBodiesTile =
+                            tileHeightsArray
+                            |> downsampleWaterBodiesHeightsArray hgtSize
+
+                        let demWaterBodiesTile =
+                            downsampledAw3dTile
+                            |> encodeWaterBodiesInfoIntoDem
+                                downsampledWaterBodiesTile
+                            // extend the heights array with one additional
+                            //  row and column so it is compatible with the original
+                            //  SRTM HGT files
+                            |> extendHeightsArrayWithAdditionalRowAndColumn
+
+                        demWaterBodiesTile
+                        |> Hgt.writeHeightsArrayToFile hgtFileName
+                        |> ignore
+
+                        demWaterBodiesTile)
+                | TileNeedsToBeDownloaded _ ->
+                    invalidOp "Bug: this should never happen"
+                | TileDoesNotExistInWorldCover _ ->
+                    NotImplementedException(
+                        "The case when there is no WorldCover tile"
+                    )
+                    |> raise)
+        |> function
+            | Ok heightsArray -> heightsArray
+            | Error errorMessage -> invalidOp errorMessage
 
 
 let run (options: Options) : Result<unit, string> =

@@ -86,7 +86,7 @@ let ``Can convert a HGT file into PNG image`` () =
 
     printfn "Reading the heights array..."
 
-    let heightsArray = Hgt.createDemTileFromStream 3600 tileId hgtStream
+    let heightsArray = Hgt.readHeightsArrayFromStream 3600 tileId hgtStream
 
     printfn "%d Encoding heights into the PNG..." clock.ElapsedMilliseconds
 
