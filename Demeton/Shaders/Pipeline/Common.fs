@@ -59,6 +59,7 @@ let createCompositingFuncById compositingFuncId =
 /// <param name="demLevel">
 /// The DEM level to use for shading.
 /// </param>
+/// <param name="tileSize">The size of the DEM tiles used.</param>
 /// <param name="imageRect">The rectangle representing the image,
 /// in the coordinates of the map projection.</param>
 /// <param name="forward">A forward map projection function to use.</param>
@@ -71,6 +72,7 @@ let rec executeShadingStep
     shadingFuncFactory
     compositingFuncFactory
     (shadingDataSources: ShadingDataSources)
+    tileSize
     demLevel
     imageRect
     forward
@@ -85,6 +87,7 @@ let rec executeShadingStep
                 shadingFuncFactory
                 compositingFuncFactory
                 shadingDataSources
+                tileSize
                 demLevel
                 imageRect
                 forward
@@ -96,6 +99,7 @@ let rec executeShadingStep
                 shadingFuncFactory
                 compositingFuncFactory
                 shadingDataSources
+                tileSize
                 demLevel
                 imageRect
                 forward
@@ -113,6 +117,7 @@ let rec executeShadingStep
 
                 Hillshading.shadeRaster
                     parameters.DataSourceKey
+                    tileSize
                     (AspectShader.shadePixel parameters)
             | SolidBackground parameters ->
                 Log.info "Running solid background coloring step..."
@@ -123,24 +128,28 @@ let rec executeShadingStep
 
                 ElevationColoring.shadeRaster
                     parameters.DataSourceKey
+                    tileSize
                     parameters.ColorScale
             | IgorHillshading parameters ->
                 Log.info "Running igor hillshading step..."
 
                 Hillshading.shadeRaster
                     parameters.DataSourceKey
+                    tileSize
                     (IgorHillshader.shadePixel parameters)
             | LambertHillshading parameters ->
                 Log.info "Running lambert hillshading step..."
 
                 Hillshading.shadeRaster
                     parameters.DataSourceKey
+                    tileSize
                     (LambertHillshader.shadePixel parameters)
             | SlopeShading parameters ->
                 Log.info "Running slope shading step..."
 
                 Hillshading.shadeRaster
                     parameters.DataSourceKey
+                    tileSize
                     (SlopeShader.shadePixel parameters)
             | CustomShading shadingFuncId -> shadingFuncFactory shadingFuncId
             | _ -> invalidOp "Unsupported shading step"

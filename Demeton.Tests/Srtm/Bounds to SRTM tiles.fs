@@ -16,7 +16,7 @@ let ``Sample case 1`` () =
           MaxLon = 2.
           MaxLat = 0. }
 
-    let tiles = boundsToTiles 3600 (DemLevel.fromInt 1) bounds
+    let tiles = boundsToTiles 3600 (DemLevel.fromInt 1) bounds |> Seq.toList
 
     tiles |> should equal [ demTileId 1 0 -1 ]
 
@@ -28,7 +28,7 @@ let ``When bounds cover just a single tile inside 0,0 lon/lat, level 0`` () =
           MaxLon = 0.2
           MaxLat = 0.2 }
 
-    let tiles = boundsToTiles 3600 DemLevel.Level0 bounds
+    let tiles = boundsToTiles 3600 DemLevel.Level0 bounds |> Seq.toList
     tiles |> should equal [ demTileId 0 0 0 ]
 
 [<Fact>]
@@ -39,7 +39,7 @@ let ``When bounds cover just a single tile, inside 0,0 lon/lat, level 1`` () =
           MaxLon = 0.2
           MaxLat = 0.2 }
 
-    let tiles = boundsToTiles 3600 (DemLevel.fromInt 1) bounds
+    let tiles = boundsToTiles 3600 (DemLevel.fromInt 1) bounds |> Seq.toList
     tiles |> should equal [ demTileId 1 0 0 ]
 
 [<Fact>]
@@ -50,7 +50,7 @@ let ``When bounds cover just a single tile (case 2)`` () =
           MaxLon = 0.2
           MaxLat = -0.1 }
 
-    let tiles = boundsToTiles 3600 DemLevel.Level0 bounds
+    let tiles = boundsToTiles 3600 DemLevel.Level0 bounds |> Seq.toList
     tiles |> should equal [ demTileId 0 0 -1 ]
 
 [<Fact>]
@@ -61,7 +61,7 @@ let ``When bounds cover just a single tile (case 3)`` () =
           MaxLon = 10.2
           MaxLat = 20.2 }
 
-    let tiles = boundsToTiles 3600 DemLevel.Level0 bounds
+    let tiles = boundsToTiles 3600 DemLevel.Level0 bounds |> Seq.toList
     tiles |> should equal [ demTileId 0 10 20 ]
 
 [<Fact>]
@@ -72,7 +72,7 @@ let ``When bounds cover multiple tiles`` () =
           MaxLon = 11.2
           MaxLat = 21.2 }
 
-    let tiles = boundsToTiles 3600 DemLevel.Level0 bounds
+    let tiles = boundsToTiles 3600 DemLevel.Level0 bounds |> Seq.toList
 
     tiles
     |> should
@@ -92,7 +92,7 @@ let ``Supports calculating needed tiles when level higher than 0 is needed``
           MaxLon = 11.2
           MaxLat = 21.2 }
 
-    let tiles = boundsToTiles 3600 (DemLevel.fromInt 2) bounds
+    let tiles = boundsToTiles 3600 (DemLevel.fromInt 2) bounds |> Seq.toList
     test <@ tiles = [ demTileId 2 2 4; demTileId 2 2 5 ] @>
 
 [<Fact>]
@@ -111,7 +111,7 @@ let ``Correctly calculates tiles lon/lat bounds`` () =
                        MaxLat = 2. }
         @>
 
-    test <@ bounds |> boundsToTiles tileSize level = [ tile ] @>
+    test <@ bounds |> boundsToTiles tileSize level |> Seq.toList = [ tile ] @>
 
     let tile = demTileId 1 0 -1
     let bounds = tile |> tileLonLatBounds tileSize
@@ -124,7 +124,7 @@ let ``Correctly calculates tiles lon/lat bounds`` () =
                        MaxLat = 0. }
         @>
 
-    test <@ bounds |> boundsToTiles tileSize level = [ tile ] @>
+    test <@ bounds |> boundsToTiles tileSize level |> Seq.toList = [ tile ] @>
 
     let tile = demTileId 1 7 -24
     let bounds = tile |> tileLonLatBounds tileSize
@@ -137,4 +137,4 @@ let ``Correctly calculates tiles lon/lat bounds`` () =
                        MaxLat = -46. }
         @>
 
-    test <@ bounds |> boundsToTiles tileSize level = [ tile ] @>
+    test <@ bounds |> boundsToTiles tileSize level |> Seq.toList = [ tile ] @>

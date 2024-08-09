@@ -27,7 +27,8 @@ let convertPngTile = convertZippedHgtTileToPng readZippedHgtFile writePngTile
 let fetchSrtmTile srtmDir localCacheDir : DemTileReader =
     fun tile ->
 
-        let constructHigherLevelTile = constructHigherLevelTileHeightsArray 3600
+        let constructHigherLevelTile =
+            constructHigherLevelTileHeightsArray Demeton.Srtm.Funcs.SrtmTileSize
 
         let heightsArrayToPng =
             writeHeightsArrayIntoPngFile
@@ -54,7 +55,10 @@ let fetchSrtmTile srtmDir localCacheDir : DemTileReader =
 
 let fetchSrtmHeights srtmDir localCacheDir srtmLevel lonLatBounds =
     let tileReader = fetchSrtmTile srtmDir localCacheDir
-    let srtmTilesNeeded = boundsToTiles 3600 srtmLevel lonLatBounds
+
+    let srtmTilesNeeded =
+        boundsToTiles Demeton.Srtm.Funcs.SrtmTileSize srtmLevel lonLatBounds
+
     fetchDemHeights tileReader srtmTilesNeeded
 
 

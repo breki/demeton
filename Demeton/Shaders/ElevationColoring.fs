@@ -140,12 +140,12 @@ let defaultParameters =
     { ColorScale = colorScaleMaperitive
       DataSourceKey = DefaultDataSourceKey }
 
-let shadeRaster dataSourceKey (colorScale: ColorScale) : RasterShader =
+let shadeRaster dataSourceKey tileSize (colorScale: ColorScale) : RasterShader =
     fun dataSources srtmLevel tileRect imageData _ inverse ->
         let heightsArray =
             (dataSources.FetchDataSource dataSourceKey) :?> HeightsArray
 
-        let cellsPerDegree = cellsPerDegree 3600 srtmLevel
+        let cellsPerDegree = cellsPerDegree tileSize srtmLevel
 
         let tileWidth = tileRect.Width
 

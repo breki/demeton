@@ -110,8 +110,8 @@
         <Compile Include="Vectorization\IsolineMoves.fs"/>
         <Compile Include="Commands\ShadeCommand.fs"/>
         <Compile Include="Commands\ImportSrtmTilesCommand.fs"/>
-        <Compile Include="Commands\TileShadeCommand.fs"/>
         <Compile Include="Commands\DemWithWaterBodiesCommand.fs"/>
+        <Compile Include="Commands\TileShadeCommand.fs"/>
         <Content Include="..\README.md">
             <Link>README.md</Link>
         </Content>

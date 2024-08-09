@@ -53,3 +53,5 @@ ESA_WorldCover*
 **/copilot
 
 /cache
+
+*.aux.xml

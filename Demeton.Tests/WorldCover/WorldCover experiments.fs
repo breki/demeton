@@ -35,7 +35,7 @@ let coveragePoints = [ (area.MinLon, area.MinLat); (area.MaxLon, area.MaxLat) ]
 let hillshadingStep =
     Demeton.Shaders.Pipeline.Common.ShadingStep.IgorHillshading
         { IgorHillshader.defaultParameters with
-            DataSourceKey = "aw3d" }
+            DataSourceKey = TileShadeCommand.Aw3dDataSourceKey }
 
 let waterBodiesStep = Pipeline.Common.CustomShading StepNameWaterBodies
 
@@ -136,7 +136,7 @@ let ``Render hillshading with WorldCover water bodies`` () =
                        level
                        coverageArea
                    |> heightsArrayResultToShadingDataSource
-                       "aw3d"
+                       TileShadeCommand.Aw3dDataSourceKey
                        (Ok dataSources)
                fetchWaterBodiesDataSources mapProjection cacheDir |]
 
@@ -144,8 +144,10 @@ let ``Render hillshading with WorldCover water bodies`` () =
 
         let generateTile =
             ShadeCommand.generateShadedRasterTile
+                Demeton.Aw3d.Types.Aw3dTileSize
                 shadingDataSourcesFetchers
                 (TileShadeCommand.createShaderFunction
+                    Demeton.Aw3d.Types.Aw3dTileSize
                     waterColor
                     waterBodiesDebugMode)
 

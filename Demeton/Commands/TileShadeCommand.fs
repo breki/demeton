@@ -2,6 +2,7 @@
 module Demeton.Commands.TileShadeCommand
 
 open System
+open System.Threading.Tasks
 open CommandLine
 open CommandLine.Common
 open Demeton.Dem.Types
@@ -14,13 +15,13 @@ open Demeton.Aw3d.Types
 open Demeton.Aw3d.Funcs
 open Demeton.Shaders
 open Demeton.Shaders.Types
+open Demeton.Shaders.Pipeline.Common
 open Demeton.Shaders.WaterBodies.DataSources
 open Demeton.Shaders.WaterBodies.WaterBodiesShaders
 open FileSys
 open Png
 open Png.Types
 open Raster
-open Demeton.Shaders.Pipeline.Common
 
 type MapScaleOrPixelSize =
     | MapScaleOf of float
@@ -107,6 +108,12 @@ let DefaultOutputFileName = "tile.png"
 
 [<Literal>]
 let DefaultDpi = 254.
+
+[<Literal>]
+let Aw3dDataSourceKey = "aw3d"
+
+[<Literal>]
+let Aw3dWaterBodiesDataSourceKey = "aw3d-water-bodies"
 
 let defaultWaterBodiesColor = "#49C8FF" |> Rgba8Bit.parseColorHexValue
 
@@ -320,6 +327,9 @@ let fillOptions parsedParameters =
 
 
 
+[<Literal>]
+let StepNameWaterBodiesFromDem = "water-bodies-from-dem"
+
 let constructShadingPipeline options =
     let solidBackgroundStepParameters: SolidBackground.Parameters =
         { BackgroundColor = Rgba8Bit.parseColorHexValue "#FFFFFF" }
@@ -332,7 +342,7 @@ let constructShadingPipeline options =
             { SunAzimuth = options.SunAzimuth
               ShadingColor = 0u
               Intensity = options.IgorHillshadingIntensity
-              DataSourceKey = "aw3d" }
+              DataSourceKey = Aw3dWaterBodiesDataSourceKey }
 
     let lambertHillshadingStep =
         ShadingStep.LambertHillshading
@@ -340,14 +350,14 @@ let constructShadingPipeline options =
               SunAltitude = options.SunAltitude
               ShadingColor = 0u
               Intensity = options.LambertHillshadingIntensity
-              DataSourceKey = "aw3d" }
+              DataSourceKey = Aw3dWaterBodiesDataSourceKey }
 
     let slopeShadingStep =
         ShadingStep.SlopeShading
             { HorizontalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
               VerticalColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 255uy
               Intensity = options.SlopeShadingIntensity
-              DataSourceKey = "aw3d" }
+              DataSourceKey = Aw3dWaterBodiesDataSourceKey }
 
     let hillshadingStep1 =
         Compositing(
@@ -363,7 +373,7 @@ let constructShadingPipeline options =
             CompositingFuncIdAlphaDarken
         )
 
-    let waterBodiesStep = CustomShading StepNameWaterBodies
+    let waterBodiesStep = CustomShading StepNameWaterBodiesFromDem
 
     let hillAndWaterStep =
         Compositing(hillshadingStep2, waterBodiesStep, CompositingFuncIdOver)
@@ -415,17 +425,62 @@ let createProjection options =
         mapScale
 
 
-[<Literal>]
-let WaterBodiesHeightsArrayDataSourceKey = "waterBodiesRaster"
+let worldCoverWaterBodiesFromDemShader
+    waterBodiesFromDemHeightsArrayDataSourceKey
+    demTileSize
+    waterColor
+    debugMode
+    : RasterShader =
+    fun dataSources demLevel heightsArrayTargetArea imageData forward inverse ->
+        let cellsPerDegree = cellsPerDegree demTileSize demLevel
 
-[<Literal>]
-let WaterBodiesColoredListDataSourceKey = "waterBodiesColoredList"
+        let waterBodiesFromDemHeightsArray =
+            dataSources.FetchDataSource(
+                waterBodiesFromDemHeightsArrayDataSourceKey
+            )
+            :?> HeightsArray
 
-[<Literal>]
-let WaterBodiesOutlinesDataSourceKey = "waterBodiesOutlines"
+        let targetAreaWidth = heightsArrayTargetArea.Width
 
-let createShaderFunction waterColor debugMode shaderFunctionName =
+        let noWaterColor = Rgba8Bit.rgbaColor 0uy 0uy 0uy 0uy
+
+        let processRasterLine y =
+            for x in
+                heightsArrayTargetArea.MinX .. (heightsArrayTargetArea.MaxX - 1) do
+                let rasterValue =
+                    waterBodiesFromDemHeightsArray
+                    |> valueForProjectedPixel x y cellsPerDegree inverse
+
+                let pixelValue =
+                    match rasterValue with
+                    | Some height when height % 2s = 1s -> waterColor
+                    | _ -> noWaterColor
+
+                Rgba8Bit.setPixelAt
+                    imageData
+                    targetAreaWidth
+                    (x - heightsArrayTargetArea.MinX)
+                    // we flip the Y coordinate since DEM heights array
+                    // is flipped vertically compared to the bitmap
+                    (heightsArrayTargetArea.MaxY - y - 1)
+                    pixelValue
+
+        Parallel.For(
+            heightsArrayTargetArea.MinY,
+            heightsArrayTargetArea.MaxY,
+            processRasterLine
+        )
+        |> ignore
+
+
+let createShaderFunction demTileSize waterColor debugMode shaderFunctionName =
     match shaderFunctionName with
+    | StepNameWaterBodiesFromDem ->
+        worldCoverWaterBodiesFromDemShader
+            Aw3dWaterBodiesDataSourceKey
+            demTileSize
+            waterColor
+            debugMode
     | StepNameWaterBodies ->
         worldCoverWaterBodiesShader
             WaterBodiesHeightsArrayDataSourceKey
@@ -530,12 +585,12 @@ let fetchAw3dHeightsArray mapProjection cacheDir demLevel coverageArea =
                 (demMbr.MaxX |> ceil |> int)
                 (demMbr.MaxY |> ceil |> int)
 
-        // A buffer around the DEM MBR so we don't end up outside of the array
+        // A buffer around the DEM MBR, so we don't end up outside the array
         // when we calculate the heights for hillshading.
         // Because of map projection issues, we (currently) take around 10% of
         // the larger side of the merged array bounds.
         // NOTE(!!) that this is only a temporary solution - those 10% could
-        // exceed the actual downloaded DEM tiles area and we would end up with
+        // exceed the actual downloaded DEM tiles area, and we would end up with
         // holes in the data. So buffered area should be calculated earlier in
         // the process and then just provided to fetchAw3dHeightsArray() to
         // fetch a bigger area (without the buffer calculation here).
@@ -580,9 +635,13 @@ let saveTileFile
         tilePngFileName)
     |> Result.mapError fileSysErrorMessage
 
-// todo 5: we have to provide a new function that fetches the
-//    combined data source from the HGT files
-let fetchDemWithWaterBodies demTileSize mapProjection cacheDir level coverageArea =
+let fetchDemWithWaterBodies
+    demTileSize
+    mapProjection
+    cacheDir
+    level
+    coverageArea
+    =
     Log.info "Ensuring all needed DEM tiles are there..."
 
     let coveragePoints =
@@ -598,10 +657,66 @@ let fetchDemWithWaterBodies demTileSize mapProjection cacheDir level coverageAre
         coverageArea.MaxLon
         coverageArea.MaxLat
 
-    let tilesNeeded =
+    let tilesIds =
         coverageArea |> boundsToTiles demTileSize DemLevel.Level0 |> Seq.toList
 
-    NotImplementedException "fetchDemWithWaterBodies" |> raise
+    let tilesHeightsArrays =
+        tilesIds
+        |> Seq.map (
+            DemWithWaterBodiesCommand.ensureHgtFile cacheDir demTileSize
+        )
+        |> Seq.toList
+        |> List.choose Some
+        |> List.map Option.get
+
+    // calculate mergedArrayBounds for the given area
+    let projectedCoveragePoints =
+        coveragePoints
+        |> List.map (fun (lon, lat) ->
+            mapProjection.Proj (lon |> degToRad) (lat |> degToRad))
+        |> List.choose id
+
+    let deprojectedCoveragePoints =
+        projectedCoveragePoints
+        |> List.map (fun (x, y) -> mapProjection.Invert x y)
+        |> List.choose id
+
+    // now convert lon, lat to DEM coordinates
+    let coveragePointsInDemCoords =
+        deprojectedCoveragePoints
+        |> List.map (fun (lon, lat) ->
+            let cellX = lon |> radToDeg |> longitudeToCellX (float demTileSize)
+            let cellY = lat |> radToDeg |> latitudeToCellY (float demTileSize)
+
+            (cellX, cellY))
+
+    let demMbr = Demeton.Geometry.Bounds.mbrOf coveragePointsInDemCoords
+
+    let mergedArrayBounds =
+        Rect.asMinMax
+            (demMbr.MinX |> floor |> int)
+            (demMbr.MinY |> floor |> int)
+            (demMbr.MaxX |> ceil |> int)
+            (demMbr.MaxY |> ceil |> int)
+
+    // A buffer around the DEM MBR, so we don't end up outside the array
+    // when we calculate the heights for hillshading.
+    // Because of map projection issues, we (currently) take around 10% of
+    // the larger side of the merged array bounds.
+    // NOTE(!!) that this is only a temporary solution - those 10% could
+    // exceed the actual downloaded DEM tiles area, and we would end up with
+    // holes in the data. So buffered area should be calculated earlier in
+    // the process and then just provided to fetchDemWithWaterBodies() to
+    // fetch a bigger area (without the buffer calculation here).
+    let safetyBuffer =
+        Math.Max(mergedArrayBounds.Width, mergedArrayBounds.Height)
+        |> float
+        |> (*) 0.1
+        |> int
+
+    let mergedArrayBounds = mergedArrayBounds |> inflate safetyBuffer
+
+    merge mergedArrayBounds tilesHeightsArrays |> Result.Ok
 
 
 let run (options: Options) : Result<unit, string> =
@@ -618,7 +733,7 @@ let run (options: Options) : Result<unit, string> =
           Width = options.TileWidth
           Height = options.TileHeight }
 
-    // inflate the bitmap rect by one pixel on each side so it is safe for
+    // inflate the bitmap rect by one pixel on each side, so it is safe for
     // various hillshading neighbor calculations
     let bitmapRectSafe = bitmapRect |> inflate 1
 
@@ -629,6 +744,7 @@ let run (options: Options) : Result<unit, string> =
             let waterBodiesDebugMode = false
 
             ShadeCommand.generateShadedRasterTile
+                options.HgtSize
                 [| fun level coverageArea dataSources ->
                        fetchDemWithWaterBodies
                            options.HgtSize
@@ -637,11 +753,10 @@ let run (options: Options) : Result<unit, string> =
                            level
                            coverageArea
                        |> heightsArrayResultToShadingDataSource
-                           "aw3d-water-bodies"
+                           Aw3dWaterBodiesDataSourceKey
                            (Ok dataSources) |]
-                // todo 10: a new water bodies shader function that works on the
-                //   combined data source
                 (createShaderFunction
+                    options.HgtSize
                     options.WaterBodiesColor
                     waterBodiesDebugMode)
                 srtmLevel

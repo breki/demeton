@@ -45,6 +45,7 @@ let ``Tile generator correctly specifies DEM level and bounds for tile downloade
 
     let result =
         ShadeCommand.generateShadedRasterTile
+            Demeton.Srtm.Funcs.SrtmTileSize
             [| correctLevelAndAreaWereProvided |]
             (fun _ -> mockRasterShader)
             srtmLevel
@@ -66,6 +67,7 @@ let ``When heights array fetcher returns an error, tile generator returns an err
 
     let shadeTileResult =
         ShadeCommand.generateShadedRasterTile
+            Demeton.Srtm.Funcs.SrtmTileSize
             [| returnErrorInsteadOfHeightsArray |]
             (fun _ -> mockRasterShader)
             srtmLevel
@@ -102,6 +104,7 @@ let ``Tile generator prepares the tile image data and returns it`` () =
 
     let result =
         ShadeCommand.generateShadedRasterTile
+            Demeton.Srtm.Funcs.SrtmTileSize
             [| fetchSomeHeights |]
             (fun _ -> shadeRasterReceivesTileRectAndImageData)
             srtmLevel

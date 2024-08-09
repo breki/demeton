@@ -76,7 +76,7 @@ let calculateSlopeAndAspect p q : SlopeAndAspect =
     //let azimuth2 = Math.Acos (-p / surfaceInclination)
 
     let aspect =
-        normalizeAngle ((Math.PI * 3./2.) - Math.Atan2(q, p)) (Math.PI * 2.)
+        normalizeAngle ((Math.PI * 3. / 2.) - Math.Atan2(q, p)) (Math.PI * 2.)
 
     (slope, aspect)
 
@@ -86,6 +86,7 @@ let calculateSlopeAndAspect p q : SlopeAndAspect =
 /// </summary>
 let shadeRaster
     dataSourceKey
+    tileSize
     (pixelHillshader: PixelHillshader)
     : RasterShader =
     fun dataSources srtmLevel bitmapRect imageData _ inverse ->
@@ -93,7 +94,7 @@ let shadeRaster
             dataSources.FetchDataSource dataSourceKey :?> HeightsArray
 
         let bitmapWidth = bitmapRect.Width
-        let cellsPerDegree = cellsPerDegree 3600 srtmLevel
+        let cellsPerDegree = cellsPerDegree tileSize srtmLevel
 
         let inline lonLatOf x y = inverse (float x) (float y)
 
@@ -159,4 +160,5 @@ let shadeRaster
 
                 | None -> ()
 
-        Parallel.For(bitmapRect.MinY, bitmapRect.MaxY, processRasterLine) |> ignore
+        Parallel.For(bitmapRect.MinY, bitmapRect.MaxY, processRasterLine)
+        |> ignore

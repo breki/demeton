@@ -26,7 +26,6 @@ let readHeightsFromStream tileSize (stream: Stream) : DemHeight[] =
             let secondByte = streamReader.currentByte ()
             heightFromBytes firstByte secondByte
 
-    let streamReader = FunctionalStreamReader(stream)
 
     // Note that the SRTM tile has one pixel/width more of width
     // and height than we need (example: SRTM tiles of tile size 3600 are
@@ -36,33 +35,43 @@ let readHeightsFromStream tileSize (stream: Stream) : DemHeight[] =
 
     let tileSizePlus1 = tileSize + 1
 
-    // Total number of heights we need to read from the stream.
-    // Note that this is _not_ the total number of heights in the SRTM tile,
-    // since we skip the final column of heights.
-    let heightsNeeded = tileSize * tileSizePlus1 - 1
-
     let arraySize = tileSize * tileSize
     let heightsArray: DemHeight[] = Array.zeroCreate arraySize
 
     let mutable heightsReadCount = 0
-    let mutable heightsWrittenCount = 0
 
-    while heightsReadCount < heightsNeeded && streamReader.moveForward () do
+    // The first line in the HGT format is the top (northern edge) line
+    // that overlaps with the neighboring tile to the north.
+    // This has two implications:
+    //   1. We need to skip the first line of heights.
+    //   2. We need to fill the heights array in the reverse order, since
+    //      in the HeightsArray coordinate system the first line is the
+    //      southern edge.
+
+    // Skipping the first line of heights.
+    stream.Seek(int64 tileSizePlus1 * 2L, SeekOrigin.Begin) |> ignore
+    let streamReader = FunctionalStreamReader(stream)
+
+    let mutable heightsArrayCellIndex = (tileSize - 1) * tileSize
+
+    while heightsArrayCellIndex >= 0 && streamReader.moveForward () do
         let heightRead = readNextHeightFromStream streamReader
 
-        // here we check whether the read height belongs to the final column
-        // that we should skip
-        match heightsReadCount % tileSizePlus1 = tileSize with
-        | true -> () // not emitting the final column's height
-        | false ->
-            heightsArray.[heightsWrittenCount] <- heightRead
-            heightsWrittenCount <- heightsWrittenCount + 1
+        heightsArray.[heightsArrayCellIndex] <- heightRead
 
-        heightsReadCount <- heightsReadCount + 1
+        heightsArrayCellIndex <- heightsArrayCellIndex + 1
+
+        // when we reach the end of the line, we move the index to one
+        // line below the current one (due to the reverse order of filling
+        // the heights array)
+        if heightsArrayCellIndex % tileSize = 0 then
+            heightsArrayCellIndex <- heightsArrayCellIndex - tileSize - tileSize
+            // this also means we should skip the next HGT height since it
+            // is an overlap to the neighboring tile to the east
+            streamReader.moveForward() |> ignore
+            readNextHeightFromStream streamReader |> ignore
 
     heightsArray
-
-
 
 
 /// <summary>
@@ -83,6 +92,21 @@ let readHeightsArrayFromStream tileSize tileId stream =
     )
 
 
+let writeHeightsArrayToStream (stream: Stream) (heightsArray: HeightsArray) =
+    // the HGT file should be written in the reverse order of the lines
+    // since the HeightsArray coordinate system is reverse from HGT
+    let mutable arrayIndex = (heightsArray.Height - 1) * heightsArray.Width
+
+    while arrayIndex >= 0 do
+        stream |> Bnry.writeBigEndianInt16 heightsArray.Cells[arrayIndex] |> ignore
+
+        arrayIndex <- arrayIndex + 1
+
+        if arrayIndex % heightsArray.Width = 0 then
+            arrayIndex <- arrayIndex - heightsArray.Width - heightsArray.Width
+
+    heightsArray
+
 
 let writeHeightsArrayToFile
     (fileName: FileName)
@@ -97,10 +121,7 @@ let writeHeightsArrayToFile
         | Ok stream ->
             use stream = stream
 
-            for height in heightsArray.Cells do
-                stream |> Bnry.writeBigEndianInt16 height |> ignore
-
-            stream.Close()
+            heightsArray |> writeHeightsArrayToStream stream |> ignore
 
             fileName
         | Error error -> raise error.Exception

@@ -55,6 +55,7 @@ let ``Supports running a simple, single-step pipeline`` () =
             createShadingFuncById
             createCompositingFuncById
             shadingDataSources
+            Demeton.Srtm.Funcs.SrtmTileSize
             srtmLevel
             tileRect
             mapProjection.Proj
@@ -76,6 +77,7 @@ let ``Supports compositing of images`` () =
             createShadingFuncById
             createCompositingFuncById
             shadingDataSources
+            Demeton.Srtm.Funcs.SrtmTileSize
             srtmLevel
             tileRect
             mapProjection.Proj
@@ -92,6 +94,7 @@ let ``Supports elevation coloring`` () =
         createShadingFuncById
         createCompositingFuncById
         shadingDataSources
+        Demeton.Srtm.Funcs.SrtmTileSize
         srtmLevel
         tileRect
         mapProjection.Proj
@@ -107,6 +110,7 @@ let ``Supports aspect shading`` () =
         createShadingFuncById
         createCompositingFuncById
         shadingDataSources
+        Demeton.Srtm.Funcs.SrtmTileSize
         srtmLevel
         tileRect
         mapProjection.Proj
@@ -122,6 +126,7 @@ let ``Supports slope shading`` () =
         createShadingFuncById
         createCompositingFuncById
         shadingDataSources
+        Demeton.Srtm.Funcs.SrtmTileSize
         srtmLevel
         tileRect
         mapProjection.Proj
@@ -137,6 +142,7 @@ let ``Supports igor shading`` () =
         createShadingFuncById
         createCompositingFuncById
         shadingDataSources
+        Demeton.Srtm.Funcs.SrtmTileSize
         srtmLevel
         tileRect
         mapProjection.Proj

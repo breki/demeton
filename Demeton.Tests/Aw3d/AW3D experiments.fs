@@ -48,13 +48,17 @@ let ``Generate hillshading from AW3D`` () =
             { SunAzimuth = IgorHillshader.DefaultSunAzimuth |> degToRad
               ShadingColor = 0u
               Intensity = 1.
-              DataSourceKey = "aw3d" }
+              DataSourceKey = TileShadeCommand.Aw3dDataSourceKey }
 
     let createShaderFunction _ =
-        Demeton.Shaders.Hillshading.shadeRaster "aw3d" pixelShader
+        Demeton.Shaders.Hillshading.shadeRaster
+            TileShadeCommand.Aw3dDataSourceKey
+            Demeton.Aw3d.Types.Aw3dTileSize
+            pixelShader
 
     let generateTile =
         ShadeCommand.generateShadedRasterTile
+            Demeton.Aw3d.Types.Aw3dTileSize
             [| fun level coverageArea dataSources ->
                    TileShadeCommand.fetchAw3dHeightsArray
                        mapProjection
@@ -62,7 +66,7 @@ let ``Generate hillshading from AW3D`` () =
                        level
                        coverageArea
                    |> heightsArrayResultToShadingDataSource
-                       "aw3d"
+                       TileShadeCommand.Aw3dDataSourceKey
                        (Ok dataSources) |]
             createShaderFunction
 

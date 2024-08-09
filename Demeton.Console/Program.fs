@@ -12,7 +12,7 @@ let runImportCommand parsedParameters =
 
     let tilesCords =
         boundsToTiles
-            3600
+            Demeton.Srtm.Funcs.SrtmTileSize
             Demeton.Dem.Types.DemLevel.Level0
             (Option.get options.Bounds)
         |> Seq.toArray
@@ -33,6 +33,7 @@ let runShadeCommand parsedParameters =
 
     let generateTile =
         ShadeCommand.generateShadedRasterTile
+            Demeton.Srtm.Funcs.SrtmTileSize
             [| fun level coverageArea dataSources ->
                    Wiring.fetchSrtmHeights
                        options.SrtmDir

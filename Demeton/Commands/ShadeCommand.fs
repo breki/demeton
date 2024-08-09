@@ -357,8 +357,9 @@ let calculateRasterMbr mapProjection options =
 /// Based on the map projection and the raster MBR, calculate the DEM level
 /// needed for the shading process.
 /// </summary>
-let calculateDemLevelNeeded mapProjection rasterMbr =
-    minLonLatDelta rasterMbr mapProjection.Invert |> lonLatDeltaToDemLevel 3600
+let calculateDemLevelNeeded tileSize mapProjection rasterMbr =
+    minLonLatDelta rasterMbr mapProjection.Invert
+    |> lonLatDeltaToDemLevel tileSize
 
 
 /// <summary>
@@ -437,6 +438,7 @@ type ShadedRasterImageGenerator =
 /// <param name="createShaderFunction">
 /// A function that creates a shading function for a given shading step.
 /// </param>
+/// <param name="tileSize">The size of the DEM tiles used.</param>
 /// <param name="demLevel">The DEM level to use.</param>
 /// <param name="imageRect">The rectangle representing the image,
 /// in the coordinates of the map projection.</param>
@@ -446,6 +448,7 @@ type ShadedRasterImageGenerator =
 /// A ShadedRasterImageGenerator function.
 /// </returns>
 let generateShadedRasterTile
+    tileSize
     (dataSourcesFetchers: ShadingDataSourcesFetcher[])
     (createShaderFunction: ShadingFuncFactory)
     : ShadedRasterImageGenerator =
@@ -484,6 +487,7 @@ let generateShadedRasterTile
                     createShaderFunction
                     createCompositingFuncById
                     dataSources
+                    tileSize
                     demLevel
                     imageRect
                     mapProjection.Proj
@@ -549,6 +553,7 @@ let saveShadedRasterTile
 
 
 let runWithProjection
+    tileSize
     mapProjection
     (options: Options)
     (generateImageTile: ShadedRasterImageGenerator)
@@ -557,7 +562,7 @@ let runWithProjection
     let rasterMbr = calculateRasterMbr mapProjection options
 
     // calculate DEM level needed
-    let demLevel = calculateDemLevelNeeded mapProjection rasterMbr
+    let demLevel = calculateDemLevelNeeded tileSize mapProjection rasterMbr
 
     // then split it up into tiles
     let tilesToGenerate, maxTileIndex =
@@ -653,4 +658,9 @@ let run
 
     createMapProjection options.MapProjection.Projection options.MapScale
     |> Result.bind (fun mapProjection ->
-        runWithProjection mapProjection options generateImageTile saveImageTile)
+        runWithProjection
+            Funcs.SrtmTileSize
+            mapProjection
+            options
+            generateImageTile
+            saveImageTile)

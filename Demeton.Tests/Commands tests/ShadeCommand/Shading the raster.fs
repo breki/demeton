@@ -47,6 +47,7 @@ let ``Elevation colorer colors all of the image`` () =
 
     ElevationColoring.shadeRaster
         DefaultDataSourceKey
+        Demeton.Srtm.Funcs.SrtmTileSize
         ElevationColoring.colorScaleMaperitive
         dataSources
         srtmLevel

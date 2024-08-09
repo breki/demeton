@@ -2,9 +2,10 @@
 
 module Demeton.Tests.todo
 
-// todo 10: redesign TileShadeCommand to generate and use those merged HGTs
-//   instead of downloading AW3D and WorldCover tiles and generating the whole
-//   thing from scratch
+// todo 5: the command does not work when --hgt-size is 1200
+//   - somewhere in the workflow 3600 is hardcoded
+
+// todo 10: fix the problem with the white cross in the hillshading
 
 // todo sometime 100: update shading docs now that we have added an array of fetchers
 
