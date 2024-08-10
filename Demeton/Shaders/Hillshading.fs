@@ -37,33 +37,27 @@ let gridSize (coords: LonLat option[]) =
 
     (width, height)
 
-let calculatePQ
-    (coords: LonLat option[])
-    (heightsMaybe: float option[] option)
-    =
-    match heightsMaybe with
-    | None -> None
-    | Some heights ->
-        let allHeightsAreAvailable = heights |> Array.forall Option.isSome
+let calculatePQ (coords: LonLat option[]) (heights: float option[]) =
+    let allHeightsAreAvailable = heights |> Array.forall Option.isSome
 
-        match allHeightsAreAvailable with
-        | false -> None
-        | true ->
-            let heights = heightsMaybe |> Option.get |> Array.map Option.get
+    match allHeightsAreAvailable with
+    | false -> None
+    | true ->
+        let heights = heights |> Array.map Option.get
 
-            let gridWidth, gridHeight = gridSize coords
+        let gridWidth, gridHeight = gridSize coords
 
-            let p =
-                ((heights.[8] + 2. * heights.[5] + heights.[2])
-                 - (heights.[6] + 2. * heights.[3] + heights.[0]))
-                / (8. * gridWidth)
+        let p =
+            ((heights.[8] + 2. * heights.[5] + heights.[2])
+             - (heights.[6] + 2. * heights.[3] + heights.[0]))
+            / (8. * gridWidth)
 
-            let q =
-                ((heights.[8] + 2. * heights.[7] + heights.[6])
-                 - (heights.[2] + 2. * heights.[1] + heights.[0]))
-                / (8. * gridHeight)
+        let q =
+            ((heights.[8] + 2. * heights.[7] + heights.[6])
+             - (heights.[2] + 2. * heights.[1] + heights.[0]))
+            / (8. * gridHeight)
 
-            Some(p, q)
+        Some(p, q)
 
 type SlopeAndAspect = float * float
 
@@ -140,10 +134,11 @@ let shadeRaster
 
                 let heights = neighborHeights neighborCoords
 
-                let pqMaybe = calculatePQ neighborCoords heights
+                heights
+                |> Option.bind (fun heights ->
+                    calculatePQ neighborCoords heights)
+                |> Option.map (fun (p, q) ->
 
-                match pqMaybe with
-                | Some(p, q) ->
                     let slope, aspect = calculateSlopeAndAspect p q
                     let height = (Option.get heights).[4] |> Option.get
 
@@ -156,9 +151,8 @@ let shadeRaster
                         // we flip the Y coordinate since DEM heights array
                         // is flipped vertically compared to the bitmap
                         (bitmapRect.MaxY - y - 1)
-                        pixelValue
-
-                | None -> ()
+                        pixelValue)
+                |> ignore
 
         Parallel.For(bitmapRect.MinY, bitmapRect.MaxY, processRasterLine)
         |> ignore

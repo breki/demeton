@@ -40,7 +40,7 @@ let ``Encoding water bodies info into DEM`` () =
         dem
         |> DemWithWaterBodiesCommand.encodeWaterBodiesInfoIntoDem waterBodies
 
-    let wb = Int16.MinValue
+    let wb = DemHeightNone
 
     test
         <@ encoded.Cells = [| 0s; 1s; 100s; 101s; -100s; -99s; -2s; -1s; 0s |] @>
@@ -56,5 +56,5 @@ let ``Extending heights array for SRTM HGT compatibility`` () =
         DemWithWaterBodiesCommand.extendHeightsArrayWithAdditionalRowAndColumn
             dem
 
-    let no = Int16.MinValue
+    let no = DemHeightNone
     test <@ extendedDem.Cells = [| 1s; 2s; no; 3s; 4s; no; no; no; no |] @>

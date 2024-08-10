@@ -382,7 +382,7 @@ let merge
 /// <summary>
 /// Extracts a sub-array from the given array. If the sub-array is outside
 /// the bounds of the given array, the missing values are filled with
-/// Int16.MinValue.
+/// DemHeightNone.
 /// </summary>
 let extract (extractBounds: Rect) (heightArray: HeightsArray) : HeightsArray =
 
@@ -397,7 +397,7 @@ let extract (extractBounds: Rect) (heightArray: HeightsArray) : HeightsArray =
             heightArray.heightAt (x, y)
         else
             // this is not a water body pixel
-            Int16.MinValue
+            DemHeightNone
 
     HeightsArray(
         extractBounds.MinX,
@@ -554,58 +554,63 @@ let downsampleHeightsArray
     (factor: float)
     (heightsArray: HeightsArray)
     : HeightsArray =
-    let downsampledMinX = int (float heightsArray.MinX * factor)
-    let downsampledMinY = int (float heightsArray.MinY * factor)
-    let downsampledWidth = int (float heightsArray.Width * factor)
-    let downsampledHeight = int (float heightsArray.Height * factor)
+    match factor with
+    | 1.0 -> heightsArray
+    | _ ->
+        let downsampledMinX = int (float heightsArray.MinX * factor)
+        let downsampledMinY = int (float heightsArray.MinY * factor)
+        let downsampledWidth = int (float heightsArray.Width * factor)
+        let downsampledHeight = int (float heightsArray.Height * factor)
 
-    let downsampledHeightsArray =
-        HeightsArray(
-            downsampledMinX,
-            downsampledMinY,
-            downsampledWidth,
-            downsampledHeight,
-            EmptyHeightsArray
-        )
+        let downsampledHeightsArray =
+            HeightsArray(
+                downsampledMinX,
+                downsampledMinY,
+                downsampledWidth,
+                downsampledHeight,
+                EmptyHeightsArray
+            )
 
-    for y in 0 .. downsampledHeight - 1 do
-        for x in 0 .. downsampledWidth - 1 do
-            // Calculate the exact original coordinates this new pixel maps to
-            let origStartX = (float x / factor)
+        for y in 0 .. downsampledHeight - 1 do
+            for x in 0 .. downsampledWidth - 1 do
+                // Calculate the exact original coordinates this new pixel maps to
+                let origStartX = float x / factor
+                let origEndX = float (x + 1) / factor
+                let origStartY = float y / factor
+                let origEndY = float (y + 1) / factor
 
-            let origEndX =
-                min (float (x + 1) / factor) (float (heightsArray.Width - 1))
+                let mutable weightedSum = 0.0
+                let mutable totalWeight = 0.0
 
-            let origStartY = (float y / factor)
+                // Iterate through the original pixels that overlap with the new pixel
+                for oy in int origStartY .. int origEndY do
+                    if oy < heightsArray.Height then
+                        for ox in int origStartX .. int origEndX do
+                            if ox < heightsArray.Width then
+                                // Calculate the overlap area (weight) for each original pixel
+                                let left = max origStartX (float ox)
+                                let right = min origEndX (float ox + 1.0)
+                                let top = max origStartY (float oy)
+                                let bottom = min origEndY (float oy + 1.0)
 
-            let origEndY =
-                min (float (y + 1) / factor) (float (heightsArray.Height - 1))
+                                let weight = (right - left) * (bottom - top)
 
-            let mutable weightedSum = 0.0
-            let mutable totalWeight = 0.0
+                                if weight <> 0.0 then
+                                    let height =
+                                        heightsArray.heightAtLocal (ox, oy)
 
-            // Iterate through the original pixels that overlap with the new pixel
-            for oy in int origStartY .. int origEndY do
-                for ox in int origStartX .. int origEndX do
-                    // Calculate the overlap area (weight) for each original pixel
-                    let left = max origStartX (float ox)
-                    let right = min origEndX (float ox + 1.0)
-                    let top = max origStartY (float oy)
-                    let bottom = min origEndY (float oy + 1.0)
+                                    weightedSum <-
+                                        weightedSum + (float height) * weight
 
-                    let weight = (right - left) * (bottom - top)
+                                    totalWeight <- totalWeight + weight
 
-                    let height = heightsArray.heightAtLocal (ox, oy)
+                // Set the new pixel value based on the weighted average
+                if totalWeight > 0.0 then
+                    let downsampledValue =
+                        Math.Round(weightedSum / totalWeight) |> int16
 
-                    weightedSum <- weightedSum + (float height) * weight
+                    downsampledHeightsArray.setHeightAtLocal
+                        (x, y)
+                        downsampledValue
 
-                    totalWeight <- totalWeight + weight
-
-            // Set the new pixel value based on the weighted average
-            if totalWeight > 0.0 then
-                let downsampledValue =
-                    Math.Round(weightedSum / totalWeight) |> int16
-
-                downsampledHeightsArray.setHeightAtLocal (x, y) downsampledValue
-
-    downsampledHeightsArray
+        downsampledHeightsArray

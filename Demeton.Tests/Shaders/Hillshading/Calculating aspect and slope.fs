@@ -38,7 +38,7 @@ let slopeAndAspectForHeights (heights3by3: float option [])  =
            Some(lon, lat - dx)
            Some(lon + dx, lat - dx) |]
 
-    match Hillshading.calculatePQ coords (Some heightsFlippedByYAxis) with
+    match Hillshading.calculatePQ coords heightsFlippedByYAxis with
     | Some(p, q) -> Hillshading.calculateSlopeAndAspect p q
     | _ -> invalidOp "bug"
 

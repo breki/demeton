@@ -42,7 +42,7 @@ let renderScene (heightsArray: HeightsArray) : string =
         for x in 0 .. heightsArray.Width - 1 do
             let cellChar =
                 match heightsArray.heightAtLocal (x, y) with
-                | Int16.MinValue -> " "
+                | DemHeightNone -> " "
                 | value -> ((value |> char) + '0' |> string)
 
             sb |> append cellChar |> ignore
@@ -67,7 +67,7 @@ let compareScenes (actualScene: string) (expectedScene: string) : string =
     else
         // Construct a new heights array that will contain just the cells
         // that differ between the two arrays. All other cells will have
-        // value Int16.MinValue. Also, record the information if there were
+        // value DemHeightNone. Also, record the information if there were
         // any actual differences.
 
         let anyDifferences = ref false
@@ -88,7 +88,7 @@ let compareScenes (actualScene: string) (expectedScene: string) : string =
                         anyDifferences := true
                         actualHeight
                     else
-                        DemHeight(Int16.MinValue))
+                        DemHeightNone)
             )
 
         // if there were no differences...

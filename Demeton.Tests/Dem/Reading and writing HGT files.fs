@@ -109,7 +109,6 @@ let ``Can create heights array from SRTM heights sequence`` () =
     test <@ heights.Cells.[tileSize - 1] = bottomRightHeight @>
 
 [<Fact>]
-// [<Trait("Category", "slow")>]
 let ``Can read HGT file`` () =
     let tileSize = Demeton.Srtm.Funcs.SrtmTileSize
 
@@ -143,7 +142,7 @@ let ``Can read HGT file`` () =
 
 [<Fact>]
 let ``Can write and then read HGT data`` () =
-    let no = Int16.MinValue
+    let no = DemHeightNone
 
     let cells =
         [| 1s; 2s; 3s; no; 4s; 5s; 6s; no; 7s; 8s; 9s; no; no; no; no; no |]

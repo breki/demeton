@@ -28,7 +28,8 @@ let defaultParameters =
 let shadePixel parameters : Hillshading.PixelHillshader =
     fun _ slope aspect ->
         match Double.IsNaN(aspect) with
-        | true -> Rgba8Bit.TransparentColor
+        | true ->
+            Rgba8Bit.TransparentColor
         | false ->
             let aspectDiff =
                 differenceBetweenAngles

@@ -201,14 +201,14 @@ let extendHeightsArrayWithAdditionalRowAndColumn (heightsArray: HeightsArray) =
 
         if (sourceIndex + 1) % oldWidth = 0 then
             // fill the final column with the "missing value" marker
-            extendedCells.[destIndex + 1] <- Int16.MinValue
+            extendedCells.[destIndex + 1] <- DemHeightNone
             destIndex <- destIndex + 2
         else
             destIndex <- destIndex + 1
 
     // fill the final row with the "missing value" marker
     while destIndex < extendedCells.Length do
-        extendedCells.[destIndex] <- Int16.MinValue
+        extendedCells.[destIndex] <- DemHeightNone
         destIndex <- destIndex + 1
 
     HeightsArray(
@@ -229,7 +229,7 @@ let ensureHgtFile cacheDir hgtSize tileId : HeightsArray option =
         )
 
     if FileSys.fileExists hgtFileName then
-        Log.info "The HGT file already exists at '%s'." hgtFileName
+        // Log.info "The HGT file already exists at '%s'." hgtFileName
 
         FileSys.openFileToRead hgtFileName
         |> function
