@@ -35,7 +35,7 @@ let appendLines lines (sb: StringBuilder) =
 
 let appendFormat 
     format 
-    ([<System.ParamArray>] args: obj []) 
+    ([<ParamArray>] args: obj [])
     (sb: StringBuilder) 
     = 
     sb.AppendFormat (format, args)

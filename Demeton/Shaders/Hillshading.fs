@@ -135,8 +135,7 @@ let shadeRaster
                 let heights = neighborHeights neighborCoords
 
                 heights
-                |> Option.bind (fun heights ->
-                    calculatePQ neighborCoords heights)
+                |> Option.bind (calculatePQ neighborCoords)
                 |> Option.map (fun (p, q) ->
 
                     let slope, aspect = calculateSlopeAndAspect p q

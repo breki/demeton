@@ -141,6 +141,7 @@
         <Compile Include="Aw3d\Downloading AW3D tiles.fs"/>
         <Compile Include="Aw3d\Loading AW3D tiles.fs"/>
         <Compile Include="Aw3d\AW3D experiments.fs"/>
+        <Compile Include="Aw3d\Generating cpp samples.fs"/>
         <Compile Include="WorldCover\Loading WorldCover tiles.fs"/>
         <Compile Include="WorldCover\RasterSimplification.fs"/>
         <Compile Include="WorldCover\Water bodies coloring tests.fs"/>
