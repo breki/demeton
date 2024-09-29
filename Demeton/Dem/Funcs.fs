@@ -308,8 +308,16 @@ let boundsToTiles
     }
 
 
-let inline heightFromBytes firstByte secondByte =
+let inline heightFromBigEndianBytes firstByte secondByte =
     let height: int16 = (int16 firstByte) <<< 8 ||| int16 secondByte
+
+    match height with
+    | 0x8000s -> DemHeightNone
+    | _ -> height
+
+
+let inline heightFromLittleEndianBytes firstByte secondByte =
+    let height: int16 = int16 firstByte ||| (int16 secondByte <<< 8)
 
     match height with
     | 0x8000s -> DemHeightNone

@@ -63,6 +63,7 @@
         <Compile Include="Dem\DEM tile tests.fs"/>
         <Compile Include="Dem\DEM coordinate system.fs"/>
         <Compile Include="Dem\Reading and writing HGT files.fs"/>
+        <Compile Include="Dem\Reading and writing XTH files.fs"/>
         <Compile Include="Srtm\Bounds to SRTM tiles.fs"/>
         <Compile Include="Srtm\encodeHeightsArrayIntoPngFile tests.fs"/>
         <Compile Include="Srtm\Converting HGT to PNG.fs"/>

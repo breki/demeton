@@ -1,16 +1,14 @@
-﻿module Tests.Dem.``Reading and writing SRTM HGT files``
+﻿module Tests.Dem.``Reading and writing SRTM XTH files``
 
 open Demeton.Dem
 open Demeton.Dem.Types
 open Demeton.Dem.Funcs
 
-open System
 open System.IO
 
 open FsUnit
 open Xunit
 open Swensen.Unquote
-open TestHelp
 
 [<Fact>]
 let ``Can read SRTM heights`` () =
@@ -22,30 +20,30 @@ let ``Can read SRTM heights`` () =
                0uy
                0uy
                0uy
+               0uy
                10uy
                0uy
                0uy
-               0uy
+               1uy
                1uy
                1uy
                10uy
                1uy
                0uy
-               1uy
                1uy
                1uy |]
         )
 
-    let heights = Hgt.readHeightsFromStream 2 stream
+    let heights = Xth.readHeightsFromStream 2 stream
 
     heights |> should equal [| 2561s; 1s; 2560s; 0s |]
 
 [<Fact>]
 let ``Can read null SRTM heights`` () =
     use stream =
-        new MemoryStream([| 0uy; 0uy; 0uy; 0uy; 0x80uy; 0uy; 0uy; 0uy |])
+        new MemoryStream([| 0uy; 0uy; 0uy; 0uy; 0uy; 0x80uy; 0uy; 0uy |])
 
-    let heights = Hgt.readHeightsFromStream 1 stream
+    let heights = Xth.readHeightsFromStream 1 stream
 
     heights |> should equal [| DemHeightNone |]
 
@@ -53,10 +51,10 @@ let ``Can read null SRTM heights`` () =
 let ``Can handle negative SRTM heights`` () =
     use stream =
         new MemoryStream(
-            [| 0uy; 0uy; 0uy; 0uy; 255uy; 0b10011100uy; 0uy; 0uy |]
+            [| 0uy; 0uy; 0uy; 0uy; 0b10011100uy; 255uy; 0uy; 0uy |]
         )
 
-    let heights = Hgt.readHeightsFromStream 1 stream
+    let heights = Xth.readHeightsFromStream 1 stream
 
     heights |> should equal [| -100s |]
 
@@ -66,8 +64,8 @@ let ``Can create heights array from SRTM heights sequence`` () =
     let givenAByteArrayOfHeights tileSize =
         let mutable nextHeightToUse = 0s
 
-        let int16ToBigEndianBytes (value: int16) : byte * byte =
-            (byte (value >>> 8), byte value)
+        let int16ToLittleEndianBytes (value: int16) : byte * byte =
+            (byte value, byte (value >>> 8))
 
         let arrayLength = (tileSize + 1) * (tileSize + 1)
 
@@ -77,7 +75,7 @@ let ``Can create heights array from SRTM heights sequence`` () =
             let height = nextHeightToUse
             nextHeightToUse <- nextHeightToUse + 1s
 
-            let firstByte, secondByte = height |> int16ToBigEndianBytes
+            let firstByte, secondByte = height |> int16ToLittleEndianBytes
 
             byteArray.[i * 2] <- firstByte
             byteArray.[i * 2 + 1] <- secondByte
@@ -88,7 +86,7 @@ let ``Can create heights array from SRTM heights sequence`` () =
     let heightFromByteArray byteOffset (byteArray: byte[]) =
         let firstByte = byteArray.[byteOffset]
         let secondByte = byteArray.[byteOffset + 1]
-        heightFromBigEndianBytes firstByte secondByte
+        heightFromLittleEndianBytes firstByte secondByte
 
 
     let tileSize = 5
@@ -103,7 +101,7 @@ let ``Can create heights array from SRTM heights sequence`` () =
     use stream = new MemoryStream(byteArray)
 
     let heights =
-        Hgt.readHeightsArrayFromStream tileSize (demTileId 0 16 45) stream
+        Xth.readHeightsArrayFromStream tileSize (demTileId 0 16 45) stream
 
     test <@ heights.Width = tileSize @>
     test <@ heights.Height = tileSize @>
@@ -113,39 +111,7 @@ let ``Can create heights array from SRTM heights sequence`` () =
     test <@ heights.Cells.[tileSize - 1] = bottomRightHeight @>
 
 [<Fact>]
-let ``Can read HGT file`` () =
-    let tileSize = Demeton.Srtm.Funcs.SrtmTileSize
-
-    let hgtFileNameOnly = "N46E015.hgt"
-    let tileId = parseTileName hgtFileNameOnly.[0..6]
-
-    use stream = sampleFileStream hgtFileNameOnly
-
-    test <@ stream <> null @>
-
-    let heights = Hgt.readHeightsArrayFromStream tileSize tileId stream
-    test <@ heights.Width = tileSize @>
-    test <@ heights.Height = tileSize @>
-
-    // Sample cells to check the heights.
-    // The expected height was measured using QGIS.
-    let sampleCells =
-        [ (15., 46.999716, 913s) // NW corner
-          (15., 46., 466s) // SW corner
-          (15.9997273, 46, 258s) // SE corner
-          (15.9997273, 46.9997213, 282s) ] // NE corner
-
-    sampleCells
-    |> List.iter (fun (lon, lat, expectedHeight) ->
-        let cellX = Math.Round(longitudeToCellX (float tileSize) lon, 0)
-        let cellY = Math.Round(latitudeToCellY (float tileSize) lat, 0)
-        let height = heights.heightAt (int cellX, int cellY)
-
-        height |> should equal expectedHeight)
-
-
-[<Fact>]
-let ``Can write and then read HGT data`` () =
+let ``Can write a nd then read XTH data`` () =
     let no = DemHeightNone
 
     let cells =
@@ -155,10 +121,10 @@ let ``Can write and then read HGT data`` () =
 
     use stream = new MemoryStream()
 
-    heightsArray |> Hgt.writeHeightsArrayToStream stream |> ignore
+    heightsArray |> Xth.writeHeightsArrayToStream stream |> ignore
 
     stream.Seek(0L, SeekOrigin.Begin) |> ignore
 
-    let readHeightsArray = Hgt.readHeightsFromStream 3 stream
+    let readHeightsArray = Xth.readHeightsFromStream 3 stream
 
     readHeightsArray |> should equal [| 1s; 2s; 3s; 4s; 5s; 6s; 7s; 8s; 9s |]

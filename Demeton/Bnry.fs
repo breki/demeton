@@ -118,3 +118,7 @@ let readBigEndianUInt32 (stream: Stream) : uint32 =
 
 let writeBigEndianInt16 (value: int16) (stream: Stream) : Stream =
     stream |> writeByte (byte (value >>> 8)) |> writeByte (byte value)
+
+
+let writeLittleEndianInt16 (value: int16) (stream: Stream) : Stream =
+    stream |> writeByte (byte value) |> writeByte (byte (value >>> 8))

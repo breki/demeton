@@ -1,5 +1,5 @@
 ﻿[<RequireQualifiedAccess>]
-module Demeton.Dem.Hgt
+module Demeton.Dem.Xth
 
 open System
 open System.IO
@@ -9,7 +9,7 @@ open Demeton.IOTypes
 open FileSys
 
 /// <summary>
-/// Reads HeightsArray data from a HGT-encoded stream.
+/// Reads HeightsArray data from a XTH-encoded stream.
 /// </summary>
 let readHeightsFromStream tileSize (stream: Stream) : DemHeight[] =
     let inline readNextHeightFromStream (streamReader: FunctionalStreamReader) =
@@ -24,7 +24,7 @@ let readHeightsFromStream tileSize (stream: Stream) : DemHeight[] =
             )
         | true ->
             let secondByte = streamReader.currentByte ()
-            heightFromBigEndianBytes firstByte secondByte
+            heightFromLittleEndianBytes firstByte secondByte
 
 
     // Note that the SRTM tile has one pixel/width more of width
@@ -40,7 +40,7 @@ let readHeightsFromStream tileSize (stream: Stream) : DemHeight[] =
 
     let mutable heightsReadCount = 0
 
-    // The first line in the HGT format is the top (northern edge) line
+    // The first line in the XTH format is the top (northern edge) line
     // that overlaps with the neighboring tile to the north.
     // This has two implications:
     //   1. We need to skip the first line of heights.
@@ -66,7 +66,7 @@ let readHeightsFromStream tileSize (stream: Stream) : DemHeight[] =
         // the heights array)
         if heightsArrayCellIndex % tileSize = 0 then
             heightsArrayCellIndex <- heightsArrayCellIndex - tileSize - tileSize
-            // this also means we should skip the next HGT height since it
+            // this also means we should skip the next XTH height since it
             // is an overlap to the neighboring tile to the east
             streamReader.moveForward () |> ignore
             readNextHeightFromStream streamReader |> ignore
@@ -76,7 +76,7 @@ let readHeightsFromStream tileSize (stream: Stream) : DemHeight[] =
 
 /// <summary>
 /// Reads the <see cref="HeightsArray"/> of a SRTM tile from
-/// a HGT file stream.
+/// a XTH file stream.
 /// </summary>
 let readHeightsArrayFromStream tileSize tileId stream =
     let srtmHeights = readHeightsFromStream tileSize stream
@@ -93,13 +93,13 @@ let readHeightsArrayFromStream tileSize tileId stream =
 
 
 let writeHeightsArrayToStream (stream: Stream) (heightsArray: HeightsArray) =
-    // the HGT file should be written in the reverse order of the lines
-    // since the HeightsArray coordinate system is reverse from HGT
+    // the XTH file should be written in the reverse order of the lines
+    // since the HeightsArray coordinate system is reverse from XTH
     let mutable arrayIndex = (heightsArray.Height - 1) * heightsArray.Width
 
     while arrayIndex >= 0 do
         stream
-        |> Bnry.writeBigEndianInt16 heightsArray.Cells[arrayIndex]
+        |> Bnry.writeLittleEndianInt16 heightsArray.Cells[arrayIndex]
         |> ignore
 
         arrayIndex <- arrayIndex + 1
