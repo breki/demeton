@@ -13,7 +13,7 @@ open TestHelp
 let ``run command`` () =
     let options: DemWithWaterBodiesCommand.Options =
         { TileId = demTileXYId 7 45
-          HgtSize = 1201
+          TileSize = 1201
           LocalCacheDir = "cache" }
 
     test <@ DemWithWaterBodiesCommand.run options |> isOk @>

@@ -20,14 +20,14 @@ open Raster
 
 type Options =
     { TileId: DemTileId
-      HgtSize: int
+      TileSize: int
       LocalCacheDir: string }
 
 [<Literal>]
 let TileIdParameter = "tile-id"
 
 [<Literal>]
-let HgtSizeParameter = "hgt-size"
+let TileSizeParameter = "tile-size"
 
 [<Literal>]
 let LocalCacheDirParameter = "local-cache-dir"
@@ -48,9 +48,9 @@ let supportedParameters: CommandParameter[] =
        |> Arg.parser parseTileId
        |> Arg.toPar
 
-       Option.build HgtSizeParameter
+       Option.build TileSizeParameter
        |> Option.desc
-           "The width/height of the resulting SRTM HGT tile (default is 3600)."
+           "The width/height of the resulting XTH tile (default is 3600)."
        |> Option.asPositiveInt
        |> Option.defaultValue 3600
        |> Option.toPar
@@ -65,7 +65,7 @@ let supportedParameters: CommandParameter[] =
 let fillOptions parsedParameters =
     let defaultOptions =
         { TileId = demTileXYId 0 0
-          HgtSize = 3600
+          TileSize = 3600
           LocalCacheDir = DefaultLocalCacheDir }
 
     let processParameter options parameter =
@@ -74,9 +74,10 @@ let fillOptions parsedParameters =
                       Value = value } ->
             { options with
                 TileId = value :?> DemTileId }
-        | ParsedOption { Name = HgtSizeParameter
+        | ParsedOption { Name = TileSizeParameter
                          Value = value } ->
-            { options with HgtSize = value :?> int }
+            { options with
+                TileSize = value :?> int }
         | ParsedOption { Name = LocalCacheDirParameter
                          Value = value } ->
             { options with
@@ -219,23 +220,23 @@ let extendHeightsArrayWithAdditionalRowAndColumn (heightsArray: HeightsArray) =
         HeightsArrayDirectImport extendedCells
     )
 
-let ensureHgtFile cacheDir hgtSize tileId : HeightsArray option =
-    let hgtFileName =
+let ensureXthFile cacheDir xthSize tileId : HeightsArray option =
+    let xthFileName =
         Path.Combine(
             cacheDir,
             "AW3D-WaterBodies",
-            hgtSize.ToString(),
-            toTileName tileId + ".hgt"
+            xthSize.ToString(),
+            toTileName tileId + ".xth"
         )
 
-    if FileSys.fileExists hgtFileName then
-        // Log.info "The HGT file already exists at '%s'." hgtFileName
+    if FileSys.fileExists xthFileName then
+        // Log.info "The XTH file already exists at '%s'." xthFileName
 
-        FileSys.openFileToRead hgtFileName
+        FileSys.openFileToRead xthFileName
         |> function
             | Ok stream ->
                 use stream = stream
-                Some(Hgt.readHeightsArrayFromStream hgtSize tileId stream)
+                Some(Xth.readHeightsArrayFromStream xthSize tileId stream)
             | Error error -> raise error.Exception
     else
         fetchAw3dTile tileId cacheDir
@@ -248,7 +249,7 @@ let ensureHgtFile cacheDir hgtSize tileId : HeightsArray option =
                 |> listAllAvailableFiles FileSys.openFileToRead
                 |> Set.ofSeq
 
-            let downsampledAw3dTile = aw3dTile |> downsampleAw3dTile hgtSize
+            let downsampledAw3dTile = aw3dTile |> downsampleAw3dTile xthSize
 
             loadWaterBodiesTileFromCache
                 cacheDir
@@ -264,7 +265,7 @@ let ensureHgtFile cacheDir hgtSize tileId : HeightsArray option =
                     |> Option.map (fun tileHeightsArray ->
                         let downsampledWaterBodiesTile =
                             tileHeightsArray
-                            |> downsampleWaterBodiesHeightsArray hgtSize
+                            |> downsampleWaterBodiesHeightsArray xthSize
 
                         let demWaterBodiesTile =
                             downsampledAw3dTile
@@ -272,11 +273,11 @@ let ensureHgtFile cacheDir hgtSize tileId : HeightsArray option =
                                 downsampledWaterBodiesTile
                             // extend the heights array with one additional
                             //  row and column so it is compatible with the original
-                            //  SRTM HGT files
+                            //  XTH files
                             |> extendHeightsArrayWithAdditionalRowAndColumn
 
                         demWaterBodiesTile
-                        |> Hgt.writeHeightsArrayToFile hgtFileName
+                        |> Xth.writeHeightsArrayToFile xthFileName
                         |> ignore
 
                         demWaterBodiesTile)
@@ -293,5 +294,7 @@ let ensureHgtFile cacheDir hgtSize tileId : HeightsArray option =
 
 
 let run (options: Options) : Result<unit, string> =
-    ensureHgtFile options.LocalCacheDir options.HgtSize options.TileId |> ignore
+    ensureXthFile options.LocalCacheDir options.TileSize options.TileId
+    |> ignore
+
     Ok()

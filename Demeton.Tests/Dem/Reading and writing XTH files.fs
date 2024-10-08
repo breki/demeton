@@ -111,7 +111,7 @@ let ``Can create heights array from SRTM heights sequence`` () =
     test <@ heights.Cells.[tileSize - 1] = bottomRightHeight @>
 
 [<Fact>]
-let ``Can write a nd then read XTH data`` () =
+let ``Can write and then read XTH data`` () =
     let no = DemHeightNone
 
     let cells =

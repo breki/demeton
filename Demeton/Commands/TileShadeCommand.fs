@@ -663,7 +663,7 @@ let fetchDemWithWaterBodies
     let tilesHeightsArrays =
         tilesIds
         |> Seq.map (
-            DemWithWaterBodiesCommand.ensureHgtFile cacheDir demTileSize
+            DemWithWaterBodiesCommand.ensureXthFile cacheDir demTileSize
         )
         |> Seq.toList
         |> List.choose Some
