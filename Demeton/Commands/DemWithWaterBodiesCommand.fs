@@ -271,10 +271,10 @@ let ensureXthFile cacheDir xthSize tileId : HeightsArray option =
                             downsampledAw3dTile
                             |> encodeWaterBodiesInfoIntoDem
                                 downsampledWaterBodiesTile
-                            // extend the heights array with one additional
-                            //  row and column so it is compatible with the original
-                            //  XTH files
-                            |> extendHeightsArrayWithAdditionalRowAndColumn
+                        // extend the heights array with one additional
+                        //  row and column so it is compatible with the original
+                        //  XTH files
+                        // |> extendHeightsArrayWithAdditionalRowAndColumn
 
                         demWaterBodiesTile
                         |> Xth.writeHeightsArrayToFile xthFileName
