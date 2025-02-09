@@ -14,13 +14,20 @@ open FileSys
 /// Returns the download URL for the given AW3D tile.
 /// </summary>
 let aw3dTileDownloadUrl (tileId: DemTileId) : string =
-    let groupTileX = tileId.TileX / 5 * 5
-    let groupTileY = tileId.TileY / 5 * 5
+    let groupTileX =
+        match tileId.TileX with
+        | x when x >= 0 -> x / 5 * 5
+        | x -> (x - 4) / 5 * 5
+
+    let groupTileY =
+        match tileId.TileY with
+        | y when y >= 0 -> y / 5 * 5
+        | y -> (y - 4) / 5 * 5
 
     let groupTileId = demTileXYId groupTileX groupTileY
 
     sprintf
-        "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2303/%s/%s.zip"
+        "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2404/%s/%s.zip"
         groupTileId.FormatLat3Lon3
         tileId.FormatLat3Lon3
 

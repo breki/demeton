@@ -41,10 +41,13 @@ let ``Correctly calculates the AW3D tiles needed for a given boundary`` () =
 [<Theory>]
 [<InlineData(6,
              46,
-             "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2303/N045E005/N046E006.zip")>]
-[<InlineData(-120,
-             -36,
-             "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2303/S035W120/S036W120.zip")>]
+             "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2404/N045E005/N046E006.zip")>]
+[<InlineData(167,
+             -48,
+             "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2404/S050E165/S048E167.zip")>]
+[<InlineData(-26,
+             37,
+             "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2404/N035W030/N037W026.zip")>]
 let ``For a given AW3D tile, construct its download URL``
     tileX
     tileY
@@ -104,7 +107,7 @@ let ``Download tile ZIP file if TIFF not in cache`` () =
 
     let downloadFile url localFileName =
         if
-            url = "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2303/N045E005/N046E006.zip"
+            url = "https://www.eorc.jaxa.jp/ALOS/aw3d30/data/release_v2404/N045E005/N046E006.zip"
         then
             if localFileName = expectedCachedZipFileName then
                 zipFileDownloaded <- true
