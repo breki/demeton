@@ -11,6 +11,25 @@ open Xunit
 open Swensen.Unquote
 open TestHelp
 
+[<Theory>]
+[<InlineData(13, 45, 12, 45)>]
+[<InlineData(-29, 38, -30, 36)>]
+[<InlineData(18, -33, 18, -36)>]
+let ``Containing World Cover file ID is correct``
+    tileX
+    tileY
+    expectedContainingTileX
+    expectedContainingTileY
+    =
+    let tileId = demTileXYId tileX tileY
+
+    test
+        <@
+            containingWorldCoverFileTileId tileId = (demTileXYId
+                expectedContainingTileX
+                expectedContainingTileY)
+        @>
+
 
 [<Fact>]
 let ``Download WorldCover geoJSON file if it is not already cached`` () =

@@ -119,12 +119,20 @@ let containingWorldCoverFileTileId (singleDegreeTileId: DemTileId) : DemTileId =
     match singleDegreeTileId.Level with
     | Level0 ->
         let worldCoverTileX =
-            singleDegreeTileId.TileX / WorldCoverDegreesPerFile
-            * WorldCoverDegreesPerFile
+            if singleDegreeTileId.TileX >= 0 then
+                singleDegreeTileId.TileX / WorldCoverDegreesPerFile
+                * WorldCoverDegreesPerFile
+            else
+                (singleDegreeTileId.TileX / WorldCoverDegreesPerFile - 1)
+                * WorldCoverDegreesPerFile
 
         let worldCoverTileY =
-            singleDegreeTileId.TileY / WorldCoverDegreesPerFile
-            * WorldCoverDegreesPerFile
+            if singleDegreeTileId.TileY >= 0 then
+                singleDegreeTileId.TileY / WorldCoverDegreesPerFile
+                * WorldCoverDegreesPerFile
+            else
+                (singleDegreeTileId.TileY / WorldCoverDegreesPerFile - 1)
+                * WorldCoverDegreesPerFile
 
         demTileXYId worldCoverTileX worldCoverTileY
     | HigherLevel ->

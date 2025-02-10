@@ -283,11 +283,7 @@ let ensureXthFile cacheDir xthSize tileId : HeightsArray option =
                         demWaterBodiesTile)
                 | TileNeedsToBeDownloaded _ ->
                     invalidOp "Bug: this should never happen"
-                | TileDoesNotExistInWorldCover _ ->
-                    NotImplementedException(
-                        "The case when there is no WorldCover tile"
-                    )
-                    |> raise)
+                | TileDoesNotExistInWorldCover _ -> None)
         |> function
             | Ok heightsArray -> heightsArray
             | Error errorMessage -> invalidOp errorMessage

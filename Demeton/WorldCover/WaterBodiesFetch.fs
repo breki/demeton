@@ -140,7 +140,7 @@ let makeNoneFileIfNeeded cacheDir cachedLoadResult =
 let extractWaterBodiesTileFromWorldCoverTileIfNeeded cacheDir cachedLoadResult =
     match cachedLoadResult with
     | TileNeedsToBeDownloaded(waterBodiesTileId, containingWorldCoverTileId) ->
-        let tiffFileName =
+        let _tiffFileName =
             ensureWorldCoverFile
                 cacheDir
                 fileExists
@@ -177,13 +177,17 @@ let extractWaterBodiesTileFromWorldCoverTileIfNeeded cacheDir cachedLoadResult =
                 |> ignore
             | Error error -> raise error.Exception)
 
-        // use the correct water bodies tile from the array and return it
-        tilesArray
-        |> Array2DExt.toSeq
-        |> Seq.filter (fun (tileId, _) -> tileId = waterBodiesTileId)
-        |> Seq.head
-        |> snd
-        |> Some
-        |> CachedTileLoaded
+        // try to find the corresponding water bodies tile
+        let waterBodiesTileMaybe =
+            tilesArray
+            |> Array2DExt.toSeq
+            |> Seq.tryFind (fun (tileId, _) -> tileId = waterBodiesTileId)
+
+        // note that it is not guaranteed the water bodies tile actually
+        // exists - the area could be over an ocean
+        match waterBodiesTileMaybe with
+        | Some(_, waterBodiesTile) ->
+            waterBodiesTile |> Some |> CachedTileLoaded
+        | None -> TileDoesNotExistInWorldCover waterBodiesTileId
 
     | result -> result

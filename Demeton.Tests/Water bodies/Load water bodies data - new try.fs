@@ -32,3 +32,23 @@ let icebreaker () =
     match result with
     | CachedTileLoaded heightsArray -> test <@ heightsArray |> Option.isSome @>
     | _ -> Should.fail "Unexpected result"
+
+
+[<Fact(Skip = "downloads a tile and breaks it down into subtiles, so it takes too long")>]
+// [<Fact>]
+let bugTest () =
+    let tileId = demTileXYId -29 38
+
+    let availableWorldCoverTiles =
+        ensureGeoJsonFile CacheDir fileExists downloadFile
+        |> listAllAvailableFiles openFileToRead
+        |> Set.ofSeq
+
+    let result =
+        loadWaterBodiesTileFromCache CacheDir availableWorldCoverTiles tileId
+        |> makeNoneFileIfNeeded CacheDir
+        |> extractWaterBodiesTileFromWorldCoverTileIfNeeded CacheDir
+
+    match result with
+    | CachedTileLoaded heightsArray -> test <@ heightsArray |> Option.isSome @>
+    | _ -> Should.fail "Unexpected result"
