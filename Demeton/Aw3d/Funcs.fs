@@ -54,6 +54,10 @@ let aw3dTileZipFileEntryName (tileId: DemTileId) =
 /// Ensures the specified AW3D tile TIFF file is available in the cache
 /// directory, downloading it if necessary.
 /// </summary>
+/// <remarks>
+/// If the function finds a ".none" file in the cache directory, it means the
+/// tile is not available at the source, and the function returns Ok None.
+/// </remarks>
 let ensureAw3dTile
     cacheDir
     fileExists
@@ -73,9 +77,14 @@ let ensureAw3dTile
         downloadFile url cachedTileZipFileName
 
     let cachedTifFileName = aw3dTileCachedTifFileName cacheDir tileId
+    let cachedNoneFileName = Path.ChangeExtension(cachedTifFileName, ".none")
 
     if fileExists cachedTifFileName then
-        Ok cachedTifFileName
+        cachedTifFileName |> Some |> Ok
+    elif fileExists cachedNoneFileName then
+        // if the ".none" file exists, it means the tile is not available
+        // at the source
+        None |> Ok
     else
         // download the tile
         let cachedTileZipFileName = tileId |> downloadTileZipFile
@@ -96,7 +105,7 @@ let ensureAw3dTile
             with
             | Ok tiffFilePath ->
                 match deleteFile cachedTileZipFileName with
-                | Ok _ -> Ok tiffFilePath
+                | Ok _ -> tiffFilePath |> Some |> Ok
                 | Error error -> Error error.Exception.Message
             | Error error -> Error error.Exception.Message
         // todo 0: handle this case by generating a None file

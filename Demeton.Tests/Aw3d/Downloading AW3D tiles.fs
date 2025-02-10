@@ -91,7 +91,48 @@ let ``Do not download tile if TIFF already in cache`` () =
             deleteFile
             sampleTileId
 
-    test <@ result |> isOkValue sampleCachedTifFileName @>
+    test <@ result |> isOkValue (Some sampleCachedTifFileName) @>
+
+[<Fact>]
+let ``Do not download tile if 'none' file already in cache`` () =
+    let cacheDir = "cache"
+    let sampleTileId = demTileXYId 6 -46
+
+    let sampleCachedTifFileName =
+        aw3dTileCachedTifFileName cacheDir sampleTileId
+
+    let sampleCachedNoneFileName =
+        Path.ChangeExtension(sampleCachedTifFileName, ".none")
+
+    let fileExists =
+        function
+        | fileName when fileName = sampleCachedNoneFileName -> true
+        | fileName when fileName = sampleCachedTifFileName -> false
+        | _ -> fail "Unexpected file name"
+
+    let downloadFile _ _ =
+        fail "Downloading file should not have been called"
+
+    let openZipFileEntry _ _ =
+        fail "Opening ZIP file entries should not have been called"
+
+    let copyStreamToFile _ _ =
+        fail "Copying stream to file should not have been called"
+
+    let deleteFile _ =
+        fail "Deleting file should not have been called"
+
+    let result =
+        ensureAw3dTile
+            "cache"
+            fileExists
+            downloadFile
+            openZipFileEntry
+            copyStreamToFile
+            deleteFile
+            sampleTileId
+
+    test <@ result |> isOkValue None @>
 
 [<Fact>]
 let ``Download tile ZIP file if TIFF not in cache`` () =
@@ -178,7 +219,7 @@ let ``Extract tile TIFF to the cache`` () =
             deleteFile
             sampleTileId
 
-    test <@ result |> isOkValue expectedCachedTifFileName @>
+    test <@ result |> isOkValue (Some expectedCachedTifFileName) @>
 
 [<Fact>]
 let ``Delete downloaded ZIP file after extraction`` () =
@@ -223,7 +264,7 @@ let ``Delete downloaded ZIP file after extraction`` () =
             deleteFile
             sampleTileId
 
-    test <@ result |> isOkValue expectedCachedTifFileName @>
+    test <@ result |> isOkValue (Some expectedCachedTifFileName) @>
 
     test
         <@
