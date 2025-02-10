@@ -7,6 +7,7 @@ module FileSys
 open System
 open System.IO
 open System.IO.Compression
+open System.Net
 open System.Net.Http
 
 type FileName = string
@@ -80,13 +81,16 @@ type DirectoryExistsEnsurer = string -> Result<string, FileSysError>
 /// </summary>
 let ensureDirectoryExists: DirectoryExistsEnsurer =
     fun (directory: string) ->
-        try
-            Directory.CreateDirectory(directory) |> ignore
-            Ok directory
-        with ex ->
-            match mapFileSysException ex with
-            | Some error -> Error error
-            | None -> raise ex
+        match directory with
+        | "" -> Ok directory
+        | _ ->
+            try
+                Directory.CreateDirectory(directory) |> ignore
+                Ok directory
+            with ex ->
+                match mapFileSysException ex with
+                | Some error -> Error error
+                | None -> raise ex
 
 /// <summary>
 /// A function providing the ability to open a file stream to read.
@@ -178,6 +182,7 @@ let copyStreamToFile (fileName: string) (inputStream: Stream) =
 
 let closeStream (stream: Stream) = stream.Close()
 
+// todo 0: how to catch 302 redirect?
 /// <summary>
 /// Downloads a file from the specified URL and saves it to the specified
 /// path on the disk.
@@ -205,6 +210,53 @@ let downloadFile (url: string) (destinationPath: string) : string =
 
                 return destinationPath
             else
+                return
+                    failwithf
+                        "Failed to download file from %s. Status code: %s"
+                        url
+                        (response.StatusCode.ToString())
+        }
+
+    downloadTask |> Async.RunSynchronously
+
+/// <summary>
+/// Downloads a file from the specified URL and saves it to the specified
+/// path on the disk. If the server returns a 302 Found status code, the
+/// function returns None.
+/// </summary>
+let downloadFileWithoutRedirects
+    (url: string)
+    (destinationPath: string)
+    : string option =
+    Log.debug $"Downloading file from %s{url} to %s{destinationPath}..."
+
+    let clientHandler = new HttpClientHandler()
+    clientHandler.AllowAutoRedirect <- false
+
+    let httpClient = new HttpClient(clientHandler)
+
+    let downloadTask =
+        async {
+            let! response = httpClient.GetAsync(url) |> Async.AwaitTask
+
+            match response.StatusCode with
+            | statusCode when
+                statusCode |> int >= 200 && statusCode |> int <= 299
+                ->
+                let! content =
+                    response.Content.ReadAsByteArrayAsync() |> Async.AwaitTask
+
+                ensureDirectoryExists (Path.GetDirectoryName(destinationPath))
+                |> ignore
+
+                use fileStream =
+                    new FileStream(destinationPath, FileMode.Create)
+
+                fileStream.Write(content, 0, content.Length)
+
+                return Some destinationPath
+            | HttpStatusCode.Found -> return None
+            | _ ->
                 return
                     failwithf
                         "Failed to download file from %s. Status code: %s"

@@ -27,6 +27,7 @@
         <Compile Include="ColorGen.fs"/>
         <Compile Include="ResultSeq tests.fs"/>
         <Compile Include="FileSystem tests\Zip files tests.fs"/>
+        <Compile Include="FileSystem tests\Downloading files.fs"/>
         <Compile Include="Reading binary streams.fs"/>
         <Compile Include="Command line parsing\Parsing option value.fs"/>
         <Compile Include="Command line parsing\Parsing a sequence of parameters.fs"/>

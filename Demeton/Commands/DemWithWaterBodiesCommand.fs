@@ -93,7 +93,7 @@ let fetchAw3dTile
     ensureAw3dTile
         localCacheDir
         FileSys.fileExists
-        FileSys.downloadFile
+        FileSys.downloadFileWithoutRedirects
         FileSys.readZipFile
         FileSys.copyStreamToFile
         FileSys.deleteFile
@@ -157,7 +157,7 @@ let identifyAndSimplifyWaterBodies finalTileSize worldCoverHeightsArray =
 /// </summary>
 /// <remarks>
 /// It uses the LSB of the height to encode the water bodies information.
-/// If the bit is set to 1, the cell represents a water. If it is set to 0,
+/// If the bit is set to 1, the cell represents water. If it is set to 0,
 /// the cell represents a land. This also means that all the odd-value heights
 /// are rounded to the even number (e.g. 1 -> 0, 3 -> 2, 5 -> 4, etc.).
 /// </remarks>

@@ -37,7 +37,8 @@ let icebreaker () =
 [<Fact(Skip = "downloads a tile and breaks it down into subtiles, so it takes too long")>]
 // [<Fact>]
 let bugTest () =
-    let tileId = demTileXYId -29 38
+    let tileId = demTileXYId -18 38
+    // N047W010
 
     let availableWorldCoverTiles =
         ensureGeoJsonFile CacheDir fileExists downloadFile

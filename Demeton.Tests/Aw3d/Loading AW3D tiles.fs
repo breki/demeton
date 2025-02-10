@@ -20,7 +20,7 @@ let ``Load AW3D into a DemHeight`` () =
         |> ensureAw3dTile
             CacheDir
             FileSys.fileExists
-            FileSys.downloadFile
+            FileSys.downloadFileWithoutRedirects
             FileSys.readZipFile
             FileSys.copyStreamToFile
             FileSys.deleteFile

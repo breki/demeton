@@ -29,7 +29,7 @@ let ``Generate DEM height data C++ array`` () =
         |> ensureAw3dTile
             CacheDir
             FileSys.fileExists
-            FileSys.downloadFile
+            FileSys.downloadFileWithoutRedirects
             FileSys.readZipFile
             FileSys.copyStreamToFile
             FileSys.deleteFile

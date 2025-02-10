@@ -57,7 +57,7 @@ let aw3dTileZipFileEntryName (tileId: DemTileId) =
 let ensureAw3dTile
     cacheDir
     fileExists
-    downloadFile
+    (downloadFile: string -> string -> string option)
     (readZipFile: ZipFileReader<string>)
     copyStreamToFile
     (deleteFile: string -> Result<string, FileSysError>)
@@ -80,23 +80,27 @@ let ensureAw3dTile
         // download the tile
         let cachedTileZipFileName = tileId |> downloadTileZipFile
 
-        let tiffFileNameInZip = aw3dTileZipFileEntryName tileId
+        match cachedTileZipFileName with
+        | Some cachedTileZipFileName ->
+            let tiffFileNameInZip = aw3dTileZipFileEntryName tileId
 
-        let extractTiffFileFromZip tiffFileStream =
-            let tiffFilePath = tileId |> aw3dTileCachedTifFileName cacheDir
-            tiffFileStream |> copyStreamToFile tiffFilePath
+            let extractTiffFileFromZip tiffFileStream =
+                let tiffFilePath = tileId |> aw3dTileCachedTifFileName cacheDir
+                tiffFileStream |> copyStreamToFile tiffFilePath
 
-        match
-            readZipFile
-                cachedTileZipFileName
-                tiffFileNameInZip
-                extractTiffFileFromZip
-        with
-        | Ok tiffFilePath ->
-            match deleteFile cachedTileZipFileName with
-            | Ok _ -> Ok tiffFilePath
+            match
+                readZipFile
+                    cachedTileZipFileName
+                    tiffFileNameInZip
+                    extractTiffFileFromZip
+            with
+            | Ok tiffFilePath ->
+                match deleteFile cachedTileZipFileName with
+                | Ok _ -> Ok tiffFilePath
+                | Error error -> Error error.Exception.Message
             | Error error -> Error error.Exception.Message
-        | Error error -> Error error.Exception.Message
+        // todo 0: handle this case by generating a None file
+        | None -> Error "Failed to download the tile ZIP file."
 
 
 let ensureAw3dTiles
@@ -122,7 +126,7 @@ let ensureAw3dTiles
             ensureAw3dTile
                 cacheDir
                 fileExists
-                downloadFile
+                downloadFileWithoutRedirects
                 readZipFile
                 copyStreamToFile
                 deleteFile

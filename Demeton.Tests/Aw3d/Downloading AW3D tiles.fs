@@ -111,7 +111,7 @@ let ``Download tile ZIP file if TIFF not in cache`` () =
         then
             if localFileName = expectedCachedZipFileName then
                 zipFileDownloaded <- true
-                localFileName
+                Some localFileName
             else
                 fail "Unexpected local ZIP file name"
         else
@@ -149,7 +149,7 @@ let ``Extract tile TIFF to the cache`` () =
 
     let fileExists _ = false
 
-    let downloadFile url localFileName = localFileName
+    let downloadFile url localFileName = Some localFileName
 
     let readZipFileEntry zipFileName entryName _ =
         if zipFileName = expectedCachedZipFileName then
@@ -193,7 +193,7 @@ let ``Delete downloaded ZIP file after extraction`` () =
 
     let fileExists _ = false
 
-    let downloadFile _ localFileName = localFileName
+    let downloadFile _ localFileName = Some localFileName
 
     let readZipFileEntry _ _ _ = Ok expectedCachedTifFileName
 
@@ -211,7 +211,7 @@ let ``Delete downloaded ZIP file after extraction`` () =
                 + $"expected %s{expectedCachedZipFileName}, got %s{fileName}"
             )
 
-    let x = zipFileDeleted
+    let _ = zipFileDeleted
 
     let result =
         ensureAw3dTile
