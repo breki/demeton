@@ -97,6 +97,7 @@ let fetchAw3dTile
         FileSys.readZipFile
         FileSys.copyStreamToFile
         FileSys.deleteFile
+        FileSys.openFileToWrite
         tileId
     |> Result.bind (fun _ -> (readAw3dTile localCacheDir tileId) |> Result.Ok)
 

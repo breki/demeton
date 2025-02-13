@@ -24,6 +24,7 @@ let ``Load AW3D into a DemHeight`` () =
             FileSys.readZipFile
             FileSys.copyStreamToFile
             FileSys.deleteFile
+            FileSys.openFileToWrite
 
     test <@ result |> isOk @>
 

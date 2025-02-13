@@ -31,8 +31,8 @@ let mapFileSysException (ex: Exception) =
 /// inside a ZIP package.
 /// </summary>
 type ZipFileReader<'TResult> =
-    string
-        -> string
+    FileName
+        -> FileName
         -> (Stream -> Result<'TResult, FileSysError>)
         -> Result<'TResult, FileSysError>
 
@@ -62,7 +62,7 @@ let deleteDirectoryIfExists (directory: string) : Result<string, FileSysError> =
         | None -> raise ex
 
 
-let deleteFile (fileName: string) : Result<string, FileSysError> =
+let deleteFile (fileName: FileName) : Result<FileName, FileSysError> =
     try
         File.Delete(fileName)
         Ok fileName
@@ -95,12 +95,12 @@ let ensureDirectoryExists: DirectoryExistsEnsurer =
 /// <summary>
 /// A function providing the ability to open a file stream to read.
 /// </summary>
-type FileReader = string -> Result<Stream, FileSysError>
+type FileReader = FileName -> Result<Stream, FileSysError>
 
 /// <summary>
 /// A function providing the ability to open a file stream to write.
 /// </summary>
-type FileWriter = string -> Result<Stream, FileSysError>
+type FileWriter = FileName -> Result<Stream, FileSysError>
 
 /// <summary>
 /// Opens a read stream to the specified file.
@@ -157,7 +157,7 @@ let readZipFile: ZipFileReader<'TResult> =
 
 /// An experimental function for different way of working with streams as
 /// disposables.
-let withFileRead fileName callback =
+let withFileRead (fileName: FileName) callback =
     try
         use stream = File.OpenRead(fileName)
         callback stream
@@ -169,7 +169,7 @@ let withFileRead fileName callback =
 /// <summary>
 /// Copies the content of the input stream to a file.
 /// </summary>
-let copyStreamToFile (fileName: string) (inputStream: Stream) =
+let copyStreamToFile (fileName: FileName) (inputStream: Stream) =
     try
         use outputStream = new FileStream(fileName, FileMode.Create)
         inputStream.CopyTo(outputStream)
@@ -182,12 +182,11 @@ let copyStreamToFile (fileName: string) (inputStream: Stream) =
 
 let closeStream (stream: Stream) = stream.Close()
 
-// todo 0: how to catch 302 redirect?
 /// <summary>
 /// Downloads a file from the specified URL and saves it to the specified
 /// path on the disk.
 /// </summary>
-let downloadFile (url: string) (destinationPath: string) : string =
+let downloadFile (url: string) (destinationPath: FileName) : FileName =
     Log.debug $"Downloading file from %s{url} to %s{destinationPath}..."
 
     let httpClient = new HttpClient()
@@ -226,8 +225,8 @@ let downloadFile (url: string) (destinationPath: string) : string =
 /// </summary>
 let downloadFileWithoutRedirects
     (url: string)
-    (destinationPath: string)
-    : string option =
+    (destinationPath: FileName)
+    : FileName option =
     Log.debug $"Downloading file from %s{url} to %s{destinationPath}..."
 
     let clientHandler = new HttpClientHandler()

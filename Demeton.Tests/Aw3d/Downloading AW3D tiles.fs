@@ -14,7 +14,6 @@ open Xunit
 open Swensen.Unquote
 open TestHelp
 
-
 [<Fact>]
 let ``Correctly calculates the AW3D tiles needed for a given boundary`` () =
     let bounds =
@@ -81,6 +80,9 @@ let ``Do not download tile if TIFF already in cache`` () =
     let deleteFile _ =
         fail "Deleting file should not have been called"
 
+    let openFileToWrite _ =
+        fail "Opening file to write should not have been called"
+
     let result =
         ensureAw3dTile
             "cache"
@@ -89,6 +91,7 @@ let ``Do not download tile if TIFF already in cache`` () =
             openZipFileEntry
             copyStreamToFile
             deleteFile
+            openFileToWrite
             sampleTileId
 
     test <@ result |> isOkValue (Some sampleCachedTifFileName) @>
@@ -102,7 +105,7 @@ let ``Do not download tile if 'none' file already in cache`` () =
         aw3dTileCachedTifFileName cacheDir sampleTileId
 
     let sampleCachedNoneFileName =
-        Path.ChangeExtension(sampleCachedTifFileName, ".none")
+        sampleCachedTifFileName |> Pth.extension ".none"
 
     let fileExists =
         function
@@ -122,6 +125,9 @@ let ``Do not download tile if 'none' file already in cache`` () =
     let deleteFile _ =
         fail "Deleting file should not have been called"
 
+    let openFileToWrite _ =
+        fail "Opening file to write should not have been called"
+
     let result =
         ensureAw3dTile
             "cache"
@@ -130,6 +136,7 @@ let ``Do not download tile if 'none' file already in cache`` () =
             openZipFileEntry
             copyStreamToFile
             deleteFile
+            openFileToWrite
             sampleTileId
 
     test <@ result |> isOkValue None @>
@@ -164,6 +171,9 @@ let ``Download tile ZIP file if TIFF not in cache`` () =
 
     let deleteFile fileName = Ok fileName
 
+    let openFileToWrite _ =
+        fail "Opening file to write should not have been called"
+
     let result =
         ensureAw3dTile
             "cache"
@@ -172,6 +182,7 @@ let ``Download tile ZIP file if TIFF not in cache`` () =
             readZipFileEntry
             copyStreamToFile
             deleteFile
+            openFileToWrite
             sampleTileId
 
     test <@ result |> isOk @>
@@ -190,7 +201,7 @@ let ``Extract tile TIFF to the cache`` () =
 
     let fileExists _ = false
 
-    let downloadFile url localFileName = Some localFileName
+    let downloadFile _ localFileName = Some localFileName
 
     let readZipFileEntry zipFileName entryName _ =
         if zipFileName = expectedCachedZipFileName then
@@ -209,6 +220,9 @@ let ``Extract tile TIFF to the cache`` () =
 
     let deleteFile fileName = Ok fileName
 
+    let openFileToWrite _ =
+        fail "Opening file to write should not have been called"
+
     let result =
         ensureAw3dTile
             "cache"
@@ -217,6 +231,7 @@ let ``Extract tile TIFF to the cache`` () =
             readZipFileEntry
             copyStreamToFile
             deleteFile
+            openFileToWrite
             sampleTileId
 
     test <@ result |> isOkValue (Some expectedCachedTifFileName) @>
@@ -252,6 +267,9 @@ let ``Delete downloaded ZIP file after extraction`` () =
                 + $"expected %s{expectedCachedZipFileName}, got %s{fileName}"
             )
 
+    let openFileToWrite _ =
+        fail "Opening file to write should not have been called"
+
     let _ = zipFileDeleted
 
     let result =
@@ -262,6 +280,7 @@ let ``Delete downloaded ZIP file after extraction`` () =
             readZipFileEntry
             copyStreamToFile
             deleteFile
+            openFileToWrite
             sampleTileId
 
     test <@ result |> isOkValue (Some expectedCachedTifFileName) @>
@@ -271,3 +290,50 @@ let ``Delete downloaded ZIP file after extraction`` () =
             ignore "check that the ZIP file was deleted"
             !zipFileDeleted
         @>
+
+/// <summary>
+/// If the TIFF tile does not exist at the AW3D server (most likely because
+/// it is wholly covered by water), a ".none" file should be created in the
+/// cache directory to indicate that.
+/// </summary>
+[<Fact>]
+let ``Create a '.none' file if tile does not exist at server`` () =
+    let cacheDir = "cache"
+    let sampleTileId = demTileXYId 6 46
+
+    let expectedCachedZipFileName =
+        Path.Combine(cacheDir, Aw3dDirName, $"N046E006.zip")
+
+    let fileExists _ = false
+
+    // the download function returns None to indicate that the tile does
+    // not exist at the server
+    let downloadFile _ _ = None
+
+    let readZipFileEntry _ _ _ =
+        fail "Reading ZIP file entry should not have been called"
+
+    let copyStreamToFile _ _ =
+        fail "Copying stream to file should not have been called"
+
+    let deleteFile _ =
+        fail "Deleting file should not have been called"
+
+    let openFileToWrite fileName =
+        if fileName = (expectedCachedZipFileName |> Pth.extension ".none") then
+            Ok(new MemoryStream() :> Stream)
+        else
+            fail "Expected '.none' file name"
+
+    let result =
+        ensureAw3dTile
+            "cache"
+            fileExists
+            downloadFile
+            readZipFileEntry
+            copyStreamToFile
+            deleteFile
+            openFileToWrite
+            sampleTileId
+
+    test <@ result |> isOk @>

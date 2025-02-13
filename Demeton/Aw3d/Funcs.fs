@@ -35,13 +35,13 @@ let aw3dTileDownloadUrl (tileId: DemTileId) : string =
 /// <summary>
 /// Returns the path to the cached ZIP file for the given AW3D tile.
 /// </summary>
-let aw3dTileCachedZipFileName cacheDir (tileId: DemTileId) =
+let aw3dTileCachedZipFileName cacheDir (tileId: DemTileId) : FileName =
     Path.Combine(cacheDir, Aw3dDirName, $"{tileId.FormatLat3Lon3}.zip")
 
 /// <summary>
 /// Returns the path to the cached TIFF file for the given AW3D tile.
 /// </summary>
-let aw3dTileCachedTifFileName cacheDir (tileId: DemTileId) =
+let aw3dTileCachedTifFileName cacheDir (tileId: DemTileId) : FileName =
     Path.Combine(cacheDir, Aw3dDirName, $"{tileId.FormatLat3Lon3}.tif")
 
 /// <summary>
@@ -61,12 +61,13 @@ let aw3dTileZipFileEntryName (tileId: DemTileId) =
 let ensureAw3dTile
     cacheDir
     fileExists
-    (downloadFile: string -> string -> string option)
+    (downloadFile: FileName -> FileName -> FileName option)
     (readZipFile: ZipFileReader<string>)
     copyStreamToFile
-    (deleteFile: string -> Result<string, FileSysError>)
+    (deleteFile: FileName -> Result<FileName, FileSysError>)
+    (openFileToWrite: FileWriter)
     tileId
-    =
+    : Result<FileName option, string> =
     let downloadTileZipFile tileId =
         let url = aw3dTileDownloadUrl tileId
         let cachedTileZipFileName = tileId |> aw3dTileCachedZipFileName cacheDir
@@ -77,7 +78,9 @@ let ensureAw3dTile
         downloadFile url cachedTileZipFileName
 
     let cachedTifFileName = aw3dTileCachedTifFileName cacheDir tileId
-    let cachedNoneFileName = Path.ChangeExtension(cachedTifFileName, ".none")
+
+    let cachedNoneFileName: FileName =
+        Path.ChangeExtension(cachedTifFileName, ".none")
 
     if fileExists cachedTifFileName then
         cachedTifFileName |> Some |> Ok
@@ -108,8 +111,24 @@ let ensureAw3dTile
                 | Ok _ -> tiffFilePath |> Some |> Ok
                 | Error error -> Error error.Exception.Message
             | Error error -> Error error.Exception.Message
-        // todo 0: handle this case by generating a None file
-        | None -> Error "Failed to download the tile ZIP file."
+        | None ->
+            // While trying to download the AW3D tile, we determined it
+            // does not actually exist on the server. We create a ".none"
+            // file in the cache directory to indicate this so that we
+            // don't try to download the tile again in the future.
+
+            cachedNoneFileName
+            |> Pth.directory
+            |> ensureDirectoryExists
+            |> ignore
+
+            openFileToWrite cachedNoneFileName
+            |> Result.map (fun stream ->
+                stream |> closeStream
+                None)
+            |> ignore
+
+            Ok None
 
 
 let ensureAw3dTiles
@@ -139,6 +158,7 @@ let ensureAw3dTiles
                 readZipFile
                 copyStreamToFile
                 deleteFile
+                openFileToWrite
                 tileId)
 
     let aw3dErrors =

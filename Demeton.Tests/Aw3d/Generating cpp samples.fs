@@ -33,6 +33,7 @@ let ``Generate DEM height data C++ array`` () =
             FileSys.readZipFile
             FileSys.copyStreamToFile
             FileSys.deleteFile
+            FileSys.openFileToWrite
 
     test <@ result |> isOk @>
 
