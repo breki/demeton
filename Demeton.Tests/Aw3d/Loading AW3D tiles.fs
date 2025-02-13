@@ -34,3 +34,20 @@ let ``Load AW3D into a DemHeight`` () =
     test <@ heightsArray.Height = Aw3dTileSize @>
     test <@ heightsArray.MinX = 7 * 3600 @>
     test <@ heightsArray.MinY = 46 * 3600 @>
+
+[<Fact>]
+let ``When trying to load a non-existing AW3D, None is returned`` () =
+    let tileId = demTileXYId -32 36
+
+    let result =
+        tileId
+        |> ensureAw3dTile
+            CacheDir
+            FileSys.fileExists
+            FileSys.downloadFileWithoutRedirects
+            FileSys.readZipFile
+            FileSys.copyStreamToFile
+            FileSys.deleteFile
+            FileSys.openFileToWrite
+
+    test <@ result = Ok None @>

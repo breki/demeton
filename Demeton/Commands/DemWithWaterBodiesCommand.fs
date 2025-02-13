@@ -89,7 +89,7 @@ let fillOptions parsedParameters =
 let fetchAw3dTile
     (tileId: DemTileId)
     (localCacheDir: string)
-    : Result<HeightsArray, string> =
+    : Result<HeightsArray option, string> =
     ensureAw3dTile
         localCacheDir
         FileSys.fileExists
@@ -99,7 +99,10 @@ let fetchAw3dTile
         FileSys.deleteFile
         FileSys.openFileToWrite
         tileId
-    |> Result.bind (fun _ -> (readAw3dTile localCacheDir tileId) |> Result.Ok)
+    // read the tile if it exists, otherwise return None
+    |> Result.map (fun aw3dTileFileName ->
+        aw3dTileFileName
+        |> Option.map (fun _ -> readAw3dTile localCacheDir tileId))
 
 
 let downsampleAw3dTile finalTileSize heightsArray =
@@ -242,51 +245,55 @@ let ensureXthFile cacheDir xthSize tileId : HeightsArray option =
     else
         fetchAw3dTile tileId cacheDir
         |> Result.map (fun aw3dTile ->
-            let availableWorldCoverTiles =
-                ensureGeoJsonFile
+            aw3dTile
+            |> Option.map (fun aw3dTile ->
+                let availableWorldCoverTiles =
+                    ensureGeoJsonFile
+                        cacheDir
+                        FileSys.fileExists
+                        FileSys.downloadFile
+                    |> listAllAvailableFiles FileSys.openFileToRead
+                    |> Set.ofSeq
+
+                let downsampledAw3dTile =
+                    aw3dTile |> downsampleAw3dTile xthSize
+
+                loadWaterBodiesTileFromCache
                     cacheDir
-                    FileSys.fileExists
-                    FileSys.downloadFile
-                |> listAllAvailableFiles FileSys.openFileToRead
-                |> Set.ofSeq
+                    availableWorldCoverTiles
+                    tileId
+                |> makeNoneFileIfNeeded cacheDir
+                |> extractWaterBodiesTileFromWorldCoverTileIfNeeded cacheDir
+                |> function
+                    | CachedTileLoaded tileHeightsArray ->
+                        // todo 20: simplify water bodies
 
-            let downsampledAw3dTile = aw3dTile |> downsampleAw3dTile xthSize
+                        tileHeightsArray
+                        |> Option.map (fun tileHeightsArray ->
+                            let downsampledWaterBodiesTile =
+                                tileHeightsArray
+                                |> downsampleWaterBodiesHeightsArray xthSize
 
-            loadWaterBodiesTileFromCache
-                cacheDir
-                availableWorldCoverTiles
-                tileId
-            |> makeNoneFileIfNeeded cacheDir
-            |> extractWaterBodiesTileFromWorldCoverTileIfNeeded cacheDir
-            |> function
-                | CachedTileLoaded tileHeightsArray ->
-                    // todo 20: simplify water bodies
+                            let demWaterBodiesTile =
+                                downsampledAw3dTile
+                                |> encodeWaterBodiesInfoIntoDem
+                                    downsampledWaterBodiesTile
+                            // extend the heights array with one additional
+                            //  row and column so it is compatible with the original
+                            //  XTH files
+                            // |> extendHeightsArrayWithAdditionalRowAndColumn
 
-                    tileHeightsArray
-                    |> Option.map (fun tileHeightsArray ->
-                        let downsampledWaterBodiesTile =
-                            tileHeightsArray
-                            |> downsampleWaterBodiesHeightsArray xthSize
+                            demWaterBodiesTile
+                            |> Xth.writeHeightsArrayToFile xthFileName
+                            |> ignore
 
-                        let demWaterBodiesTile =
-                            downsampledAw3dTile
-                            |> encodeWaterBodiesInfoIntoDem
-                                downsampledWaterBodiesTile
-                        // extend the heights array with one additional
-                        //  row and column so it is compatible with the original
-                        //  XTH files
-                        // |> extendHeightsArrayWithAdditionalRowAndColumn
-
-                        demWaterBodiesTile
-                        |> Xth.writeHeightsArrayToFile xthFileName
-                        |> ignore
-
-                        demWaterBodiesTile)
-                | TileNeedsToBeDownloaded _ ->
-                    invalidOp "Bug: this should never happen"
-                | TileDoesNotExistInWorldCover _ -> None)
+                            demWaterBodiesTile)
+                    | TileNeedsToBeDownloaded _ ->
+                        invalidOp "Bug: this should never happen"
+                    | TileDoesNotExistInWorldCover _ -> None))
         |> function
-            | Ok heightsArray -> heightsArray
+            | Ok(Some heightsArray) -> heightsArray
+            | Ok None -> None
             | Error errorMessage -> invalidOp errorMessage
 
 
