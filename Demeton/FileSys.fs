@@ -180,7 +180,11 @@ let copyStreamToFile (fileName: FileName) (inputStream: Stream) =
         | None -> raise ex
 
 
-let closeStream (stream: Stream) = stream.Close()
+let flushStream (stream: Stream) : Stream =
+    stream.Flush() |> ignore
+    stream
+
+let closeStream (stream: Stream) : unit = stream.Close()
 
 /// <summary>
 /// Downloads a file from the specified URL and saves it to the specified

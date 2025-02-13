@@ -38,8 +38,6 @@ let readHeightsFromStream tileSize (stream: Stream) : DemHeight[] =
     let arraySize = tileSize * tileSize
     let heightsArray: DemHeight[] = Array.zeroCreate arraySize
 
-    let mutable heightsReadCount = 0
-
     // The first line in the XTH format is the top (northern edge) line
     // that overlaps with the neighboring tile to the north.
     // This has two implications:
@@ -124,6 +122,8 @@ let writeHeightsArrayToFile
             use stream = stream
 
             heightsArray |> writeHeightsArrayToStream stream |> ignore
+
+            stream |> flushStream |> closeStream
 
             fileName
         | Error error -> raise error.Exception

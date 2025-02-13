@@ -174,7 +174,8 @@ let extractWaterBodiesTileFromWorldCoverTileIfNeeded cacheDir cachedLoadResult =
             | Ok stream ->
                 stream
                 |> encodeWaterBodiesHeightsArrayToPng heightsArray
-                |> ignore
+                |> flushStream
+                |> closeStream
             | Error error -> raise error.Exception)
 
         // try to find the corresponding water bodies tile
