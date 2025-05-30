@@ -135,6 +135,21 @@ let tryColorNextWaterBody
 
     waterBody
 
+/// <summary>
+/// Colors all water bodies in the given heights array.
+/// </summary>
+/// <param name="waterHeightsArray">
+/// The heights array where water is represented by the value 1.
+/// </param>
+/// <returns>
+/// A list of `WaterBody` objects, each representing a distinct water body
+/// with its color, surface area, and coverage.
+/// </returns>
+/// <remarks>
+/// This function iterates through the heights array, identifying and coloring
+/// connected water regions. Each water body is assigned a unique color, starting
+/// from 2 (to avoid conflicts with the value 1 used for uncolored water).
+/// </remarks>
 let colorWaterBodies (waterHeightsArray: HeightsArray) : WaterBody list =
     // MeasureProfiler.StartCollectingData()
     Log.debug "Coloring water bodies..."

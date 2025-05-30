@@ -11,6 +11,29 @@ type WaterBodyOutline =
 
 // todo sometime 100: document
 
+/// <summary>
+/// Outlines water bodies in a raster by calculating the distance of each pixel
+/// from the water body's outline.
+/// </summary>
+/// <param name="coloredWaterBodiesRaster">
+/// A raster where each water body is represented by a unique color.
+/// </param>
+/// <param name="waterBodies">
+/// A sequence of `WaterBody` objects, each representing a distinct water body
+/// with its color, surface area, and coverage.
+/// </param>
+/// <returns>
+/// A sequence of `WaterBodyOutline` objects, each containing:
+/// - A raster representing the water body with distances from the outline.
+/// - A list of statistics about the distances from the outline.
+/// </returns>
+/// <remarks>
+/// This function iterates through each water body, initializes a raster for it,
+/// and calculates the distance of each pixel from the water body's outline.
+/// The algorithm uses a breadth-first search approach to propagate distances
+/// from the outline inward. If the maximum distance (`Int16.MaxValue`) is
+/// reached, an exception is raised.
+/// </remarks>
 let outlineWaterBodies
     (coloredWaterBodiesRaster: HeightsArray)
     (waterBodies: WaterBody seq)
@@ -20,7 +43,6 @@ let outlineWaterBodies
         // Copy the box defined by waterBody.Coverage into a new
         // bracketed heights array. Note that we add one additional pixel around
         // the original waterBody.Coverage to make it easier to work with.
-
 
         let initializePixel (globalX: int, globalY: int) : DemHeight =
             if

@@ -13,6 +13,26 @@ open Demeton.WaterBodies.Png
 open Raster
 open FileSys
 
+/// <summary>
+/// Unpacks a WorldCover TIFF tile into a 3x3 grid of water bodies tiles.
+/// </summary>
+/// <param name="worldCoverTileId">
+/// The identifier of the WorldCover tile to be unpacked.
+/// </param>
+/// <param name="heightsArray">
+/// The heights array representing the raster data of the WorldCover tile.
+/// </param>
+/// <returns>
+/// A 3x3 array where each element is a tuple containing:
+/// - The tile ID of the water bodies tile.
+/// - The extracted heights array for the water bodies tile.
+/// </returns>
+/// <remarks>
+/// This function converts the original WorldCover raster data into a
+/// monochrome raster where water is represented by 1 and everything else by 0.
+/// It then divides the raster into 3x3 subtiles, each corresponding to a
+/// water bodies tile, and extracts the relevant data for each subtile.
+/// </remarks>
 let unpackWaterBodiesTilesFromWorldCoverTile
     worldCoverTileId
     (heightsArray: HeightsArray)
@@ -137,6 +157,28 @@ let makeNoneFileIfNeeded cacheDir cachedLoadResult =
     | result -> result
 
 
+/// <summary>
+/// Extracts a water bodies tile from a WorldCover tile if needed.
+/// </summary>
+/// <param name="cacheDir">
+/// The directory where cached files are stored.
+/// </param>
+/// <param name="cachedLoadResult">
+/// The result of attempting to load the water bodies tile from the cache.
+/// </param>
+/// <returns>
+/// A `CachedWaterBodiesTileLoadResult` indicating the result of the extraction:
+/// - If the tile needs to be downloaded, it downloads the WorldCover tile,
+///   extracts the water bodies tile, and caches it.
+/// - If the tile does not exist in the WorldCover data, it creates a `.none`
+///   file in the cache.
+/// - If the tile is already cached, it returns the cached result.
+/// </returns>
+/// <remarks>
+/// This function ensures that the water bodies tile is available in the cache,
+/// either by loading it from an existing cache or by extracting it from the
+/// corresponding WorldCover tile.
+/// </remarks>
 let extractWaterBodiesTileFromWorldCoverTileIfNeeded cacheDir cachedLoadResult =
     match cachedLoadResult with
     | TileNeedsToBeDownloaded(waterBodiesTileId, containingWorldCoverTileId) ->
