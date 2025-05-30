@@ -156,42 +156,6 @@ let identifyAndSimplifyWaterBodies finalTileSize worldCoverHeightsArray =
     worldCoverTargetResolution |> colorWaterBodies
 
 
-/// <summary>
-/// Encodes the water bodies information into the DEM heights array.
-/// </summary>
-/// <remarks>
-/// It uses the LSB of the height to encode the water bodies information.
-/// If the bit is set to 1, the cell represents water. If it is set to 0,
-/// the cell represents a land. This also means that all the odd-value heights
-/// are rounded to the even number (e.g. 1 -> 0, 3 -> 2, 5 -> 4, etc.).
-/// </remarks>
-let encodeWaterBodiesInfoIntoDem
-    (waterBodiesHeightsArray: HeightsArray)
-    (demHeightsArray: HeightsArray)
-    : HeightsArray =
-    if
-        waterBodiesHeightsArray.Width <> demHeightsArray.Width
-        || waterBodiesHeightsArray.Height <> demHeightsArray.Height
-    then
-        invalidArg
-            "waterBodiesHeightsArray"
-            (sprintf
-                "The water bodies array (%d,%d) must have the same dimensions as the DEM array (%d,%d)."
-                waterBodiesHeightsArray.Width
-                waterBodiesHeightsArray.Height
-                demHeightsArray.Width
-                demHeightsArray.Height)
-
-    for index in 0 .. waterBodiesHeightsArray.Cells.Length - 1 do
-        let height = demHeightsArray.Cells.[index]
-        let waterBody = waterBodiesHeightsArray.Cells.[index]
-
-        demHeightsArray.Cells.[index] <-
-            (height - Math.Abs(height % 2s)) + waterBody
-
-    demHeightsArray
-
-
 let extendHeightsArrayWithAdditionalRowAndColumn (heightsArray: HeightsArray) =
     let oldWidth = heightsArray.Width
     let newWidth = oldWidth + 1
@@ -276,7 +240,7 @@ let ensureXthFile cacheDir xthSize tileId : HeightsArray option =
 
                             let demWaterBodiesTile =
                                 downsampledAw3dTile
-                                |> encodeWaterBodiesInfoIntoDem
+                                |> Xth.encodeWaterBodiesInfoIntoDem
                                     downsampledWaterBodiesTile
                             // extend the heights array with one additional
                             //  row and column so it is compatible with the original

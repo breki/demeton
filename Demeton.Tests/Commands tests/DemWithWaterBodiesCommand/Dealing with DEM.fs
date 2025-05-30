@@ -1,8 +1,8 @@
 ﻿module Demeton.Tests.Commands_tests.DemWithWaterBodiesCommand.Dealing_with_DEM
 
 open Demeton.Commands
-open System
 
+open Demeton.Dem
 open Demeton.Dem.Types
 open Xunit
 open Swensen.Unquote
@@ -36,9 +36,7 @@ let ``Encoding water bodies info into DEM`` () =
             HeightsArrayDirectImport waterBodiesHeights
         )
 
-    let encoded =
-        dem
-        |> DemWithWaterBodiesCommand.encodeWaterBodiesInfoIntoDem waterBodies
+    let encoded = dem |> Xth.encodeWaterBodiesInfoIntoDem waterBodies
 
     let wb = DemHeightNone
 
