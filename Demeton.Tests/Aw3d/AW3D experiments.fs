@@ -53,12 +53,12 @@ let ``Generate hillshading from AW3D`` () =
     let createShaderFunction _ =
         Demeton.Shaders.Hillshading.shadeRaster
             TileShadeCommand.Aw3dDataSourceKey
-            Demeton.Aw3d.Types.Aw3dTileSize
+            Demeton.Aw3d.Types.Aw3dDefaultTileWidth
             pixelShader
 
     let generateTile =
         ShadeCommand.generateShadedRasterTile
-            Demeton.Aw3d.Types.Aw3dTileSize
+            Demeton.Aw3d.Types.Aw3dDefaultTileWidth
             [| fun level coverageArea dataSources ->
                    TileShadeCommand.fetchAw3dHeightsArray
                        mapProjection

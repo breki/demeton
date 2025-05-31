@@ -105,8 +105,9 @@ let fetchAw3dTile
         |> Option.map (fun _ -> readAw3dTile localCacheDir tileId))
 
 
+// todo 5: how to deal with half-width tiles here?
 let downsampleAw3dTile finalTileSize heightsArray =
-    let downsamplingFactor = float finalTileSize / float Aw3dTileSize
+    let downsamplingFactor = float finalTileSize / float Aw3dDefaultTileWidth
 
     heightsArray |> downsampleHeightsArray downsamplingFactor
 

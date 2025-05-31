@@ -33,7 +33,8 @@ let ``Correctly calculates the AW3D tiles needed for a given boundary`` () =
 
     test
         <@
-            (boundsToTiles Aw3dTileSize DemLevel.Level0 bounds |> Set.ofSeq) = expectedTiles
+            (boundsToTiles Aw3dDefaultTileWidth DemLevel.Level0 bounds
+             |> Set.ofSeq) = expectedTiles
         @>
 
 

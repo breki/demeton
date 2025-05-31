@@ -562,7 +562,8 @@ let fetchAw3dHeightsArray mapProjection cacheDir demLevel coverageArea =
             |> List.map (fun (x, y) -> mapProjection.Invert x y)
             |> List.choose id
 
-        let cellsPerDegree = Aw3dTileSize
+        // todo 5: how to deal with half-width tiles here?
+        let cellsPerDegree = Aw3dDefaultTileWidth
 
         // now convert lon, lat to DEM coordinates
         let coveragePointsInDemCoords =

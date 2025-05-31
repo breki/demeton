@@ -144,8 +144,11 @@ let ensureAw3dTiles
         bounds.MaxLon
         bounds.MaxLat
 
+    // todo 5: how to deal with half-width tiles here?
     let aw3dTilesNeeded =
-        bounds |> boundsToTiles Aw3dTileSize DemLevel.Level0 |> Seq.toList
+        bounds
+        |> boundsToTiles Aw3dDefaultTileWidth DemLevel.Level0
+        |> Seq.toList
 
     let aw3dTileResults =
         aw3dTilesNeeded
@@ -181,13 +184,14 @@ let readAw3dTile cacheDir (tileId: DemTileId) : HeightsArray =
 
     let width = unbox (tiff.GetField(TiffTag.IMAGEWIDTH).[0].Value)
 
-    if width <> Aw3dTileSize then
-        failwithf $"Expected width %d{Aw3dTileSize}, but got %d{width}"
+    if width <> Aw3dDefaultTileWidth && width <> Aw3dHighLatitudeTileWidth then
+        failwithf
+            $"Expected width %d{Aw3dDefaultTileWidth} or %d{Aw3dHighLatitudeTileWidth}, but got %d{width}"
 
     let height = unbox (tiff.GetField(TiffTag.IMAGELENGTH).[0].Value)
 
-    if height <> Aw3dTileSize then
-        failwithf $"Expected height %d{Aw3dTileSize}, but got %d{height}"
+    if height <> Aw3dTileHeight then
+        failwithf $"Expected height %d{Aw3dTileHeight}, but got %d{height}"
 
     let arraySize = width * height
     let heightsArray: DemHeight[] = Array.zeroCreate arraySize
@@ -229,9 +233,10 @@ let readAw3dTile cacheDir (tileId: DemTileId) : HeightsArray =
 
             pixelStart <- pixelStart + pixelBytesSize
 
+    // todo 5: how to deal with half-width tiles here?
     let cellMinX, cellMinY =
         tileMinCell
-            Aw3dTileSize
+            Aw3dDefaultTileWidth
             { Level = { Value = 0 }
               TileX = tileId.TileX
               TileY = tileId.TileY }
@@ -239,7 +244,7 @@ let readAw3dTile cacheDir (tileId: DemTileId) : HeightsArray =
     HeightsArray(
         cellMinX,
         cellMinY,
-        Aw3dTileSize,
-        Aw3dTileSize,
+        width,
+        height,
         HeightsArrayDirectImport heightsArray
     )

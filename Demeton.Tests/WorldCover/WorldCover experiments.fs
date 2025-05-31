@@ -144,10 +144,10 @@ let ``Render hillshading with WorldCover water bodies`` () =
 
         let generateTile =
             ShadeCommand.generateShadedRasterTile
-                Demeton.Aw3d.Types.Aw3dTileSize
+                Demeton.Aw3d.Types.Aw3dDefaultTileWidth
                 shadingDataSourcesFetchers
                 (TileShadeCommand.createShaderFunction
-                    Demeton.Aw3d.Types.Aw3dTileSize
+                    Demeton.Aw3d.Types.Aw3dDefaultTileWidth
                     waterColor
                     waterBodiesDebugMode)
 
