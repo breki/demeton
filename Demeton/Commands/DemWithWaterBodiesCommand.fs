@@ -111,7 +111,7 @@ let downsampleAw3dTile finalTileSize heightsArray =
     heightsArray |> downsampleHeightsArray downsamplingFactor
 
 
-// todo 50: in order to properly identify the water bodies, we need to
+// todo X50: in order to properly identify the water bodies, we need to
 //  work with the area that is larger than just that one 1x1 degree tile
 let fetchWorldCoverTile
     (tileId: DemTileId)
@@ -230,7 +230,7 @@ let ensureXthFile cacheDir xthSize tileId : HeightsArray option =
                 |> extractWaterBodiesTileFromWorldCoverTileIfNeeded cacheDir
                 |> function
                     | CachedTileLoaded tileHeightsArray ->
-                        // todo 20: simplify water bodies
+                        // todo X20: simplify water bodies
 
                         tileHeightsArray
                         |> Option.map (fun tileHeightsArray ->

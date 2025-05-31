@@ -8,6 +8,8 @@ open Demeton.Dem.Funcs
 open Demeton.IOTypes
 open FileSys
 
+let MIN_HEIGHT = -500s
+
 /// <summary>
 /// Reads HeightsArray data from a XTH-encoded stream.
 /// </summary>
@@ -130,6 +132,72 @@ let writeHeightsArrayToFile
 
 
 
+// todo 2: implement a new version of encodeWaterBodiesInfoIntoDem and
+//   remove the old one
+
+/// <summary>
+/// Encodes the water bodies information into the DEM heights array.
+/// </summary>
+/// <remarks>
+/// The method first subtracts the height value from the absolute minimum
+/// supported height value (which is -500) to ensure that the height
+/// values stored are non-negative. For elevations on Earth this means
+/// the value will be stored in the lower 14 bits.
+/// The method then uses the MSB of the height value to encode the water bodies
+/// information.
+/// If the bit is set to 1, the cell represents water. If it is set to 0,
+/// the cell represents a land.
+/// </remarks>
+let encodeWaterBodiesInfoIntoDem2
+    (waterBodiesHeightsArray: HeightsArray)
+    (demHeightsArray: HeightsArray)
+    : HeightsArray =
+    if
+        waterBodiesHeightsArray.Width <> demHeightsArray.Width
+        || waterBodiesHeightsArray.Height <> demHeightsArray.Height
+    then
+        invalidArg
+            "waterBodiesHeightsArray"
+            (sprintf
+                "The water bodies array (%d,%d) must have the same dimensions as the DEM array (%d,%d)."
+                waterBodiesHeightsArray.Width
+                waterBodiesHeightsArray.Height
+                demHeightsArray.Width
+                demHeightsArray.Height)
+
+    for index in 0 .. waterBodiesHeightsArray.Cells.Length - 1 do
+        let height = demHeightsArray.Cells.[index]
+
+        if height < MIN_HEIGHT then
+            invalidArg
+                "demHeightsArray"
+                (sprintf
+                    "The height value %d at index %d is below the minimum supported height of %d."
+                    height
+                    index
+                    MIN_HEIGHT)
+        else
+            let heightRelative = uint16 (height - MIN_HEIGHT)
+
+            let waterBody = waterBodiesHeightsArray.Cells.[index]
+
+            let heightValueEncoded =
+                match waterBody with
+                | 1s -> // water body
+                    heightRelative ||| 0x8000us // set MSB to 1
+                | 0s -> // land, nothing to do
+                    heightRelative
+                | _ ->
+                    invalidArg
+                        "waterBodiesHeightsArray"
+                        (sprintf
+                            "The water body value %d at index %d is not valid. It must be either 0 (land) or 1 (water)."
+                            waterBody
+                            index)
+
+            demHeightsArray.Cells.[index] <- int16 heightValueEncoded
+
+    demHeightsArray
 
 /// <summary>
 /// Encodes the water bodies information into the DEM heights array.
