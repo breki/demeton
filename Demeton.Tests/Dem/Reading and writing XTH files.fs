@@ -162,40 +162,6 @@ let ``Encoding water bodies info into DEM`` () =
     let encoded = dem |> Xth.encodeWaterBodiesInfoIntoDem waterBodies
 
     test
-        <@ encoded.Cells = [| 0s; 1s; 100s; 101s; -100s; -99s; -2s; -1s; 0s |] @>
-
-[<Fact>]
-let ``Encoding water bodies info into DEM - new encoding`` () =
-    let testWidth = 3
-    let testHeight = 3
-
-    let demHeights: DemHeight[] =
-        [| 0s; 0s; 100s; 100s; -100s; -100s; -1s; -2s; 1s |]
-
-    let dem =
-        HeightsArray(
-            0,
-            0,
-            testWidth,
-            testHeight,
-            HeightsArrayDirectImport demHeights
-        )
-
-    let waterBodiesHeights: DemHeight[] =
-        [| 0s; 1s; 0s; 1s; 0s; 1s; 0s; 1s; 0s |]
-
-    let waterBodies =
-        HeightsArray(
-            0,
-            0,
-            testWidth,
-            testHeight,
-            HeightsArrayDirectImport waterBodiesHeights
-        )
-
-    let encoded = dem |> Xth.encodeWaterBodiesInfoIntoDem2 waterBodies
-
-    test
         <@
             encoded.Cells = [| 500s
                                int16 (0x8000us ||| 500us)
