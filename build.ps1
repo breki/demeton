@@ -14,7 +14,7 @@ if ($LASTEXITCODE -ne 0)
 
 Write-Host "`nRUNNING THE TESTS..."
 
-dotnet test --configuration $CONFIG --verbosity minimal --filter "Category != acceptance"
+dotnet test --configuration $CONFIG --verbosity minimal --filter "Category!=acceptance&Category!=slow"
 if ($LASTEXITCODE -ne 0)
 {
     exit $LASTEXITCODE

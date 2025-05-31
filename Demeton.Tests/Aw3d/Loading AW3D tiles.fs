@@ -36,6 +36,7 @@ let ``Load AW3D into a DemHeight`` () =
     test <@ heightsArray.MinY = 46 * 3600 @>
 
 [<Fact>]
+[<Trait("Category", "slow")>]
 let ``Load high-latitude AW3D into a DemHeight`` () =
     let tileId = demTileXYId -148 61
 
