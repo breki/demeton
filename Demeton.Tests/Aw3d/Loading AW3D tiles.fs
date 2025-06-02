@@ -35,8 +35,16 @@ let ``Load AW3D into a DemHeight`` () =
     test <@ heightsArray.MinX = 7 * 3600 @>
     test <@ heightsArray.MinY = 46 * 3600 @>
 
+/// <summary>
+/// readAw3dTile supports half-width tiles for high-latitude tiles.
+/// </summary>
+/// <remarks>
+/// In order to avoid having to do a lot of changes in the downstream code,
+/// the function now creates a full-width heights array with heights from the
+/// original half-width tile filled twice, in pairs.
+/// </remarks>
 [<Fact>]
-[<Trait("Category", "slow")>]
+// [<Trait("Category", "slow")>]
 let ``Load high-latitude AW3D into a DemHeight`` () =
     let tileId = demTileXYId -148 61
 
@@ -55,7 +63,7 @@ let ``Load high-latitude AW3D into a DemHeight`` () =
 
     let heightsArray = readAw3dTile CacheDir tileId
 
-    test <@ heightsArray.Width = Aw3dHighLatitudeTileWidth @>
+    test <@ heightsArray.Width = Aw3dDefaultTileWidth @>
     test <@ heightsArray.Height = Aw3dTileHeight @>
     test <@ heightsArray.MinX = -148 * 3600 @>
     test <@ heightsArray.MinY = 61 * 3600 @>

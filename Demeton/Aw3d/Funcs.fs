@@ -182,18 +182,24 @@ let readAw3dTile cacheDir (tileId: DemTileId) : HeightsArray =
 
     use tiff = Tiff.Open(fileName, "r")
 
-    let width = unbox (tiff.GetField(TiffTag.IMAGEWIDTH).[0].Value)
+    let fileTileWidth = unbox (tiff.GetField(TiffTag.IMAGEWIDTH).[0].Value)
 
-    if width <> Aw3dDefaultTileWidth && width <> Aw3dHighLatitudeTileWidth then
+    if
+        fileTileWidth <> Aw3dDefaultTileWidth
+        && fileTileWidth <> Aw3dHighLatitudeTileWidth
+    then
         failwithf
-            $"Expected width %d{Aw3dDefaultTileWidth} or %d{Aw3dHighLatitudeTileWidth}, but got %d{width}"
+            $"Expected width %d{Aw3dDefaultTileWidth} or %d{Aw3dHighLatitudeTileWidth}, but got %d{fileTileWidth}"
 
-    let height = unbox (tiff.GetField(TiffTag.IMAGELENGTH).[0].Value)
+    let fileTileHeight = unbox (tiff.GetField(TiffTag.IMAGELENGTH).[0].Value)
 
-    if height <> Aw3dTileHeight then
-        failwithf $"Expected height %d{Aw3dTileHeight}, but got %d{height}"
+    let isHalfWidthTile = fileTileWidth = Aw3dHighLatitudeTileWidth
 
-    let arraySize = width * height
+    if fileTileHeight <> Aw3dTileHeight then
+        failwithf
+            $"Expected height %d{Aw3dTileHeight}, but got %d{fileTileHeight}"
+
+    let arraySize = Aw3dDefaultTileWidth * Aw3dTileHeight
     let heightsArray: DemHeight[] = Array.zeroCreate arraySize
 
     let samplesPerPixel: int16 =
@@ -207,11 +213,12 @@ let readAw3dTile cacheDir (tileId: DemTileId) : HeightsArray =
 
     let pixelBytesSize = int samplesPerPixel * (int bitsPerSample / 8)
 
-    for row in 0 .. height - 1 do
+    for row in 0 .. fileTileHeight - 1 do
         // since the coordinate system of the DEM heights array is flipped
         // vertically compared to the bitmap coordinate system, when reading
         // the scanlines, we must put them in the array in reverse order
-        let mutable heightsArrayValueIndex = (height - row - 1) * width
+        let mutable heightsArrayValueIndex =
+            (fileTileHeight - row - 1) * Aw3dDefaultTileWidth
 
         let success = tiff.ReadScanline(buffer, row)
 
@@ -220,18 +227,22 @@ let readAw3dTile cacheDir (tileId: DemTileId) : HeightsArray =
 
         // Process the buffer to get the pixel data
 
-        let mutable pixelStart = 0
+        let mutable fileHeightIndex = 0
 
-        for col in 0 .. width - 1 do
+        for col in 0 .. fileTileWidth - 1 do
             // todo sometime 10: do we already have a function for this?
 
             // read little-endian int16 value from pixelData
-            let height = BitConverter.ToInt16(buffer, pixelStart)
+            let height = BitConverter.ToInt16(buffer, fileHeightIndex)
 
             heightsArray.[heightsArrayValueIndex] <- height
             heightsArrayValueIndex <- heightsArrayValueIndex + 1
 
-            pixelStart <- pixelStart + pixelBytesSize
+            if isHalfWidthTile then
+                heightsArray.[heightsArrayValueIndex] <- height
+                heightsArrayValueIndex <- heightsArrayValueIndex + 1
+
+            fileHeightIndex <- fileHeightIndex + pixelBytesSize
 
     // todo 5: how to deal with half-width tiles here?
     let cellMinX, cellMinY =
@@ -244,7 +255,7 @@ let readAw3dTile cacheDir (tileId: DemTileId) : HeightsArray =
     HeightsArray(
         cellMinX,
         cellMinY,
-        width,
-        height,
+        Aw3dDefaultTileWidth,
+        Aw3dTileHeight,
         HeightsArrayDirectImport heightsArray
     )

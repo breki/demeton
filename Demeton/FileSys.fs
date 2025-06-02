@@ -237,6 +237,7 @@ let downloadFileWithoutRedirects
     clientHandler.AllowAutoRedirect <- false
 
     let httpClient = new HttpClient(clientHandler)
+    httpClient.Timeout <- TimeSpan.FromMinutes(10)
 
     let downloadTask =
         async {
